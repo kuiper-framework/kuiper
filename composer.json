@@ -1,0 +1,44 @@
+{
+    "name": "kuiper/helper",
+    "type": "library",
+    "description": "Utility component",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@163.com"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../*"
+        }
+    ],
+    "require": {
+        "php": "^5.5"
+    },
+    "suggest": {
+        "symfony/yaml": "For load and dump yaml"
+    },
+    "require-dev": {
+        "kuiper/test-helper": "^0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\helper\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\helper\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}
