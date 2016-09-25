@@ -5,15 +5,9 @@ use InvalidArgumentException;
 use Iterator;
 use ArrayIterator;
 use kuiper\reflection\exception\SyntaxErrorException;
-use kuiper\reflection\exception\ClassNotFoundException;
 
 class ReflectionFile
 {
-    /**
-     * @var string
-     */
-    protected $file;
-
     /**
      * @var array
      */
@@ -23,6 +17,16 @@ class ReflectionFile
      * @var array
      */
     private static $TOKEN_TYPES;
+
+    /**
+     * @var string
+     */
+    private $file;
+
+    /**
+     * @var array
+     */
+    private $fileInfo;
 
     /**
      * @param string $file
@@ -126,6 +130,9 @@ class ReflectionFile
 
     private function getFileInfo()
     {
+        if (isset($this->fileInfo)) {
+            return $this->fileInfo;
+        }
         $mtime = filemtime($this->file);
         if ($mtime === false) {
             throw new InvalidArgumentException("Cannot stat file '{$this->file}'");
@@ -133,7 +140,7 @@ class ReflectionFile
         if (isset(self::$FILE_CACHE[$this->file])) {
             $info = self::$FILE_CACHE[$this->file];
             if ($mtime === $info['mtime']) {
-                return $info['info'];
+                return $this->fileInfo = $info['info'];
             }
         }
         $info = $this->parse();
@@ -141,7 +148,7 @@ class ReflectionFile
             'mtime' => $mtime,
             'info' => $info
         ];
-        return $info;
+        return $this->fileInfo = $info;
     }
 
     private function parse()
