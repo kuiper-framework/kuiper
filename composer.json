@@ -1,0 +1,53 @@
+{
+    "name": "kuiper/di",
+    "type": "library",
+    "description": "Dependency injection component",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^5.5",
+        "container-interop/container-interop": "^1.1",
+        "psr/log": "^1.0"
+    },
+    "suggest": {
+        "ocramius/proxy-manager": "for lazy object injection",
+        "kuiper/helper": "for dot array config",
+        "kuiper/cache": "for cache annotations",
+        "kuiper/annotations": "for annotations"
+    },
+    "require-dev": {
+        "ocramius/proxy-manager": "^1.0",
+        "kuiper/test-helper": "^0.1",
+        "kuiper/annotations": "^0.1",
+        "kuiper/helper": "^0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\di\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\di\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../*"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}
