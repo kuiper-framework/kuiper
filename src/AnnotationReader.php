@@ -259,6 +259,7 @@ class AnnotationReader extends AbstractReader
         if ($this->shouldIgnore($annotationName)) {
             return;
         }
+        $context->setAnnotation($annotation);
         $annotationClass = $context->resolveClassName($annotationName);
         if (!class_exists($annotationClass)) {
             if ($ignoredNotFound) {
@@ -273,7 +274,7 @@ class AnnotationReader extends AbstractReader
                 ));
             }
         }
-        $context->setAnnotation($annotation, $annotationClass);
+        $context->setAnnotationClass($annotationClass);
         $metadata = $this->getAnnotationMetadata($annotationClass);
         if ($metadata['is_annotation'] === false) {
             throw new AnnotationException(sprintf(
@@ -327,7 +328,7 @@ class AnnotationReader extends AbstractReader
         return !ctype_upper($name[0]);
     }
 
-    protected function handleNotFound($content, $annotationClass)
+    protected function handleNotFound($context, $annotationClass)
     {
         if ($this->errorMode !== self::ERRMODE_SILENT) {
             $message = sprintf(

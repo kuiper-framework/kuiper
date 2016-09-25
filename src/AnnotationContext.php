@@ -89,9 +89,13 @@ class AnnotationContext
         $this->file = new ReflectionFile($this->declaringClass->getFileName());
     }
 
-    public function setAnnotation(Annotation $annotation, $annotationClass)
+    public function setAnnotation(Annotation $annotation)
     {
         $this->annotation = $annotation;
+    }
+
+    public function setAnnotationClass($annotationClass)
+    {
         $this->annotationClass = $annotationClass;
     }
 
