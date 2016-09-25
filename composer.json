@@ -1,0 +1,49 @@
+{
+    "name": "kuiper/annotations",
+    "type": "library",
+    "description": "Annotations parser component",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@163.com"
+        }
+    ],
+    "require": {
+        "php": "^5.5",
+        "kuiper/reflection": "^0.1",
+        "symfony/event-dispatcher": "^3.1"
+    },
+    "suggest": {
+        "monolog/monolog": "For logging",
+        "doctrine/lexer": "^1.0",
+        "kuiper/cache": "For cache annotations"
+    },
+    "require-dev": {
+        "kuiper/test-helper": "^0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\annotations\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\annotations\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../*"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}
