@@ -1,0 +1,47 @@
+{
+    "name": "kuiper/cache",
+    "type": "library",
+    "description": "Cache component",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^5.5",
+        "psr/cache": "^1.0"
+    },
+    "suggest": {
+        "ext-redis": "For use redis cache",
+        "ext-apcu": "For use apcu cache"
+    },
+    "require-dev": {
+        "kuiper/test-helper": "^0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\cache\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\cache\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../*"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}

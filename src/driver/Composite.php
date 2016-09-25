@@ -1,0 +1,134 @@
+<?php
+namespace kuiper\cache\driver;
+
+class Composite implements DriverInterface
+{
+    protected $drivers;
+    
+    public function __construct(array $drivers)
+    {
+        $this->drivers = $drivers;
+    }
+
+    public function getDrivers()
+    {
+        return $this->drivers;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function get(array $key)
+    {
+        $failedDrivers = [];
+        foreach ($this->drivers as $driver) {
+            $value = $driver->get($key);
+            if ($value === false) {
+                $failedDrivers[] = $driver;
+            } else {
+                foreach (array_reverse($failedDrivers) as $failedDriver) {
+                    $failedDriver->set($key, $value['data'], $value['expiration']);
+                }
+                return $value;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function mget(array $keys)
+    {
+        $failedDrivers = [];
+        $indexes = array_keys($keys);
+        $restKeys = $keys;
+        $values = array_fill(0, count($keys), false);
+        foreach ($this->drivers as $driver) {
+            $restValues = $driver->mget($restKeys);
+            $nextIndexes = [];
+            $nextKeys = [];
+            foreach ($restValues as $i => $value) {
+                $index = $indexes[$i];
+                $key = $restKeys[$i];
+                if ($value === false) {
+                    $failedDrivers[$index][] = $driver;
+                    $nextIndexes[] = $index;
+                    $nextKeys[] = $key;
+                } else {
+                    $values[$index] = $value;
+                    if (isset($failedDrivers[$index])) {
+                        foreach (array_reverse($failedDrivers[$index]) as $failedDriver) {
+                            $failedDriver->set($key, $value['data'], $value['expiration']);
+                        }
+                    }
+                }
+            }
+            if (empty($nextKeys)) {
+                break;
+            }
+            $restKeys = $nextKeys;
+            $indexes = $nextIndexes;
+        }
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function set(array $key, $data, $expiration)
+    {
+        return $this->executeOnAll(function ($driver) use ($key, $data, $expiration) {
+            return $driver->set($key, $data, $expiration);
+        });
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function del(array $key)
+    {
+        return $this->executeOnAll(function ($driver) use ($key) {
+            return $driver->del($key);
+        });
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function clear($prefix)
+    {
+        return $this->executeOnAll(function ($driver) use ($prefix) {
+            return $driver->clear($prefix);
+        });
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function lock(array $key, $ttl)
+    {
+        $driver = end($this->drivers);
+        return $driver->lock($key, $ttl);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function unlock(array $key)
+    {
+        $driver = end($this->drivers);
+        return $driver->unlock($key);
+    }
+
+    protected function executeOnAll(callable $action)
+    {
+        $success = true;
+        foreach (array_reverse($this->drivers) as $driver) {
+            if (!$action($driver)) {
+                $success = false;
+            }
+        }
+        return $success;
+    }
+}
