@@ -1,0 +1,50 @@
+{
+    "name": "kuiper/serializer",
+    "type": "library",
+    "description": "kuiper serializer component",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^5.5",
+        "ext-json": "*",
+        "psr/log": "^1.0",
+        "psr/cache": "^1.0",
+        "kuiper/helper": "^0.1",
+        "kuiper/annotations": "^0.1"
+    },
+    "suggests": {
+        "kuiper/cache": "For cache metadata"
+    },
+    "require-dev": {
+        "kuiper/test-helper": "^0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\serializer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\serializer\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../*"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}
