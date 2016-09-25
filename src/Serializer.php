@@ -204,7 +204,7 @@ class Serializer implements ArraySerializerInterface, JsonSerializerInterface
         if (isset(self::$METADATA[$className])) {
             return self::$METADATA[$className];
         }
-        if ($this->cache !== null) {
+        if (isset($this->cache)) {
             $item = $this->cache->getItem('serializer\properties:' . $className);
             if (!$item->isHit()) {
                 $this->cache->save($item->set($this->parseClassMetadata($class)));
@@ -226,9 +226,9 @@ class Serializer implements ArraySerializerInterface, JsonSerializerInterface
      */
     private function parseClassMetadata(ReflectionClass $class)
     {
-        if ($this->logger) {
-            $this->logger->debug("[Serializer] parse class metadata from " . $class->getName());
-        }
+        isset($this->logger) && $this->logger->debug(
+            "[Serializer] parse class metadata from " . $class->getName()
+        );
         $isException = $class->isSubclassOf(Exception::class);
         $getters = [];
         $setters = [];
