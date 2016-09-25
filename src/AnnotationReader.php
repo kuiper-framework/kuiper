@@ -196,9 +196,9 @@ class AnnotationReader extends AbstractReader
 
     protected function parseAnnotations(ReflectionClass $class)
     {
-        if ($this->logger) {
-            $this->logger->debug("[AnnotationReader] parse annotations from " . $class->getName());
-        }
+        isset($this->logger) && $this->logger->debug(
+            "[AnnotationReader] parse annotations from " . $class->getName()
+        );
         $context = new AnnotationContext($class);
         $annotations = $this->parser->parse($class);
         if (!empty($annotations['class'])) {
@@ -337,10 +337,10 @@ class AnnotationReader extends AbstractReader
                 $this->describeAnnotation($context)
             );
             if ($this->errorMode === self::ERRMODE_WARNING) {
-                if ($this->logger === null) {
-                    error_log($message);
-                } else {
+                if (isset($this->logger)) {
                     $this->logger->warning($message);
+                } else {
+                    error_log($message);
                 }
             } elseif ($this->errorMode === self::ERRMODE_EXCEPTION) {
                 throw new AnnotationException($message);
