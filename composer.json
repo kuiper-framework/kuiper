@@ -1,0 +1,50 @@
+{
+    "name": "kuiper/web",
+    "type": "library",
+    "description": "kuiper web component",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^5.5",
+        "container-interop/container-interop": "^1.1",
+        "kuiper/serializer": "^0.1",
+        "kuiper/annotations": "^0.1"
+    },
+    "require-dev": {
+        "kuiper/test-helper": "^0.1",
+        "kuiper/di": "^0.1",
+        "guzzlehttp/guzzle": "^6.2"
+    },
+    "suggest": {
+        "guzzlehttp/guzzle": "for rpc http client"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\rpc\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\rpc\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../*"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}
