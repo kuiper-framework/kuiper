@@ -1,5 +1,5 @@
 <?php
-namespace chaozhuo\web\exception;
+namespace kuiper\web\exception;
 
 use RuntimeException;
 use Psr\Http\Message\ServerRequestInterface;

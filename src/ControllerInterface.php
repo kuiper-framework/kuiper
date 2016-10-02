@@ -1,5 +1,5 @@
 <?php
-namespace chaozhuo\web;
+namespace kuiper\web;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -22,7 +22,7 @@ interface ControllerInterface
     public function getResponse();
 
     /**
-     * Init
+     * Initialize controller
      */
     public function initialize();
 }

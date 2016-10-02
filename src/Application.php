@@ -1,14 +1,15 @@
 <?php
-namespace chaozhuo\web;
+namespace kuiper\web;
 
 use Interop\Container\ContainerInterface;
 use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use chaozhuo\web\exception\NotFoundException;
-use chaozhuo\web\exception\MethodNotAllowedException;
-use chaozhuo\web\exception\HttpException;
-use chaozhuo\web\exception\DispatchException;
+use kuiper\web\exception\NotFoundException;
+use kuiper\web\exception\MethodNotAllowedException;
+use kuiper\web\exception\HttpException;
+use kuiper\web\exception\DispatchException;
+use kuiper\web\ControllerInterface;
 use RuntimeException;
 use Exception;
 use Throwable;
@@ -83,7 +84,7 @@ class Application implements ApplicationInterface
                 }
             }
         }
-        return true;
+        return $this;
     }
 
     /**
@@ -110,8 +111,8 @@ class Application implements ApplicationInterface
      */
     protected function respond(ResponseInterface $response)
     {
-        if ($this->container->has('config.response.chuck_size')) {
-            $chunkSize = $this->container->get('config.response.chuck_size');
+        if ($this->container->has('settings.response.chuck_size')) {
+            $chunkSize = $this->container->get('settings.response.chuck_size');
         } else {
             $chunkSize = 4096;
         }
@@ -154,74 +155,37 @@ class Application implements ApplicationInterface
             return $response;
         }
     }
-    
+
+    /**
+     * The middleware to resolve route info
+     *
+     * Puts attribute 'routeInfo' to request, routeInfo is an array with entry
+     *  - callback the route callback
+     *  - params parameters for the route callback
+     *  - controller optional, the controller class
+     *  - action optional, the method name
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @param callable $next
+     * @throws MethodNotAllowedException
+     *       NotFoundException
+     */
     protected function resolveRoute(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         $router = $this->container->get(RouterInterface::class);
-        $routeInfo = $router->dispatch($request);
-        if ($routeInfo[0] === RouterInterface::FOUND) {
-            $route = [
-                'callback' => $routeInfo[1],
-                'params' => $routeInfo[2]
-            ];
-            if (is_array($route['callback'])) {
-                if (count($route['callback']) != 2) {
-                    throw new RuntimeException("Invalid route " . json_encode($route['callback']));
-                }
-                list ($controller, $action) = $route['callback'];
-                if (!method_exists($controller, $action)) {
-                    throw new RuntimeException("Invalid route " . json_encode($route['callback']));
-                }
-                $route['controller'] = $controller;
-                $route['action'] = $action;
-            }
-            return $next($request->withAttribute('routeInfo', $route), $response);
-        } elseif ($routeInfo[0] === RouterInterface::METHOD_NOT_ALLOWED) {
-            throw new MethodNotAllowedException($routeInfo[1], $request, $response);
-        } else {
-            throw new NotFoundException($request, $response);
-        }
-        
-        return $next($request->withAttribute('routeInfo', $routeInfo), $response);
+        $next($request->withAttribute('route', $router->dispatch($request)), $response);
     }
 
     protected function dispatch(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         try {
-            return $this->dispatchRoute($request, $response, $request->getAttribute('routeInfo'));
+            $route = $request->getAttribute('route');
+            $route->setContainer
+            return $route->run($request, $response);
         } catch (Exception $e) {
             throw new DispatchException($request, $response, null, $e);
         }
-    }
-
-    protected function dispatchRoute($request, $response, $routeInfo)
-    {
-        $callback = $routeInfo['callback'];
-        if (isset($routeInfo['controller'])) {
-            $controller = $routeInfo['controller'];
-            if (is_string($controller)) {
-                $controller = $this->container->get($controller);
-            }
-            if ($controller instanceof ControllerInterface) {
-                $controller->setRequest($request);
-                $controller->setResponse($response);
-                $controller->initialize();
-                $callback[0] = $controller;
-                $result = call_user_func_array($callback, $routeInfo['params']);
-                if ($result === null) {
-                    return $controller->getResponse();
-                } else {
-                    return $result;
-                }
-            } else {
-                $callback = [$controller, $action];
-            }
-        }
-
-        if (!is_callable($callback, true)) {
-            throw new RuntimeException("Invalid route " . json_encode($callback));
-        }
-        return call_user_func($callback, $request, $response, $routeInfo['params']);
     }
 
     protected function handleError(ServerRequestInterface $request, ResponseInterface $response, callable $next)

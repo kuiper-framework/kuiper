@@ -13,25 +13,29 @@
     "require": {
         "php": "^5.5",
         "container-interop/container-interop": "^1.1",
-        "kuiper/serializer": "^0.1",
-        "kuiper/annotations": "^0.1"
+        "psr/http-message": "^1.0",
+        "psr/cache": "^1.0",
+        "dflydev/fig-cookies": "^1.0",
+        "nikic/fast-route": "^1.0"
     },
     "require-dev": {
+        "zendframework/zend-diactoros": "^1.3",
         "kuiper/test-helper": "^0.1",
-        "kuiper/di": "^0.1",
-        "guzzlehttp/guzzle": "^6.2"
+        "kuiper/annotations": "^0.1",
+        "kuiper/cache": "^0.1",
+        "kuiper/di": "^0.1"
     },
     "suggest": {
-        "guzzlehttp/guzzle": "for rpc http client"
+        "kuiper/annotations": "for filter middleware annotations and route definition"
     },
     "autoload": {
         "psr-4": {
-            "kuiper\\rpc\\": "src/"
+            "kuiper\\web\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "kuiper\\rpc\\": "tests/"
+            "kuiper\\web\\": "tests/"
         }
     },
     "repositories": [

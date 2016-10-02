@@ -1,5 +1,5 @@
 <?php
-namespace chaozhuo\web\exception;
+namespace kuiper\web\exception;
 
 class DispatchException extends HttpException
 {

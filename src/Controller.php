@@ -1,11 +1,11 @@
 <?php
-namespace chaozhuo\web;
+namespace kuiper\web;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use chaozhuo\web\exception\NotFoundException;
-use chaozhuo\web\exception\AccessDeniedException;
-use chaozhuo\web\exception\UnauthorizedException;
+use kuiper\web\exception\NotFoundException;
+use kuiper\web\exception\AccessDeniedException;
+use kuiper\web\exception\UnauthorizedException;
 
 abstract class Controller implements ControllerInterface
 {
