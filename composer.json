@@ -13,11 +13,11 @@
     "require": {
         "php": "^5.5",
         "kuiper/reflection": "^0.1",
+        "doctrine/lexer": "^1.0",
         "symfony/event-dispatcher": "^3.1"
     },
     "suggest": {
         "monolog/monolog": "For logging",
-        "doctrine/lexer": "^1.0",
         "kuiper/cache": "For cache annotations"
     },
     "require-dev": {
