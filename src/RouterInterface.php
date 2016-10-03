@@ -2,6 +2,7 @@
 namespace kuiper\web;
 
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 interface RouterInterface
 {
@@ -16,5 +17,5 @@ interface RouterInterface
      * @throws \kuiper\web\exception\NotFoundException
      *  \kuiper\web\exception\MethodNotAllowedException
      */
-    public function dispatch(ServerRequestInterface $request);
+    public function dispatch(ServerRequestInterface $request, ResponseInterface $response);
 }

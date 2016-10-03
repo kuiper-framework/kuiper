@@ -11,6 +11,7 @@ use kuiper\web\exception\HttpException;
 use kuiper\web\exception\DispatchException;
 use kuiper\web\ControllerInterface;
 use RuntimeException;
+use LogicException;
 use Exception;
 use Throwable;
 
@@ -21,6 +22,11 @@ class Application implements ApplicationInterface
      * @var ContainerInterface
      */
     private $container;
+
+    /**
+     * @var array
+     */
+    private $options;
 
     /**
      * @var array
@@ -37,9 +43,10 @@ class Application implements ApplicationInterface
      */
     private static $STAGES = ['START', 'ERROR', 'ROUTE', 'DISPATCH'];
 
-    public function __construct(ContainerInterface $container)
+    public function __construct(ContainerInterface $container, array $options = [])
     {
         $this->container = $container;
+        $this->options = $options;
     }
 
     /**
@@ -111,8 +118,11 @@ class Application implements ApplicationInterface
      */
     protected function respond(ResponseInterface $response)
     {
-        if ($this->container->has('settings.response.chuck_size')) {
-            $chunkSize = $this->container->get('settings.response.chuck_size');
+        if (isset($this->options['chuck_size'])) {
+            $chunkSize = $this->options['chuck_size'];
+            if (!is_int($chunkSize) || $chunkSize < 1) {
+                throw new RuntimeException("chuck_size should be an positive integer");
+            }
         } else {
             $chunkSize = 4096;
         }
@@ -159,12 +169,6 @@ class Application implements ApplicationInterface
     /**
      * The middleware to resolve route info
      *
-     * Puts attribute 'routeInfo' to request, routeInfo is an array with entry
-     *  - callback the route callback
-     *  - params parameters for the route callback
-     *  - controller optional, the controller class
-     *  - action optional, the method name
-     *
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
      * @param callable $next
@@ -174,20 +178,42 @@ class Application implements ApplicationInterface
     protected function resolveRoute(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         $router = $this->container->get(RouterInterface::class);
-        $next($request->withAttribute('route', $router->dispatch($request)), $response);
+        $route = $router->dispatch($request);
+        if (!($route instanceof RouteInterface)) {
+            throw new LogicException("RouterInterface::dispatch should return RouteInterface, got " . gettype($route));
+        }
+        return $next($request->withAttribute('route', $route), $response);
     }
 
+    /**
+     * The middleware to execute route callback
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @param callable $next
+     * @throws DispatchException
+     */
     protected function dispatch(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         try {
             $route = $request->getAttribute('route');
-            $route->setContainer
+            if (method_exists($route, 'setContainer')) {
+                $route->setContainer($this->container);
+            }
             return $route->run($request, $response);
         } catch (Exception $e) {
             throw new DispatchException($request, $response, null, $e);
         }
     }
 
+    /**
+     * The middleware to handle exception
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @param callable $next
+     * @throws DispatchException
+     */
     protected function handleError(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         try {

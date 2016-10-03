@@ -2,6 +2,7 @@
 namespace kuiper\web;
 
 use kuiper\reflection\ClassScanner;
+use kuiper\annotations\ReaderInterface;
 use kuiper\helper\Text;
 use ReflectionClass;
 use kuiper\web\annotation\route\RoutePrefix;
@@ -24,11 +25,17 @@ class RouteScanner
      */
     private $controllerSuffix;
 
-    public function __construct(ReaderInterface $reader, ClassScanner $classScanner, $controllerSuffix = 'Controller')
+    /**
+     * @var string
+     */
+    private $actionSuffix;
+
+    public function __construct(ReaderInterface $reader, ClassScanner $classScanner, $controllerSuffix = 'Controller', $actionSuffix = 'Action')
     {
         $this->annotationReader = $reader;
         $this->classScanner = $classScanner;
         $this->controllerSuffix = $controllerSuffix;
+        $this->actionSuffix = $actionSuffix;
     }
     
     public function scan($namespaces)
@@ -53,7 +60,7 @@ class RouteScanner
                     if ($annot instanceof RoutePrefix) {
                         $prefix = rtrim($annot->value, '/');
                     } elseif ($annot instanceof Route) {
-                        $routes[] = $this->createRoute($annot, $prefix, $className);
+                        $routes[] = $this->createRoute($annot, $prefix, $className, null);
                     }
                 }
                 foreach ($class->getMethods() as $method) {
@@ -75,11 +82,12 @@ class RouteScanner
     {
         return [
             'route' => $route,
-            'pattern' => $prefix . '/' . ltrim($route->value),
-            'methods' => $route->methods,
+            'pattern' => $prefix . $route->value,
+            'methods' => empty($route->methods) ? ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'] : $route->methods,
             'name' => $route->name,
             'controller' => $controller,
-            'action' => $action
+            'action' => $action,
+            'actionSuffix' => $this->actionSuffix
         ];
     }
 }

@@ -1,6 +1,9 @@
 <?php
 namespace kuiper\web;
 
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
 interface RouteInterface
 {
     /**
@@ -25,7 +28,7 @@ interface RouteInterface
      * @param string $name
      *
      * @return static
-     * @throws InvalidArgumentException if the route name is not a string
+     * @throws \InvalidArgumentException if the route name is not a string
      */
     public function setName($name);
 
@@ -35,6 +38,16 @@ interface RouteInterface
      * @return null|string
      */
     public function getName();
+
+    /**
+     * Set route pattern
+     *
+     * @param string $pattern
+     *
+     * @return static
+     * @throws \InvalidArgumentException if the route pattern is not a string
+     */
+    public function setPattern($pattern);
 
     /**
      * Get route pattern
@@ -48,7 +61,7 @@ interface RouteInterface
      *
      * @return callable
      */
-    public function getCallback();
+    public function getHandler();
 
     /**
      * Run route
