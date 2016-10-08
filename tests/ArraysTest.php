@@ -3,6 +3,7 @@ namespace kuiper\helper;
 
 use kuiper\test\TestCase;
 use kuiper\helper\fixtures\User;
+use kuiper\helper\Text;
 
 /**
  * TestCase for Arrays
@@ -110,5 +111,17 @@ class ArraysTest extends TestCase
         $user = new User('john');
         $this->assertEquals(Arrays::toArray($user), ['name' => 'john', 'age' => null]);
         $this->assertEquals(Arrays::toArray($user, false), ['name' => 'john']);
+    }
+
+    public function testMapKeys()
+    {
+        $arr = Arrays::mapKeys(['fooId' => 1], [Text::class, 'uncamelize']);
+        $this->assertEquals(["foo_id" => 1], $arr);
+
+        $ret = Arrays::mapKeys($arr, function($key) {
+            return 'prefixed_' . $key;
+        });
+        $this->assertEquals(["foo_id" => 1], $arr);
+        $this->assertEquals(["prefixed_foo_id" => 1], $ret);
     }
 }

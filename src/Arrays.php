@@ -159,7 +159,7 @@ class Arrays
             foreach ($attrs as $name => $val) {
                 if (array_key_exists($name, $properties)) {
                     $bean->{$name} = $val;
-                } elseif (method_exists($bean, $method = 'set' . Text::uncamelize($name))) {
+                } elseif (method_exists($bean, $method = 'set' . Text::camelize($name))) {
                     $bean->$method($val);
                 } elseif (!$onlyPublic) {
                     $failed[$name] = $val;
@@ -183,7 +183,7 @@ class Arrays
     }
 
     /**
-     * @param object $bean
+     * @param object|array $bean
      * @param bool $includeGetters
      * @return array
      */
@@ -202,14 +202,19 @@ class Arrays
                 if (preg_match('/^(get|is)(.+)/', $method->getName(), $matches)
                     && $method->getNumberOfParameters() === 0) {
                     $key = lcfirst($matches[2]);
-                    if ($uncamelizeKey) {
-                        $key = Text::uncamelize($key);
-                    }
                     $properties[$key] = $method->invoke($bean);
                 }
             }
         }
-        return $properties;
+        if ($uncamelizeKey) {
+            $values = [];
+            foreach ($properties as $key => $val) {
+                $values[Text::uncamelize($key)] = $val;
+            }
+            return $values;
+        } else {
+            return $properties;
+        }
     }
 
     /**
@@ -245,5 +250,25 @@ class Arrays
                 return call_user_func($func, $a[$name], $b[$name]);
             };
         }
+    }
+
+    /**
+     * Applies the callback to the keys of given array
+     *
+     * @param array $arr
+     * @param callable $callback
+     */
+    public static function mapKeys(array $arr, callable $callback)
+    {
+        $result = [];
+        array_walk($arr, function(&$value, $key) use (&$result, $callback) {
+            $result[$callback($key)] = $value;
+        });
+        return $result;
+    }
+
+    public static function uncamelizeKeys(array $arr)
+    {
+        return self::mapKeys($arr, [Text::class, 'uncamelize']);
     }
 }
