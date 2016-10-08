@@ -43,6 +43,13 @@ class Application implements ApplicationInterface
      */
     private static $STAGES = ['START', 'ERROR', 'ROUTE', 'DISPATCH'];
 
+    /**
+     * Avaliable options:
+     *  - chuck_size response chuck size
+     * 
+     * @param ContainerInterface $container
+     * @param array $options 
+     */
     public function __construct(ContainerInterface $container, array $options = [])
     {
         $this->container = $container;
@@ -178,7 +185,7 @@ class Application implements ApplicationInterface
     protected function resolveRoute(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         $router = $this->container->get(RouterInterface::class);
-        $route = $router->dispatch($request);
+        $route = $router->dispatch($request, $response);
         if (!($route instanceof RouteInterface)) {
             throw new LogicException("RouterInterface::dispatch should return RouteInterface, got " . gettype($route));
         }

@@ -12,6 +12,11 @@ interface ControllerInterface
     public function setRequest(ServerRequestInterface $request);
 
     /**
+     * @return ServerRequestInterface
+     */
+    public function getRequest();
+
+    /**
      * @param ResponseInterface $response
      */
     public function setResponse(ResponseInterface $response);

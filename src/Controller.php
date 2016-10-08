@@ -31,6 +31,14 @@ abstract class Controller implements ControllerInterface
     /**
      * @inheritDoc
      */
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function setResponse(ResponseInterface $response)
     {
         $this->response = $response;
