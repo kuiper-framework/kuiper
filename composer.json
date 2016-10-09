@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "php": "^5.5||^7.0",
+        "php": "^5.5 || ^7.0",
         "container-interop/container-interop": "^1.1",
         "psr/http-message": "^1.0",
         "psr/cache": "^1.0",
@@ -49,7 +49,7 @@
     "prefer-stable": true,
     "extra": {
         "branch-alias": {
-            "dev-master": "0.1-dev"
+            "dev-develop": "0.1-dev"
         }
     }
 }
