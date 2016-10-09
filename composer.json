@@ -17,7 +17,7 @@
         }
     ],
     "require": {
-        "php": "^5.5||^7.0"
+        "php": "^5.5 || ^7.0"
     },
     "suggest": {
         "symfony/yaml": "For load and dump yaml"
@@ -39,7 +39,7 @@
     "prefer-stable": true,
     "extra": {
         "branch-alias": {
-            "dev-master": "0.1-dev"
+            "dev-develop": "0.1-dev"
         }
     }
 }
