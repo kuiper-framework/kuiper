@@ -75,13 +75,17 @@ class RouteScanner
                 }
             }
         }
+        usort($routes, function($a, $b) {
+            return $a['priority'] - $b['priority'];
+        });
         return $routes;
     }
 
     private function createRoute($route, $prefix, $controller, $action)
     {
         return [
-            'route' => $route,
+            'annotation' => $route,
+            'priority' => $route->priority,
             'pattern' => $prefix . $route->value,
             'methods' => empty($route->methods) ? ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'] : $route->methods,
             'name' => $route->name,
