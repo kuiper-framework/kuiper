@@ -10,6 +10,8 @@ use InvalidArgumentException;
 use kuiper\di\DeferredObject;
 use kuiper\di\Scope;
 use ReflectionClass;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
 
 class ObjectResolver implements ResolverInterface
 {
@@ -67,11 +69,16 @@ class ObjectResolver implements ResolverInterface
         }
         $className = $definition->getClassName() ?: $entry->getName();
         $instance = $this->newInstance($className, $parameters);
+        $methods = $definition->getMethods();
+        if ($instance instanceof LoggerAwareInterface
+            && !isset($methods['setLogger'])
+            && $container->has(LoggerInterface::class)) {
+            $definition->method('setLogger', $container->get(LoggerInterface::class));
+        }
         if (!$deferInit) {
             return $this->initializer($container, $instance, $definition);
         }
         $properties = $definition->getProperties();
-        $methods = $definition->getMethods();
         if (empty($properties) && empty($methods)) {
             return $instance;
         } else {
