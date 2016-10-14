@@ -109,8 +109,8 @@ class Application implements ApplicationInterface
         if ($this->middlewareQueue === null) {
             $this->buildMiddlewareQueue();
         }
-        $request = $this->container->get(ServerRequestInterface::class);
-        $response = $this->container->get(ResponseInterface::class);
+        $request = $this->getRequest();
+        $response = $this->getResponse();
         $response = $this->callMiddlewareQueue($request, $response);
         if (!$silent) {
             $this->respond($response);
@@ -184,8 +184,7 @@ class Application implements ApplicationInterface
      */
     protected function resolveRoute(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
-        $router = $this->container->get(RouterInterface::class);
-        $route = $router->dispatch($request, $response);
+        $route = $this->getRouter()->dispatch($request, $response);
         if (!($route instanceof RouteInterface)) {
             throw new LogicException("RouterInterface::dispatch should return RouteInterface, got " . gettype($route));
         }
@@ -234,8 +233,8 @@ class Application implements ApplicationInterface
 
     protected function handleException($e, ServerRequestInterface $request, ResponseInterface $response)
     {
-        if ($this->container->has(ErrorHandlerInterface::class)) {
-            $handler = $this->container->get(ErrorHandlerInterface::class);
+        $handler = $this->getErrorHandler();
+        if ($handler) {
             if ($e instanceof HttpException) {
                 $handler->setRequest($e->getRequest());
                 $handler->setResponse($e->getResponse());
@@ -319,5 +318,32 @@ class Application implements ApplicationInterface
                 }
             }
         }
+    }
+
+    protected function getContainer()
+    {
+        return $this->container;
+    }
+
+    protected function getRouter()
+    {
+        return $this->container->get(RouterInterface::class);
+    }
+
+    protected function getErrorHandler()
+    {
+        if ($this->container->has(ErrorHandlerInterface::class)) {
+            return $this->container->get(ErrorHandlerInterface::class);
+        }
+    }
+
+    protected function getRequest()
+    {
+        return $this->container->get(ServerRequestInterface::class);
+    }
+
+    protected function getResponse()
+    {
+        return $this->container->get(ResponseInterface::class);
     }
 }

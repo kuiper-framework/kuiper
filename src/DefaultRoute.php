@@ -118,6 +118,9 @@ class DefaultRoute implements RouteInterface
             }
             if ($this->handler[0] instanceof ControllerInterface) {
                 $controller = $this->handler[0];
+                if (!method_exists($controller, $this->handler[1])) {
+                    throw new RuntimeException(sprintf("Controller %s does not have method %s", get_class($controller), $this->handler[1]));
+                }
                 $controller->setRequest($request)
                     ->setResponse($response)
                     ->initialize();
@@ -132,6 +135,11 @@ class DefaultRoute implements RouteInterface
         if (!is_callable($this->handler, true)) {
             throw new RuntimeException("Invalid route handler " . json_encode($this->handler));
         }
-        return call_user_func($this->handler, $request, $response, $this->arguments);
+        $result = call_user_func($this->handler, $request, $response, $this->arguments);
+        if ($result === null) {
+            return $response;
+        } else {
+            return $result;
+        }
     }
 }

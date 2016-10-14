@@ -44,35 +44,41 @@ class FastRouteRouter implements RouterInterface
     {
         $routeInfo = $this->dispatcher->dispatch($request->getMethod(), $request->getUri()->getPath());
         if ($routeInfo[0] === Dispatcher::FOUND) {
-            $callback = null;
-            if (is_string($routeInfo[1])) {
-                if (strpos($routeInfo[1], ':') !== false) {
-                    list($controller, $action) = explode(':', $routeInfo[1]);
-                    $callback = [$controller, $action];
+            if ($routeInfo[1] instanceof RouteInterface) {
+                $route = $routeInfo[1];
+            } else {
+                $callback = null;
+                if (is_string($routeInfo[1])) {
+                    if (strpos($routeInfo[1], ':') !== false) {
+                        list($controller, $action) = explode(':', $routeInfo[1]);
+                        $callback = [$controller, $action];
+                    } else {
+                        $callback = $routeInfo[1];
+                    }
+                } elseif (is_array($routeInfo[1])) {
+                    if (isset($routeInfo[1]['controller'])) {
+                        $callback = [
+                            $routeInfo[1]['controller'],
+                            isset($routeInfo[1]['action']) ? $routeInfo[1]['action'] : null
+                        ];
+                    } elseif (isset($routeInfo[1]['handler'])) {
+                        $callback = $routeInfo[1]['handler'];
+                    }
                 } else {
                     $callback = $routeInfo[1];
                 }
-            } elseif (is_array($routeInfo[1])) {
-                if (isset($routeInfo[1]['controller'])) {
-                    $callback = [
-                        $routeInfo[1]['controller'],
-                        isset($routeInfo[1]['action']) ? $routeInfo[1]['action'] : null
-                    ];
-                } elseif (isset($routeInfo[1]['handler'])) {
-                    $callback = $routeInfo[1]['handler'];
+                if (!isset($callback)) {
+                    throw new RuntimeException("Invalid route handler " . var_export($routeInfo[1], true));
                 }
-            }
-            if (!isset($callback)) {
-                throw new RuntimeException("Invalid route handler " . var_export($routeInfo[1], true));
-            }
-            if (is_array($callback) && empty($callback[1]) && isset($routeInfo[2]['action'])) {
-                $callback[1] = $routeInfo[2]['action'];
-                unset($routeInfo[2]['action']);
-                if (isset($routeInfo[1]['actionSuffix'])) {
-                    $callback[1] .= $routeInfo[1]['actionSuffix'];
+                if (is_array($callback) && empty($callback[1]) && isset($routeInfo[2]['action'])) {
+                    $callback[1] = $routeInfo[2]['action'];
+                    unset($routeInfo[2]['action']);
+                    if (isset($routeInfo[1]['actionSuffix'])) {
+                        $callback[1] .= $routeInfo[1]['actionSuffix'];
+                    }
                 }
+                $route = $this->createRoute($callback, is_array($routeInfo[1]) ? $routeInfo[1] : []);
             }
-            $route = $this->createRoute($callback, is_array($routeInfo[1]) ? $routeInfo[1] : []);
             $route->setArguments($routeInfo[2]);
             return $route;
         } elseif ($routeInfo[0] === Dispatcher::METHOD_NOT_ALLOWED) {
