@@ -133,6 +133,7 @@ class ReflectionFile
         if (isset($this->fileInfo)) {
             return $this->fileInfo;
         }
+        clearstatcache(true, $this->file);
         $mtime = filemtime($this->file);
         if ($mtime === false) {
             throw new InvalidArgumentException("Cannot stat file '{$this->file}'");
