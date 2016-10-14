@@ -38,7 +38,6 @@ class DefinitionDecorator implements DecoratorInterface
     public function __construct(ReaderInterface $reader = null)
     {
         $this->annotationReader = $reader;
-        $this->docReader = new DocReader();
     }
 
     /**
@@ -226,7 +225,7 @@ class DefinitionDecorator implements DecoratorInterface
                 continue;
             }
             if (($entryName = $injectAnnot->getName()) === null) {
-                $entryName = $this->docReader->getPropertyClass($property);
+                $entryName = $this->getDocReader()->getPropertyClass($property);
                 if ($entryName === null) {
                     throw new AnnotationException(sprintf(
                         "@Inject found on property %s->%s but unable to guess what to inject, use a @var annotation",
@@ -334,7 +333,7 @@ class DefinitionDecorator implements DecoratorInterface
             if (isset($methods[$setter])) {
                 continue;
             }
-            $type = $this->docReader->getPropertyClass($property);
+            $type = $this->getDocReader()->getPropertyClass($property);
             if ($type !== null) {
                 $properties[$property->getName()] = new AliasDefinition($type);
             }
@@ -360,7 +359,7 @@ class DefinitionDecorator implements DecoratorInterface
 
     private function getParameterClasses(ReflectionMethod $method)
     {
-        $docParams = $this->docReader->getParameterClasses($method);
+        $docParams = $this->getDocReader()->getParameterClasses($method);
         $paramTypes = [];
         foreach ($method->getParameters() as $parameter) {
             if ($parameter->isOptional()) {
@@ -387,5 +386,13 @@ class DefinitionDecorator implements DecoratorInterface
     {
         $this->logger = $logger;
         return $this;
+    }
+
+    public function getDocReader()
+    {
+        if ($this->docReader === null) {
+            $this->docReader = new DocReader();
+        }
+        return $this->docReader;
     }
 }
