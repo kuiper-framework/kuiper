@@ -63,7 +63,7 @@ class DefaultErrorHandler implements ErrorHandlerInterface
     
     public function handle($e)
     {
-        error_log(sprintf("Uncaught exception %s %s:\n%s", get_class($e), $e->getMessage(), $e->getTraceAsString()));
+        trigger_error(sprintf("Uncaught exception %s %s:\n%s", get_class($e), $e->getMessage(), $e->getTraceAsString()));
         return $this->getResponse()->withStatus($this->getExceptionStatusCode($e));
     }
 }
