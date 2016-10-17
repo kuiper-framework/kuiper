@@ -6,13 +6,12 @@ use Iterator;
 use ArrayIterator;
 use kuiper\reflection\exception\SyntaxErrorException;
 
-class ReflectionFile
+class ReflectionFile implements ReflectionFileInterface
 {
-    /**
-     * @var array
-     */
-    private static $FILE_CACHE;
-
+    const T_CLASSES = 'classes';
+    const T_CONSTANTS = 'constants';
+    const T_FUNCTIONS = 'functions';
+    
     /**
      * @var array
      */
@@ -24,9 +23,19 @@ class ReflectionFile
     private $file;
 
     /**
+     * @var string[]
+     */
+    private $namespaces;
+
+    /**
+     * @var string[]
+     */
+    private $classes;
+
+    /**
      * @var array
      */
-    private $fileInfo;
+    private $imports;
 
     /**
      * @param string $file
@@ -37,123 +46,72 @@ class ReflectionFile
     }
 
     /**
-     * Gets the file name
-     * 
-     * @return string
+     * @inheritDoc
      */
     public function getFile()
     {
         return $this->file;
     }
-    
-    /**
-     * Gets all classes defined in the file
-     *
-     * @return array<string>
-     * @throws SyntaxErrorException
-     */
-    public function getClasses()
-    {
-        $info = $this->getFileInfo();
-        return $info['classes'];
-    }
 
     /**
-     * Gets all imported classes.
-     * The return value is an array like:
-     * 
-     *      [
-     *           'Foo\Bar' => [
-     *               'classes' => [
-     *                    'Baz' => 'Foo\Baz'
-     *               ],
-     *               'constants' => [],
-     *               'functions' => []
-     *           ]
-     *      ]
-     *
-     * @return array 
-     * @throws SyntaxErrorException
-     */
-    public function getImports()
-    {
-        $info = $this->getFileInfo();
-        return $info['imports'];
-    }
-
-    /**
-     * Gets all namespace
-     *
-     * @return array<string> 
+     * @inheritDoc
      */
     public function getNamespaces()
     {
-        $info = $this->getFileInfo();
-        return $info['namespaces'];
+        $this->parse();
+        return $this->namespaces;
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getClasses()
+    {
+        $this->parse();
+        return $this->classes;
     }
 
     /**
-     * @param string $name
-     * @param string $namespace
-     * @return string
-     * @throws InvalidArgumentException
-     *   \kuiper\reflection\exception\SyntaxErrorException
+     * @inheritDoc
      */
-    public function resolveClassName($name, $namespace = null)
+    public function getImportedClasses($namespace)
     {
-        if ($this->isFqcn($name)) {
-            return ltrim($name, '\\');
+        $this->parse();
+        if (isset($this->imports[$namespace][self::T_CLASSES])) {
+            return $this->imports[$namespace][self::T_CLASSES];
         }
-        if (!preg_match(VarType::CLASS_NAME_REGEX, $name)) {
-            throw new InvalidArgumentException("Invalid class name '{$name}'");
-        }
-        $namespaces = $this->getNamespaces();
-        if ($namespace === null) {
-            if (count($namespaces) > 1) {
-                throw new InvalidArgumentException("More than one namespaces in '{$this->file}', namespace is required");
-            }
-            $namespace = $namespaces[0];
-        } elseif (!in_array($namespace, $namespaces)) {
-            throw new InvalidArgumentException("namespace '{$namespace}' not defined in '{$this->file}'");
-        }
-        $imports = $this->getImports();
-        $parts = explode("\\", $name);
-        $alias = array_shift($parts);
-        if (isset($imports[$namespace]['classes'][$alias])) {
-            $className = $imports[$namespace]['classes'][$alias]
-                       . (empty($parts) ? '' : implode("\\", $parts));
-        } else {
-            $className = $namespace . '\\' . $name;
-        }
-        return ltrim($className, '\\');
+        return [];
     }
 
-    private function getFileInfo()
+    /**
+     * @inheritDoc
+     */
+    public function getImportedFunctions($namespace)
     {
-        if (isset($this->fileInfo)) {
-            return $this->fileInfo;
+        $this->parse();
+        if (isset($this->imports[$namespace][self::T_FUNCTIONS])) {
+            return $this->imports[$namespace][self::T_FUNCTIONS];
         }
-        clearstatcache(true, $this->file);
-        $mtime = filemtime($this->file);
-        if ($mtime === false) {
-            throw new InvalidArgumentException("Cannot stat file '{$this->file}'");
+        return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getImportedConstants($namespace)
+    {
+        $this->parse();
+        if (isset($this->imports[$namespace][self::T_CONSTANTS])) {
+            return $this->imports[$namespace][self::T_CONSTANTS];
         }
-        if (isset(self::$FILE_CACHE[$this->file])) {
-            $info = self::$FILE_CACHE[$this->file];
-            if ($mtime === $info['mtime']) {
-                return $this->fileInfo = $info['info'];
-            }
-        }
-        $info = $this->parse();
-        self::$FILE_CACHE[$this->file] = [
-            'mtime' => $mtime,
-            'info' => $info
-        ];
-        return $this->fileInfo = $info;
+        return [];
     }
 
     private function parse()
     {
+        if (isset($this->namespaces)) {
+            return;
+        }
         $code = file_get_contents($this->file);
         if ($code === false) {
             throw new InvalidArgumentException("Cannot read file '{$this->file}'");
@@ -231,11 +189,9 @@ class ReflectionFile
                 $prevToken = $token;
             }
         }
-        return [
-            'classes' => $classes,
-            'imports' => $imports,
-            'namespaces' => array_unique($namespaces)
-        ];
+        $this->namespaces = array_unique($namespaces);
+        $this->classes = $classes;
+        $this->imports = $imports;
     }
 
     /**
@@ -428,10 +384,5 @@ class ReflectionFile
             self::$TOKEN_TYPES = $tokenTypes;
         }
         return self::$TOKEN_TYPES[$token[0]];
-    }
-
-    private function isFqcn($name)
-    {
-        return $name[0] === '\\';
     }
 }
