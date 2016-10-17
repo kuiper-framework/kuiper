@@ -6,7 +6,10 @@ use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use kuiper\annotations\ReaderInterface;
 use kuiper\annotations\AnnotationReader;
-use kuiper\reflection\ClassScanner;
+use kuiper\annotations\DocReaderInterface;
+use kuiper\annotations\DocReader;
+use kuiper\reflection\ReflectionNamespaceFactoryInterface;
+use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\di\source\ArraySource;
 use kuiper\di\source\ObjectSource;
 use kuiper\di\source\CachedSource;
@@ -14,6 +17,7 @@ use kuiper\di\source\SourceChain;
 use kuiper\di\source\SourceInterface;
 use kuiper\di\resolver\DispatchResolver;
 use kuiper\di\definition\DefinitionDecorator;
+use kuiper\di\definition\AutowireDecorator;
 use kuiper\di\definition\AliasDefinition;
 use kuiper\di\definition\ValueDefinition;
 use kuiper\di\annotation\Component;
@@ -93,7 +97,7 @@ class ContainerBuilder
         $sources = array_merge([$this->definitions], $this->sources);
         $sources[] = new ObjectSource();
         if ($this->useAnnotations) {
-            $decorator = new DefinitionDecorator($this->getAnnotationReader());
+            $decorator = new AutowireDecorator($this->getAnnotationReader());
         } elseif ($this->useAutowiring) {
             $decorator = new DefinitionDecorator();
         }
@@ -198,27 +202,6 @@ class ContainerBuilder
             $this->setAnnotationReader(new AnnotationReader());
         }
         return $this->annotationReader;
-    }
-
-    /**
-     * @return ClassScanner
-     */
-    public function getClassScanner()
-    {
-        if ($this->classScanner === null) {
-            $this->setClassScanner(new ClassScanner());
-        }
-        return $this->classScanner;
-    }
-
-    /**
-     * @param ClassScanner $classScanner
-     * @return self
-     */
-    public function setClassScanner(ClassScanner $classScanner)
-    {
-        $this->classScanner = $classScanner;
-        return $this;
     }
 
     /**
