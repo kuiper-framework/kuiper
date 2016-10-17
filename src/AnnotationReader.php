@@ -6,14 +6,20 @@ use ReflectionProperty;
 use kuiper\annotations\exception\AnnotationException;
 use kuiper\annotations\exception\ClassNotFoundException;
 use kuiper\annotations\annotation\Target;
-use kuiper\reflection\VarType;
+use kuiper\reflection\ReflectionFileFactoryInterface;
+use kuiper\reflection\ReflectionFileFactory;
+use kuiper\reflection\ReflectionType;
 use RuntimeException;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class AnnotationReader extends AbstractReader
+class AnnotationReader extends AbstractReader implements LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+    
     const ERRMODE_SILENT = 1;
     const ERRMODE_WARNING = 2;
     const ERRMODE_EXCEPTION = 3;
@@ -48,14 +54,14 @@ class AnnotationReader extends AbstractReader
     protected $eventDispatcher;
 
     /**
+     * @var ReflectionFileFactoryInterface
+     */
+    protected $reflectionFileFactory;
+
+    /**
      * @var array excluded (value = true) or included (value = false) names
      */
     protected $ignoredNames = [];
-
-    /**
-     * @var LoggerInterface
-     */
-    protected $logger;
 
     /**
      * @var int
@@ -76,14 +82,15 @@ class AnnotationReader extends AbstractReader
     ];
 
     public function __construct(
+        ReflectionFileFactoryInterface $reflectionFileFactory = null,
         ParserInterface $parser = null,
-        EventDispatcherInterface $eventDispatcher = null,
-        LoggerInterface $logger = null
+        DocReaderInterface $docReader = null,
+        EventDispatcherInterface $eventDispatcher = null
     ) {
-        $this->parser = $parser ?: new Parser();
+        $this->reflectionFileFactory = $reflectionFileFactory ?: ReflectionFileFactory::createInstance();
+        $this->parser = $parser ?: new Parser($this->reflectionFileFactory);
+        $this->docReader = $docReader ?: new DocReader($this->reflectionFileFactory);
         $this->eventDispatcher = $eventDispatcher;
-        $this->logger = $logger;
-        $this->docReader = new DocReader();
     }
 
     /**
@@ -143,13 +150,11 @@ class AnnotationReader extends AbstractReader
     }
 
     /**
-     * Sets the logger
-     *
-     * @param LoggerInterface $logger 
+     * @param ReflectionFileFactoryInterface $reflectionFileFactory
      */
-    public function setLogger(LoggerInterface $logger)
+    public function setReflectionFileFactory($reflectionFileFactory)
     {
-        $this->logger = $logger;
+        $this->reflectionFileFactory = $reflectionFileFactory;
         return $this;
     }
 
@@ -181,7 +186,7 @@ class AnnotationReader extends AbstractReader
             $this->eventDispatcher->dispatch(AnnotationEvents::PRE_PARSE, $event);
             $annotations = $event->getAnnotations();
             if (is_array($annotations)) {
-                $this->annotations[$className] = $annotations;
+                return $this->annotations[$className] = $annotations;
             }
         }
         $annotations = $this->parseAnnotations($class);
@@ -196,71 +201,65 @@ class AnnotationReader extends AbstractReader
 
     protected function parseAnnotations(ReflectionClass $class)
     {
-        isset($this->logger) && $this->logger->debug(
+        $this->logger && $this->logger->debug(
             "[AnnotationReader] parse annotations from " . $class->getName()
         );
-        $context = new AnnotationContext($class);
+        $context = new AnnotationContext($class, $this->reflectionFileFactory);
+        $sink = ['class' => [], 'methods' => [], 'properties' => []];
         $annotations = $this->parser->parse($class);
         if (!empty($annotations['class'])) {
             foreach ($annotations['class'] as $annotation) {
-                $this->addAnnotation($annotation, $context);
+                $this->addAnnotation($context->withAnnotation($annotation), $sink);
             }
         }
         if (!empty($annotations['methods'])) {
             foreach ($annotations['methods'] as $name => $methodAnnotations) {
                 $method = $class->getMethod($name);
-                $context->setMethod($method);
+                $methodContext = $context->withMethod($method);
                 foreach ($methodAnnotations as $annotation) {
-                    $this->addAnnotation($annotation, $context);
+                    $this->addAnnotation($methodContext->withAnnotation($annotation), $sink);
                 }
             }
         }
         if (!empty($annotations['properties'])) {
             foreach ($annotations['properties'] as $name => $propertyAnnotations) {
                 $property = $class->getProperty($name);
-                $context->setProperty($property);
+                $propertyContext = $context->withProperty($property);
                 foreach ($propertyAnnotations as $annotation) {
-                    $this->addAnnotation($annotation, $context);
+                    $this->addAnnotation($propertyContext->withAnnotation($annotation), $sink);
                 }
             }
         }
-        return [
-            'class' => $context->getClassAnnotations(),
-            'methods' => $context->getMethodAnnotations(),
-            'properties' => $context->getPropertyAnnotations()
-        ];
+        return $sink;
     }
 
-    protected function addAnnotation($annotation, $context)
+    protected function addAnnotation(AnnotationContext $context, array &$sink)
     {
-        $annotationObj = $this->createAnnotation($annotation, $context, $context->getTarget(), true);
+        $annotationObj = $this->createAnnotation($context, true);
         if ($annotationObj !== null) {
-            $context->add($annotationObj);
+            if ($context->getTarget() === Target::TARGET_CLASS) {
+                $sink['class'][] = $annotationObj;
+            } elseif ($context->getTarget() === Target::TARGET_METHOD) {
+                $sink['methods'][$context->getMethod()->getName()][] = $annotationObj;
+            } elseif ($context->getTarget() === Target::TARGET_PROPERTY) {
+                $sink['properties'][$context->getProperty()->getName()][] = $annotationObj;
+            }
         }
     }
 
     /**
-     * @param Annotation $annotation
+     * @param AnnotationContext $context
      * @param int $target
-     * @param array $context
-     *  - declaringClass ReflectionClass annotation declaring class
-     *  - class ReflectionClass current class
-     *  - method ReflectionMethod
-     *  - property ReflectionProperty
-     *  - name string describe context
-     *  - file string
-     *  - line string
-     *  - annotation string annotation name
-     *  - annotationClass string annotation class
+     * @param boolean $ignoredNotFound
      */
-    protected function createAnnotation($annotation, $context, $target, $ignoredNotFound = false)
+    protected function createAnnotation(AnnotationContext $context, $ignoredNotFound = false)
     {
+        $annotation = $context->getAnnotation();
         $annotationName = $annotation->getName();
         if ($this->shouldIgnore($annotationName)) {
             return;
         }
-        $context->setAnnotation($annotation);
-        $annotationClass = $context->resolveClassName($annotationName);
+        $annotationClass = $context->getAnnotationClassName();
         if (!class_exists($annotationClass)) {
             if ($ignoredNotFound) {
                 $this->handleNotFound($context, $annotationClass);
@@ -274,7 +273,6 @@ class AnnotationReader extends AbstractReader
                 ));
             }
         }
-        $context->setAnnotationClass($annotationClass);
         $metadata = $this->getAnnotationMetadata($annotationClass);
         if ($metadata['is_annotation'] === false) {
             throw new AnnotationException(sprintf(
@@ -283,6 +281,7 @@ class AnnotationReader extends AbstractReader
                 $this->describeAnnotation($context)
             ));
         }
+        $target = $context->getTarget();
         if (0 === ($metadata['targets'] & $target)) {
             throw new AnnotationException(sprintf(
                 "Annotation @%s is not allowed here. ".
@@ -292,15 +291,16 @@ class AnnotationReader extends AbstractReader
                 $this->describeAnnotation($context, false)
             ));
         }
-        $values = $this->getArguments($annotation, $context);
+        $values = $this->getArguments($context);
         if (isset($values['value'])
             && isset($metadata['default_property'])
             && $metadata['default_property'] != 'value') {
+            // update default_property value
             $values[$metadata['default_property']] = $values['value'];
             unset($values['value']);
         }
         if (!empty($metadata['attribute_types'])) {
-            $values = $this->validateValues($values, $metadata['attribute_types'], $context);
+            $values = $this->validateArguments($values, $metadata['attribute_types'], $context);
         }
         if ($metadata['has_constructor']) {
             try {
@@ -311,7 +311,7 @@ class AnnotationReader extends AbstractReader
         } else {
             $annotationObj = new $annotationClass;
             if (!empty($values)) {
-                $this->assignValues($annotationObj, $values, $metadata['properties'], $context);
+                $this->setProperties($annotationObj, $values, $metadata['properties'], $context);
             }
         }
         return $annotationObj;
@@ -328,7 +328,7 @@ class AnnotationReader extends AbstractReader
         return !ctype_upper($name[0]);
     }
 
-    protected function handleNotFound($context, $annotationClass)
+    protected function handleNotFound(AnnotationContext $context, $annotationClass)
     {
         if ($this->errorMode !== self::ERRMODE_SILENT) {
             $message = sprintf(
@@ -340,7 +340,7 @@ class AnnotationReader extends AbstractReader
                 if (isset($this->logger)) {
                     $this->logger->warning($message);
                 } else {
-                    error_log($message);
+                    trigger_error($message);
                 }
             } elseif ($this->errorMode === self::ERRMODE_EXCEPTION) {
                 throw new AnnotationException($message);
@@ -351,14 +351,17 @@ class AnnotationReader extends AbstractReader
     }
 
     /**
-     * @param string $annotationClass
+     * @param string $className the annotation class name
      * @return array
      *  - is_annotation boolean whether the class is annotation
      *  - targets int bitmask of targets
      *  - has_constructor boolean whether should call the class constructor
      *  - properties array annotation properties
      *  - default_property string name of default property
-     *  - attribute_types array
+     *  - attribute_types array with key
+     *    * required boolean
+     *    * type ReflectionType
+     *    * enums array 
      */
     protected function getAnnotationMetadata($className)
     {
@@ -366,7 +369,11 @@ class AnnotationReader extends AbstractReader
             return $this->annotationMetadata[$className];
         }
         $class = new ReflectionClass($className);
-        $metadata = ['is_annotation' => false];
+        $metadata = [
+            'is_annotation' => false,
+            'has_constructor' => false,
+            'targets' => Target::TARGET_ALL
+        ];
         $annotations = $this->parser->parse($class);
         if (!empty($annotations['class'])) {
             foreach ($annotations['class'] as $annotation) {
@@ -380,28 +387,28 @@ class AnnotationReader extends AbstractReader
             }
         }
         if ($metadata['is_annotation']) {
-            if (!isset($metadata['targets'])) {
-                $metadata['targets'] = Target::TARGET_ALL;
-            }
             $constructor = $class->getConstructor();
-            $metadata['has_constructor'] = ($constructor !== null
-                                            && $constructor->getNumberOfParameters() > 0);
-            $metadata = array_merge($metadata, $this->parsePropertyMetadata($class));
-            $this->addPropertyAnnotationMetadata($class, $metadata, $annotations);
+            if ($constructor !== null && $constructor->getNumberOfParameters() > 0) {
+                $metadata['has_constructor'] = true;
+            }
+            $metadata = array_merge($metadata, $this->parsePropertyTypes($class));
+            $this->parseAnnotationAnnotations($class, $annotations, $metadata);
         }
         return $this->annotationMetadata[$className] = $metadata;
     }
 
-    protected function parsePropertyMetadata(ReflectionClass $class)
+    protected function parsePropertyTypes(ReflectionClass $class)
     {
         $metadata = [];
         foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             if ($property->isStatic()) {
+                // ignore static properties
                 continue;
             }
             $name = $property->getName();
             $metadata['properties'][$name] = true;
             if (!isset($metadata['default_property'])) {
+                // set default_property to the first property
                 $metadata['default_property'] = $name;
             }
             try {
@@ -421,7 +428,7 @@ class AnnotationReader extends AbstractReader
         return $metadata;
     }
 
-    protected function addPropertyAnnotationMetadata($class, &$metadata, $annotations)
+    protected function parseAnnotationAnnotations(ReflectionClass $class, $annotations, &$metadata)
     {
         if (empty($annotations['properties'])) {
             return;
@@ -435,7 +442,6 @@ class AnnotationReader extends AbstractReader
                     $metadata['default_property'] = $property;
                 } elseif ($name === 'Enum') {
                     $constants = $class->getConstants();
-                    $metadata['attribute_types'][$property]['type'] = 'enum';
                     $enums = $annotation->getArguments();
                     if (empty($enums['value'])) {
                         $enums = array_keys($constants);
@@ -444,12 +450,11 @@ class AnnotationReader extends AbstractReader
                         foreach ($enums as $enum) {
                             if (!isset($constants[$enum])) {
                                 throw new AnnotationException(sprintf(
-                                    "Unknown enum name '%s' on property %s->%s annotation @Enum at '%s' line %d",
+                                    "Unknown enum '%s' on property %s->%s @Enum annotation at '%s'",
                                     $enum,
                                     $class->getName(),
                                     $property,
-                                    $annotation['file'],
-                                    $annotation['line']
+                                    $class->getFileName()
                                 ));
                             }
                         }
@@ -460,16 +465,16 @@ class AnnotationReader extends AbstractReader
         }
     }
 
-    protected function getArguments($annotation, $context)
+    protected function getArguments(AnnotationContext $context)
     {
         $values = [];
-        $arguments = $annotation->getArguments();
+        $arguments = $context->getAnnotation()->getArguments();
         if (!is_array($arguments)) {
             return $values;
         }
         foreach ($arguments as $name => $value) {
             if ($value instanceof Annotation) {
-                $obj = $this->createAnnotation($value, $context, Target::TARGET_ANNOTATION);
+                $obj = $this->createAnnotation($context->withAnnotation($value, Target::TARGET_ANNOTATION));
                 if ($obj === null) {
                     throw new AnnotationException(sprintf(
                         "Cannot resolve annotation attribute '%s' @%s. %s",
@@ -483,7 +488,7 @@ class AnnotationReader extends AbstractReader
                 $arrayValues = [];
                 foreach ($value as $i => $item) {
                     if ($item instanceof Annotation) {
-                        $obj = $this->createAnnotation($item, $context, Target::TARGET_ANNOTATION);
+                        $obj = $this->createAnnotation($context->withAnnotation($item, Target::TARGET_ANNOTATION));
                         if ($obj === null) {
                             throw new AnnotationException(sprintf(
                                 "Cannot resolve annotation attribute '%s[%s]' @%s. %s",
@@ -504,10 +509,10 @@ class AnnotationReader extends AbstractReader
         return $values;
     }
 
-    protected function validateValues(&$values, $types, $context)
+    protected function validateArguments(&$arguments, $types, AnnotationContext $context)
     {
         foreach ($types as $property => $type) {
-            if (!isset($values[$property])) {
+            if (!isset($arguments[$property])) {
                 if ($type['required']) {
                     throw new AnnotationException(sprintf(
                         "Attribute '%s' expects %s, the value should not be empty. %s",
@@ -518,35 +523,35 @@ class AnnotationReader extends AbstractReader
                 }
                 continue;
             }
-            $value = $values[$property];
-            if ($type['type'] === 'enum') {
+            $value = $arguments[$property];
+            if (!empty($type['enums'])) {
                 $value = $this->getEnumValue($property, $value, $type['enums'], $context);
-            } elseif ($type['type'] instanceof VarType && !$type['type']->validate($value)) {
+            } elseif (!$type['type']->validate($value)) {
                 throw new AnnotationException(sprintf(
                     "Attribute '%s' expects %s, got '%s'. %s",
                     $property,
                     $type['type'],
-                    VarType::describe($value),
+                    ReflectionType::describe($value),
                     $this->describeAnnotation($context)
                 ));
             }
-            $values[$property] = $value;
+            $arguments[$property] = $value;
         }
-        return $values;
+        return $arguments;
     }
 
-    protected function getEnumValue($property, $value, $enums, $context)
+    protected function getEnumValue($property, $value, array $enums, AnnotationContext $context)
     {
         if (!is_string($value)) {
             throw new AnnotationException(sprintf(
                 "Attribute '%s' should be string, got '%s'. %s",
                 $property,
-                VarType::describe($value),
+                ReflectionType::describe($value),
                 $this->describeAnnotation($context)
             ));
         }
         $value = strtoupper($value);
-        $constName = $context->getAnnotationClass() . '::' . $value;
+        $constName = $context->getAnnotationClassName() . '::' . $value;
         if (!defined($constName)) {
             throw new AnnotationException(sprintf(
                 "Constant '%s' is not defined for attribute '%s'. %s",
@@ -573,7 +578,7 @@ class AnnotationReader extends AbstractReader
      * @param array $properties
      * @param array $context
      */
-    protected function assignValues($annotationObj, $values, $properties, $context)
+    protected function setProperties($annotationObj, $values, $properties, AnnotationContext $context)
     {
         foreach ($values as $name => $val) {
             if ($name === 0) {

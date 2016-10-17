@@ -78,17 +78,17 @@ class DocReaderTest extends TestCase
         $reader = $this->createReader();
         $types = $reader->getParameterTypes($this->getMethod('foo'));
         // print_r($types);
-        $this->assertEquals($types['i']->getType(), 'integer');
+        $this->assertEquals((string) $types['i'], 'int');
 
         $type = $reader->getReturnType($this->getMethod('bar'));
-        $this->assertEquals($type->getType(), 'integer'); 
+        $this->assertEquals((string) $type, 'int'); 
     }
 
     public function methodTypes()
     {
         return [
             ['integerMethod', [
-                'integer' => 'integer'
+                'integer' => 'int'
             ]],
             ['annotMethod', [
                 'annot' => DummyClass::class,
@@ -101,17 +101,17 @@ class DocReaderTest extends TestCase
     {
         return [
             ['mixed', 'mixed'],
-            ['boolean', 'boolean'],
+            ['boolean', 'bool'],
             ['bool', 'bool'],
-            ['float', 'float'],
+            ['float', 'double'],
             ['string', 'string'],
-            ['integer', 'integer'],
-            ['array', 'array<mixed>'],
+            ['integer', 'int'],
+            ['array', 'array'],
             ['annotation', DummyClass::class],
-            ['arrayOfIntegers', 'array<integer>'],
-            ['arrayOfStrings', 'array<string>'],
-            ['arrayOfAnnotations', 'array<'.DummyClass::class.'>'],
-            ['multipleType', 'string|array<mixed>']
+            ['arrayOfIntegers', 'int[]'],
+            ['arrayOfStrings', 'string[]'],
+            ['arrayOfAnnotations', DummyClass::class.'[]'],
+            ['multipleType', 'string|array']
         ];
     }
 }

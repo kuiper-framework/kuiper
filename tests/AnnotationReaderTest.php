@@ -190,7 +190,7 @@ class AnnotationReaderTest extends TestCase
 
     /**
      * @expectedException kuiper\annotations\exception\AnnotationException
-     * @expectedExceptionMessage Attribute 'integer' expects integer, got '"abc"'.
+     * @expectedExceptionMessage Attribute 'integer' expects int, got '"abc"'.
      */
     public function testClassWithPropertyInvalidVarTypeErrorProp()
     {

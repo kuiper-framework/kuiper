@@ -2,7 +2,8 @@
 namespace kuiper\annotations;
 
 use kuiper\annotations\exception\AnnotationException;
-use kuiper\reflection\ReflectionFile;
+use kuiper\reflection\ReflectionFileInterface;
+use kuiper\reflection\FqcnResolver;
 use ReflectionClass;
 
 class DocParser
@@ -25,9 +26,9 @@ class DocParser
     private $lexer;
 
     /**
-     * @var ReflectionFile
+     * @var ReflectionFileInterface
      */
-    private $file;
+    private $reflectionFile;
 
     /**
      * @var string
@@ -45,14 +46,14 @@ class DocParser
         self::checkDocReadability();
     }
 
-    public function parse($input, ReflectionFile $file, $namespace, $line)
+    public function parse($input, ReflectionFileInterface $file, $namespace, $line)
     {
         $pos = $this->findInitialTokenPosition($input);
         if ($pos === null) {
             return [];
         }
 
-        $this->file = $file;
+        $this->reflectionFile = $file;
         $this->namespace = $namespace;
         $this->context = $input;
         $this->lexer->setInput(trim(substr($input, $pos), '* /'));
@@ -413,7 +414,8 @@ class DocParser
 
         if ( ! defined($identifier) && false !== strpos($identifier, '::') && '\\' !== $identifier[0]) {
             list($className, $const) = explode('::', $identifier);
-            $fullClassName = $this->file->resolveClassName($className, $this->namespace);
+            $resolver = new FqcnResolver($this->reflectionFile);
+            $fullClassName = $resolver->resolve($className, $this->namespace);
             if (class_exists($fullClassName) || interface_exists($fullClassName)) {
                 $className = $fullClassName;
                 $found = true;

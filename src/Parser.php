@@ -2,7 +2,7 @@
 namespace kuiper\annotations;
 
 use kuiper\annotations\exception\AnnotationException;
-use kuiper\reflection\ReflectionFile;
+use kuiper\reflection\ReflectionFileFactoryInterface;
 use ReflectionClass;
 
 class Parser implements ParserInterface
@@ -11,9 +11,15 @@ class Parser implements ParserInterface
      * @var DocParser
      */
     private $docParser;
+
+    /**
+     * @var ReflectionFileFactoryInterface
+     */
+    private $reflectionFileFactory;
     
-    public function __construct()
+    public function __construct(ReflectionFileFactoryInterface $reflectionFileFactory)
     {
+        $this->reflectionFileFactory = $reflectionFileFactory;
         $this->docParser = new DocParser();
     }
     
@@ -27,7 +33,7 @@ class Parser implements ParserInterface
         if (is_string($comment)) {
             $annotations['class'] = $this->docParser->parse(
                 $comment,
-                new ReflectionFile($class->getFileName()),
+                $this->reflectionFileFactory->create($class->getFileName()),
                 $class->getNamespaceName(),
                 $class->getStartLine()
             );
@@ -39,7 +45,7 @@ class Parser implements ParserInterface
                 $declaringClass = $property->getDeclaringClass();
                 $annotations['properties'][$property->getName()] = $this->docParser->parse(
                     $comment,
-                    new ReflectionFile($declaringClass->getFileName()),
+                    $this->reflectionFileFactory->create($declaringClass->getFileName()),
                     $declaringClass->getNamespaceName(),
                     $declaringClass->getStartLine()
                 );
@@ -51,7 +57,7 @@ class Parser implements ParserInterface
                 $declaringClass = $method->getDeclaringClass();
                 $annotations['methods'][$method->getName()] = $this->docParser->parse(
                     $comment,
-                    new ReflectionFile($method->getFileName()),
+                    $this->reflectionFileFactory->create($method->getFileName()),
                     $declaringClass->getNamespaceName(),
                     $method->getStartLine()
                 );

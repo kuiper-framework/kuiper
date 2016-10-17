@@ -6,25 +6,12 @@ use ReflectionMethod;
 use ReflectionProperty;
 use kuiper\annotations\annotation\Target;
 use kuiper\annotations\exception\ClassNotFoundException;
-use kuiper\reflection\ReflectionFile;
+use kuiper\reflection\ReflectionFileInterface;
+use kuiper\reflection\ReflectionFileFactoryInterface;
+use kuiper\reflection\FqcnResolver;
 
 class AnnotationContext
 {
-    /**
-     * @var array
-     */
-    private $classAnnotations = [];
-
-    /**
-     * @var array
-     */
-    private $methodAnnotations = [];
-
-    /**
-     * @var array
-     */
-    private $propertyAnnotations = [];
-
     /**
      * @var ReflectionClass
      */
@@ -46,9 +33,14 @@ class AnnotationContext
     private $property;
 
     /**
-     * @var ReflectionFile
+     * @var ReflectionFileFactoryInterface
      */
-    private $file;
+    private $reflectionFileFactory;
+
+    /**
+     * @var ReflectionFileInterface
+     */
+    private $reflectionFile;
 
     /**
      * @var int constant defined in annotation\Target
@@ -63,55 +55,65 @@ class AnnotationContext
     /**
      * @var string
      */
-    private $annotationClass;
+    private $annotationClassName;
 
-    public function __construct(ReflectionClass $class)
+    public function __construct(ReflectionClass $class, ReflectionFileFactoryInterface $reflectionFileFactory)
     {
         $this->class = $class;
         $this->declaringClass = $class;
         $this->target = Target::TARGET_CLASS;
-        $this->file = new ReflectionFile($class->getFileName());
+        $this->reflectionFileFactory = $reflectionFileFactory;
+        $this->reflectionFile = $reflectionFileFactory->create($class->getFileName());
     }
 
-    public function setMethod(ReflectionMethod $method)
+    /**
+     * Creates new context with given method
+     *
+     * @param ReflectionMethod $method 
+     * @return static
+     */
+    public function withMethod(ReflectionMethod $method)
     {
-        $this->method = $method;
-        $this->declaringClass = $method->getDeclaringClass();
-        $this->target = Target::TARGET_METHOD;
-        $this->file = new ReflectionFile($this->declaringClass->getFileName());
+        $context = clone $this;
+        $context->method = $method;
+        $context->declaringClass = $method->getDeclaringClass();
+        $context->target = Target::TARGET_METHOD;
+        $context->reflectionFile = $this->reflectionFileFactory->create($context->declaringClass->getFileName());
+        return $context;
     }
 
-    public function setProperty(ReflectionProperty $property)
+    /**
+     * Creates new context with given property
+     *
+     * @param ReflectionProperty $property
+     * @return static
+     */
+    public function withProperty(ReflectionProperty $property)
     {
-        $this->property = $property;
-        $this->declaringClass = $property->getDeclaringClass();
-        $this->target = Target::TARGET_PROPERTY;
-        $this->file = new ReflectionFile($this->declaringClass->getFileName());
+        $context = clone $this;
+        $context->property = $property;
+        $context->declaringClass = $property->getDeclaringClass();
+        $context->target = Target::TARGET_PROPERTY;
+        $context->reflectionFile = $this->reflectionFileFactory->create($context->declaringClass->getFileName());
+        return $context;
     }
 
-    public function setAnnotation(Annotation $annotation)
+    /**
+     * Creates new context with given annotation
+     *
+     * @param Annotation $annotation
+     * @param int $target
+     * @return static
+     */
+    public function withAnnotation(Annotation $annotation, $target = null)
     {
-        $this->annotation = $annotation;
-    }
-
-    public function setAnnotationClass($annotationClass)
-    {
-        $this->annotationClass = $annotationClass;
-    }
-
-    public function getClassAnnotations()
-    {
-        return $this->classAnnotations;
-    }
-
-    public function getMethodAnnotations()
-    {
-        return $this->methodAnnotations;
-    }
-
-    public function getPropertyAnnotations()
-    {
-        return $this->propertyAnnotations;
+        $context = clone $this;
+        $context->annotation = $annotation;
+        $context->annotationClassName = null;
+        if (isset($target)) {
+            $context->target = $target;
+        }
+        return $context;
     }
 
     public function getClass()
@@ -144,14 +146,18 @@ class AnnotationContext
         return $this->annotation;
     }
 
-    public function getAnnotationClass()
+    public function getAnnotationClassName()
     {
-        return $this->annotationClass;
+        if (!isset($this->annotationClassName)) {
+            $resolver = new FqcnResolver($this->reflectionFile);
+            $this->annotationClassName = $resolver->resolve($this->annotation->getName(), $this->declaringClass->getNamespaceName());
+        }
+        return $this->annotationClassName;
     }
 
     public function getFile()
     {
-        return $this->file->getFile();
+        return $this->reflectionFile->getFile();
     }
 
     public function getLine()
@@ -174,30 +180,5 @@ class AnnotationContext
         } else {
             return $this->class->getName();
         }
-    }
-
-    public function add($annotationObj)
-    {
-        if ($this->target === Target::TARGET_CLASS) {
-            $this->classAnnotations[] = $annotationObj;
-        } elseif ($this->target === Target::TARGET_METHOD) {
-            $this->methodAnnotations[$this->method->getName()][] = $annotationObj;
-        } elseif ($this->target === Target::TARGET_PROPERTY) {
-            $this->propertyAnnotations[$this->property->getName()][] = $annotationObj;
-        }
-    }
-
-    public function resolveClassName($name, $mustExists = false)
-    {
-        $className = $this->file->resolveClassName($name, $this->declaringClass->getNamespaceName());
-        if ($mustExists && !class_exists($className) && !interface_exists($className)) {
-            throw new ClassNotFoundException(sprintf(
-                "Class '%s' which resolved from '%s' in '%s' does not exist",
-                $className,
-                $name,
-                $this->getFile()
-            ));
-        }
-        return $className;
     }
 }
