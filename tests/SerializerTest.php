@@ -6,6 +6,7 @@ use kuiper\serializer\fixtures\Organization;
 use kuiper\serializer\fixtures\Member;
 use kuiper\serializer\fixtures\Company;
 use kuiper\annotations\AnnotationReader;
+use kuiper\annotations\DocReader;
 
 /**
  * TestCase for Serializer
@@ -14,7 +15,7 @@ class SerializerTest extends TestCase
 {
     public function createSerializer()
     {
-        return new Serializer(new AnnotationReader());
+        return new Serializer(new AnnotationReader(), new DocReader());
     }
     
     public function testDeserializeType()

@@ -3,6 +3,6 @@ namespace kuiper\serializer\exception;
 
 use RuntimeException;
 
-class TypeException extends SerializeException
+class SerializeException extends RuntimeException
 {
 }
