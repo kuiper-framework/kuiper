@@ -67,4 +67,13 @@ class SerializerTest extends TestCase
             '{"name":"Les-Tilleuls.coop","members":[{"name":"Kevin"}]}'
         );
     }
+
+    public function testUnserializeArray()
+    {
+        $serializer = $this->createSerializer();
+        $data = $serializer->fromJson('[{"name":"Les-Tilleuls.coop","members":[{"name":"Kevin"}]}]', Organization::class.'[]');
+        $this->assertTrue(is_array($data));
+        $this->assertInstanceOf(Organization::class, $data[0]);
+        $this->assertEquals('Les-Tilleuls.coop', $data[0]->getName());
+    }
 }

@@ -5,18 +5,19 @@ use kuiper\annotations\ReaderInterface;
 use kuiper\annotations\DocReaderInterface;
 use kuiper\serializer\annotation\SerializeName;
 use kuiper\serializer\annotation\SerializeIgnore;
-use kuiper\serializer\expection\MalformedJsonException;
-use kuiper\serializer\expection\TypeException;
-use kuiper\serializer\expection\NotSerialableException;
+use kuiper\serializer\exception\MalformedJsonException;
+use kuiper\serializer\exception\TypeException;
+use kuiper\serializer\exception\NotSerialableException;
 use kuiper\reflection\ReflectionType;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
 use Exception;
+use UnexpectedValueException;
+use InvalidArgumentException;
 
 class Serializer implements NormalizerInterface, JsonSerializerInterface, LoggerAwareInterface
 {

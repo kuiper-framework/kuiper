@@ -1,7 +1,5 @@
 <?php
-namespace kuiper\serializer\expection;
-
-use RuntimeException;
+namespace kuiper\serializer\exception;
 
 class MalformedJsonException extends SerializeException
 {

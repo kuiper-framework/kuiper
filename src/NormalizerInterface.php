@@ -18,9 +18,7 @@ interface NormalizerInterface
      * @param array $data
      * @param string|object $type
      * @return object|array
-     * @throws exception\SerializeException,
-     *   \InvalidArgumentException,
-     *   \UnexpectedValueException
+     * @throws exception\SerializeException|\InvalidArgumentException|\UnexpectedValueException
      */
     public function fromArray(array $data, $type);
 }
