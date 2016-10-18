@@ -1,7 +1,7 @@
 <?php
 namespace kuiper\web;
 
-use kuiper\reflection\ClassScanner;
+use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 use kuiper\annotations\ReaderInterface;
 use kuiper\helper\Text;
 use ReflectionClass;
@@ -16,9 +16,9 @@ class RouteScanner
     private $annotationReader;
     
     /**
-     * @var ClassScanner
+     * @var ReflectionNamespaceFactoryInterface
      */
-    private $classScanner;
+    private $reflectionNamespaceFactory;
 
     /**
      * @var string
@@ -30,10 +30,14 @@ class RouteScanner
      */
     private $actionSuffix;
 
-    public function __construct(ReaderInterface $reader, ClassScanner $classScanner, $controllerSuffix = 'Controller', $actionSuffix = 'Action')
-    {
+    public function __construct(
+        ReaderInterface $reader,
+        ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory,
+        $controllerSuffix = 'Controller',
+        $actionSuffix = 'Action'
+    ) {
         $this->annotationReader = $reader;
-        $this->classScanner = $classScanner;
+        $this->reflectionNamespaceFactory = $reflectionNamespaceFactory;
         $this->controllerSuffix = $controllerSuffix;
         $this->actionSuffix = $actionSuffix;
     }
@@ -46,7 +50,8 @@ class RouteScanner
         $seen = [];
         $routes = [];
         foreach ($namespaces as $namespace) {
-            foreach ($this->classScanner->scan($namespace) as $className) {
+            $reflNs = $this->reflectionNamespaceFactory->create($namespace);
+            foreach ($reflNs->getClasses() as $className) {
                 if ($this->controllerSuffix && !Text::endsWith($className, $this->controllerSuffix)) {
                     continue;
                 }

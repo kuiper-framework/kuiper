@@ -6,6 +6,7 @@ use Psr\Http\Message\ResponseInterface;
 use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Response;
 use InvalidArgumentException;
+use Closure;
 
 class MicroApplication extends Application
 {
@@ -30,7 +31,7 @@ class MicroApplication extends Application
      * @param  string $pattern  The route URI pattern
      * @param  callable|string  $callable The route callback routine
      *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return RouteInterface
      */
     public function get($pattern, $callable)
     {
@@ -43,7 +44,7 @@ class MicroApplication extends Application
      * @param  string $pattern  The route URI pattern
      * @param  callable|string  $callable The route callback routine
      *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return RouteInterface
      */
     public function post($pattern, $callable)
     {
@@ -56,7 +57,7 @@ class MicroApplication extends Application
      * @param  string $pattern  The route URI pattern
      * @param  callable|string  $callable The route callback routine
      *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return RouteInterface
      */
     public function put($pattern, $callable)
     {
@@ -69,7 +70,7 @@ class MicroApplication extends Application
      * @param  string $pattern  The route URI pattern
      * @param  callable|string  $callable The route callback routine
      *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return RouteInterface
      */
     public function patch($pattern, $callable)
     {
@@ -82,7 +83,7 @@ class MicroApplication extends Application
      * @param  string $pattern  The route URI pattern
      * @param  callable|string  $callable The route callback routine
      *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return RouteInterface
      */
     public function delete($pattern, $callable)
     {
@@ -95,7 +96,7 @@ class MicroApplication extends Application
      * @param  string $pattern  The route URI pattern
      * @param  callable|string  $callable The route callback routine
      *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return RouteInterface
      */
     public function options($pattern, $callable)
     {
@@ -108,7 +109,7 @@ class MicroApplication extends Application
      * @param  string $pattern  The route URI pattern
      * @param  callable|string  $callable The route callback routine
      *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return RouteInterface
      */
     public function any($pattern, $callable)
     {

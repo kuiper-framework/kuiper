@@ -3,6 +3,8 @@ namespace kuiper\web;
 
 use FastRoute\RouteParser;
 use FastRoute\RouteParser\Std as StdParser;
+use RuntimeException;
+use InvalidArgumentException;
 
 class FastRouteUrlResolver implements UrlResolverInterface
 {
@@ -26,7 +28,7 @@ class FastRouteUrlResolver implements UrlResolverInterface
      *
      * @param array $routes
      * @param string $basePath
-     * @Param RouteParser $parser
+     * @param RouteParser $parser
      */
     public function __construct(array $routes, $basePath = null, RouteParser $parser = null)
     {
