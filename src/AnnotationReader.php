@@ -124,10 +124,15 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
     /**
      * Clears internal cache
      */
-    public function clearCache()
+    public function clearCache($className = null)
     {
-        $this->annotations = [];
-        $this->annotationMetadata = [];
+        if (isset($className)) {
+            unset($this->annotations[$className]);
+            unset($this->annotationMetadata[$className]);
+        } else {
+            $this->annotations = [];
+            $this->annotationMetadata = [];
+        }
         return $this;
     }
 
