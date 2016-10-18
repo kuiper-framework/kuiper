@@ -7,6 +7,7 @@ use kuiper\serializer\annotation\SerializeName;
 use kuiper\serializer\annotation\SerializeIgnore;
 use kuiper\serializer\exception\MalformedJsonException;
 use kuiper\serializer\exception\TypeException;
+use kuiper\serializer\exception\UnexpectedValueException;
 use kuiper\serializer\exception\NotSerialableException;
 use kuiper\reflection\ReflectionType;
 use Psr\Log\LoggerInterface;
@@ -16,7 +17,6 @@ use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
 use Exception;
-use UnexpectedValueException;
 use InvalidArgumentException;
 
 class Serializer implements NormalizerInterface, JsonSerializerInterface, LoggerAwareInterface
@@ -40,10 +40,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
      */
     private $docReader;
     
-    public function __construct(
-        ReaderInterface $reader,
-        DocReaderInterface $docReader
-    ) {
+    public function __construct(ReaderInterface $reader, DocReaderInterface $docReader) {
         $this->annotationReader = $reader;
         $this->docReader = $docReader;
     }
@@ -87,7 +84,9 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
      */
     public function fromArray(array $data, $type)
     {
-        if (is_string($type)) {
+        if ($type instanceof ReflectionType) {
+            return $this->toType($data, $type);
+        } elseif (is_string($type)) {
             return $this->toType($data, ReflectionType::parse($type));
         } elseif (is_object($type)) {
             return $this->arrayToObject($data, get_class($type), $type);
