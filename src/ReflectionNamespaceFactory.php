@@ -6,7 +6,7 @@ use Composer\Autoload\ClassLoader;
 class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 {
     /**
-     * @var ReflectionFactory
+     * @var ReflectionNamespaceFactory
      */
     private static $INSTANCE;
 

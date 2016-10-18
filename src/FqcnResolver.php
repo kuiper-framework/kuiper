@@ -1,6 +1,8 @@
 <?php
 namespace kuiper\reflection;
 
+use InvalidArgumentException;
+
 class FqcnResolver
 {
     /**

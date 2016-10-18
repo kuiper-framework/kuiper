@@ -1,10 +1,12 @@
 <?php
 namespace kuiper\reflection;
 
+use InvalidArgumentException;
+
 class ReflectionFileFactory implements ReflectionFileFactoryInterface
 {
     /**
-     * @var ReflectionFactory
+     * @var ReflectionFileFactory
      */
     private static $INSTANCE;
 
