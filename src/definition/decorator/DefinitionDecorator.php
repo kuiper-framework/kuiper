@@ -1,8 +1,14 @@
 <?php
-namespace kuiper\di\definition;
+namespace kuiper\di\definition\decorator;
 
 use kuiper\annotations\exception\ClassNotFoundException;
 use kuiper\di\DefinitionEntry;
+use kuiper\di\definition\FactoryDefinition;
+use kuiper\di\definition\ObjectDefinition;
+use kuiper\di\definition\ValueDefinition;
+use kuiper\di\definition\AliasDefinition;
+use kuiper\di\definition\NamedParameters;
+use kuiper\di\definition\DefinitionInterface;
 use kuiper\di\exception\DefinitionException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -24,9 +30,9 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
     {
         $definition = $entry->getDefinition();
         if ($definition instanceof FactoryDefinition) {
-            return $this->resolveFactoryArguments($entry);
+            return $this->resolveFactoryParams($entry);
         } elseif ($definition instanceof ObjectDefinition) {
-            return $this->resolveObject($entry);
+            return $this->resolveObjectConstructorParams($entry);
         } else {
             return $entry;
         }
@@ -35,7 +41,7 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
     /**
      * reflection closure parameters
      */
-    protected function resolveFactoryArguments(DefinitionEntry $entry)
+    private function resolveFactoryParams(DefinitionEntry $entry)
     {
         $definition = $entry->getDefinition();
         $args = $definition->getArguments();
@@ -81,7 +87,7 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
     /**
      * reflection constructor or use annotation
      */
-    protected function resolveObject(DefinitionEntry $entry)
+    private function resolveObjectConstructorParams(DefinitionEntry $entry)
     {
         $definition = $entry->getDefinition();
         $params = $definition->getConstructorParameters();
@@ -92,7 +98,7 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
         return $entry;
     }
 
-    private function getConstructorParameters($className, $params)
+    protected function getConstructorParameters($className, $params)
     {
         $class = $this->getReflectionClass($className);
         $namedParams = $params instanceof NamedParameters ? $params->getParameters() : $params;

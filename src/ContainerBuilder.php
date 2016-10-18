@@ -8,19 +8,16 @@ use kuiper\annotations\ReaderInterface;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\DocReaderInterface;
 use kuiper\annotations\DocReader;
-use kuiper\reflection\ReflectionNamespaceFactoryInterface;
-use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\di\source\ArraySource;
 use kuiper\di\source\ObjectSource;
 use kuiper\di\source\CachedSource;
 use kuiper\di\source\SourceChain;
 use kuiper\di\source\SourceInterface;
 use kuiper\di\resolver\DispatchResolver;
-use kuiper\di\definition\DefinitionDecorator;
-use kuiper\di\definition\AutowireDecorator;
+use kuiper\di\definition\decorator\DefinitionDecorator;
+use kuiper\di\definition\decorator\AutowireDecorator;
 use kuiper\di\definition\AliasDefinition;
 use kuiper\di\definition\ValueDefinition;
-use kuiper\di\annotation\Component;
 use ReflectionClass;
 use RuntimeException;
 
@@ -43,11 +40,6 @@ class ContainerBuilder
     private $useAnnotations = false;
 
     /**
-     * @var array
-     */
-    private $componentNamespaces = [];
-
-    /**
      * @var ArraySource
      */
     private $definitions;
@@ -58,9 +50,9 @@ class ContainerBuilder
     private $annotationReader;
 
     /**
-     * @var ClassScanner
+     * @var DocReaderInterface
      */
-    private $classScanner;
+    private $docReader;
 
     /**
      * @var CacheItemPoolInterface
@@ -78,13 +70,26 @@ class ContainerBuilder
     private $proxyFactory;
 
     /**
+     * Constructs the builder
+     * 
      * @param string $containerClass Name of the container class, used to create the container.
      */
     public function __construct($containerClass = Container::class)
     {
         $this->containerClass = $containerClass;
-        $this->definitions = new ArraySource;
-        $this->proxyFactory = new ProxyFactory;
+        $this->definitions = new ArraySource();
+        $this->proxyFactory = new ProxyFactory();
+    }
+
+    /**
+     * Build empty container with default configuration
+     * 
+     * @return Container
+     */
+    public static function buildDevContainer()
+    {
+        $builder = new self();
+        return $builder->build();
     }
 
     /**
@@ -97,7 +102,7 @@ class ContainerBuilder
         $sources = array_merge([$this->definitions], $this->sources);
         $sources[] = new ObjectSource();
         if ($this->useAnnotations) {
-            $decorator = new AutowireDecorator($this->getAnnotationReader());
+            $decorator = new AutowireDecorator($this->getAnnotationReader(), $this->getDocReader());
         } elseif ($this->useAutowiring) {
             $decorator = new DefinitionDecorator();
         }
@@ -112,11 +117,11 @@ class ContainerBuilder
             BaseContainer::class => $container,
             Container::class => $container
         ]);
-        if (!empty($this->componentNamespaces)) {
-            $this->scanComponents($container);
-        }
-        if ($this->useAnnotations && $container->has(LoggerInterface::class)) {
-            $decorator->setLogger($container->get(LoggerInterface::class));
+        if ($this->useAnnotations) {
+            $this->definitions->addDefinitions([
+                ReaderInterface::class => $this->getAnnotationReader(),
+                DocReaderInterface::class => $this->getDocReader()
+            ]);
         }
         return $container;
     }
@@ -129,19 +134,6 @@ class ContainerBuilder
     public function addDefinitions(array $definitions, $mergeDeeply = false)
     {
         $this->definitions->addDefinitions($definitions, $mergeDeeply);
-        return $this;
-    }
-
-    /**
-     * @param string $namespace
-     * @return self
-     */
-    public function componentScan($namespace)
-    {
-        if (!$this->useAnnotations) {
-            throw new RuntimeException("componentScan only available when annotations enabled");
-        }
-        $this->componentNamespaces[] = trim($namespace, "\\");
         return $this;
     }
 
@@ -205,6 +197,27 @@ class ContainerBuilder
     }
 
     /**
+     * @return DocReaderInterface 
+     */
+    public function getDocReader()
+    {
+        if ($this->docReader === null) {
+            $this->setDocReader(new DocReader());
+        }
+        return $this->docReader;
+    }
+
+    /**
+     * @param DocReaderInterface $docReader
+     * @return self
+     */
+    public function setDocReader(DocReaderInterface $docReader)
+    {
+        $this->docReader = $docReader;
+        return $this;
+    }
+
+    /**
      * @param CacheItemPoolInterface $cache
      * @return self
      */
@@ -220,76 +233,5 @@ class ContainerBuilder
     public function getProxyFactory()
     {
         return $this->proxyFactory;
-    }
-
-    protected function scanComponents($container)
-    {
-        if ($container->has(LoggerInterface::class)) {
-            $logger = $container->get(LoggerInterface::class);
-        }
-        $components = [];
-        $namespaces = array_unique($this->componentNamespaces);
-        
-        if ($this->cache) {
-            $item = $this->cache->getItem('kuiper:di-components:'.implode(';', $namespaces));
-            if (!$item) {
-                $this->cache->save($item->set($this->scanComponentsIn($namespaces)));
-            }
-            $components = $item->get();
-        } else {
-            $components = $this->scanComponentsIn($namespaces);
-        }
-        $definitions = [];
-        foreach ($components as $i => $scope) {
-            $name = isset($scope['name']) ? $scope['name'] : $scope['interface'];
-            if ($this->definitions->has($name)) {
-                isset($logger) && $logger->debug("[ContainerBuilder] ignore registered component '{$name}'");
-            } elseif (isset($definitions[$name])) {
-                isset($logger) && $logger->debug(sprintf(
-                    "[ContainerBuilder] ignore conflict component '%s' for '%s', previous was %s",
-                    $scope['definition']->getAlias(),
-                    $name,
-                    $definitions[$name]->getAlias()
-                ));
-            } else {
-                $definitions[$name] = $scope['definition'];
-            }
-        }
-        $this->definitions->addDefinitions($definitions);
-    }
-
-    protected function scanComponentsIn($namespaces)
-    {
-        $components = [];
-        $reader = $this->getAnnotationReader();
-        foreach ($namespaces as $namespace) {
-            foreach ($this->getClassScanner()->scan($namespace) as $className) {
-                $class = new ReflectionClass($className);
-                $annot = $reader->getClassAnnotation($class, Component::class);
-                if ($annot === null) {
-                    continue;
-                }
-                $definition = new AliasDefinition($className);
-                if ($annot->name) {
-                    $components[] = ['name' => $annot->name, 'definition' => $definition];
-                } else {
-                    $interfaces = $class->getInterfaceNames();
-                    if (!empty($interfaces)) {
-                        foreach ($interfaces as $interface) {
-                            $components[] = ['interface' => $interface, 'definition' => $definition];
-                        }
-                    }
-                }
-            }
-        }
-        usort($components, function ($a, $b) {
-            if (isset($a['name'])) {
-                return 1;
-            } elseif (isset($b['name'])) {
-                return -1;
-            }
-            return 0;
-        });
-        return $components;
     }
 }

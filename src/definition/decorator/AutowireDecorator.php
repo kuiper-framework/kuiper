@@ -1,11 +1,15 @@
 <?php
-namespace kuiper\di\definition;
+namespace kuiper\di\definition\decorator;
 
 use kuiper\annotations\DocReaderInterface;
 use kuiper\annotations\ReaderInterface;
 use kuiper\annotations\exception\AnnotationException as AnnotationParseException;
 use kuiper\annotations\exception\ClassNotFoundException;
 use kuiper\di\DefinitionEntry;
+use kuiper\di\definition\FactoryDefinition;
+use kuiper\di\definition\ObjectDefinition;
+use kuiper\di\definition\NamedParameters;
+use kuiper\di\definition\AliasDefinition;
 use kuiper\di\exception\DefinitionException;
 use kuiper\di\exception\AnnotationException;
 use kuiper\di\annotation\Autowired;
@@ -20,7 +24,7 @@ use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionException;
 
-class AutowireDecorator extends DefinitionException
+class AutowireDecorator extends DefinitionDecorator
 {
     /**
      * @var ReaderInterface
@@ -43,27 +47,22 @@ class AutowireDecorator extends DefinitionException
      */
     public function decorate(DefinitionEntry $entry)
     {
-        $entry = parent::decorate($entry);
-        if ($definition instanceof ObjectDefinition) {
-            return $this->resolveObjectByAnnotation($entry);
-        } else {
-            return $entry;
-        }
-    }
-
-    private function resolveObjectByAnnotation(DefinitionEntry $entry)
-    {
         $definition = $entry->getDefinition();
-        $className = $definition->getClassName() ?: $entry->getName();
-        $class = $this->getReflectionClass($className);
-        try {
-            $this->readDefinition($class, $definition);
-        } catch (AnnotationParseException $e) {
-            throw new AnnotationException($e->getMessage());
+        if ($definition instanceof ObjectDefinition) {
+            $className = $definition->getClassName() ?: $entry->getName();
+            $class = new ReflectionClass($className);
+            try {
+                $this->readAnnotations($class, $definition);
+                return $entry;
+            } catch (AnnotationParseException $e) {
+                throw new AnnotationException($e->getMessage());
+            }
+        } else {
+            return parent::decorate($entry);
         }
     }
 
-    private function readDefinition(ReflectionClass $class, ObjectDefinition $definition)
+    private function readAnnotations(ReflectionClass $class, ObjectDefinition $definition)
     {
         $autowired = false;
         $classAnnotations = $this->annotationReader->getClassAnnotations($class);
@@ -230,23 +229,6 @@ class AutowireDecorator extends DefinitionException
             if ($type !== null) {
                 $properties[$property->getName()] = new AliasDefinition($type);
             }
-        }
-    }
-
-    private function getReflectionClass($className)
-    {
-        try {
-            $class = new ReflectionClass($className);
-            if (!$class->isInstantiable()) {
-                throw new DefinitionException(sprintf(
-                    "Cannot create class instance for %s because it is an %s",
-                    $className,
-                    $class->isInterface() ? "interface" : "abstract class"
-                ));
-            }
-            return $class;
-        } catch (ReflectionException $e) {
-            throw new DefinitionException("Cannot load class '{$className}'");
         }
     }
 

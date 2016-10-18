@@ -70,9 +70,6 @@ class FactoryResolver implements ResolverInterface
                 );
             }
         }
-        if (empty($parameters)) {
-            $parameters = [$container];
-        }
         return call_user_func_array($factory, $parameters);
     }
 }

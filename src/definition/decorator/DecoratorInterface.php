@@ -1,5 +1,5 @@
 <?php
-namespace kuiper\di\definition;
+namespace kuiper\di\definition\decorator;
 
 use kuiper\di\DefinitionEntry;
 

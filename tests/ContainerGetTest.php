@@ -210,7 +210,7 @@ class ContainerGetTest extends TestCase
             'foo' => (new FactoryDefinition(function($param = []) {
                 return $param;
             }))->scope(Scope::PROTOTYPE),
-            'bar' => (new FactoryDefinition(function($c) {
+            'bar' => (new FactoryDefinition(function(ContainerInterface $c) {
                 return $c;
             }))->scope(Scope::PROTOTYPE),
         ]);
@@ -221,7 +221,5 @@ class ContainerGetTest extends TestCase
 
         $ret = $container->make('bar');
         $this->assertSame($container, $ret);
-        $ret = $container->make('bar', [$obj = new \stdClass]);
-        $this->assertSame($obj, $ret);
     }
 }

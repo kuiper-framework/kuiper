@@ -1,7 +1,7 @@
 <?php
 namespace kuiper\di\source;
 
-use kuiper\di\definition\DecoratorInterface;
+use kuiper\di\definition\decorator\DecoratorInterface;
 use kuiper\di\definition\DefinitionInterface;
 
 class SourceChain implements MutableSourceInterface
