@@ -1,0 +1,42 @@
+{
+    "name": "kuiper/rpc-client",
+    "type": "library",
+    "description": "kuiper rpc client component",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^5.5 || ^7.0",
+        "ocramius/proxy-manager": "^1.0",
+        "kuiper/serializer": "^0.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.0||^5.0",
+        "guzzlehttp/guzzle": "^6.2"
+    },
+    "suggest": {
+        "guzzlehttp/guzzle": "For use http json client (version ^6.2)"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\rpc\\client\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\rpc\\client\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}
