@@ -70,7 +70,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
             $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
             foreach ($it as $file => $fileInfo) {
                 $name = $fileInfo->getFilename();
-                if ($name == '.' || $name == '..') {
+                if ($name[0] == '.') {
                     continue;
                 }
                 if (!in_array($fileInfo->getExtension(), $this->extensions)) {
