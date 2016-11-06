@@ -201,7 +201,7 @@ class Arrays
                 }
                 if (preg_match('/^(get|is)(.+)/', $method->getName(), $matches)
                     && $method->getNumberOfParameters() === 0) {
-                    $key = lcfirst($matches[2]);
+                    $key = lcfirst(preg_replace('/^get/', '', $matches[0]));
                     $properties[$key] = $method->invoke($bean);
                 }
             }

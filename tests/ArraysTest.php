@@ -109,7 +109,7 @@ class ArraysTest extends TestCase
     public function testToArray()
     {
         $user = new User('john');
-        $this->assertEquals(Arrays::toArray($user), ['name' => 'john', 'age' => null]);
+        $this->assertEquals(Arrays::toArray($user), ['name' => 'john', 'age' => null, 'isFemale' => null]);
         $this->assertEquals(Arrays::toArray($user, false), ['name' => 'john']);
     }
 

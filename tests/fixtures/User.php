@@ -9,6 +9,8 @@ class User
 
     private $gender;
 
+    private $isFemale;
+
     public function __construct($name)
     {
         $this->name = $name;
@@ -28,5 +30,10 @@ class User
     {
         $this->age = $age;
         return $this;
+    }
+
+    public function isFemale()
+    {
+        return $this->isFemale;
     }
 }
