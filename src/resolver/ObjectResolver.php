@@ -73,7 +73,8 @@ class ObjectResolver implements ResolverInterface
         if ($instance instanceof LoggerAwareInterface
             && !isset($methods['setLogger'])
             && $container->has(LoggerInterface::class)) {
-            $methods['setLogger'][] = [$container->get(LoggerInterface::class)];
+            $definition->method('setLogger', $container->get(LoggerInterface::class));
+            $methods = $definition->getMethods();
         }
         if (!$deferInit) {
             return $this->initializer($container, $instance, $definition);
