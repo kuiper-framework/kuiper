@@ -86,4 +86,9 @@ class EnumTest extends TestCase
     {
         $this->assertEquals(Gender::fromValue('m'), Gender::MALE());
     }
+
+    public function testJsonSerialize()
+    {
+        $this->assertEquals('["MALE","MALE"]', json_encode([Gender::fromValue('m'), Gender::MALE()]));
+    }
 }

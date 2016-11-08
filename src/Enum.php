@@ -7,7 +7,7 @@ use ReflectionClass;
 /**
  * enum class
  */
-abstract class Enum
+abstract class Enum implements \JsonSerializable
 {
     /**
      * key = className
@@ -204,6 +204,11 @@ abstract class Enum
     public static function __callStatic($name, $arguments)
     {
         return static::fromName($name);
+    }
+
+    public function jsonSerialize()
+    {
+        return $this->name;
     }
 
     protected static function getValues()
