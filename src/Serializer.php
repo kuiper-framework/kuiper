@@ -338,7 +338,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
 
     private function validateType(ReflectionType $type)
     {
-        if ($type->isObject() && !$this->getClassName()) {
+        if ($type->isObject() && !$type->getClassName()) {
             return false;
         }
         return true;
