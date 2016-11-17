@@ -6,6 +6,7 @@ use kuiper\di\DefinitionEntry;
 use kuiper\di\ProxyFactory;
 use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\ObjectDefinition;
+use kuiper\di\ContainerAwareInterface;
 use InvalidArgumentException;
 use kuiper\di\DeferredObject;
 use kuiper\di\Scope;
@@ -74,6 +75,11 @@ class ObjectResolver implements ResolverInterface
             && !isset($methods['setLogger'])
             && $container->has(LoggerInterface::class)) {
             $definition->method('setLogger', $container->get(LoggerInterface::class));
+            $methods = $definition->getMethods();
+        }
+        if ($instance instanceof ContainerAwareInterface
+            && !isset($methods['setContainer'])) {
+            $definition->method('setContainer', $container);
             $methods = $definition->getMethods();
         }
         if (!$deferInit) {
