@@ -76,4 +76,15 @@ class SerializerTest extends TestCase
         $this->assertInstanceOf(Organization::class, $data[0]);
         $this->assertEquals('Les-Tilleuls.coop', $data[0]->getName());
     }
+
+    public function testTypeOverriderByProperty()
+    {
+        $serializer = $this->createSerializer();
+        $result = $serializer->fromArray([
+            'values' => [
+                ['name' => 'john']
+            ],
+        ], fixtures\TypeOverrideByProperty::class);
+        $this->assertInstanceOf(Member::class, $result->getValues()[0]);
+    }
 }

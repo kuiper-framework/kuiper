@@ -200,14 +200,14 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
             }
             $name = $prop['name'];
             if (isset($setters[$name])) {
-                if ($setters[$name]['type']->isMixed()) {
+                if ($this->isUnknownType($setters[$name]['type'])) {
                     $setters[$name]['type'] = $prop['type'];
                 }
             } else {
                 $setters[$name] = $prop;
             }
             if (isset($getters[$name])) {
-                if ($getters[$name]['type']->isMixed()) {
+                if ($this->isUnknownType($getters[$name]['type'])) {
                     $getters[$name]['type'] = $prop['type'];
                 }
             } else {
@@ -433,6 +433,11 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         } else {
             throw new TypeException("expects '$type', got " . ReflectionType::describe($value));
         }
+    }
+
+    private function isUnknownType($type)
+    {
+        return $type->isMixed() || ($type->isArray() && $type->getArrayValueType()->isMixed());
     }
                                                                     
     public static function decodeJson($json)
