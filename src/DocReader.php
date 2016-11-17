@@ -73,7 +73,8 @@ class DocReader implements DocReaderInterface
                 if (!isset($parameters[$name])) {
                     continue;
                 }
-                if ($parameters[$name]->isMixed()) {
+                if ($parameters[$name]->isMixed()
+                    || ($parameters[$name]->isArray() && $parameters[$name]->getArrayValueType()->isMixed())) {
                     // if type is unknown, parse from doc block param tag
                     $parameters[$name] = $this->parseType($matches[1][$index], $declaringClass);
                 }

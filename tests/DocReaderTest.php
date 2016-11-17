@@ -84,6 +84,17 @@ class DocReaderTest extends TestCase
         $this->assertEquals((string) $type, 'int'); 
     }
 
+    public function testMethodParams()
+    {
+        $reader = $this->createReader();
+        $class = new ReflectionClass(fixtures\DocMethodParams::class);
+        $types = $reader->getParameterTypes($class->getMethod('setValues'));
+        // print_r($types);
+        $this->assertTrue($types['values']->isArray());
+        $type = $types['values']->getArrayValueType();
+        $this->assertEquals(fixtures\DummyClass::class, $type->getClassName());
+    }
+
     public function methodTypes()
     {
         return [
