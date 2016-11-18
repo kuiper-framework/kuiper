@@ -22,7 +22,7 @@ use InvalidArgumentException;
 class Serializer implements NormalizerInterface, JsonSerializerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
-    
+
     /**
      * Cached class metadata
      *
@@ -39,7 +39,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
      * @var DocReaderInterface
      */
     private $docReader;
-    
+
     public function __construct(ReaderInterface $reader, DocReaderInterface $docReader) {
         $this->annotationReader = $reader;
         $this->docReader = $docReader;
@@ -101,7 +101,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         $data = [];
         foreach ($this->getGetters($class) as $name => $getter) {
             try {
-                $value = $this->fromType($this->getValue($object, $getter), $getter['type']);
+                $value = $this->fromType($this->getValue($class, $object, $getter), $getter['type']);
             } catch (TypeException $e) {
                 throw new TypeException("Cannot convert property '$name' to array: " . $e->getMessage());
             }
@@ -127,7 +127,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
                 continue;
             }
             $value = $this->toType($data[$name], $setter['type']);
-            $this->setValue($object, $setter, $value);
+            $this->setValue($class, $object, $setter, $value);
         }
         return $object;
     }
@@ -308,7 +308,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         return $annot !== null ? $annot->value : null;
     }
 
-    protected function getValue($object, $getter)
+    protected function getValue(ReflectionClass $class, $object, $getter)
     {
         if (isset($getter['getter'])) {
             $value = call_user_func([$object, $getter['getter']]);
@@ -323,7 +323,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         return $value;
     }
 
-    protected function setValue($object, $setter, $value)
+    protected function setValue(ReflectionClass $class, $object, $setter, $value)
     {
         if (isset($setter['setter'])) {
             call_user_func([$object, $setter['setter']], $value);
@@ -346,7 +346,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
 
     /**
      * Converts value to the type
-     * 
+     *
      * @param mixed $value
      * @param ReflectionType $type
      * @return mixed
@@ -354,7 +354,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     protected function toType($value, ReflectionType $type)
     {
         if (!isset($value)) {
-            // check type nullable? 
+            // check type nullable?
             return;
         }
         if ($type->isObject()) {
@@ -392,7 +392,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
 
     /**
      * Extracts values according to the type
-     * 
+     *
      * @param mixed $value
      * @param ReflectionType $type
      * @return mixed
@@ -439,7 +439,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     {
         return $type->isMixed() || ($type->isArray() && $type->getArrayValueType()->isMixed());
     }
-                                                                    
+
     public static function decodeJson($json)
     {
         $data = json_decode($json, true);
