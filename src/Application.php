@@ -14,6 +14,7 @@ use RuntimeException;
 use LogicException;
 use Exception;
 use Throwable;
+use Closure;
 
 class Application implements ApplicationInterface
 {
@@ -165,7 +166,11 @@ class Application implements ApplicationInterface
     protected function callMiddlewareQueue(ServerRequestInterface $request, ResponseInterface $response, $i = 0)
     {
         if ($i < count($this->middlewareQueue)) {
-            return $this->middlewareQueue[$i]($request, $response, function ($request, $response) use ($i) {
+            $middleware = $this->middlewareQueue[$i];
+            if ($middleware instanceof Closure) {
+                $middleware->bindTo($this->getContainer());
+            }
+            return $middleware($request, $response, function ($request, $response) use ($i) {
                 return $this->callMiddlewareQueue($request, $response, $i+1);
             });
         } else {
@@ -227,7 +232,7 @@ class Application implements ApplicationInterface
         } catch (Exception $e) {
             return $this->handleException($e, $request, $response);
         } catch (Throwable $e) {
-            return $this->handleException($e, $response, $response);
+            return $this->handleException($e, $request, $response);
         }
     }
 
