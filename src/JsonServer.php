@@ -11,13 +11,17 @@ use kuiper\annotations\DocReaderInterface;
 use kuiper\serializer\JsonSerializerInterface as SerializerInterface;
 use kuiper\serializer\NormalizerInterface;
 use Interop\Container\ContainerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use InvalidArgumentException;
 use ReflectionClass;
 use Exception;
 use Throwable;
 
-class JsonServer implements ServerInterface
+class JsonServer implements ServerInterface, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+    
     /**
      * @var ContainerInterface
      */
@@ -128,6 +132,10 @@ class JsonServer implements ServerInterface
      */
     private function fault($response, $fault = null, $code = 404, $data = null)
     {
+        if ($code >= 0 && ($data instanceof \Exception
+                           || (class_exists('Throwable') && $data instanceof \Throwable))) {
+            $this->logger && $this->logger->error(sprintf("[JsonServer] Uncaught exception %s: %s", get_class($data), $data->getMessage()), ['trace' => $data->getTraceAsString()]);
+        }
         $error = new Error($fault, $code, $data);
         $response->setError($error);
     }
