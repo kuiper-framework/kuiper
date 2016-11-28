@@ -105,12 +105,12 @@ class Application implements ApplicationInterface
     /**
      * @inheritDoc
      */
-    public function run($silent = false)
+    public function run(ServerRequestInterface $req = null, $silent = false)
     {
         if ($this->middlewareQueue === null) {
             $this->buildMiddlewareQueue();
         }
-        $request = $this->getRequest();
+        $request = $req ?: $this->getRequest();
         $response = $this->getResponse();
         $response = $this->callMiddlewareQueue($request, $response);
         if (!$silent) {

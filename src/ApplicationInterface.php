@@ -1,6 +1,8 @@
 <?php
 namespace kuiper\web;
 
+use Psr\Http\Message\ServerRequestInterface;
+
 interface ApplicationInterface
 {
     const START = 0;
@@ -21,8 +23,10 @@ interface ApplicationInterface
     /**
      * run application
      *
+     * @param ServerRequestInterface $req request message
      * @param boolean $silent sending response when false
+     * 
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function run($silent = false);
+    public function run(ServerRequestInterface $req = null, $silent = false);
 }
