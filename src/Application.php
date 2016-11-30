@@ -3,6 +3,7 @@ namespace kuiper\boot;
 
 use Composer\Autoload\ClassLoader;
 use kuiper\di\ContainerBuilder;
+use kuiper\di\source\DotArraySource;
 use kuiper\helper\DotArray;
 
 class Application
