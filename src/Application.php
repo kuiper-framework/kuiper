@@ -99,6 +99,8 @@ class Application
 
     private function buildContainer()
     {
+        $builder = $this->getContainerBuilder();
+        $builder->addSource(new DotArraySource($this->settings));
         $providers = $this->settings['app.providers'];
         if ($providers) {
             foreach ($providers as $provider) {
@@ -108,6 +110,6 @@ class Application
         foreach ($this->providers as $provider) {
             $provider->register();
         }
-        return $this->getContainerBuilder()->build();
+        return $builder->build();
     }
 }
