@@ -6,6 +6,8 @@ use kuiper\rpc\server\fixtures\CalculatorInterface;
 use kuiper\rpc\server\fixtures\Calculator;
 use kuiper\rpc\server\fixtures\ApiServiceInterface;
 use kuiper\rpc\server\fixtures\ApiService;
+use kuiper\rpc\server\util\HealthyCheckService;
+use kuiper\rpc\server\util\HealthyCheckServiceInterface;
 use kuiper\rpc\server\response\ResponseInterface;
 use kuiper\rpc\server\request\RequestFactory;
 use kuiper\di\ContainerBuilder;
@@ -27,10 +29,12 @@ class JsonServerTest extends TestCase
         $container->set(DocReaderInterface::class, $docReader);
         $container->set(CalculatorInterface::class, new Calculator());
         $container->set(ApiServiceInterface::class, new ApiService());
+        $container->set(HealthyCheckServiceInterface::class, new HealthyCheckService());
         
         $server = new JsonServer($container);
         $server->add(CalculatorInterface::class);
         $server->add(ApiServiceInterface::class);
+        $server->add(HealthyCheckServiceInterface::class);
         return $server;
     }
 
@@ -104,5 +108,18 @@ class JsonServerTest extends TestCase
         $e = unserialize(base64_decode($result['error']['data']));
         // print_r($e);
         $this->assertEquals('InvalidArgumentException', $e['class']);
+    }
+
+    public function testHealthyCheck()
+    {
+        $server = $this->createServer();
+        $request = RequestFactory::fromString(json_encode([
+            "method" => HealthyCheckServiceInterface::class.'.ping',
+            "id" => "1",
+            "params" => [],
+        ]));
+        $response = $server->handle($request);
+        $result = json_decode($response->getBody(), true);
+        $this->assertEquals('pong', $result['result']);
     }
 }
