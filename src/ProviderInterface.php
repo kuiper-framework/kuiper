@@ -14,4 +14,9 @@ interface ProviderInterface
      * Registers services
      */
     public function register();
+
+    /**
+     * Bootstraps
+     */
+    public function boot();
 }

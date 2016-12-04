@@ -94,11 +94,19 @@ class Application
     {
         if ($this->container === null) {
             $this->container = $this->buildContainer();
+            $this->bootstrap();
         }
         return $this->container;
     }
 
-    private function buildContainer()
+    protected function bootstrap()
+    {
+        foreach ($this->providers as $provider) {
+            $provider->boot();
+        }
+    }
+
+    protected function buildContainer()
     {
         $builder = $this->getContainerBuilder();
         $builder->addSource(new DotArraySource($this->settings));

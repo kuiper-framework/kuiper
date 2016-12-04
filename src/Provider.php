@@ -31,4 +31,8 @@ abstract class Provider implements ProviderInterface
             return isset($settings[$matches[1]]) ? $settings[$matches[1]] : $container->get($matches[1]);
         }, $expression);
     }
+
+    public function boot()
+    {
+    }
 }
