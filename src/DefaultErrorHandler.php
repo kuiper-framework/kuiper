@@ -3,14 +3,18 @@ namespace kuiper\web;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use kuiper\web\exception\NotFoundException;
 use kuiper\web\exception\MethodNotAllowedException;
 use kuiper\web\exception\AccessDeniedException;
 use kuiper\web\exception\UnauthorizedException;
 use kuiper\web\exception\BadRequestException;
 
-class DefaultErrorHandler implements ErrorHandlerInterface
+class DefaultErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     /**
      * @var ServerRequestInterface
      */
@@ -21,7 +25,7 @@ class DefaultErrorHandler implements ErrorHandlerInterface
      */
     private $response;
 
-    private static $EXCEPTION_STATUS_CODES = [
+    protected static $EXCEPTION_STATUS_CODES = [
         BadRequestException::class       => 400,
         UnauthorizedException::class     => 401,
         AccessDeniedException::class     => 403,
@@ -51,6 +55,11 @@ class DefaultErrorHandler implements ErrorHandlerInterface
         return $this;
     }
 
+    public static function registerException($exception, $statucCode)
+    {
+        self::$EXCEPTION_STATUS_CODES[$exception] = $statucCode;
+    }
+
     protected function getExceptionStatusCode($e)
     {
         $class = get_class($e);
@@ -63,7 +72,7 @@ class DefaultErrorHandler implements ErrorHandlerInterface
     
     public function handle($e)
     {
-        trigger_error(sprintf("Uncaught exception %s %s:\n%s", get_class($e), $e->getMessage(), $e->getTraceAsString()));
+        $this->logger && $this->logger->error(sprintf("Uncaught exception %s %s:\n%s", get_class($e), $e->getMessage(), $e->getTraceAsString()));
         return $this->getResponse()->withStatus($this->getExceptionStatusCode($e));
     }
 }
