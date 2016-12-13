@@ -51,6 +51,17 @@ class Redis implements DriverInterface
         $this->options = $options;
     }
 
+    public function setRedis(RedisClient $redis)
+    {
+        $this->connection = $redis;
+        return $this;
+    }
+
+    public function getRedis()
+    {
+        return $this->getConnection();
+    }
+
     public function getConnection()
     {
         if ($this->connection === null) {
