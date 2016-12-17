@@ -113,6 +113,23 @@ class ArraysTest extends TestCase
         $this->assertEquals(Arrays::toArray($user, false), ['name' => 'john']);
     }
 
+    public function testRecursiveToArray()
+    {
+        $user = new User('john');
+        $company = new \stdClass;
+        $company->employees = [$user];
+        
+        $this->assertEquals([
+            'employees' => [
+                [
+                    'name' => 'john',
+                    'age' => NULL,
+                    'isFemale' => NULL,
+                ]
+            ]
+        ], $ret = Arrays::toArray($company, true, false, true));
+    }
+
     public function testMapKeys()
     {
         $arr = Arrays::mapKeys(['fooId' => 1], [Text::class, 'uncamelize']);

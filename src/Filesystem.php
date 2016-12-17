@@ -135,16 +135,21 @@ class Filesystem
     }
 
     /**
-     * @param string $path
+     * Returns whether the file path is an absolute path.
+     * 
+     * @param string $file
+     * 
      * @return bool
      */
-    public static function isAbsolute($path)
+    public static function isAbsolute($file)
     {
-        if (self::isWindows()) {
-            return preg_match('/^[A-Za-z]+:/', $path);
-        } else {
-            return !strncmp($path, DIRECTORY_SEPARATOR, 1);
-        }
+        return strspn($file, '/\\', 0, 1)
+            || (strlen($file) > 3 && ctype_alpha($file[0])
+                && substr($file, 1, 1) === ':'
+                && strspn($file, '/\\', 2, 1)
+            )
+            || null !== parse_url($file, PHP_URL_SCHEME)
+        ;
     }
     
     /**

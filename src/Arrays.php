@@ -185,9 +185,12 @@ class Arrays
     /**
      * @param object|array $bean
      * @param bool $includeGetters
+     * @param bool $uncamelizeKey
+     * @param bool $recursive
+     * 
      * @return array
      */
-    public static function toArray($bean, $includeGetters = true, $uncamelizeKey = false)
+    public static function toArray($bean, $includeGetters = true, $uncamelizeKey = false, $recursive = true)
     {
         if ($bean === null || !is_object($bean)) {
             throw new InvalidArgumentException("Parameter 'bean' need be an object, got " . gettype($bean));
@@ -199,7 +202,7 @@ class Arrays
                 if ($method->isStatic() || !$method->isPublic()) {
                     continue;
                 }
-                if (preg_match('/^(get|is)(.+)/', $method->getName(), $matches)
+                if (preg_match('/^(get|is|has)(.+)/', $method->getName(), $matches)
                     && $method->getNumberOfParameters() === 0) {
                     $key = lcfirst(preg_replace('/^get/', '', $matches[0]));
                     $properties[$key] = $method->invoke($bean);
@@ -207,14 +210,24 @@ class Arrays
             }
         }
         if ($uncamelizeKey) {
-            $values = [];
-            foreach ($properties as $key => $val) {
-                $values[Text::uncamelize($key)] = $val;
-            }
-            return $values;
-        } else {
-            return $properties;
+            $properties = self::uncamelizeKeys($properties);
         }
+        if ($recursive) {
+            $properties = self::recursiveToArray($properties, $includeGetters, $uncamelizeKey);
+        }
+        return $properties;
+    }
+
+    private static function recursiveToArray(array $values, $includeGetters, $uncamelizeKey)
+    {
+        foreach ($values as $key => $val) {
+            if (is_object($val)) {
+                $values[$key] = self::toArray($val, $includeGetters, $uncamelizeKey, true);
+            } elseif (is_array($val)) {
+                $values[$key] = self::recursiveToArray($val, $includeGetters, $uncamelizeKey);
+            }
+        }
+        return $values;
     }
 
     /**
