@@ -167,29 +167,43 @@ abstract class Enum implements \JsonSerializable
     /**
      * Gets the enum instance for the name
      *
+     * @param string $name
+     * @param object $default 
+     *  
      * @return Enum
      */
-    public static function fromName($name)
+    public static function fromName($name, $default = null)
     {
         $names = static::getNames();
         if (array_key_exists($name, $names)) {
             return self::fromValue($names[$name]);
         }
-        throw new InvalidArgumentException("No enum constant '$name' in class " . get_called_class());
+        if ($default === null) {
+            throw new InvalidArgumentException("No enum constant '$name' in class " . get_called_class());
+        } else {
+            return $default;
+        }
     }
     
     /**
      * Gets the enum instance for the value
      *
+     * @param mixed $value
+     * @param object $default
+     *
      * @return Enum
      */
-    public static function fromValue($value)
+    public static function fromValue($value, $default = null)
     {
         $values = static::getValues();
         if (array_key_exists($value, $values)) {
             return $values[$value];
         }
-        throw new InvalidArgumentException("No enum constant value '$value' class " . get_called_class());
+        if ($default === null) {
+            throw new InvalidArgumentException("No enum constant value '$value' class " . get_called_class());
+        } else {
+            return $default;
+        }
     }
     
     /**
