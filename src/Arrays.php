@@ -108,19 +108,34 @@ class Arrays
      * @param array $includedKeys
      * @return array
      */
-    public static function select($arr, array $includedKeys)
+    public static function select($arr, array $includedKeys, $type = null)
     {
         $ret = [];
-        if ($arr instanceof ArrayAccess) {
-            foreach ($includedKeys as $key) {
-                if ($arr->offsetExists($key)) {
-                    $ret[$key] = $arr[$key];
+        if ($type == self::GETTER) {
+            foreach ($includedKeys as $name) {
+                $method = 'get' . $name;
+                if (method_exists($arr, $method)) {
+                    $ret[$name] = $arr->$method();
+                }
+            }
+        } elseif ($type == self::OBJ) {
+            foreach ($includedKeys as $name) {
+                if (isset($arr->$name)) {
+                    $ret[$name] = $arr->$name;
                 }
             }
         } else {
-            foreach ($includedKeys as $key) {
-                if (array_key_exists($key, $arr)) {
-                    $ret[$key] = $arr[$key];
+            if ($arr instanceof ArrayAccess) {
+                foreach ($includedKeys as $key) {
+                    if ($arr->offsetExists($key)) {
+                        $ret[$key] = $arr[$key];
+                    }
+                }
+            } else {
+                foreach ($includedKeys as $key) {
+                    if (array_key_exists($key, $arr)) {
+                        $ret[$key] = $arr[$key];
+                    }
                 }
             }
         }

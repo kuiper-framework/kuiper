@@ -60,10 +60,22 @@ class ArraysTest extends TestCase
         $this->assertEquals(Arrays::exclude($arr, ['foo']), ['bar' => 2]);
     }
 
-    public function testSelect()
+    public function testSelectArray()
     {
         $arr = ['foo' => 1, 'bar' => 2];
         $this->assertEquals(Arrays::select($arr, ['foo']), ['foo' => 1]);
+    }
+
+    public function testSelectObject()
+    {
+        $arr = (object)['foo' => 1, 'bar' => 2];
+        $this->assertEquals(Arrays::select($arr, ['foo'], Arrays::OBJ), ['foo' => 1]);
+    }
+
+    public function testSelectGetter()
+    {
+        $user = new User('john');
+        $this->assertEquals(Arrays::select($user, ['name'], Arrays::GETTER), ['name' => 'john']);
     }
 
     public function testFilter()
