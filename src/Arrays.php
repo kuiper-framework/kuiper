@@ -102,6 +102,25 @@ class Arrays
     }
 
     /**
+     * Changes key name
+     *
+     * @param array $array
+     * @param array $columnMap
+     * @return array
+     */
+    public static function rename(array $arr, array $columnMap)
+    {
+        $ret = $arr;
+        foreach ($columnMap as $key => $newKey) {
+            if (array_key_exists($key, $arr)) {
+                unset($ret[$key]);
+                $ret[$newKey] = $arr[$key];
+            }
+        }
+        return $ret;
+    }
+
+    /**
      * Create array with given keys
      *
      * @param array $array

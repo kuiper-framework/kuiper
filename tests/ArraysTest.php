@@ -60,6 +60,12 @@ class ArraysTest extends TestCase
         $this->assertEquals(Arrays::exclude($arr, ['foo']), ['bar' => 2]);
     }
 
+    public function testRename()
+    {
+        $arr = ['foo' => 1, 'bar' => 2];
+        $this->assertEquals(Arrays::rename($arr, ['foo' => 'baz']), ['baz' => 1, 'bar' => 2]);
+    }
+
     public function testSelectArray()
     {
         $arr = ['foo' => 1, 'bar' => 2];
