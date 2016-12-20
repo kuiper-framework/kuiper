@@ -224,7 +224,7 @@ class Arrays
      * 
      * @return array
      */
-    public static function toArray($bean, $includeGetters = true, $uncamelizeKey = false, $recursive = true)
+    public static function toArray($bean, $includeGetters = true, $uncamelizeKey = false, $recursive = false)
     {
         if ($bean === null || !is_object($bean)) {
             throw new InvalidArgumentException("Parameter 'bean' need be an object, got " . gettype($bean));
