@@ -97,4 +97,9 @@ class EnumTest extends TestCase
         $gender = Gender::fromOrdinal(1);
         $this->assertEquals(Gender::MALE, $gender->value);
     }
+
+    public function testOrdinals()
+    {
+        $this->assertEquals([1,2], Gender::ordinals());
+    }
 }

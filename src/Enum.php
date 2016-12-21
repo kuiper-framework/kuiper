@@ -114,6 +114,19 @@ abstract class Enum implements \JsonSerializable
     {
         return array_keys(static::getNames());
     }
+
+    /**
+     * Gets all enum oridinals
+     *
+     * @return array
+     */
+    public static function ordinals()
+    {
+        if (empty(static::$PROPERTIES['ordinal'])) {
+            throw new \RuntimeException("property 'ordinal' is not defined, please set value for " . get_called_class() . '::$PROPERTIES["ordinal"]');
+        }
+        return array_values(static::$PROPERTIES['ordinal']);
+    }
     
     /**
      * Gets all enums
