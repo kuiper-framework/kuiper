@@ -132,8 +132,7 @@ class JsonServer implements ServerInterface, LoggerAwareInterface
      */
     private function fault($response, $fault = null, $code = 404, $data = null)
     {
-        if ($code >= 0 && ($data instanceof \Exception
-                           || (class_exists('Throwable') && $data instanceof \Throwable))) {
+        if (($code >= 0 && $data instanceof \Exception) || (class_exists('Error') && $data instanceof \Error)) {
             $this->logger && $this->logger->error(sprintf("[JsonServer] Uncaught exception %s: %s", get_class($data), $data->getMessage()), ['trace' => $data->getTraceAsString()]);
         }
         $error = new Error($fault, $code, $data);
