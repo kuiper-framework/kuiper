@@ -14,5 +14,9 @@ class Gender extends Enum
             self::MALE => '男',
             self::FEMALE => '女'
         ],
+        'ordinal' => [
+            self::MALE => 1,
+            self::FEMALE => 2
+        ],
     ];
 }

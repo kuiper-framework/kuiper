@@ -180,9 +180,8 @@ abstract class Enum implements \JsonSerializable
         }
         if ($default === null) {
             throw new InvalidArgumentException("No enum constant '$name' in class " . get_called_class());
-        } else {
-            return $default;
-        }
+        } 
+        return $default;
     }
     
     /**
@@ -201,7 +200,30 @@ abstract class Enum implements \JsonSerializable
         }
         if ($default === null) {
             throw new InvalidArgumentException("No enum constant value '$value' class " . get_called_class());
+        } 
+        return $default;
+    }
+
+    /**
+     * Gets the enum instance match properties ordinal
+     *
+     * @param int $ordinal
+     * @param object $default
+     *
+     * @return Enum
+     */
+    public static function fromOrdinal($ordinal, $default = null)
+    {
+        if (empty(static::$PROPERTIES['ordinal'])) {
+            throw new \RuntimeException("property 'ordinal' is not defined, please set value for " . get_called_class() . '::$PROPERTIES["ordinal"]');
+        }
+        $value = array_search($ordinal, static::$PROPERTIES['ordinal']);
+        if ($value !== false) {
+            return self::fromValue($value);
         } else {
+            if ($default === null) {
+                throw new InvalidArgumentException("No enum oridinal for '$value' class " . get_called_class());
+            }
             return $default;
         }
     }

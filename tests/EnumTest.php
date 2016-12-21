@@ -91,4 +91,10 @@ class EnumTest extends TestCase
     {
         $this->assertEquals('["MALE","MALE"]', json_encode([Gender::fromValue('m'), Gender::MALE()]));
     }
+
+    public function testOrdinal()
+    {
+        $gender = Gender::fromOrdinal(1);
+        $this->assertEquals(Gender::MALE, $gender->value);
+    }
 }
