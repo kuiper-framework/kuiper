@@ -9,6 +9,7 @@ use kuiper\rpc\client\exception\RpcException;
 use kuiper\serializer\NormalizerInterface;
 use kuiper\serializer\exception\SerializeException;
 use kuiper\annotations\DocReaderInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 abstract class AbstractJsonClient implements AdapterInterface
 {
@@ -26,6 +27,11 @@ abstract class AbstractJsonClient implements AdapterInterface
      * @var DocReaderInterface
      */
     private $docReader;
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
 
     /**
      * @var int
@@ -58,7 +64,21 @@ abstract class AbstractJsonClient implements AdapterInterface
         } catch (SerializeException $e) {
             throw new InvalidArgumentException($e->getMessage(), 0, $e);
         }
-        $result = json_decode($this->sendRequest($requestBody), true);
+        try {
+            $response = $this->sendRequest($requestBody);
+        } catch (\Exception $e) {
+            if ($this->eventDispatcher) {
+                $this->eventDispatcher->dispatch(Events::REQUEST_ERROR, $event = new RequestEvent($this, $requestBody));
+                if ($event->hasResponse()) {
+                    $response = $event->getResponse();
+                } else {
+                    throw $e;
+                }
+            } else {
+                throw $e;
+            }
+        }
+        $result = json_decode($response, true);
         if (isset($result['error'])) {
             $this->handleError($result['error']);
         }
@@ -77,7 +97,14 @@ abstract class AbstractJsonClient implements AdapterInterface
      * @param string $requestBody
      * @return string
      */
-    abstract protected function sendRequest($requestBody);
+    abstract public function sendRequest($requestBody);
+
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher)
+    {
+        $this->eventDispatcher = $eventDispatcher;
+
+        return $this;
+    }
 
     /**
      * @param string $className

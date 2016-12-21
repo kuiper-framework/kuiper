@@ -50,7 +50,7 @@ class TcpJsonClient extends AbstractJsonClient
         return $this->connection;
     }
 
-    protected function sendRequest($requestBody)
+    public function sendRequest($requestBody)
     {
         $requestBody = str_replace("\n", " ", $requestBody) . "\n";
         if (fwrite($this->getConnection(), $requestBody) !== strlen($requestBody)) {
@@ -63,5 +63,10 @@ class TcpJsonClient extends AbstractJsonClient
     protected function getOption($name)
     {
         return isset($this->options[$name]) ? $this->options[$name] : null;
+    }
+
+    public function getServers()
+    {
+        return $this->servers;
     }
 }

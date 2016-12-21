@@ -22,7 +22,7 @@ class HttpJsonClient extends AbstractJsonClient
         parent::__construct($normalizer, $docReader, $map);
     }
     
-    protected function sendRequest($requestBody)
+    public function sendRequest($requestBody)
     {
         $response = $this->httpClient->request('POST', '/', [
             'headers' => [
@@ -32,5 +32,17 @@ class HttpJsonClient extends AbstractJsonClient
             'body' => $requestBody
         ]);
         return $response->getBody();
+    }
+
+    public function setHttpClient(ClientInterface $client)
+    {
+        $this->httpClient = $client;
+
+        return $this;
+    }
+
+    public function getHttpClient()
+    {
+        return $this->httpClient;
     }
 }
