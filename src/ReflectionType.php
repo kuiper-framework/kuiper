@@ -415,7 +415,7 @@ final class ReflectionType implements ReflectionTypeInterface
                 case 'double':
                     return is_numeric($value);
                 case 'string':
-                    return is_string($value);
+                    return is_scalar($value);
                 case 'null':
                     return $value === null;
                 case 'callable':

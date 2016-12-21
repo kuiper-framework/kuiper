@@ -74,7 +74,7 @@ interface ReflectionTypeInterface
      * @return boolean return true is current type is unknown
      */
     public function isMixed();
-
+    
     /**
      * @return boolean return true is the type is null
      */
