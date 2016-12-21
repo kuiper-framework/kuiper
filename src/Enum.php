@@ -252,7 +252,11 @@ abstract class Enum implements \JsonSerializable
      */
     public static function __callStatic($name, $arguments)
     {
-        return static::fromName($name);
+        if (static::hasName($name)) {
+            return static::fromName($name);
+        } else {
+            throw new \BadMethodCallException("unknown method '$name'");
+        }
     }
 
     public function jsonSerialize()
