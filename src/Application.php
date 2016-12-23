@@ -40,6 +40,11 @@ class Application implements ApplicationInterface
     private $middlewareQueue;
 
     /**
+     * @var ErrorHandlerInterface
+     */
+    private $errorHandler;
+
+    /**
      * @var array
      */
     private static $STAGES = ['START', 'ERROR', 'ROUTE', 'DISPATCH'];
@@ -239,18 +244,14 @@ class Application implements ApplicationInterface
     protected function handleException($e, ServerRequestInterface $request, ResponseInterface $response)
     {
         $handler = $this->getErrorHandler();
-        if ($handler) {
-            if ($e instanceof HttpException) {
-                $handler->setRequest($e->getRequest());
-                $handler->setResponse($e->getResponse());
-            } else {
-                $handler->setRequest($request);
-                $handler->setResponse($response);
-            }
-            return $handler->handle($e instanceof DispatchException ? $e->getPrevious() : $e);
+        if ($e instanceof HttpException) {
+            $handler->setRequest($e->getRequest());
+            $handler->setResponse($e->getResponse());
+        } else {
+            $handler->setRequest($request);
+            $handler->setResponse($response);
         }
-        // default error handler
-        throw $e;
+        return $handler->handle($e instanceof DispatchException ? $e->getPrevious() : $e);
     }
 
     /**
@@ -337,9 +338,14 @@ class Application implements ApplicationInterface
 
     protected function getErrorHandler()
     {
-        if ($this->container->has(ErrorHandlerInterface::class)) {
-            return $this->container->get(ErrorHandlerInterface::class);
+        if ($this->errorHandler === null) {
+            if ($this->container->has(ErrorHandlerInterface::class)) {
+                $this->errorHandler = $this->container->get(ErrorHandlerInterface::class);
+            } else {
+                $this->errorHandler = new DefaultErrorHandler();
+            }
         }
+        return $this->errorHandler;
     }
 
     protected function getRequest()

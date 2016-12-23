@@ -8,7 +8,7 @@ use Zend\Diactoros\Response;
 use InvalidArgumentException;
 use Closure;
 
-class MicroApplication extends Application
+class MicroApplication extends Application implements RouteSourceInterface
 {
     /**
      * @var array
@@ -138,9 +138,15 @@ class MicroApplication extends Application
         }
         $routeClass = $this->routeClass;
         $route = new $routeClass($callable);
-        $route->setPattern($pattern);
-        $this->routes[] = [$methods, $route];
+        $route->setPattern($pattern)
+            ->setMethods($methods);
+        $this->routes[] = $route;
         return $route;
+    }
+
+    public function getRoutes()
+    {
+        return $this->routes;
     }
 
     protected function getRequest()
@@ -156,9 +162,8 @@ class MicroApplication extends Application
     protected function getRouter()
     {
         return new FastRouteRouter(\FastRoute\simpleDispatcher(function($r) {
-            foreach ($this->routes as $routeInfo) {
-                list($methods, $route) = $routeInfo;
-                $r->addRoute($methods, $route->getPattern(), $route->getHandler());
+            foreach ($this->routes as $route) {
+                $r->addRoute($route->getMethods(), $route->getPattern(), $route->getHandler());
             }
         }));
     }

@@ -40,6 +40,20 @@ interface RouteInterface
     public function getName();
 
     /**
+     * Gets route http request methods
+     *
+     * @param string[] $methods
+     *
+     * @return self
+     */
+    public function setMethods(array $methods);
+
+    /**
+     * @return string[]
+     */
+    public function getMethods();
+
+    /**
      * Set route pattern
      *
      * @param string $pattern

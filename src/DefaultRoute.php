@@ -19,6 +19,11 @@ class DefaultRoute implements RouteInterface
     private $name;
 
     /**
+     * @var array
+     */
+    private $methods;
+
+    /**
      * @var string
      */
     private $pattern;
@@ -39,7 +44,7 @@ class DefaultRoute implements RouteInterface
     }
     
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function setArguments(array $arguments)
     {
@@ -48,7 +53,7 @@ class DefaultRoute implements RouteInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getArguments()
     {
@@ -56,7 +61,7 @@ class DefaultRoute implements RouteInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function setName($name)
     {
@@ -65,15 +70,29 @@ class DefaultRoute implements RouteInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getName()
     {
         return $this->name;
     }
 
+    public function getMethods()
+    {
+        return $this->methods;
+    }
+
     /**
-     * @inheritDoc
+     * {@inheritdoc}
+     */
+    public function setMethods(array $methods)
+    {
+        $this->methods = $methods;
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function setPattern($pattern)
     {
@@ -82,7 +101,7 @@ class DefaultRoute implements RouteInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getPattern()
     {
@@ -90,7 +109,7 @@ class DefaultRoute implements RouteInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getHandler()
     {
@@ -108,7 +127,7 @@ class DefaultRoute implements RouteInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function run(ServerRequestInterface $request, ResponseInterface $response)
     {

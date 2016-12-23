@@ -16,7 +16,7 @@ class FastRouteUrlResolver implements UrlResolverInterface
     /**
      * @var string
      */
-    private $basePath;
+    private $baseUri;
 
     /**
      * @var RouteParser
@@ -26,19 +26,14 @@ class FastRouteUrlResolver implements UrlResolverInterface
     /**
      * Constructs url resolver
      *
-     * @param array $routes
-     * @param string $basePath
+     * @param RouteSourceInterface $routes
+     * @param string $baseUri
      * @param RouteParser $parser
      */
-    public function __construct(array $routes, $basePath = null, RouteParser $parser = null)
+    public function __construct(RouteSourceInterface $routes, $baseUri = null, RouteParser $parser = null)
     {
-        foreach ($routes as $route) {
-            if (!is_array($route) || !isset($route['pattern'])) {
-                throw new InvalidArgumentException("Invalid route " . var_export($route, true));
-            }
-        }
         $this->routes = $routes;
-        $this->basePath = $basePath;
+        $this->baseUri = $baseUri;
         $this->routeParser = $parser ?: new StdParser;
     }
 
@@ -48,7 +43,7 @@ class FastRouteUrlResolver implements UrlResolverInterface
     public function get($name, array $data)
     {
         $route = $this->getNamedRoute($name);
-        $pattern = $route['pattern'];
+        $pattern = $route->getPattern();
 
         $routeDatas = $this->routeParser->parse($pattern);
         // $routeDatas is an array of all possible routes that can be made. There is
@@ -94,13 +89,13 @@ class FastRouteUrlResolver implements UrlResolverInterface
             $url .= '?' . http_build_query($data);
         }
 
-        return $this->basePath ? $this->basePath . $url : $url;
+        return $this->baseUri ? $this->baseUri . $url : $url;
     }
 
     protected function getNamedRoute($name)
     {
-        foreach ($this->routes as $route) {
-            if (isset($route['name']) && $route['name'] === $name) {
+        foreach ($this->routes->getRoutes() as $route) {
+            if ($route->getName() === $name) {
                 return $route;
             }
         }
