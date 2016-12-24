@@ -77,6 +77,22 @@ class DataDumper
     }
 
     /**
+     * Gets data format from file name
+     * 
+     * @param string $file
+     *
+     * @return string
+     */
+    public static function guessFormat($file)
+    {
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+        if (!isset(self::$FORMATS[$ext])) {
+            throw new InvalidArgumentException("Cannot guess format from file '{$file}'");
+        }
+        return $format = self::$FORMATS[$ext];
+    }
+
+    /**
      * load serialized data
      *
      * @param string $file
@@ -86,11 +102,7 @@ class DataDumper
     public static function loadFile($file, $format = null)
     {
         if (!isset($format)) {
-            $ext = pathinfo($file, PATHINFO_EXTENSION);
-            if (!isset(self::$FORMATS[$ext])) {
-                throw new InvalidArgumentException("Cannot load from file '{$file}'");
-            }
-            $format = self::$FORMATS[$ext];
+            $format = self::guessFormat($file);
         }
         if ($format === 'json') {
             return json_decode(file_get_contents($file), true);
@@ -101,5 +113,20 @@ class DataDumper
         } else {
             throw new InvalidArgumentException("Invalid format '{$format}'");
         }
+    }
+
+    /**
+     * dump serialized data to file
+     *
+     * @param string $file
+     * @param mixed $data
+     * @param string $format 文件格式，如果未指定，使用文件后缀判断格式
+     */
+    public static function dumpFile($file, $data, $format = null, $pretty = true)
+    {
+        if (!isset($format)) {
+            $format = self::guessFormat($file);
+        }
+        return file_put_contents($file, self::dump($data, $format, $pretty));
     }
 }

@@ -86,6 +86,8 @@ abstract class Enum implements \JsonSerializable
             return static::$PROPERTIES[$name][$this->value];
         } elseif (property_exists($this, $name)) {
             return $this->$name;
+        } else {
+            throw new \InvalidArgumentException("Undefined property: ".get_class($this)."::\$" . $name);
         }
     }
 
