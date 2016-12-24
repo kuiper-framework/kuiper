@@ -24,13 +24,13 @@ class StringResolver implements ResolverInterface
                 is_object($definition) ? get_class($definition) : gettype($definition)
             ));
         }
-        return preg_replace_callback('#\{([^\{\}]+)\}#', function (array $matches) use ($container) {
+        return preg_replace_callback('#\{([^\{\}]+)\}#', function (array $matches) use ($container, $entry) {
             try {
                 return $container->get($matches[1]);
             } catch (Exception $e) {
                 throw new DependencyException(sprintf(
                     "Error while parsing string expression for entry '%s': %s",
-                    $this->getName(),
+                    $entry->getName(),
                     $e->getMessage()
                 ), 0, $e);
             }

@@ -9,6 +9,7 @@ use kuiper\di\source\MutableSourceInterface;
 use kuiper\di\resolver\DispatchResolver;
 use kuiper\di\source\CachedSource;
 use kuiper\di\definition\DefinitionInterface;
+use kuiper\di\definition\ValueDefinition;
 use kuiper\di\Scope;
 use ProxyManager\Proxy\VirtualProxyInterface;
 use LogicException;
@@ -95,12 +96,11 @@ class Container implements ContainerInterface
     public function set($name, $value)
     {
         if ($this->source instanceof MutableSourceInterface) {
-            if ($value instanceof DefinitionInterface) {
-                unset($this->singletonEntries[$name]);
-                $this->source->set($name, $value);
-            } else {
-                $this->singletonEntries[$name] = $value;
+            if (!$value instanceof DefinitionInterface) {
+                $value = new ValueDefinition($value);
             }
+            unset($this->singletonEntries[$name]);
+            $this->source->set($name, $value);
         } elseif ($this->source instanceof CachedSource) {
             throw new LogicException("Cannot change di definition when cache enabled");
         } else {
