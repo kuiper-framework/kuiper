@@ -34,7 +34,7 @@ class FqcnResolver
         }
         $namespaces = $this->reflectionFile->getNamespaces();
         if (!in_array($namespace, $namespaces)) {
-            throw new InvalidArgumentException("namespace '{$namespace}' not defined in '{$this->file}'");
+            throw new InvalidArgumentException(sprintf("namespace '%s' not defined in '%s'", $namespace, $this->reflectionFile->getFile()));
         }
         $imports = $this->reflectionFile->getImportedClasses($namespace);
         $parts = explode("\\", $name);

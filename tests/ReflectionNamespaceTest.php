@@ -1,7 +1,6 @@
 <?php
 namespace kuiper\reflection;
 
-use kuiper\test\TestCase;
 
 class ReflectionNamespaceTest extends TestCase
 {

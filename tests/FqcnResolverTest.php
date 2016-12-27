@@ -1,47 +1,51 @@
 <?php
-namespace kuiper\reflection;
 
-use kuiper\test\TestCase;
+namespace kuiper\reflection;
 
 class ClassResolverTest extends TestCase
 {
+    public function createResolver($file)
+    {
+        return new FqcnResolver(ReflectionFileFactory::createInstance()->create($file));
+    }
+    
     public function testResolveNotImported()
     {
-        $file = new ReflectionFile(__DIR__.'/fixtures/DummyClass.php');
+        $file = $this->createResolver(__DIR__.'/fixtures/DummyClass.php');
         $this->assertEquals(
             'kuiper\\reflection\\fixtures\\DummyInterface',
-            $file->resolveClassName('DummyInterface')
+            $file->resolve('DummyInterface', __NAMESPACE__.'\\fixtures')
         );
     }
 
     public function testResolveClassNameImported()
     {
-        $file = new ReflectionFile(__DIR__.'/fixtures/DummyInterface.php');
+        $file = $this->createResolver(__DIR__.'/fixtures/DummyInterface.php');
         $this->assertEquals(
             'kuiper\\reflection\\ReflectionFile',
-            $file->resolveClassName('ReflectionFile')
+            $file->resolve('ReflectionFile', __NAMESPACE__.'\\fixtures')
         );
     }
 
     public function testResolveClassNameNotExists()
     {
-        $file = new ReflectionFile(__DIR__.'/fixtures/DummyInterface.php');
+        $file = $this->createResolver(__DIR__.'/fixtures/DummyInterface.php');
         $this->assertEquals(
             'kuiper\reflection\fixtures\NonExistClass',
-            $file->resolveClassName('NonExistClass')
+            $file->resolve('NonExistClass', __NAMESPACE__.'\\fixtures')
         );
     }
 
     public function testResolveClassNameMultipleNamespace()
     {
-        $file = new ReflectionFile(__DIR__.'/fixtures/MultipleNamespaces.php');
+        $file = $this->createResolver(__DIR__.'/fixtures/MultipleNamespaces.php');
         $this->assertEquals(
             'NamespaceA\\ClassA',
-            $file->resolveClassName('ClassA', 'NamespaceB')
+            $file->resolve('ClassA', 'NamespaceB')
         );
         $this->assertEquals(
             'ClassC',
-            $file->resolveClassName('ClassC', '')
+            $file->resolve('ClassC', '')
         );
     }
 }

@@ -2,7 +2,7 @@
     "name": "kuiper/reflection",
     "type": "library",
     "description": "Php reflection utility",
-    "keywords": [],
+    "keywords": ["reflection"],
     "license": "MIT",
     "authors": [
         {
@@ -10,17 +10,11 @@
             "email": "wenbinye@163.com"
         }
     ],
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../*"
-        }
-    ],
     "require": {
-        "php": "^5.5 || ^7.0"
+        "php": ">= 5.6"
     },
     "require-dev": {
-        "kuiper/test-helper": "^0.1"
+        "phpunit/phpunit": "^5.0"
     },
     "autoload": {
         "psr-4": {
@@ -30,13 +24,6 @@
     "autoload-dev": {
         "psr-4": {
             "kuiper\\reflection\\": "tests/"
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "extra": {
-        "branch-alias": {
-            "dev-master": "0.1-dev"
         }
     }
 }

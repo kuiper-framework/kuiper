@@ -1,7 +1,6 @@
 <?php
 namespace kuiper\reflection;
 
-use kuiper\test\TestCase;
 use kuiper\reflection\fixtures\DummyClass;
 
 class ReflectionTypeTest extends TestCase
