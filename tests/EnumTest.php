@@ -1,7 +1,6 @@
 <?php
 namespace kuiper\helper;
 
-use kuiper\test\TestCase;
 use kuiper\helper\fixtures\Gender;
 use kuiper\helper\fixtures\OnOff;
 

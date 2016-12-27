@@ -1,7 +1,6 @@
 <?php
 namespace kuiper\helper;
 
-use kuiper\test\TestCase;
 use kuiper\helper\fixtures\User;
 use kuiper\helper\Text;
 

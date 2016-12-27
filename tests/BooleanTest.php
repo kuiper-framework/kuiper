@@ -1,7 +1,6 @@
 <?php
 namespace kuiper\helper;
 
-use kuiper\test\TestCase;
 
 class BooleanTest extends TestCase
 {

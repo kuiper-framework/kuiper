@@ -1,5 +1,6 @@
 <?php
-use kuiper\test\TestCase;
+
+namespace kuiper\helper;
 
 use kuiper\helper\fixtures\JsonObject;
 
