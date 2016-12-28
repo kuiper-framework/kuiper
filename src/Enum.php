@@ -82,8 +82,8 @@ abstract class Enum implements \JsonSerializable
      */
     public function __get($name)
     {
-        if (isset(static::$PROPERTIES[$name][$this->value])) {
-            return static::$PROPERTIES[$name][$this->value];
+        if (isset(static::$PROPERTIES[$name])) {
+            return isset(static::$PROPERTIES[$name][$this->value]) ? static::$PROPERTIES[$name][$this->value] : null;
         } elseif (property_exists($this, $name)) {
             return $this->$name;
         } else {

@@ -101,4 +101,17 @@ class EnumTest extends TestCase
     {
         $this->assertEquals([1,2], Gender::ordinals());
     }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testGetPropertyNotDefined()
+    {
+        Gender::MALE()->text;
+    }
+
+    public function testGetPropertyAbsent()
+    {
+        $this->assertNull(Gender::FEMALE()->enName);
+    }
 }

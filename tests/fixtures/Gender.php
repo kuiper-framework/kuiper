@@ -18,5 +18,8 @@ class Gender extends Enum
             self::MALE => 1,
             self::FEMALE => 2
         ],
+        'enName' => [
+            self::MALE => 'male'
+        ],
     ];
 }
