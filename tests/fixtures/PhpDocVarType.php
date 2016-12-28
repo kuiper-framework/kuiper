@@ -94,5 +94,7 @@ final class PhpDocVarType extends TestPhpDocReaderParent implements TestPhpDocRe
     /**
      * {@inheritdoc}
      */
-    public function bar() {}
+    public function bar()
+    {
+    }
 }

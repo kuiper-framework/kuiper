@@ -4,7 +4,7 @@ namespace kuiper\annotations\fixtures\annotation;
 /**
  * @Annotation
  */
-class DummyAnnotation 
+class DummyAnnotation
 {
     public $value;
     

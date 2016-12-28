@@ -1,27 +1,29 @@
 <?php
+
 namespace kuiper\annotations;
 
-use kuiper\test\TestCase;
-use kuiper\annotations\fixtures\PhpDocVarType;
 use kuiper\annotations\fixtures\DummyClass;
+use kuiper\annotations\fixtures\PhpDocVarType;
 use ReflectionClass;
 
 class DocReaderTest extends TestCase
 {
     public function createReader()
     {
-        return new DocReader;
+        return new DocReader();
     }
 
     protected function getProperty($name)
     {
         $class = new ReflectionClass(PhpDocVarType::class);
+
         return $class->getProperty($name);
     }
 
     protected function getMethod($name)
     {
         $class = new ReflectionClass(PhpDocVarType::class);
+
         return $class->getMethod($name);
     }
 
@@ -55,7 +57,7 @@ class DocReaderTest extends TestCase
         $reader = $this->createReader();
         $params = $reader->getParameterTypes($this->getMethod($method));
         // var_export($params);
-        $this->assertEquals(array_map(function($type) {
+        $this->assertEquals(array_map(function ($type) {
             return (string) $type;
         }, $params), $types);
     }
@@ -81,7 +83,7 @@ class DocReaderTest extends TestCase
         $this->assertEquals((string) $types['i'], 'int');
 
         $type = $reader->getReturnType($this->getMethod('bar'));
-        $this->assertEquals((string) $type, 'int'); 
+        $this->assertEquals((string) $type, 'int');
     }
 
     public function testMethodParams()
@@ -99,15 +101,15 @@ class DocReaderTest extends TestCase
     {
         return [
             ['integerMethod', [
-                'integer' => 'int'
+                'integer' => 'int',
             ]],
             ['annotMethod', [
                 'annot' => DummyClass::class,
-                'bool' => 'bool'
-            ]]
+                'bool' => 'bool',
+            ]],
         ];
     }
-        
+
     public function varTypes()
     {
         return [
@@ -122,7 +124,7 @@ class DocReaderTest extends TestCase
             ['arrayOfIntegers', 'int[]'],
             ['arrayOfStrings', 'string[]'],
             ['arrayOfAnnotations', DummyClass::class.'[]'],
-            ['multipleType', 'string|array']
+            ['multipleType', 'string|array'],
         ];
     }
 }

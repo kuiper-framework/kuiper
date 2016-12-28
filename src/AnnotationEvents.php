@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\annotations;
 
 final class AnnotationEvents

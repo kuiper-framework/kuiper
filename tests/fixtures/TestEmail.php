@@ -8,5 +8,5 @@ use kuiper\annotations\fixtures\annotation\Secure;
  */
 interface TestEmail
 {
-    function foo();
+    public function foo();
 }

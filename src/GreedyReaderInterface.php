@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\annotations;
 
 use ReflectionClass;
@@ -6,15 +7,15 @@ use ReflectionClass;
 interface GreedyReaderInterface
 {
     /**
-     * Gets all annotations
+     * Gets all annotations.
      *
-     * @param ReflectionClass $class The ReflectionClass of the class from which
-     *                                the class annotations should be read.
+     * @param ReflectionClass $class the ReflectionClass of the class from which
+     *                               the class annotations should be read
      *
      * @return array contains
-     *  - class
-     *  - methods
-     *  - properties
+     *               - class
+     *               - methods
+     *               - properties
      */
     public function getAnnotations(ReflectionClass $class);
 }

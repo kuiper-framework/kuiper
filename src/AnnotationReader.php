@@ -1,38 +1,38 @@
 <?php
+
 namespace kuiper\annotations;
 
-use ReflectionClass;
-use ReflectionProperty;
+use InvalidArgumentException;
+use kuiper\annotations\annotation\Target;
 use kuiper\annotations\exception\AnnotationException;
 use kuiper\annotations\exception\ClassNotFoundException;
-use kuiper\annotations\annotation\Target;
-use kuiper\reflection\ReflectionFileFactoryInterface;
 use kuiper\reflection\ReflectionFileFactory;
+use kuiper\reflection\ReflectionFileFactoryInterface;
 use kuiper\reflection\ReflectionType;
-use RuntimeException;
-use InvalidArgumentException;
-use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use ReflectionClass;
+use ReflectionProperty;
+use RuntimeException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class AnnotationReader extends AbstractReader implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
-    
+
     const ERRMODE_SILENT = 1;
     const ERRMODE_WARNING = 2;
     const ERRMODE_EXCEPTION = 3;
 
     /**
-     * Cached annotations
+     * Cached annotations.
      *
      * @var array
      */
     protected $annotations = [];
 
     /**
-     * Cached annotation metadata
+     * Cached annotation metadata.
      *
      * @var array
      */
@@ -44,7 +44,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
     protected $parser;
 
     /**
-     * @var DocReader
+     * @var DocReaderInterface
      */
     protected $docReader;
 
@@ -68,34 +68,19 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
      */
     protected $errorMode = self::ERRMODE_WARNING;
 
-    /**
-     * A list with annotations that are not causing exceptions when not resolved to an annotation class.
-     *
-     * The names are case sensitive.
-     *
-     * @var array
-     */
-    private static $IGNORED_NAMES = [
-        // Annotation tags
-        'Annotation' => true,
-        'Target' => true,
-    ];
-
     public function __construct(
         ReflectionFileFactoryInterface $reflectionFileFactory = null,
         ParserInterface $parser = null,
-        DocReaderInterface $docReader = null,
-        EventDispatcherInterface $eventDispatcher = null
+        DocReaderInterface $docReader = null
     ) {
         $this->reflectionFileFactory = $reflectionFileFactory ?: ReflectionFileFactory::createInstance();
         $this->parser = $parser ?: new Parser($this->reflectionFileFactory);
         $this->docReader = $docReader ?: new DocReader($this->reflectionFileFactory);
-        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
-     * Adds the annotation names
-     * 
+     * Adds the annotation names.
+     *
      * @param array<string> $names
      */
     public function includeNames($names)
@@ -104,12 +89,13 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             $this->ignoredNames,
             array_combine($names, array_fill(0, count($names), false))
         );
+
         return $this;
     }
 
     /**
-     * Ignores these annotation names
-     * 
+     * Ignores these annotation names.
+     *
      * @param array<string> $names
      */
     public function ignoreNames($names)
@@ -118,11 +104,12 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             $this->ignoredNames,
             array_combine($names, array_fill(0, count($names), true))
         );
+
         return $this;
     }
 
     /**
-     * Clears internal cache
+     * Clears internal cache.
      */
     public function clearCache($className = null)
     {
@@ -133,6 +120,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             $this->annotations = [];
             $this->annotationMetadata = [];
         }
+
         return $this;
     }
 
@@ -142,6 +130,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
     public function setParser(ParserInterface $parser)
     {
         $this->parser = $parser;
+
         return $this;
     }
 
@@ -151,22 +140,24 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
     public function setEventDispatcher(EventDispatcherInterface $eventDispatcher)
     {
         $this->eventDispatcher = $eventDispatcher;
+
         return $this;
     }
 
     /**
      * @param ReflectionFileFactoryInterface $reflectionFileFactory
      */
-    public function setReflectionFileFactory($reflectionFileFactory)
+    public function setReflectionFileFactory(ReflectionFileFactoryInterface $reflectionFileFactory)
     {
         $this->reflectionFileFactory = $reflectionFileFactory;
+
         return $this;
     }
 
     /**
-     * Sets error model
+     * Sets error model.
      *
-     * @param int $model constants 
+     * @param int $model constants
      */
     public function setErrorMode($mode)
     {
@@ -174,11 +165,12 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             throw new InvalidArgumentException("invalid error mode '{$mode}'");
         }
         $this->errorMode = $mode;
+
         return $this;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getAnnotations(ReflectionClass $class)
     {
@@ -201,14 +193,13 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             $this->eventDispatcher->dispatch(AnnotationEvents::POST_PARSE, $event);
             $annotations = $event->getAnnotations();
         }
+
         return $this->annotations[$className] = $annotations;
     }
 
     protected function parseAnnotations(ReflectionClass $class)
     {
-        $this->logger && $this->logger->debug(
-            "[AnnotationReader] parse annotations from " . $class->getName()
-        );
+        $this->logger && $this->logger->debug('[AnnotationReader] parse annotations from '.$class->getName());
         $context = new AnnotationContext($class, $this->reflectionFileFactory);
         $sink = ['class' => [], 'methods' => [], 'properties' => []];
         $annotations = $this->parser->parse($class);
@@ -235,6 +226,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
                 }
             }
         }
+
         return $sink;
     }
 
@@ -254,8 +246,8 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
 
     /**
      * @param AnnotationContext $context
-     * @param int $target
-     * @param boolean $ignoredNotFound
+     * @param int               $target
+     * @param bool              $ignoredNotFound
      */
     protected function createAnnotation(AnnotationContext $context, $ignoredNotFound = false)
     {
@@ -268,10 +260,11 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
         if (!class_exists($annotationClass)) {
             if ($ignoredNotFound) {
                 $this->handleNotFound($context, $annotationClass);
+
                 return;
             } else {
                 throw new AnnotationException(sprintf(
-                    "Cannot load annotation @%s which resolve to %s. %s",
+                    'Cannot load annotation @%s which resolve to %s. %s',
                     $annotationName,
                     $annotationClass,
                     $this->describeAnnotation($context)
@@ -289,8 +282,8 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
         $target = $context->getTarget();
         if (0 === ($metadata['targets'] & $target)) {
             throw new AnnotationException(sprintf(
-                "Annotation @%s is not allowed here. ".
-                "You may only use this annotation on these code elements: %s. %s",
+                'Annotation @%s is not allowed here. '.
+                'You may only use this annotation on these code elements: %s. %s',
                 $annotationName,
                 Target::describe($metadata['targets']),
                 $this->describeAnnotation($context, false)
@@ -311,14 +304,15 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             try {
                 $annotationObj = new $annotationClass($values, $context);
             } catch (InvalidArgumentException $e) {
-                throw new AnnotationException($e->getMessage() . $this->describeAnnotation($context));
+                throw new AnnotationException($e->getMessage().$this->describeAnnotation($context));
             }
         } else {
-            $annotationObj = new $annotationClass;
+            $annotationObj = new $annotationClass();
             if (!empty($values)) {
                 $this->setProperties($annotationObj, $values, $metadata['properties'], $context);
             }
         }
+
         return $annotationObj;
     }
 
@@ -330,6 +324,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
         if (array_key_exists($name, $this->ignoredNames)) {
             return $this->ignoredNames[$name];
         }
+
         return !ctype_upper($name[0]);
     }
 
@@ -357,16 +352,17 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
 
     /**
      * @param string $className the annotation class name
+     *
      * @return array
-     *  - is_annotation boolean whether the class is annotation
-     *  - targets int bitmask of targets
-     *  - has_constructor boolean whether should call the class constructor
-     *  - properties array annotation properties
-     *  - default_property string name of default property
-     *  - attribute_types array with key
-     *    * required boolean
-     *    * type ReflectionType
-     *    * enums array 
+     *               - is_annotation boolean whether the class is annotation
+     *               - targets int bitmask of targets
+     *               - has_constructor boolean whether should call the class constructor
+     *               - properties array annotation properties
+     *               - default_property string name of default property
+     *               - attribute_types array with key
+     *               * required boolean
+     *               * type ReflectionType
+     *               * enums array
      */
     protected function getAnnotationMetadata($className)
     {
@@ -377,7 +373,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
         $metadata = [
             'is_annotation' => false,
             'has_constructor' => false,
-            'targets' => Target::TARGET_ALL
+            'targets' => Target::TARGET_ALL,
         ];
         $annotations = $this->parser->parse($class);
         if (!empty($annotations['class'])) {
@@ -399,6 +395,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             $metadata = array_merge($metadata, $this->parsePropertyTypes($class));
             $this->parseAnnotationAnnotations($class, $annotations, $metadata);
         }
+
         return $this->annotationMetadata[$className] = $metadata;
     }
 
@@ -419,7 +416,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             try {
                 $metadata['attribute_types'][$name] = [
                     'required' => false,
-                    'type' => $this->docReader->getPropertyType($property)
+                    'type' => $this->docReader->getPropertyType($property),
                 ];
             } catch (ClassNotFoundException $e) {
                 throw new AnnotationException(sprintf(
@@ -430,6 +427,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
                 ));
             }
         }
+
         return $metadata;
     }
 
@@ -511,6 +509,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             }
             $values[$name] = $value;
         }
+
         return $values;
     }
 
@@ -542,6 +541,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             }
             $arguments[$property] = $value;
         }
+
         return $arguments;
     }
 
@@ -556,7 +556,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             ));
         }
         $value = strtoupper($value);
-        $constName = $context->getAnnotationClassName() . '::' . $value;
+        $constName = $context->getAnnotationClassName().'::'.$value;
         if (!defined($constName)) {
             throw new AnnotationException(sprintf(
                 "Constant '%s' is not defined for attribute '%s'. %s",
@@ -574,14 +574,15 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
                 $this->describeAnnotation($context)
             ));
         }
+
         return constant($constName);
     }
 
     /**
      * @param object $annotationObj
-     * @param array $values
-     * @param array $properties
-     * @param array $context
+     * @param array  $values
+     * @param array  $properties
+     * @param array  $context
      */
     protected function setProperties($annotationObj, $values, $properties, AnnotationContext $context)
     {
@@ -612,6 +613,7 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
         } else {
             $desc .= 'class';
         }
+
         return sprintf('Error occured at %s %s at %s in line %d',
                        $desc, $context->getName(), $context->getFile(), $context->getLine());
     }

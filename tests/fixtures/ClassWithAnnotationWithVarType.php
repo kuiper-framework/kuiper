@@ -1,9 +1,9 @@
 <?php
 namespace kuiper\annotations\fixtures;
 
-use kuiper\annotations\fixtures\annotation\AnnotationWithVarType;
 use kuiper\annotations\fixtures\annotation\AnnotationTargetAll;
 use kuiper\annotations\fixtures\annotation\AnnotationTargetAnnotation;
+use kuiper\annotations\fixtures\annotation\AnnotationWithVarType;
 
 class ClassWithAnnotationWithVarType
 {
@@ -20,5 +20,7 @@ class ClassWithAnnotationWithVarType
     /**
      * @AnnotationWithVarType(annotation = @AnnotationTargetAll)
      */
-    public function bar(){}
+    public function bar()
+    {
+    }
 }

@@ -1,8 +1,9 @@
 <?php
+
 namespace kuiper\annotations;
 
-use ReflectionProperty;
 use ReflectionMethod;
+use ReflectionProperty;
 
 interface DocReaderInterface
 {
@@ -12,6 +13,7 @@ interface DocReaderInterface
      * @param ReflectionProperty $property
      *
      * @throws exception\ClassNotFoundException
+     *
      * @return \kuiper\reflection\ReflectionType Type of the property
      */
     public function getPropertyType(ReflectionProperty $property);
@@ -22,38 +24,43 @@ interface DocReaderInterface
      * @param ReflectionProperty $property
      *
      * @throws exception\ClassNotFoundException
+     *
      * @return string|null Type of the property (content of var annotation)
      */
     public function getPropertyClass(ReflectionProperty $property);
 
     /**
-     * Parses the docblock of the method to get all parameters type
+     * Parses the docblock of the method to get all parameters type.
      *
      * @param ReflectionMethod $method
+     *
      * @return array key is parameter name, value is ReflectionType
      */
     public function getParameterTypes(ReflectionMethod $method);
 
     /**
-     * Parses the docblock of the method to get all class type of parameters
+     * Parses the docblock of the method to get all class type of parameters.
      *
      * @param ReflectionMethod $method
-      * @return array key is parameter name, value is the class name
+     *
+     * @return array key is parameter name, value is the class name
      */
     public function getParameterClasses(ReflectionMethod $method);
 
     /**
-     * Parses the docblock of the method to get return type
+     * Parses the docblock of the method to get return type.
      *
      * @param ReflectionMethod $method
+     *
      * @return \kuiper\reflection\ReflectionType
      */
     public function getReturnType(ReflectionMethod $method);
 
     /**
-     * Parses the docblock of the method to get return class type
+     * Parses the docblock of the method to get return class type.
      *
      * @param ReflectionMethod $method
+     *
      * @return string|null
      */
     public function getReturnClass(ReflectionMethod $method);

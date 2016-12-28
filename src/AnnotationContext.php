@@ -1,14 +1,14 @@
 <?php
+
 namespace kuiper\annotations;
 
+use kuiper\annotations\annotation\Target;
+use kuiper\reflection\FqcnResolver;
+use kuiper\reflection\ReflectionFileFactoryInterface;
+use kuiper\reflection\ReflectionFileInterface;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
-use kuiper\annotations\annotation\Target;
-use kuiper\annotations\exception\ClassNotFoundException;
-use kuiper\reflection\ReflectionFileInterface;
-use kuiper\reflection\ReflectionFileFactoryInterface;
-use kuiper\reflection\FqcnResolver;
 
 class AnnotationContext
 {
@@ -67,9 +67,10 @@ class AnnotationContext
     }
 
     /**
-     * Creates new context with given method
+     * Creates new context with given method.
      *
-     * @param ReflectionMethod $method 
+     * @param ReflectionMethod $method
+     *
      * @return static
      */
     public function withMethod(ReflectionMethod $method)
@@ -79,13 +80,15 @@ class AnnotationContext
         $context->declaringClass = $method->getDeclaringClass();
         $context->target = Target::TARGET_METHOD;
         $context->reflectionFile = $this->reflectionFileFactory->create($context->declaringClass->getFileName());
+
         return $context;
     }
 
     /**
-     * Creates new context with given property
+     * Creates new context with given property.
      *
      * @param ReflectionProperty $property
+     *
      * @return static
      */
     public function withProperty(ReflectionProperty $property)
@@ -95,14 +98,16 @@ class AnnotationContext
         $context->declaringClass = $property->getDeclaringClass();
         $context->target = Target::TARGET_PROPERTY;
         $context->reflectionFile = $this->reflectionFileFactory->create($context->declaringClass->getFileName());
+
         return $context;
     }
 
     /**
-     * Creates new context with given annotation
+     * Creates new context with given annotation.
      *
      * @param Annotation $annotation
-     * @param int $target
+     * @param int        $target
+     *
      * @return static
      */
     public function withAnnotation(Annotation $annotation, $target = null)
@@ -113,6 +118,7 @@ class AnnotationContext
         if (isset($target)) {
             $context->target = $target;
         }
+
         return $context;
     }
 
@@ -152,6 +158,7 @@ class AnnotationContext
             $resolver = new FqcnResolver($this->reflectionFile);
             $this->annotationClassName = $resolver->resolve($this->annotation->getName(), $this->declaringClass->getNamespaceName());
         }
+
         return $this->annotationClassName;
     }
 
@@ -174,9 +181,9 @@ class AnnotationContext
     public function getName()
     {
         if ($this->target === Target::TARGET_PROPERTY) {
-            return $this->class->getName() . '->' . $this->property->getName();
+            return $this->class->getName().'->'.$this->property->getName();
         } elseif ($this->target === Target::TARGET_METHOD) {
-            return $this->class->getName() . '::' . $this->method->getName();
+            return $this->class->getName().'::'.$this->method->getName();
         } else {
             return $this->class->getName();
         }

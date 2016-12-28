@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\annotations\annotation;
 
 use InvalidArgumentException;
@@ -11,22 +12,22 @@ use InvalidArgumentException;
  */
 final class Target
 {
-    const TARGET_CLASS      = 1;
-    const TARGET_METHOD     = 2;
-    const TARGET_PROPERTY   = 4;
+    const TARGET_CLASS = 1;
+    const TARGET_METHOD = 2;
+    const TARGET_PROPERTY = 4;
     const TARGET_ANNOTATION = 8;
-    const TARGET_ALL        = 15;
+    const TARGET_ALL = 15;
 
     /**
      * @var array
      */
-    private static $TARGETS = array(
-        'ALL'        => self::TARGET_ALL,
-        'CLASS'      => self::TARGET_CLASS,
-        'METHOD'     => self::TARGET_METHOD,
-        'PROPERTY'   => self::TARGET_PROPERTY,
+    private static $TARGETS = [
+        'ALL' => self::TARGET_ALL,
+        'CLASS' => self::TARGET_CLASS,
+        'METHOD' => self::TARGET_METHOD,
+        'PROPERTY' => self::TARGET_PROPERTY,
         'ANNOTATION' => self::TARGET_ANNOTATION,
-    );
+    ];
 
     /**
      * @var array
@@ -36,7 +37,7 @@ final class Target
     /**
      * Targets as bitmask.
      *
-     * @var integer
+     * @var int
      */
     public $targets;
 
@@ -56,7 +57,7 @@ final class Target
         if (is_string($value)) {
             $value = [$value];
         }
-        if (!is_array($value)){
+        if (!is_array($value)) {
             throw new \InvalidArgumentException(
                 sprintf('@Target expects either a string value, or an array of strings, "%s" given.',
                     is_object($value) ? get_class($value) : gettype($value)
@@ -78,8 +79,8 @@ final class Target
             $bitmask |= self::$TARGETS[$literal];
         }
 
-        $this->targets  = $bitmask;
-        $this->value    = $value;
+        $this->targets = $bitmask;
+        $this->value = $value;
     }
 
     public static function describe($value)
@@ -93,6 +94,7 @@ final class Target
                 $literals[] = $literal;
             }
         }
+
         return implode(',', $literals);
     }
 }

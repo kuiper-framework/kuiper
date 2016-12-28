@@ -1,10 +1,11 @@
 <?php
+
 namespace kuiper\annotations;
 
 class Annotation
 {
     /**
-     * @var string 
+     * @var string
      */
     private $name;
 
@@ -12,7 +13,7 @@ class Annotation
      * @var array
      */
     private $arguments;
-    
+
     public function __construct($name, array $arguments)
     {
         $this->name = $name;
@@ -27,6 +28,7 @@ class Annotation
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -38,6 +40,7 @@ class Annotation
     public function setArguments($arguments)
     {
         $this->arguments = $arguments;
+
         return $this;
     }
 }

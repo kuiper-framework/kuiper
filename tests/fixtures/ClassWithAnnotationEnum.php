@@ -8,5 +8,7 @@ class ClassWithAnnotationEnum
     /**
      * @AnnotationEnum("TWO")
      */
-    public function bar(){}
+    public function bar()
+    {
+    }
 }

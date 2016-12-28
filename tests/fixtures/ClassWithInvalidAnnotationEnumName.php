@@ -8,5 +8,7 @@ class ClassWithInvalidAnnotationEnumName
     /**
      * @AnnotationEnum("FOUR")
      */
-    public function bar(){}
+    public function bar()
+    {
+    }
 }

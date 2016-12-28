@@ -14,6 +14,5 @@ class ClassWithInvalidAnnotationTargetAtMethod
      */
     public function functionName($param)
     {
-
     }
 }

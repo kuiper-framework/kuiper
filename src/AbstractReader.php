@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\annotations;
 
 use ReflectionClass;
@@ -8,16 +9,17 @@ use ReflectionProperty;
 abstract class AbstractReader implements GreedyReaderInterface, ReaderInterface
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getClassAnnotations(ReflectionClass $class)
     {
         $annotations = $this->getAnnotations($class);
+
         return $annotations['class'];
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getClassAnnotation(ReflectionClass $class, $annotationName)
     {
@@ -25,18 +27,19 @@ abstract class AbstractReader implements GreedyReaderInterface, ReaderInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getMethodAnnotations(ReflectionMethod $method)
     {
         $annotations = $this->getAnnotations($method->getDeclaringClass());
+
         return isset($annotations['methods'][$method->getName()])
             ? $annotations['methods'][$method->getName()]
             : [];
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getMethodAnnotation(ReflectionMethod $method, $annotationName)
     {
@@ -44,18 +47,19 @@ abstract class AbstractReader implements GreedyReaderInterface, ReaderInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getPropertyAnnotations(ReflectionProperty $property)
     {
         $annotations = $this->getAnnotations($property->getDeclaringClass());
+
         return isset($annotations['properties'][$property->getName()])
             ? $annotations['properties'][$property->getName()]
             : [];
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getPropertyAnnotation(ReflectionProperty $property, $annotationName)
     {

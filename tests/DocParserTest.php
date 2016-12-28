@@ -1,7 +1,7 @@
 <?php
+
 namespace kuiper\annotations;
 
-use kuiper\test\TestCase;
 use kuiper\reflection\ReflectionFile;
 
 class DocParserTest extends TestCase
@@ -9,6 +9,7 @@ class DocParserTest extends TestCase
     public function createTestParser()
     {
         $parser = new DocParser();
+
         return $parser;
     }
 
@@ -20,7 +21,7 @@ class DocParserTest extends TestCase
         // Nested arrays with nested annotations
         $result = $parser->parse($doc, new ReflectionFile(__FILE__), null, 1);
         $annot = $result[0];
-        
+
         $this->assertTrue($annot instanceof Annotation);
         $this->assertEquals('Name', $annot->getName());
         $args = $annot->getArguments();
@@ -29,7 +30,7 @@ class DocParserTest extends TestCase
         $this->assertEquals(1, $args['foo'][0]);
         $this->assertEquals(2, $args['foo'][1]);
         $this->assertTrue(is_array($args['foo'][2]));
-        
+
         $nestedArray = $args['foo'][2];
         $this->assertTrue(isset($nestedArray['key']));
         $this->assertTrue($nestedArray['key'] instanceof Annotation);
@@ -40,7 +41,7 @@ class DocParserTest extends TestCase
         $parser = $this->createTestParser();
 
         // Marker annotation
-        $result = $parser->parse("@Name", new ReflectionFile(__FILE__), null, 1);
+        $result = $parser->parse('@Name', new ReflectionFile(__FILE__), null, 1);
         $annot = $result[0];
         $this->assertTrue($annot instanceof Annotation);
         $this->assertEquals('Name', $annot->getName());
@@ -78,7 +79,7 @@ class DocParserTest extends TestCase
         $this->assertEquals('value2', $args['value'][1]['key2']);
 
         // Complete docblock
-        $docblock = <<<DOCBLOCK
+        $docblock = <<<'DOCBLOCK'
 /**
  * Some nifty class.
  *
@@ -89,5 +90,5 @@ DOCBLOCK;
 
         $result = $parser->parse($docblock, new ReflectionFile(__FILE__), null, 1);
         $this->assertEquals(2, count($result));
-   }
+    }
 }

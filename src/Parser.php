@@ -1,7 +1,7 @@
 <?php
+
 namespace kuiper\annotations;
 
-use kuiper\annotations\exception\AnnotationException;
 use kuiper\reflection\ReflectionFileFactoryInterface;
 use ReflectionClass;
 
@@ -16,15 +16,15 @@ class Parser implements ParserInterface
      * @var ReflectionFileFactoryInterface
      */
     private $reflectionFileFactory;
-    
+
     public function __construct(ReflectionFileFactoryInterface $reflectionFileFactory)
     {
         $this->reflectionFileFactory = $reflectionFileFactory;
         $this->docParser = new DocParser();
     }
-    
+
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function parse(ReflectionClass $class)
     {
@@ -63,6 +63,7 @@ class Parser implements ParserInterface
                 );
             }
         }
+
         return $annotations;
     }
 }

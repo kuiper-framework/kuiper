@@ -1,15 +1,15 @@
 <?php
+
 namespace kuiper\annotations;
 
-use ReflectionProperty;
-use ReflectionMethod;
-use ReflectionClass;
 use InvalidArgumentException;
-use kuiper\reflection\ReflectionFileFactoryInterface;
-use kuiper\reflection\ReflectionFileFactory;
-use kuiper\reflection\ReflectionType;
 use kuiper\reflection\FqcnResolver;
-use kuiper\annotations\exception\ClassNotFoundException;
+use kuiper\reflection\ReflectionFileFactory;
+use kuiper\reflection\ReflectionFileFactoryInterface;
+use kuiper\reflection\ReflectionType;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionProperty;
 
 class DocReader implements DocReaderInterface
 {
@@ -22,7 +22,7 @@ class DocReader implements DocReaderInterface
      * @var array
      */
     private static $CACHE;
-    
+
     public function __construct(ReflectionFileFactoryInterface $reflFileFactory = null)
     {
         $this->reflectionFileFactory = $reflFileFactory ?: ReflectionFileFactory::createInstance();
@@ -30,17 +30,17 @@ class DocReader implements DocReaderInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getPropertyType(ReflectionProperty $property)
     {
-        return $this->getCached($property, function() use ($property) {
+        return $this->getCached($property, function () use ($property) {
             return $this->parseAnnotationType($property->getDocComment(), $property->getDeclaringClass(), 'var');
         });
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getPropertyClass(ReflectionProperty $property)
     {
@@ -48,11 +48,11 @@ class DocReader implements DocReaderInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getParameterTypes(ReflectionMethod $method)
     {
-        return $this->getCached($method, function() use ($method) {
+        return $this->getCached($method, function () use ($method) {
             $parameters = [];
             foreach ($method->getParameters() as $parameter) {
                 if (method_exists($parameter, 'hasType')
@@ -79,12 +79,13 @@ class DocReader implements DocReaderInterface
                     $parameters[$name] = $this->parseType($matches[1][$index], $declaringClass);
                 }
             }
+
             return $parameters;
         });
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getParameterClasses(ReflectionMethod $method)
     {
@@ -92,15 +93,16 @@ class DocReader implements DocReaderInterface
         foreach ($this->getParameterTypes($method) as $name => $type) {
             $parameters[$name] = $this->getClassType($type);
         }
+
         return array_filter($parameters);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getReturnType(ReflectionMethod $method)
     {
-        return $this->getCached($method, function() use ($method) {
+        return $this->getCached($method, function () use ($method) {
             if (method_exists($method, 'hasReturnType')
                 && $method->hasReturnType()) {
                 // detected from php 7.0 ReflectionType
@@ -109,12 +111,13 @@ class DocReader implements DocReaderInterface
                     return $type;
                 }
             }
+
             return $this->parseAnnotationType($this->getMethodDocComment($method), $method->getDeclaringClass(), 'return');
         }, 'returnType:');
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getReturnClass(ReflectionMethod $method)
     {
@@ -123,15 +126,16 @@ class DocReader implements DocReaderInterface
 
     /**
      * @param ReflectionMethod|ReflectionProperty $reflection
-     * @param callable $callback
+     * @param callable                            $callback
      */
     protected function getCached($reflection, $callback, $prefix = null)
     {
         $className = $reflection->getDeclaringClass()->getName();
-        $key = $prefix . $reflection->getName();
+        $key = $prefix.$reflection->getName();
         if (isset(self::$CACHE[$className][$key])) {
             return self::$CACHE[$className][$key];
         }
+
         return self::$CACHE[$className][$key] = $callback();
     }
 
@@ -145,31 +149,35 @@ class DocReader implements DocReaderInterface
         if (!preg_match('/@'.$annotationName.'\s+(\S+)/', $docBlock, $matches)) {
             return ReflectionType::mixed();
         }
+
         return $this->parseType($matches[1], $declaringClass);
     }
 
     /**
-     * Parses the type
+     * Parses the type.
      *
-     * @param string $type
+     * @param string          $type
      * @param ReflectionClass $declaringClass
+     *
      * @return ReflectionType
      */
     protected function parseType($type, ReflectionClass $declaringClass)
     {
         if (empty($type)) {
-            throw new InvalidArgumentException("type cannot be empty");
+            throw new InvalidArgumentException('type cannot be empty');
         } elseif (!is_string($type)) {
-            throw new InvalidArgumentException("type should be string, got " . ReflectionType::describe($type));
+            throw new InvalidArgumentException('type should be string, got '.ReflectionType::describe($type));
         }
         if (in_array($type, ['self', 'static'])) {
             return ReflectionType::objectType($declaringClass->getName());
         }
         try {
             $type = ReflectionType::parse($type);
+
             return $this->resolveFqcn($type, $declaringClass);
         } catch (InvalidArgumentException $e) {
-            trigger_error("Parse type error: " . $e->getMessage());
+            trigger_error('Parse type error: '.$e->getMessage());
+
             return ReflectionType::mixed();
         }
     }
@@ -182,6 +190,7 @@ class DocReader implements DocReaderInterface
                 $reflFile = $this->reflectionFileFactory->create($declaringClass->getFilename());
                 $resolver = new FqcnResolver($reflFile);
                 $fqcn = $resolver->resolve($name, $declaringClass->getNamespaceName());
+
                 return ReflectionType::objectType($fqcn);
             } else {
                 return $type;
@@ -193,6 +202,7 @@ class DocReader implements DocReaderInterface
             foreach ($type->getCompoundTypes() as $compoundType) {
                 $types[] = $this->resolveFqcn($compoundType, $declaringClass);
             }
+
             return ReflectionType::compoundType($types);
         } else {
             return $type;

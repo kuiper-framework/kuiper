@@ -62,5 +62,4 @@ final class AnnotationWithVarType
      * @var array<AnnotationTargetAll>
      */
     public $arrayOfAnnotations;
-
 }

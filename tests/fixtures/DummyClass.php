@@ -2,8 +2,8 @@
 namespace kuiper\annotations\fixtures;
 
 use kuiper\annotations\fixtures\annotation\DummyAnnotation;
-use kuiper\annotations\fixtures\annotation\DummyJoinTable;
 use kuiper\annotations\fixtures\annotation\DummyJoinColumn;
+use kuiper\annotations\fixtures\annotation\DummyJoinTable;
 
 /**
  * A description of this class.
