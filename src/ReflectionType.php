@@ -2,9 +2,9 @@
 namespace kuiper\reflection;
 
 use InvalidArgumentException;
-use UnexpectedValueException;
 use LogicException;
 use ReflectionType as Php7ReflectionType;
+use UnexpectedValueException;
 
 /**
  * 目前只实现解析不能包含括号的简单类型
@@ -146,7 +146,7 @@ final class ReflectionType implements ReflectionTypeInterface
 
     /**
      * creates a mixed type
-     * 
+     *
      * @return static mixed type
      */
     public static function mixed()
@@ -156,7 +156,7 @@ final class ReflectionType implements ReflectionTypeInterface
 
     /**
      * creates an integer type
-     * 
+     *
      * @return static integer type
      */
     public static function integer()
@@ -166,7 +166,7 @@ final class ReflectionType implements ReflectionTypeInterface
 
     /**
      * creates a boolean type
-     * 
+     *
      * @return static boolean type
      */
     public static function boolean()
@@ -176,7 +176,7 @@ final class ReflectionType implements ReflectionTypeInterface
 
     /**
      * creates a double type
-     * 
+     *
      * @return static double type
      */
     public static function double()
@@ -186,7 +186,7 @@ final class ReflectionType implements ReflectionTypeInterface
 
     /**
      * creates a string type
-     * 
+     *
      * @return static string type
      */
     public static function string()
@@ -196,8 +196,8 @@ final class ReflectionType implements ReflectionTypeInterface
 
     /**
      * creates a null type
-     * 
-     * @return static null 
+     *
+     * @return static null
      */
     public static function null()
     {
@@ -206,7 +206,7 @@ final class ReflectionType implements ReflectionTypeInterface
 
     /**
      * creates a builtin type
-     * 
+     *
      * @param string $type
      * @return static
      */
@@ -234,7 +234,7 @@ final class ReflectionType implements ReflectionTypeInterface
 
     /**
      * creates an array type
-     * 
+     *
      * @param ReflectionTypeInterface $arrayValueType
      * @return static
      */
@@ -245,7 +245,7 @@ final class ReflectionType implements ReflectionTypeInterface
 
     /**
      * creates an object type
-     * 
+     *
      * @param string $className
      * @return static
      */

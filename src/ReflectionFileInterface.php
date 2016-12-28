@@ -5,14 +5,14 @@ interface ReflectionFileInterface
 {
     /**
      * Gets the file name
-     * 
+     *
      * @return string
      */
     public function getFile();
     
     /**
      * Gets all namespaces defined in the file
-     * 
+     *
      * @return string[]
      * @throws exception\SyntaxErrorException
      */
@@ -20,7 +20,7 @@ interface ReflectionFileInterface
     
     /**
      * Gets all classes defined in the file
-     * 
+     *
      * @return string[]
      * @throws exception\SyntaxErrorException
      */

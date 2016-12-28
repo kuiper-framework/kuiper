@@ -1,9 +1,9 @@
 <?php
 namespace kuiper\reflection;
 
+use ArrayIterator;
 use InvalidArgumentException;
 use Iterator;
-use ArrayIterator;
 use kuiper\reflection\exception\SyntaxErrorException;
 
 class ReflectionFile implements ReflectionFileInterface

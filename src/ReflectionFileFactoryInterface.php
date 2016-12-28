@@ -5,7 +5,7 @@ interface ReflectionFileFactoryInterface
 {
     /**
      * Creates instance
-     * 
+     *
      * @return self
      */
     public static function createInstance();

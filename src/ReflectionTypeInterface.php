@@ -88,14 +88,14 @@ interface ReflectionTypeInterface
     /**
      * checks whether the value is valid
      *
-     * @param mixed $value 
-     * @return boolean 
+     * @param mixed $value
+     * @return boolean
      */
     public function validate($value);
     
     /**
      * Sanitizes input value
-     * 
+     *
      * @param mixed $value
      * @return mixed
      */

@@ -1,25 +1,33 @@
 <?php
 namespace foo;
-use My\Full\Classname as Another;
 
-// this is the same as use My\Full\NSname as NSname
-use My\Full\NSname;
-
-// importing a global class
 use ArrayObject;
 
+// this is the same as use My\Full\NSname as NSname
+use My\Full\Classname as Another;
+
+// importing a global class
+use My\Full\ClassnameB as AnotherB;
+
 // importing a function (PHP 5.6+)
-use function My\Full\functionName;
+use My\Full\NSname;
 
 // aliasing a function (PHP 5.6+)
-use function My\Full\functionName as func;
+use My\Full\NSnameB;
 
 // importing a constant (PHP 5.6+)
-use const My\Full\CONSTANT;
+use some\ns\ClassA;
 
-use My\Full\ClassnameB as AnotherB, My\Full\NSnameB;
+use some\ns\ClassB;
+use some\ns\ClassC as C;
 
 // PHP 7+ code
-use some\ns\{ClassA, ClassB, ClassC as C};
-use function some\ns\{fn_a, fn_b, fn_c};
-use const some\ns\{ConstA, ConstB, ConstC};
+use const My\Full\CONSTANT;
+use const some\ns\ConstA;
+use const some\ns\ConstB;
+use const some\ns\ConstC;
+use function My\Full\functionName;
+use function My\Full\functionName as func;
+use function some\ns\fn_a;
+use function some\ns\fn_b;
+use function some\ns\fn_c;

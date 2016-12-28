@@ -1,9 +1,9 @@
 <?php
 namespace kuiper\reflection;
 
-use RecursiveIteratorIterator;
-use RecursiveDirectoryIterator;
 use kuiper\reflection\exception\SyntaxErrorException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 class ReflectionNamespace implements ReflectionNamespaceInterface
 {

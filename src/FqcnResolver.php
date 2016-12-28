@@ -17,7 +17,7 @@ class FqcnResolver
     
     /**
      * Resolves class name to Full Qualified Class Name
-     * 
+     *
      * @param string $name
      * @param string $namespace
      * @return string

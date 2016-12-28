@@ -83,8 +83,8 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
     }
 
     /**
-     * Registers directory for the namespace 
-     * 
+     * Registers directory for the namespace
+     *
      * @param string $namespace
      * @param string $dir
      * @return static
@@ -99,7 +99,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
     /**
      * Registers composer class loader.
      * Only psr4 namespace support
-     * 
+     *
      * @param ClassLoader $loader
      * @return static
      */
@@ -115,7 +115,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 
     /**
      * Adds new php code file extension
-     * 
+     *
      * @param string $ext
      * @return self
      */
@@ -127,7 +127,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 
     /**
      * Sets php code file extension list
-     * 
+     *
      * @param string[]
      * @return self
      */

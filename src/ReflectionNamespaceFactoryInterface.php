@@ -5,7 +5,7 @@ interface ReflectionNamespaceFactoryInterface
 {
     /**
      * Creates instance
-     * 
+     *
      * @return self
      */
     public static function createInstance();

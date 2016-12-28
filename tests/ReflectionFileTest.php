@@ -1,7 +1,6 @@
 <?php
 namespace kuiper\reflection;
 
-
 class ReflectionFileTest extends TestCase
 {
     public function createReflectionFile($file)

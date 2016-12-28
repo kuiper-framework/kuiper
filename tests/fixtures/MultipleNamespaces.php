@@ -3,31 +3,37 @@ declare(encoding='UTF-8');
 
 namespace NamespaceA
 {
-    class ClassA {
+    class ClassA
+    {
     }
 
-    interface InterfaceA {
+    interface InterfaceA
+    {
     }
 }
 
 namespace NamespaceB
 {
     use NamespaceA\ClassA;
-    
-    class ClassB {
+
+    class ClassB
+    {
     }
 
-    interface InterfaceB {
+    interface InterfaceB
+    {
     }
 }
 
 namespace
 {
-    class ClassC {
+    class ClassC
+    {
         public static $classA;
     }
 
-    interface InterfaceC {
+    interface InterfaceC
+    {
     }
 
     ClassC::$classA = NamespaceA\ClassA::class;

@@ -1,2 +1,3 @@
 <?php
-use some\ns\{ClassA, ClassC as C};
+use some\ns\ClassA;
+use some\ns\ClassC as C;

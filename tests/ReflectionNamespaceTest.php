@@ -1,7 +1,6 @@
 <?php
 namespace kuiper\reflection;
 
-
 class ReflectionNamespaceTest extends TestCase
 {
     public function createFactory()
