@@ -2,8 +2,8 @@
 namespace kuiper\helper;
 
 use ArrayAccess;
-use Iterator;
 use InvalidArgumentException;
+use Iterator;
 
 /**
  * Access array use key separated by dot(.) :

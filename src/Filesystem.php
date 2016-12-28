@@ -1,8 +1,8 @@
 <?php
 namespace kuiper\helper;
 
-use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
 
 class Filesystem
@@ -136,9 +136,9 @@ class Filesystem
 
     /**
      * Returns whether the file path is an absolute path.
-     * 
+     *
      * @param string $file
-     * 
+     *
      * @return bool
      */
     public static function isAbsolute($file)

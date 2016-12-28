@@ -22,10 +22,14 @@ class ArraysTest extends TestCase
         $arr = [['name' => 'john'], ['name' => 'jim']];
         $this->assertEquals(Arrays::pull($arr, 'name'), ['john','jim']);
 
-        $objs = array_map(function($a) { return (object) $a; }, $arr);
+        $objs = array_map(function ($a) {
+            return (object) $a;
+        }, $arr);
         $this->assertEquals(Arrays::pull($objs, 'name', Arrays::OBJ), ['john','jim']);
 
-        $users = array_map(function($a) { return new User($a['name']); }, $arr);
+        $users = array_map(function ($a) {
+            return new User($a['name']);
+        }, $arr);
         $this->assertEquals(Arrays::pull($users, 'name', Arrays::GETTER), ['john','jim']);
 
         $arr = ['john' => [1, 2], 'jim' => [3, 4]];
@@ -40,13 +44,17 @@ class ArraysTest extends TestCase
             'jim' => ['name' => 'jim']
         ]);
         
-        $objs = array_map(function($a) { return (object) $a; }, $arr);
+        $objs = array_map(function ($a) {
+            return (object) $a;
+        }, $arr);
         $this->assertEquals(Arrays::assoc($objs, 'name', Arrays::OBJ), [
             'john' => $objs[0],
             'jim' => $objs[1]
         ]);
 
-        $users = array_map(function($a) { return new User($a['name']); }, $arr);
+        $users = array_map(function ($a) {
+            return new User($a['name']);
+        }, $arr);
         $this->assertEquals(Arrays::assoc($users, 'name', Arrays::GETTER), [
             'john' => $users[0],
             'jim' => $users[1]
@@ -94,7 +102,9 @@ class ArraysTest extends TestCase
     public function testSorter()
     {
         $arr = [['name' => 'john'], ['name' => 'jim']];
-        $users = array_map(function($a) { return new User($a['name']); }, $arr);
+        $users = array_map(function ($a) {
+            return new User($a['name']);
+        }, $arr);
 
         usort($users, Arrays::sorter('name', 'strcmp', Arrays::GETTER));
         $this->assertEquals($users[0]->name, 'jim');
@@ -140,8 +150,8 @@ class ArraysTest extends TestCase
             'employees' => [
                 [
                     'name' => 'john',
-                    'age' => NULL,
-                    'isFemale' => NULL,
+                    'age' => null,
+                    'isFemale' => null,
                 ]
             ]
         ], $ret = Arrays::toArray($company, true, false, true));
@@ -152,7 +162,7 @@ class ArraysTest extends TestCase
         $arr = Arrays::mapKeys(['fooId' => 1], [Text::class, 'uncamelize']);
         $this->assertEquals(["foo_id" => 1], $arr);
 
-        $ret = Arrays::mapKeys($arr, function($key) {
+        $ret = Arrays::mapKeys($arr, function ($key) {
             return 'prefixed_' . $key;
         });
         $this->assertEquals(["foo_id" => 1], $arr);

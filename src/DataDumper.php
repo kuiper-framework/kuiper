@@ -1,8 +1,8 @@
 <?php
 namespace kuiper\helper;
 
-use Symfony\Component\Yaml\Yaml;
 use InvalidArgumentException;
+use Symfony\Component\Yaml\Yaml;
 
 class DataDumper
 {
@@ -78,7 +78,7 @@ class DataDumper
 
     /**
      * Gets data format from file name
-     * 
+     *
      * @param string $file
      *
      * @return string

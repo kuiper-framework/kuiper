@@ -16,7 +16,7 @@ trait JsonSerializeTrait
         $vars = get_object_vars($this);
         if (isset($keyStyle)) {
             if ($keyStyle === 'camelize') {
-                $vars = Arrays::mapKeys($vars, function($key) {
+                $vars = Arrays::mapKeys($vars, function ($key) {
                     return lcfirst(Text::camelize($key));
                 });
             } elseif ($keyStyle === 'uncamelize') {

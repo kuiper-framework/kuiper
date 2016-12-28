@@ -1,8 +1,8 @@
 <?php
 namespace kuiper\helper;
 
-use InvalidArgumentException;
 use ArrayAccess;
+use InvalidArgumentException;
 use ReflectionClass;
 
 class Arrays
@@ -221,7 +221,7 @@ class Arrays
      * @param bool $includeGetters
      * @param bool $uncamelizeKey
      * @param bool $recursive
-     * 
+     *
      * @return array
      */
     public static function toArray($bean, $includeGetters = true, $uncamelizeKey = false, $recursive = false)
@@ -274,7 +274,7 @@ class Arrays
      * be appended to the former array.
      *
      * Borrow from yii\helper\ArrayHelper
-     * 
+     *
      * @param array $a array to be merged to
      * @param array $b array to be merged from. You can specify additional
      * arrays via third argument, fourth argument etc.
@@ -348,7 +348,7 @@ class Arrays
     public static function mapKeys(array $arr, callable $callback)
     {
         $result = [];
-        array_walk($arr, function(&$value, $key) use (&$result, $callback) {
+        array_walk($arr, function (&$value, $key) use (&$result, $callback) {
             $result[$callback($key)] = $value;
         });
         return $result;

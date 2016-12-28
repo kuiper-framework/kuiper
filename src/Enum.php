@@ -13,13 +13,13 @@ abstract class Enum implements \JsonSerializable
      * key = className
      * value = array which key is enum value
      */
-    private static $values = array();
+    private static $values = [];
 
     /**
      * key = className
      * value = array which key is enum name
      */
-    private static $names = array();
+    private static $names = [];
 
     /**
      * properties for enum instances
@@ -183,8 +183,8 @@ abstract class Enum implements \JsonSerializable
      * Gets the enum instance for the name
      *
      * @param string $name
-     * @param object $default 
-     *  
+     * @param object $default
+     *
      * @return Enum
      */
     public static function fromName($name, $default = null)
@@ -195,7 +195,7 @@ abstract class Enum implements \JsonSerializable
         }
         if ($default === null) {
             throw new InvalidArgumentException("No enum constant '$name' in class " . get_called_class());
-        } 
+        }
         return $default;
     }
     
@@ -215,7 +215,7 @@ abstract class Enum implements \JsonSerializable
         }
         if ($default === null) {
             throw new InvalidArgumentException("No enum constant value '$value' class " . get_called_class());
-        } 
+        }
         return $default;
     }
 

@@ -1,7 +1,6 @@
 <?php
 namespace kuiper\helper;
 
-
 class DotArrayTest extends TestCase
 {
     public function createDotArray()
@@ -27,7 +26,7 @@ class DotArrayTest extends TestCase
             'array[2][1]' => 4,
             'map.k1' => 'v1',
             'map.k2' => 'v2',
-        ],$array->toArray());
+        ], $array->toArray());
     }
 
     public function testArrayAccess()
