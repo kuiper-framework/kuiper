@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\reflection;
 
 use ArrayIterator;
@@ -11,7 +12,7 @@ class ReflectionFile implements ReflectionFileInterface
     const T_CLASSES = 'classes';
     const T_CONSTANTS = 'constants';
     const T_FUNCTIONS = 'functions';
-    
+
     /**
      * @var array
      */
@@ -46,7 +47,7 @@ class ReflectionFile implements ReflectionFileInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getFile()
     {
@@ -54,25 +55,27 @@ class ReflectionFile implements ReflectionFileInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getNamespaces()
     {
         $this->parse();
+
         return $this->namespaces;
     }
-    
+
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getClasses()
     {
         $this->parse();
+
         return $this->classes;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getImportedClasses($namespace)
     {
@@ -80,11 +83,12 @@ class ReflectionFile implements ReflectionFileInterface
         if (isset($this->imports[$namespace][self::T_CLASSES])) {
             return $this->imports[$namespace][self::T_CLASSES];
         }
+
         return [];
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getImportedFunctions($namespace)
     {
@@ -92,11 +96,12 @@ class ReflectionFile implements ReflectionFileInterface
         if (isset($this->imports[$namespace][self::T_FUNCTIONS])) {
             return $this->imports[$namespace][self::T_FUNCTIONS];
         }
+
         return [];
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getImportedConstants($namespace)
     {
@@ -104,6 +109,7 @@ class ReflectionFile implements ReflectionFileInterface
         if (isset($this->imports[$namespace][self::T_CONSTANTS])) {
             return $this->imports[$namespace][self::T_CONSTANTS];
         }
+
         return [];
     }
 
@@ -156,7 +162,7 @@ class ReflectionFile implements ReflectionFileInterface
                         $imports[$namespace][$type] = $stmtImports;
                     }
                 } catch (SyntaxErrorException $e) {
-                    throw new SyntaxErrorException("Syntax error at '{$this->file}' line {$line}: " . $e->getMessage());
+                    throw new SyntaxErrorException("Syntax error at '{$this->file}' line {$line}: ".$e->getMessage());
                 }
             } elseif (in_array($token[0], [T_CLASS, T_INTERFACE])) {
                 if ($token[0] === T_CLASS) {
@@ -170,10 +176,10 @@ class ReflectionFile implements ReflectionFileInterface
                 if (!$class) {
                     throw new SyntaxErrorException(
                         "Syntax error at '{$this->file}' line {$line}: expected class name or interface name, got "
-                        . $this->describeToken($tokens->current())
+                        .$this->describeToken($tokens->current())
                     );
                 }
-                $classes[] = $namespace ? $namespace . '\\' . $class : $class;
+                $classes[] = $namespace ? $namespace.'\\'.$class : $class;
 
                 try {
                     $this->matchParentheses($tokens);
@@ -196,7 +202,7 @@ class ReflectionFile implements ReflectionFileInterface
 
     /**
      * Skips whitespace and comment.
-     * Stops when first token that is not whitespace or comment is occured
+     * Stops when first token that is not whitespace or comment is occured.
      */
     private function skipWhitespaceAndComment(Iterator $tokens)
     {
@@ -211,7 +217,7 @@ class ReflectionFile implements ReflectionFileInterface
 
     /**
      * Reads the identifiers at current position.
-     * Stops when first token that not belong to identifier (not string or ns_separator)
+     * Stops when first token that not belong to identifier (not string or ns_separator).
      *
      * @return string
      */
@@ -227,25 +233,26 @@ class ReflectionFile implements ReflectionFileInterface
             }
             $tokens->next();
         }
+
         return $identifier;
     }
 
     /**
-     * Reads use statment
+     * Reads use statment.
      *
      * @return array first element is type string, "classes" or "functions" or "constants"
-     *  and the second is an array, key is alias, value is import symbol
+     *               and the second is an array, key is alias, value is import symbol
      */
     private function parseUseStatement(Iterator $tokens)
     {
         if (!$tokens->valid()) {
-            throw new SyntaxErrorException("expected use statement here");
+            throw new SyntaxErrorException('expected use statement here');
         }
         $token = $tokens->current();
         if (!is_array($token) || !in_array($token[0], [T_FUNCTION, T_CONST, T_STRING])) {
             throw new SyntaxErrorException(
-                "expected class name or keyword function or const, got "
-                . $this->describeToken($token)
+                'expected class name or keyword function or const, got '
+                .$this->describeToken($token)
             );
         }
         if ($token[0] === T_FUNCTION) {
@@ -260,6 +267,7 @@ class ReflectionFile implements ReflectionFileInterface
             $type = 'classes';
         }
         $imports = $this->matchImportList($tokens, ';');
+
         return [$type, $imports];
     }
 
@@ -288,10 +296,11 @@ class ReflectionFile implements ReflectionFileInterface
                 break;
             } else {
                 throw new SyntaxErrorException(
-                    "expected comma or semicolon here, got " . $this->describeToken($token)
+                    'expected comma or semicolon here, got '.$this->describeToken($token)
                 );
             }
         } while (true);
+
         return $imports;
     }
 
@@ -301,20 +310,20 @@ class ReflectionFile implements ReflectionFileInterface
         $name = $this->matchIdentifier($tokens);
         if (empty($name)) {
             throw new SyntaxErrorException(
-                "expected imported identifier, got "
-                . $this->describeToken($tokens->current())
+                'expected imported identifier, got '
+                .$this->describeToken($tokens->current())
             );
         }
         $token = $tokens->current();
         if ($token === '{') {
             if (!$hasSubList) {
-                throw new SyntaxErrorException("unexpected token " . $this->describeToken($token));
+                throw new SyntaxErrorException('unexpected token '.$this->describeToken($token));
             }
             $tokens->next();
             $imports = $this->matchImportList($tokens, '}', false);
             $prefix = $name;
             foreach ($imports as $alias => $name) {
-                $imports[$alias] = $prefix . $name;
+                $imports[$alias] = $prefix.$name;
             }
         } else {
             $this->skipWhitespaceAndComment($tokens);
@@ -331,6 +340,7 @@ class ReflectionFile implements ReflectionFileInterface
             }
             $imports[$alias] = $name;
         }
+
         return $imports;
     }
 
@@ -352,20 +362,21 @@ class ReflectionFile implements ReflectionFileInterface
             }
         }
         if (!empty($stack)) {
-            throw new SyntaxErrorException("parentheses not match");
+            throw new SyntaxErrorException('parentheses not match');
         }
     }
 
     private function getSimpleName($name)
     {
         $parts = explode('\\', $name);
+
         return end($parts);
     }
 
     private function describeToken($token)
     {
         if (is_array($token)) {
-            return '[' . implode(", ", [$this->getTokenName($token), json_encode($token[1]), $token[2]]) . ']';
+            return '['.implode(', ', [$this->getTokenName($token), json_encode($token[1]), $token[2]]).']';
         } else {
             return json_encode($token);
         }
@@ -383,6 +394,7 @@ class ReflectionFile implements ReflectionFileInterface
             }
             self::$TOKEN_TYPES = $tokenTypes;
         }
+
         return self::$TOKEN_TYPES[$token[0]];
     }
 }

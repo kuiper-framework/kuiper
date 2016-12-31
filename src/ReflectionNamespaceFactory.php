@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\reflection;
 
 use Composer\Autoload\ClassLoader;
@@ -31,13 +32,14 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
     private $extensions = ['php'];
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public static function createInstance(ReflectionFileFactoryInterface $reflfileFactory = null)
     {
         if (!isset(self::$INSTANCE)) {
             self::$INSTANCE = new self($reflfileFactory);
         }
+
         return self::$INSTANCE;
     }
 
@@ -47,7 +49,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function create($namespace)
     {
@@ -64,13 +66,14 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
                     }
                 }
             }
+
             return $this->namespaces[$namespace]
                 = new ReflectionNamespace($namespace, $dirs, $this->extensions, $this->reflectionFileFactory);
         }
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function clearCache($namespace = null)
     {
@@ -79,28 +82,32 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
         } else {
             $this->namespaces = [];
         }
+
         return $this;
     }
 
     /**
-     * Registers directory for the namespace
+     * Registers directory for the namespace.
      *
      * @param string $namespace
      * @param string $dir
+     *
      * @return static
      */
     public function register($namespace, $dir)
     {
         $namespace = $this->normalizeNamespace($namespace);
         $this->namespaceDirs[$namespace][$dir] = true;
+
         return $this;
     }
 
     /**
      * Registers composer class loader.
-     * Only psr4 namespace support
+     * Only psr4 namespace support.
      *
      * @param ClassLoader $loader
+     *
      * @return static
      */
     public function registerLoader(ClassLoader $loader)
@@ -110,35 +117,40 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
                 $this->register($namespace, $dir);
             }
         }
+
         return $this;
     }
 
     /**
-     * Adds new php code file extension
+     * Adds new php code file extension.
      *
      * @param string $ext
+     *
      * @return self
      */
     public function addExtension($ext)
     {
         $this->extensions[] = $ext;
+
         return $this;
     }
 
     /**
-     * Sets php code file extension list
+     * Sets php code file extension list.
      *
      * @param string[]
+     *
      * @return self
      */
     public function setExtensions(array $exts)
     {
         $this->extensions = $exts;
+
         return $this;
     }
 
     private function normalizeNamespace($namespace)
     {
-        return trim($namespace, "\\") . "\\";
+        return trim($namespace, '\\').'\\';
     }
 }

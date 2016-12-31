@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\reflection;
 
 use InvalidArgumentException;
@@ -16,18 +17,19 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
     private $files = [];
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public static function createInstance()
     {
         if (!isset(self::$INSTANCE)) {
             self::$INSTANCE = new self();
         }
+
         return self::$INSTANCE;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function create($filePath)
     {
@@ -43,7 +45,7 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function clearCache($filePath = null)
     {
@@ -53,9 +55,11 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
                 return false;
             }
             unset($this->files[$file]);
+
             return true;
         } else {
             $this->files = [];
+
             return true;
         }
     }

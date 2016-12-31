@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\reflection;
 
 use kuiper\reflection\exception\SyntaxErrorException;
@@ -31,7 +32,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
      * @var string[]
      */
     private $classes;
-    
+
     public function __construct($namespace, array $dirs, array $extensions, ReflectionFileFactoryInterface $reflectionFileFactory)
     {
         $this->namespace = $namespace;
@@ -41,7 +42,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getNamespace()
     {
@@ -49,7 +50,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getClasses()
     {
@@ -88,6 +89,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
                 }
             }
         }
+
         return $this->classes = array_unique($classes);
     }
 }

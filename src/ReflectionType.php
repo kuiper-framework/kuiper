@@ -1,13 +1,13 @@
 <?php
+
 namespace kuiper\reflection;
 
 use InvalidArgumentException;
 use LogicException;
 use ReflectionType as Php7ReflectionType;
-use UnexpectedValueException;
 
 /**
- * 目前只实现解析不能包含括号的简单类型
+ * 目前只实现解析不能包含括号的简单类型.
  */
 final class ReflectionType implements ReflectionTypeInterface
 {
@@ -29,7 +29,7 @@ final class ReflectionType implements ReflectionTypeInterface
         'float' => 'double',
         'boolean' => 'bool',
         'false' => 'bool',
-        'true' => 'bool'
+        'true' => 'bool',
     ];
 
     /**
@@ -71,17 +71,18 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * Describes type of value
+     * Describes type of value.
      *
      * @param mixed $value
+     *
      * @return string
      */
     public static function describe($value)
     {
         $type = gettype($value);
-        if ($type === "object") {
+        if ($type === 'object') {
             return get_class($value);
-        } elseif (in_array($type, ["array", "resource", "unknown type"])) {
+        } elseif (in_array($type, ['array', 'resource', 'unknown type'])) {
             return $type;
         } else {
             return json_encode($value);
@@ -89,21 +90,22 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public static function parse($type)
     {
         if (empty($type)) {
-            throw new InvalidArgumentException("type cannot be empty");
+            throw new InvalidArgumentException('type cannot be empty');
         }
         if (!is_string($type)) {
-            throw new InvalidArgumentException("type should be string, got " . self::describe($type));
+            throw new InvalidArgumentException('type should be string, got '.self::describe($type));
         }
         if (strpos($type, '|') !== false) {
             $types = [];
             foreach (explode('|', $type) as $oneType) {
                 $types[] = self::parse($oneType);
             }
+
             return self::compoundType($types);
         } elseif ($type === 'array') {
             return self::arrayType(self::mixed());
@@ -121,11 +123,12 @@ final class ReflectionType implements ReflectionTypeInterface
             }
         }
     }
-    
+
     /**
-     * creates type from ReflectionType
+     * creates type from ReflectionType.
      *
      * @param ReflectionType $type
+     *
      * @return static
      */
     public static function fromReflectionType(Php7ReflectionType $type)
@@ -145,7 +148,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * creates a mixed type
+     * creates a mixed type.
      *
      * @return static mixed type
      */
@@ -155,7 +158,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * creates an integer type
+     * creates an integer type.
      *
      * @return static integer type
      */
@@ -165,7 +168,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * creates a boolean type
+     * creates a boolean type.
      *
      * @return static boolean type
      */
@@ -175,7 +178,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * creates a double type
+     * creates a double type.
      *
      * @return static double type
      */
@@ -185,7 +188,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * creates a string type
+     * creates a string type.
      *
      * @return static string type
      */
@@ -195,7 +198,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * creates a null type
+     * creates a null type.
      *
      * @return static null
      */
@@ -205,9 +208,10 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * creates a builtin type
+     * creates a builtin type.
      *
      * @param string $type
+     *
      * @return static
      */
     private static function builtinType($type)
@@ -229,13 +233,15 @@ final class ReflectionType implements ReflectionTypeInterface
                 json_encode(array_unique(array_values(self::$BUILTIN_TYPES)))
             ));
         }
+
         return self::$TYPES[$type] = new self($type);
     }
 
     /**
-     * creates an array type
+     * creates an array type.
      *
      * @param ReflectionTypeInterface $arrayValueType
+     *
      * @return static
      */
     public static function arrayType(ReflectionTypeInterface $arrayValueType)
@@ -244,9 +250,10 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * creates an object type
+     * creates an object type.
      *
      * @param string $className
+     *
      * @return static
      */
     public static function objectType($className)
@@ -255,9 +262,10 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * creates a mixed type with multiple choices
+     * creates a mixed type with multiple choices.
      *
      * @param array $types
+     *
      * @return static
      */
     public static function compoundType(array $types)
@@ -266,10 +274,11 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * checks whether the given type is a builtin type
+     * checks whether the given type is a builtin type.
      *
      * @param string $value
-     * @return boolean
+     *
+     * @return bool
      */
     private static function isBuiltinType($value)
     {
@@ -278,7 +287,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function isArray()
     {
@@ -286,7 +295,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getArrayValueType()
     {
@@ -294,7 +303,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function isCompound()
     {
@@ -302,7 +311,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getCompoundTypes()
     {
@@ -310,7 +319,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function isNullable()
     {
@@ -324,11 +333,12 @@ final class ReflectionType implements ReflectionTypeInterface
                 }
             }
         }
+
         return false;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function isObject()
     {
@@ -336,7 +346,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getClassName()
     {
@@ -344,7 +354,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function isBuiltin()
     {
@@ -352,7 +362,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getBuiltinType()
     {
@@ -360,7 +370,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function isMixed()
     {
@@ -368,7 +378,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function isNull()
     {
@@ -376,7 +386,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function __toString()
     {
@@ -386,6 +396,7 @@ final class ReflectionType implements ReflectionTypeInterface
             if ($this->arrayValueType->isMixed()) {
                 return 'array';
             }
+
             return sprintf('%s[]', $this->arrayValueType);
         } elseif ($this->isCompound()) {
             return implode('|', $this->compoundTypes);
@@ -402,7 +413,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function validate($value)
     {
@@ -436,6 +447,7 @@ final class ReflectionType implements ReflectionTypeInterface
                     return false;
                 }
             }
+
             return true;
         } elseif ($this->isCompound()) {
             foreach ($this->compoundTypes as $subType) {
@@ -443,6 +455,7 @@ final class ReflectionType implements ReflectionTypeInterface
                     return true;
                 }
             }
+
             return false;
         } elseif ($this->hasClassName()) {
             return $value instanceof $this->className;
@@ -452,7 +465,7 @@ final class ReflectionType implements ReflectionTypeInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function sanitize($value)
     {
@@ -481,6 +494,7 @@ final class ReflectionType implements ReflectionTypeInterface
             foreach ($value as $key => $item) {
                 $result[$key] = $this->arrayValueType->sanitize($item);
             }
+
             return $result;
         } else {
             return $value;
