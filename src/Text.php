@@ -1,10 +1,11 @@
 <?php
+
 namespace kuiper\helper;
 
 final class Text
 {
     /**
-     * Converts strings to camelize style
+     * Converts strings to camelize style.
      *
      * <code>
      *    echo Text::camelize('coco_bongo'); // CocoBongo
@@ -16,11 +17,12 @@ final class Text
     {
         $sep = "\x00";
         $delimiter = $delimiter === null ? ['_'] : str_split($delimiter);
+
         return implode('', array_map('ucfirst', explode($sep, str_replace($delimiter, $sep, $str))));
     }
 
     /**
-     * Uncamelize strings which are camelized
+     * Uncamelize strings which are camelized.
      *
      * <code>
      *    echo Text::uncamelize('CocoBongo'); // coco_bongo
@@ -34,11 +36,12 @@ final class Text
         foreach ($ret as &$match) {
             $match = $match == strtoupper($match) ? strtolower($match) : lcfirst($match);
         }
+
         return implode($delimiter === null ? '_' : $delimiter, $ret);
     }
 
     /**
-     * Check if a string starts with a given string
+     * Check if a string starts with a given string.
      *
      * <code>
      *    echo Text::startsWith("Hello", "He"); // true
@@ -59,7 +62,7 @@ final class Text
     }
 
     /**
-     * Check if a string ends with a given string
+     * Check if a string ends with a given string.
      *
      * <code>
      *    echo Text::endsWith("Hello", "llo"); // true
@@ -84,7 +87,7 @@ final class Text
     }
 
     /**
-     * Lowercases a string, this function makes use of the mbstring extension if available
+     * Lowercases a string, this function makes use of the mbstring extension if available.
      *
      * <code>
      *    echo Text::lower("HELLO"); // hello
@@ -92,39 +95,42 @@ final class Text
      *
      * @param string $str
      * @param string $encoding
+     *
      * @return string
      */
-    public static function lower($str, $encoding = "UTF-8")
+    public static function lower($str, $encoding = 'UTF-8')
     {
-        /**
+        /*
          * 'lower' checks for the mbstring extension to make a correct lowercase transformation
          */
-        if (function_exists("mb_strtolower")) {
+        if (function_exists('mb_strtolower')) {
             return mb_strtolower($str, $encoding);
         }
+
         return strtolower($str);
     }
 
     /**
-     * Uppercases a string, this function makes use of the mbstring extension if available
+     * Uppercases a string, this function makes use of the mbstring extension if available.
      *
      * <code>
      *    echo Text::upper("hello"); // HELLO
      * </code>
      */
-    public static function upper($str, $encoding = "UTF-8")
+    public static function upper($str, $encoding = 'UTF-8')
     {
-        /**
+        /*
          * 'upper' checks for the mbstring extension to make a correct lowercase transformation
          */
-        if (function_exists("mb_strtoupper")) {
+        if (function_exists('mb_strtoupper')) {
             return mb_strtoupper($str, $encoding);
         }
+
         return strtoupper($str);
     }
 
     /**
-     * Makes a phrase underscored instead of spaced
+     * Makes a phrase underscored instead of spaced.
      *
      * <code>
      *   echo Text::underscore('look behind'); // 'look_behind'
@@ -135,20 +141,21 @@ final class Text
      */
     public static function underscore($text)
     {
-        return preg_replace("#\s+#", "_", trim($text));
+        return preg_replace("#\s+#", '_', trim($text));
     }
 
     /**
-     * Makes an underscored or dashed phrase human-readable
+     * Makes an underscored or dashed phrase human-readable.
      *
      * <code>
      *   echo Text::humanize('start-a-horse'); // 'start a horse'
      *   echo Text::humanize('five_cats'); // 'five cats'
      * </code>
+     *
      * @param string $text
      */
     public static function humanize($text)
     {
-        return preg_replace("#[_-]+#", " ", trim($text));
+        return preg_replace('#[_-]+#', ' ', trim($text));
     }
 }

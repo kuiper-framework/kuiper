@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\helper;
 
 use RecursiveDirectoryIterator;
@@ -8,14 +9,17 @@ use RuntimeException;
 class Filesystem
 {
     /**
-     * Finds file
+     * Finds file.
      *
-     * @param string $dir
-     * @param array $options
+     * The options may have keys:
      *  - excludeHiddenFiles bool
      *  - extensions array
      *  - includes string
      *  - excludes string regexp exclude files
+     *
+     * @param string $dir
+     * @param array  $options
+     *
      * @return \Generator
      */
     public static function find($dir, array $options = [])
@@ -63,23 +67,24 @@ class Filesystem
     }
 
     /**
-     * join file path
+     * join file path.
      *
      * @param string $dir
      * @param string $file
+     *
      * @return string
      */
     public static function catfile($dir, $file)
     {
         if ($dir) {
-            return rtrim($dir, '/') . '/' . ltrim($file, '/');
+            return rtrim($dir, '/').'/'.ltrim($file, '/');
         } else {
             return $file;
         }
     }
 
     /**
-     * rm -r path
+     * rm -r path.
      *
      * @param string $path
      */
@@ -88,7 +93,7 @@ class Filesystem
         if (is_dir($path)) {
             $files = scandir($path);
             foreach ($files as $file) {
-                if ($file != "." && $file != "..") {
+                if ($file != '.' && $file != '..') {
                     self::recursiveRemove("$path/$file");
                 }
             }
@@ -103,7 +108,8 @@ class Filesystem
     }
 
     /**
-     * cp -r
+     * cp -r.
+     *
      * @param string $src
      * @param string $dst
      */
@@ -115,7 +121,7 @@ class Filesystem
             }
             $files = scandir($src);
             foreach ($files as $file) {
-                if ($file != "." && $file != "..") {
+                if ($file != '.' && $file != '..') {
                     self::recursiveCopy("$src/$file", "$dst/$file");
                 }
             }
@@ -151,14 +157,15 @@ class Filesystem
             || null !== parse_url($file, PHP_URL_SCHEME)
         ;
     }
-    
+
     /**
      * Canonicalize a path by resolving it relative to some directory (by
      * default PWD), following parent symlinks and removing artifacts. If the
      * path is itself a symlink it is left unresolved.
      *
-     * @param  string    Path, absolute or relative to PWD.
-     * @return string    Canonical, absolute path.
+     * @param  string    path, absolute or relative to PWD
+     *
+     * @return string canonical, absolute path
      */
     public static function absolutePath($path, $relative_to = null)
     {

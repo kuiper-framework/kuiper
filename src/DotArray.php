@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\helper;
 
 use ArrayAccess;
@@ -6,7 +7,7 @@ use InvalidArgumentException;
 use Iterator;
 
 /**
- * Access array use key separated by dot(.) :
+ * Access array use key separated by dot(.) :.
  *
  *     $array = new DotArray([
  *          'redis' => [
@@ -26,7 +27,7 @@ class DotArray implements ArrayAccess, Iterator
      * @var \Generator
      */
     private $iterator;
-    
+
     /**
      * @param array $array
      */
@@ -36,6 +37,8 @@ class DotArray implements ArrayAccess, Iterator
     }
 
     /**
+     * Gets the original array.
+     *
      * @return array
      */
     public function getData()
@@ -44,7 +47,7 @@ class DotArray implements ArrayAccess, Iterator
     }
 
     /**
-     * create flatten array
+     * create flatten array.
      *
      * @return array
      */
@@ -54,7 +57,7 @@ class DotArray implements ArrayAccess, Iterator
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function isLeaf($key)
     {
@@ -62,7 +65,7 @@ class DotArray implements ArrayAccess, Iterator
     }
 
     /**
-     * call callback on each part of path
+     * call callback on each part of path.
      *
      *       $array = new DotArray([
      *           'redis' => [
@@ -79,7 +82,7 @@ class DotArray implements ArrayAccess, Iterator
      *       // redis.servers[0]
      *       // redis.servers[0].host
      *
-     * @param string $offset
+     * @param string   $offset
      * @param callable $callback
      */
     public function with($offset, callable $callback)
@@ -117,15 +120,16 @@ class DotArray implements ArrayAccess, Iterator
     {
         $path = null;
         foreach ($parts as $index) {
-            $path .= is_int($index) ? "[{$index}]" : ($path ? "." : "") . $index;
+            $path .= is_int($index) ? "[{$index}]" : ($path ? '.' : '').$index;
         }
+
         return $path;
     }
 
     protected function parsePath($path)
     {
         if (!is_string($path)) {
-            throw new InvalidArgumentException("offset expects a string, got ".gettype($path));
+            throw new InvalidArgumentException('offset expects a string, got '.gettype($path));
         }
         $parts = [];
         foreach (explode('.', $path) as $part) {
@@ -138,6 +142,7 @@ class DotArray implements ArrayAccess, Iterator
                 $parts[] = $part;
             }
         }
+
         return $parts;
     }
 
@@ -195,32 +200,50 @@ class DotArray implements ArrayAccess, Iterator
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function rewind()
     {
         $this->iterator = $this->iterate($this->data);
         $this->iterator->rewind();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function current()
     {
         return $this->iterator->current();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function key()
     {
         return $this->iterator->key();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function next()
     {
         return $this->iterator->next();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function valid()
     {
         return $this->iterator->valid();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function offsetGet($offset)
     {
         if ($this->isLeaf($offset)) {
@@ -229,11 +252,16 @@ class DotArray implements ArrayAccess, Iterator
         $found = false;
         $value = $this->find($offset, function ($value, $key) use (&$found) {
             $found = true;
+
             return $value[$key];
         });
+
         return $found ? $value : null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function offsetSet($offset, $value)
     {
         if ($this->isLeaf($offset)) {
@@ -245,6 +273,9 @@ class DotArray implements ArrayAccess, Iterator
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function offsetUnset($offset)
     {
         if ($this->isLeaf($offset)) {
@@ -256,6 +287,9 @@ class DotArray implements ArrayAccess, Iterator
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function offsetExists($offset)
     {
         if ($this->isLeaf($offset)) {

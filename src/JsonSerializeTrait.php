@@ -1,8 +1,9 @@
 <?php
+
 namespace kuiper\helper;
 
 /**
- * Helper class for implements JsonSerializable
+ * Helper class for implements JsonSerializable.
  */
 trait JsonSerializeTrait
 {
@@ -28,6 +29,7 @@ trait JsonSerializeTrait
                 unset($vars[$key]);
             }
         }
+
         return $vars;
     }
 }

@@ -1,28 +1,29 @@
 <?php
+
 namespace kuiper\helper;
 
 use InvalidArgumentException;
 use ReflectionClass;
 
 /**
- * enum class
+ * enum class.
  */
 abstract class Enum implements \JsonSerializable
 {
     /**
      * key = className
-     * value = array which key is enum value
+     * value = array which key is enum value.
      */
     private static $values = [];
 
     /**
      * key = className
-     * value = array which key is enum name
+     * value = array which key is enum name.
      */
     private static $names = [];
 
     /**
-     * properties for enum instances
+     * properties for enum instances.
      */
     protected static $PROPERTIES = [];
 
@@ -46,7 +47,7 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
-     * Gets name of enum instance
+     * Gets name of enum instance.
      *
      * @return string
      */
@@ -56,7 +57,7 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
-     * Gets value of enum instance
+     * Gets value of enum instance.
      *
      * @return mixed
      */
@@ -66,7 +67,7 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
-     * default to string method
+     * default to string method.
      *
      * @return string name of enum
      */
@@ -76,7 +77,7 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
-     * Gets properties
+     * Gets properties.
      *
      * @return mixed
      */
@@ -87,7 +88,7 @@ abstract class Enum implements \JsonSerializable
         } elseif (property_exists($this, $name)) {
             return $this->$name;
         } else {
-            throw new \InvalidArgumentException("Undefined property: ".get_class($this)."::\$" . $name);
+            throw new \InvalidArgumentException('Undefined property: '.get_class($this).'::$'.$name);
         }
     }
 
@@ -96,9 +97,9 @@ abstract class Enum implements \JsonSerializable
         return isset(static::$PROPERTIES[$name][$this->value])
             || isset($this->$name);
     }
-    
+
     /**
-     * Gets all enum values
+     * Gets all enum values.
      *
      * @return array
      */
@@ -108,7 +109,7 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
-     * Gets all enum names
+     * Gets all enum names.
      *
      * @return array
      */
@@ -118,20 +119,21 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
-     * Gets all enum oridinals
+     * Gets all enum oridinals.
      *
      * @return array
      */
     public static function ordinals()
     {
         if (empty(static::$PROPERTIES['ordinal'])) {
-            throw new \RuntimeException("property 'ordinal' is not defined, please set value for " . get_called_class() . '::$PROPERTIES["ordinal"]');
+            throw new \RuntimeException("property 'ordinal' is not defined, please set value for ".get_called_class().'::$PROPERTIES["ordinal"]');
         }
+
         return array_values(static::$PROPERTIES['ordinal']);
     }
-    
+
     /**
-     * Gets all enums
+     * Gets all enums.
      *
      * @return Enum[]
      */
@@ -139,10 +141,11 @@ abstract class Enum implements \JsonSerializable
     {
         return array_values(self::getValues());
     }
-    
+
     /**
-     * Checks whether the enum value exists
-     * @return boolean
+     * Checks whether the enum value exists.
+     *
+     * @return bool
      */
     public static function hasValue($value)
     {
@@ -150,18 +153,21 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
-     * Gets the name for the enum value
+     * Gets the name for the enum value.
+     *
      * @return string
      */
     public static function nameOf($value)
     {
         $values = static::getValues();
+
         return isset($values[$value]) ? $values[$value]->name() : null;
     }
 
     /**
-     * Checks whether the name of enum value exists
-     * @return boolean
+     * Checks whether the name of enum value exists.
+     *
+     * @return bool
      */
     public static function hasName($name)
     {
@@ -169,18 +175,19 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
-     * Gets the enum value for the name
+     * Gets the enum value for the name.
      *
      * @return mixed value of
      */
     public static function valueOf($name)
     {
         $names = static::getNames();
+
         return isset($names[$name]) ? $names[$name] : null;
     }
 
     /**
-     * Gets the enum instance for the name
+     * Gets the enum instance for the name.
      *
      * @param string $name
      * @param object $default
@@ -194,15 +201,16 @@ abstract class Enum implements \JsonSerializable
             return self::fromValue($names[$name]);
         }
         if ($default === null) {
-            throw new InvalidArgumentException("No enum constant '$name' in class " . get_called_class());
+            throw new InvalidArgumentException("No enum constant '$name' in class ".get_called_class());
         }
+
         return $default;
     }
-    
+
     /**
-     * Gets the enum instance for the value
+     * Gets the enum instance for the value.
      *
-     * @param mixed $value
+     * @param mixed  $value
      * @param object $default
      *
      * @return Enum
@@ -214,15 +222,16 @@ abstract class Enum implements \JsonSerializable
             return $values[$value];
         }
         if ($default === null) {
-            throw new InvalidArgumentException("No enum constant value '$value' class " . get_called_class());
+            throw new InvalidArgumentException("No enum constant value '$value' class ".get_called_class());
         }
+
         return $default;
     }
 
     /**
-     * Gets the enum instance match properties ordinal
+     * Gets the enum instance match properties ordinal.
      *
-     * @param int $ordinal
+     * @param int    $ordinal
      * @param object $default
      *
      * @return Enum
@@ -230,26 +239,28 @@ abstract class Enum implements \JsonSerializable
     public static function fromOrdinal($ordinal, $default = null)
     {
         if (empty(static::$PROPERTIES['ordinal'])) {
-            throw new \RuntimeException("property 'ordinal' is not defined, please set value for " . get_called_class() . '::$PROPERTIES["ordinal"]');
+            throw new \RuntimeException("property 'ordinal' is not defined, please set value for ".get_called_class().'::$PROPERTIES["ordinal"]');
         }
         $value = array_search($ordinal, static::$PROPERTIES['ordinal']);
         if ($value !== false) {
             return self::fromValue($value);
         } else {
             if ($default === null) {
-                throw new InvalidArgumentException("No enum oridinal for '$value' class " . get_called_class());
+                throw new InvalidArgumentException("No enum oridinal for '$value' class ".get_called_class());
             }
+
             return $default;
         }
     }
-    
+
     /**
-     * Returns a value when called statically like so: MyEnum::SOME_VALUE() given SOME_VALUE is a class constant
+     * Returns a value when called statically like so: MyEnum::SOME_VALUE() given SOME_VALUE is a class constant.
      *
      * @param string $name
      * @param array  $arguments
      *
      * @return static
+     *
      * @throws InvalidArgumentException
      */
     public static function __callStatic($name, $arguments)
@@ -277,10 +288,11 @@ abstract class Enum implements \JsonSerializable
             foreach ($constants as $name => $val) {
                 $flip[$val] = new $class($name, $val);
             }
-            // array_flip cannot use here, if value is true or false, the following error will occur:
+            // Should not use `array_flip` here, error will be triggered if value is true or false
             // array_flip(): Can only flip STRING and INTEGER values! on line 1
             self::$values[$class] = $flip;
         }
+
         return self::$values[$class];
     }
 
@@ -290,6 +302,7 @@ abstract class Enum implements \JsonSerializable
         if (!isset(self::$names[$class])) {
             self::getValues($class);
         }
+
         return self::$names[$class];
     }
 }

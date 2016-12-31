@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\helper;
 
 use ArrayAccess;
@@ -8,21 +9,22 @@ use ReflectionClass;
 class Arrays
 {
     /**
-     * Gets object field value by getter method
+     * Gets object field value by getter method.
      */
     const GETTER = 'getter';
 
     /**
-     * Gets object field value by property
+     * Gets object field value by property.
      */
     const OBJ = 'obj';
-    
+
     /**
-     * Gets value from array by key
+     * Gets value from array by key.
      *
      * @param ArrayAccess $array
-     * @param string $key
-     * @param mixed $default
+     * @param string      $key
+     * @param mixed       $default
+     *
      * @return mixed
      */
     public static function fetch($array, $key, $default = null)
@@ -31,18 +33,19 @@ class Arrays
     }
 
     /**
-     * Collects value from array
+     * Collects value from array.
      *
      * @param array|\Iterator $array
-     * @param string $name
-     * @param string $type
+     * @param string          $name
+     * @param string          $type
+     *
      * @return array
      */
     public static function pull($arr, $name, $type = null)
     {
         $ret = [];
         if ($type == self::GETTER) {
-            $method = 'get' . $name;
+            $method = 'get'.$name;
             foreach ($arr as $elem) {
                 $ret[] = $elem->$method();
             }
@@ -55,15 +58,17 @@ class Arrays
                 $ret[] = $elem[$name];
             }
         }
+
         return $ret;
     }
 
     /**
-     * Creates associated array
+     * Creates associated array.
      *
      * @param array|\Iterator $array
-     * @param string $name
-     * @param string $type
+     * @param string          $name
+     * @param string          $type
+     *
      * @return array
      */
     public static function assoc($arr, $name, $type = null)
@@ -73,7 +78,7 @@ class Arrays
             return $ret;
         }
         if ($type == self::GETTER) {
-            $method = 'get' . $name;
+            $method = 'get'.$name;
             foreach ($arr as $elem) {
                 $ret[$elem->$method()] = $elem;
             }
@@ -86,14 +91,16 @@ class Arrays
                 $ret[$elem[$name]] = $elem;
             }
         }
+
         return $ret;
     }
 
     /**
-     * Excludes key in given keys
+     * Excludes key in given keys.
      *
      * @param array $array
      * @param array $excludedKeys
+     *
      * @return array
      */
     public static function exclude(array $arr, array $excludedKeys)
@@ -102,10 +109,11 @@ class Arrays
     }
 
     /**
-     * Changes key name
+     * Changes key name.
      *
      * @param array $array
      * @param array $columnMap
+     *
      * @return array
      */
     public static function rename(array $arr, array $columnMap)
@@ -117,14 +125,16 @@ class Arrays
                 $ret[$newKey] = $arr[$key];
             }
         }
+
         return $ret;
     }
 
     /**
-     * Create array with given keys
+     * Create array with given keys.
      *
      * @param array $array
      * @param array $includedKeys
+     *
      * @return array
      */
     public static function select($arr, array $includedKeys, $type = null)
@@ -132,7 +142,7 @@ class Arrays
         $ret = [];
         if ($type == self::GETTER) {
             foreach ($includedKeys as $name) {
-                $method = 'get' . $name;
+                $method = 'get'.$name;
                 if (method_exists($arr, $method)) {
                     $ret[$name] = $arr->$method();
                 }
@@ -158,13 +168,15 @@ class Arrays
                 }
             }
         }
+
         return $ret;
     }
 
     /**
-     * Filter null value
+     * Filter null value.
      *
      * @param array $arr
+     *
      * @return array
      */
     public static function filter(array $arr)
@@ -175,14 +187,14 @@ class Arrays
     }
 
     /**
-     * @param object $bean
+     * @param object          $bean
      * @param array|\Iterator $attrs
-     * @param bool $onlyPublic
+     * @param bool            $onlyPublic
      */
     public static function assign($bean, $attrs, $onlyPublic = true)
     {
         if ($bean === null || !is_object($bean)) {
-            throw new InvalidArgumentException("Parameter 'bean' need be an object, got " . gettype($bean));
+            throw new InvalidArgumentException("Parameter 'bean' need be an object, got ".gettype($bean));
         }
         if ($bean instanceof ArrayAccess) {
             foreach ($attrs as $name => $val) {
@@ -193,7 +205,7 @@ class Arrays
             foreach ($attrs as $name => $val) {
                 if (array_key_exists($name, $properties)) {
                     $bean->{$name} = $val;
-                } elseif (method_exists($bean, $method = 'set' . Text::camelize($name))) {
+                } elseif (method_exists($bean, $method = 'set'.Text::camelize($name))) {
                     $bean->$method($val);
                 } elseif (!$onlyPublic) {
                     $failed[$name] = $val;
@@ -213,21 +225,22 @@ class Arrays
                 }
             }
         }
+
         return $bean;
     }
 
     /**
-     * @param object|array $bean
-     * @param bool $includeGetters
-     * @param bool $uncamelizeKey
-     * @param bool $recursive
+     * @param object $bean
+     * @param bool   $includeGetters
+     * @param bool   $uncamelizeKey
+     * @param bool   $recursive
      *
      * @return array
      */
     public static function toArray($bean, $includeGetters = true, $uncamelizeKey = false, $recursive = false)
     {
         if ($bean === null || !is_object($bean)) {
-            throw new InvalidArgumentException("Parameter 'bean' need be an object, got " . gettype($bean));
+            throw new InvalidArgumentException("Parameter 'bean' need be an object, got ".gettype($bean));
         }
         $properties = get_object_vars($bean);
         if ($includeGetters) {
@@ -249,6 +262,7 @@ class Arrays
         if ($recursive) {
             $properties = self::recursiveToArray($properties, $includeGetters, $uncamelizeKey);
         }
+
         return $properties;
     }
 
@@ -261,6 +275,7 @@ class Arrays
                 $values[$key] = self::recursiveToArray($val, $includeGetters, $uncamelizeKey);
             }
         }
+
         return $values;
     }
 
@@ -277,7 +292,8 @@ class Arrays
      *
      * @param array $a array to be merged to
      * @param array $b array to be merged from. You can specify additional
-     * arrays via third argument, fourth argument etc.
+     *                 arrays via third argument, fourth argument etc.
+     *
      * @return array the merged array (the original arrays are not changed.)
      */
     public static function merge($a, $b)
@@ -305,11 +321,12 @@ class Arrays
     }
 
     /**
-     * create sorter
+     * create sorter.
      *
-     * @param string $name
-     * @param callable $func
-     * @param string $type
+     * @param string   $name field name
+     * @param callable $func comparator
+     * @param string   $type
+     *
      * @return callable
      */
     public static function sorter($name, $func = null, $type = null)
@@ -319,12 +336,14 @@ class Arrays
                 if ($a == $b) {
                     return 0;
                 }
+
                 return $a < $b ? -1 : 1;
             };
         }
-        
+
         if ($type == self::GETTER) {
-            $method = 'get' . $name;
+            $method = 'get'.$name;
+
             return function ($a, $b) use ($method, $func) {
                 return call_user_func($func, $a->$method(), $b->$method());
             };
@@ -340,9 +359,9 @@ class Arrays
     }
 
     /**
-     * Applies the callback to the keys of given array
+     * Applies the callback to the keys of given array.
      *
-     * @param array $arr
+     * @param array    $arr
      * @param callable $callback
      */
     public static function mapKeys(array $arr, callable $callback)
@@ -351,6 +370,7 @@ class Arrays
         array_walk($arr, function (&$value, $key) use (&$result, $callback) {
             $result[$callback($key)] = $value;
         });
+
         return $result;
     }
 
