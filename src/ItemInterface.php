@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\cache;
 
 use Psr\Cache\CacheItemInterface;
@@ -7,15 +8,13 @@ interface ItemInterface extends CacheItemInterface
 {
     /**
      * @param PoolInterface $pool
+     * @param string        $key
      */
-    public function setPool(PoolInterface $pool);
+    public function __construct(PoolInterface $pool, $key);
 
     /**
-     * @param string $key
-     */
-    public function setKey($key);
-
-    /**
+     * Gets the path.
+     *
      * @return array
      */
     public function getKeyPath();
@@ -26,12 +25,13 @@ interface ItemInterface extends CacheItemInterface
     public function getExpiration();
 
     /**
-     * @param int $seconds seconds before expired to precompute cache data
+     * @param int $seconds  seconds before expired to precompute cache data
+     * @param int $lock_ttl seconds to release lock after lock acquired
      */
-    public function setPrecomputeTime($seconds);
+    public function setPrecomputeTime($seconds, $lock_ttl);
 
     /**
-     * mark item is miss
+     * mark item is miss.
      */
     public function miss();
 
@@ -43,7 +43,7 @@ interface ItemInterface extends CacheItemInterface
     /**
      * @return bool
      */
-    public function clear();
+    public function delete();
 
     /**
      * @return bool

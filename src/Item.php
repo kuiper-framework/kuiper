@@ -1,11 +1,11 @@
 <?php
+
 namespace kuiper\cache;
 
+use DateInterval;
 use DateTime;
 use DateTimeInterface;
-use DateInterval;
 use InvalidArgumentException;
-use RuntimeException;
 
 class Item implements ItemInterface
 {
@@ -13,11 +13,6 @@ class Item implements ItemInterface
      * @var PoolInterface
      */
     protected $pool;
-    
-    /**
-     * @var array
-     */
-    protected $path;
 
     /**
      * @var mixed
@@ -35,6 +30,11 @@ class Item implements ItemInterface
     protected $precomputeTime;
 
     /**
+     * @var int
+     */
+    protected $lockTtl;
+
+    /**
      * @var bool
      */
     protected $locked;
@@ -43,25 +43,15 @@ class Item implements ItemInterface
      * @var bool
      */
     protected $isHit;
-    
-    /**
-     * @inheritDoc
-     */
-    public function setPool(PoolInterface $pool)
-    {
-        $this->pool = $pool;
-        return $this;
-    }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
-    public function setKey($key)
+    public function __construct(PoolInterface $pool, $key)
     {
-        $this->assertPoolAvailable(__METHOD__);
-        if ($this->pool === null) {
-            throw new RuntimeException("Pool is required, call method 'setPool' before " . __METHOD__);
-        }
+        $this->pool = $pool;
+        $this->key = $key;
+
         $delim = $this->pool->getOption('namespace_separator');
         $trimed = trim($key, $delim);
         if (empty($trimed)) {
@@ -77,25 +67,11 @@ class Item implements ItemInterface
                 throw new InvalidArgumentException("Invalid cache key '$key'");
             }
         }
-        $prefix = $this->pool->getOption('prefix');
-        if (isset($prefix)) {
-            $path[0] = $prefix . $path[0];
-        }
         $this->path = $path;
-        $this->key = $key;
-        return $this;
     }
 
     /**
-     * @inheritDoc
-     */
-    public function getKeyPath()
-    {
-        return $this->path;
-    }
-
-    /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getKey()
     {
@@ -103,7 +79,7 @@ class Item implements ItemInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getExpiration()
     {
@@ -111,50 +87,39 @@ class Item implements ItemInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
-    public function setPrecomputeTime($seconds)
+    public function setPrecomputeTime($seconds, $lock_ttl)
     {
         $this->precomputeTime = $seconds;
+        $this->lockTtl = $lock_ttl;
+
         return $this;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function save()
     {
-        $driver = $this->pool->getDriver();
-        $success = $driver->set(
-            $this->getKeyPath(),
-            $this->get(),
-            $this->getExpiration()
+        $success = $this->pool->getDriver()->set(
+            $this->path, $this->value, $this->expiration
         );
         $this->unlock();
+
         return $success;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
-    public function clear()
+    public function delete()
     {
-        return $this->pool->deleteItem($this->getKey());
+        return $this->pool->getDriver()->del($this->path);
     }
 
     /**
-     * @inheritDoc
-     */
-    public function unlock()
-    {
-        if ($this->locked) {
-            return $this->pool->getDriver()->unlock($this->getKeyPath());
-        }
-        return true;
-    }
-    
-    /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function get()
     {
@@ -162,61 +127,85 @@ class Item implements ItemInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function isHit()
     {
         if ($this->isHit === null) {
             $this->isHit = $this->getIsHit();
         }
+
         return $this->isHit;
     }
 
     /**
-     * @inheritDoc
-     */
-    public function miss()
-    {
-        $this->isHit = false;
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function set($value)
     {
         $this->value = $value;
+
         return $this;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function expiresAt($expiration)
     {
         $this->expiration = $expiration instanceof DateTimeInterface
                          ? $expiration->getTimestamp()
                          : $expiration;
+
         return $this;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function expiresAfter($time)
     {
         $this->expiration = $time instanceof DateInterval
                          ? (new DateTime())->add($time)->getTimestamp()
                          : time() + $time;
+
         return $this;
     }
 
-    private function assertPoolAvailable($method)
+    /**
+     * {@inheritdoc}
+     */
+    public function getKeyPath()
     {
-        if ($this->pool === null) {
-            throw new RuntimeException("Pool is required, call method 'setPool' before calling '$method'");
+        return $this->path;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unlock()
+    {
+        if ($this->locked) {
+            if ($this->pool->getDriver()->unlock($this->path)) {
+                $this->locked = false;
+
+                return true;
+            } else {
+                return false;
+            }
         }
+
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function miss()
+    {
+        $this->isHit = false;
+
+        return $this;
     }
 
     private function getIsHit()
@@ -234,13 +223,17 @@ class Item implements ItemInterface
                 $precomputeTime = $this->pool->getOption('precompute_time');
             }
             if (isset($precomputeTime) && $ttl <= $precomputeTime) {
-                if ($this->pool->getDriver()->lock($this->getKeyPath(), $ttl)) {
+                $lockTtl = isset($this->lockTtl) ? $this->lockTtl : max($ttl, 1);
+                if ($this->pool->getDriver()->lock($this->path, $lockTtl)) {
                     $this->locked = true;
+
                     return false;
                 }
             }
+
             return true;
         }
+
         return false;
     }
 }

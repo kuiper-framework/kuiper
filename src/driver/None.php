@@ -1,13 +1,18 @@
 <?php
+
 namespace kuiper\cache\driver;
 
 /**
- * This class provides a NULL caching driver
+ * This class provides a NULL caching driver.
  */
 class None implements DriverInterface
 {
+    public function setPrefix($prefix)
+    {
+    }
+
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function get(array $key)
     {
@@ -15,7 +20,7 @@ class None implements DriverInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function mget(array $keys)
     {
@@ -23,7 +28,7 @@ class None implements DriverInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function set(array $key, $data, $expiration)
     {
@@ -31,7 +36,7 @@ class None implements DriverInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function del(array $key)
     {
@@ -39,15 +44,15 @@ class None implements DriverInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
-    public function clear($prefix)
+    public function clear()
     {
         return true;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function lock(array $key, $ttl)
     {
@@ -55,7 +60,7 @@ class None implements DriverInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function unlock(array $key)
     {
@@ -63,7 +68,7 @@ class None implements DriverInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public static function isAvailable()
     {

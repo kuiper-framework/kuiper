@@ -1,16 +1,14 @@
 <?php
+
 namespace kuiper\cache;
 
-use kuiper\test\TestCase;
-use kuiper\cache\Pool;
-use kuiper\cache\Item;
 use kuiper\cache\driver\None;
 
 class NoneDriverTest extends TestCase
 {
     protected function createCachePool()
     {
-        return new Pool(new None);
+        return new Pool(new None());
     }
 
     public function testSet()

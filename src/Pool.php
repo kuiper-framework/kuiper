@@ -1,10 +1,10 @@
 <?php
+
 namespace kuiper\cache;
 
-use Psr\Cache\CacheItemInterface;
 use InvalidArgumentException;
-use kuiper\cache\driver\Memory;
 use kuiper\cache\driver\DriverInterface;
+use Psr\Cache\CacheItemInterface;
 
 class Pool implements PoolInterface
 {
@@ -19,11 +19,6 @@ class Pool implements PoolInterface
     protected $itemClass = Item::class;
 
     /**
-     * @var array<ItemInterface>
-     */
-    protected $deferredItems;
-
-    /**
      * @var array
      */
     protected $options = [
@@ -31,21 +26,27 @@ class Pool implements PoolInterface
         'lifetime' => null,
         'precompute_time' => null,
         'prefix' => null,
-        'lock_ttl' => null
+        'lock_ttl' => null,
     ];
 
-    public function __construct(DriverInterface $driver = null, array $options = [])
+    public function __construct(DriverInterface $driver, array $options = [])
     {
-        $this->setOptions($options);
-        if (isset($driver)) {
-            $this->setDriver($driver);
-        } else {
-            $this->driver = new Memory;
+        $this->driver = $driver;
+        if (!empty($options)) {
+            if (isset($options['namespace_separator'])
+                && strlen($options['namespace_separator']) !== 1) {
+                throw new InvalidArgumentException(sprintf(
+                    "Option 'namespace_separator' should be a charator, Got '%s'",
+                    $options['namespace_separator']
+                ));
+            }
+            $this->options = array_merge($this->options, $options);
         }
+        $this->driver->setPrefix($this->getOption('prefix'));
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function setItemClass($class)
     {
@@ -53,23 +54,15 @@ class Pool implements PoolInterface
             throw new InvalidArgumentException("Item class '$class' does not exist");
         }
         if (!is_a($class, ItemInterface::class, true)) {
-            throw new InvalidArgumentException("Item class '$class' must inherit from " . ItemInterface::class);
+            throw new InvalidArgumentException("Item class '$class' must inherit from ".ItemInterface::class);
         }
         $this->itemClass = $class;
+
         return $this;
     }
 
     /**
-     * @inheritDoc
-     */
-    public function setDriver(DriverInterface $driver)
-    {
-        $this->driver = $driver;
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getDriver()
     {
@@ -77,46 +70,31 @@ class Pool implements PoolInterface
     }
 
     /**
-     * @inheritDoc
-     */
-    public function setOptions(array $options)
-    {
-        if (isset($options['namespace_separator'])
-            && strlen($options['namespace_separator']) !== 1) {
-            throw new InvalidArgumentException(sprintf(
-                "Option 'namespace_separator' should be a charator, Got '%s'",
-                $options['namespace_separator']
-            ));
-        }
-        $this->options = array_merge($this->options, $options);
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getOption($name)
     {
-        return isset($this->options[$name])
-            ? $this->options[$name]
-            : null;
+        return isset($this->options[$name]) ? $this->options[$name] : null;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function remember($key, callable $resolver, array $options = [])
     {
         $item = $this->getItem($key);
-        $precomputeTime = $this->getOption('precompute_time');
         if (array_key_exists('precompute_time', $options)) {
             $precomputeTime = $options['precompute_time'];
+        } else {
+            $precomputeTime = $this->getOption('precompute_time');
         }
-        $item->setPrecomputeTime($precomputeTime);
+        if (isset($precomputeTime)) {
+            $lock_ttl = isset($options['lock_ttl']) ? $options['lock_ttl'] : $this->getOption('lock_ttl');
+            $item->setPrecomputeTime($precomputeTime, $lock_ttl);
+        }
         if (!$item->isHit()) {
-            $item->expiresAfter(isset($options['lifetime'])
-                                ? $options['lifetime']
-                                : $this->getOption('lifetime'));
+            $lifetime = isset($options['lifetime']) ? $options['lifetime'] : $this->getOption('lifetime');
+            $item->expiresAfter($lifetime);
             try {
                 $value = $resolver();
             } catch (\Exception $e) {
@@ -125,22 +103,23 @@ class Pool implements PoolInterface
             }
             $this->save($item->set($value));
         }
+
         return $item->get();
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getItem($key)
     {
         $item = $this->createItem($key);
         $value = $this->driver->get($item->getKeyPath());
-        $this->initItem($item, $value);
-        return $item;
+
+        return $this->setItemValue($item, $value);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getItems(array $keys = [])
     {
@@ -153,17 +132,18 @@ class Pool implements PoolInterface
             $paths[] = $item->getKeyPath();
         }
         foreach ($this->driver->mget($paths) as $i => $value) {
-            $this->initItem($items[$i], $value);
+            $this->setItemValue($items[$i], $value);
         }
         $results = [];
         foreach ($items as $item) {
             $results[$item->getKey()] = $item;
         }
+
         return $results;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function hasItem($key)
     {
@@ -171,30 +151,29 @@ class Pool implements PoolInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function clear()
     {
-        return $this->driver->clear($this->getOption('prefix'));
+        return $this->driver->clear();
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function deleteItem($key)
     {
-        $item = $this->createItem($key);
-        $path = $item->getKeyPath();
+        $path = $this->createItem($key)->getKeyPath();
         $delim = $this->getOption('namespace_separator');
-        $len = strlen($key);
-        if (substr($key, $len-1, 1) === $delim) {
+        if (substr($key, -1) === $delim) {
             $path[] = null;
         }
+
         return $this->driver->del($path);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function deleteItems(array $keys)
     {
@@ -204,11 +183,12 @@ class Pool implements PoolInterface
                 $success = false;
             }
         }
+
         return $success;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function save(CacheItemInterface $item)
     {
@@ -216,7 +196,7 @@ class Pool implements PoolInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function saveDeferred(CacheItemInterface $item)
     {
@@ -224,7 +204,7 @@ class Pool implements PoolInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function commit()
     {
@@ -233,13 +213,10 @@ class Pool implements PoolInterface
 
     private function createItem($key)
     {
-        $item = new $this->itemClass();
-        $item->setPool($this);
-        $item->setKey($key);
-        return $item;
+        return $item = new $this->itemClass($this, $key);
     }
 
-    private function initItem($item, $value)
+    private function setItemValue(ItemInterface $item, $value)
     {
         if ($value === false) {
             $expires = $this->getOption('lifetime');
@@ -251,5 +228,7 @@ class Pool implements PoolInterface
             $item->set($value['data']);
             $item->expiresAt(isset($value['expiration']) ? $value['expiration'] : -1);
         }
+
+        return $item;
     }
 }

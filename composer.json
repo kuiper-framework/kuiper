@@ -19,7 +19,10 @@
         "ext-apcu": "For use apcu cache"
     },
     "require-dev": {
-        "kuiper/test-helper": "^0.1"
+        "winwin/composer-phpcs-plugin": "^0.1",
+        "phpunit/phpunit": "^5.0",
+        "vlucas/phpdotenv": "^2.4",
+        "predis/predis": "^1.1"
     },
     "autoload": {
         "psr-4": {
@@ -29,19 +32,6 @@
     "autoload-dev": {
         "psr-4": {
             "kuiper\\cache\\": "tests/"
-        }
-    },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../*"
-        }
-    ],
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "extra": {
-        "branch-alias": {
-            "dev-master": "0.1-dev"
         }
     }
 }

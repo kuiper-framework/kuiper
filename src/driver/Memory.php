@@ -1,7 +1,8 @@
 <?php
+
 namespace kuiper\cache\driver;
 
-class Memory implements DriverInterface
+class Memory extends AbstractDriver implements DriverInterface
 {
     /**
      * @var array
@@ -14,68 +15,96 @@ class Memory implements DriverInterface
     private $locks = [];
 
     /**
-     * Converts the key array into a passed function
+     * {@inheritdoc}
+     */
+    protected function fetch($key)
+    {
+        return isset($this->values[$key]) ? $this->values[$key] : false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function batchFetch(array $keys)
+    {
+        $values = [];
+        foreach ($keys as $key) {
+            $values[] = $this->fetch($key);
+        }
+
+        return $values;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function store($key, $value, $ttl)
+    {
+        $this->values[$key] = $value;
+
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function del(array $key)
+    {
+        return $this->deleteAll($this->makeKey($key));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        return $this->deleteAll();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function lock(array $key, $ttl)
+    {
+        $index = $this->makeKey($key);
+        if (isset($this->locks[$index]) && $this->locks[$index] - time() > 0) {
+            return false;
+        }
+        $this->locks[$index] = time() + $ttl;
+
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unlock(array $key)
+    {
+        unset($this->locks[$this->makeKey($key)]);
+
+        return true;
+    }
+
+    /**
+     * Converts the key array into a passed function.
      *
-     * @param  array  $key
+     * @param array $key
+     *
      * @return string
      */
-    protected function getKeyIndex($key)
+    protected function makeKey(array $key)
     {
         $index = '';
         foreach ($key as $value) {
             if (isset($value)) {
-                $index .= str_replace('#', '#:', $value) . '#';
+                $index .= str_replace('#', '#:', $value).'#';
             }
         }
 
         return $index;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function get(array $key)
-    {
-        $index = $this->getKeyIndex($key);
-        return isset($this->values[$index]) ? $this->values[$index] : false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function mget(array $keys)
-    {
-        $values = [];
-        foreach ($keys as $key) {
-            $values[] = $this->get($key);
-        }
-        return $values;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function set(array $key, $data, $expiration)
-    {
-        $this->values[$this->getKeyIndex($key)] = [
-            'data' => $data,
-            'expiration' => $expiration
-        ];
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function del(array $key)
-    {
-        return $this->clear($this->getKeyIndex($key));
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function clear($prefix)
+    protected function deleteAll($prefix)
     {
         if (isset($prefix)) {
             foreach ($this->values as $index => $data) {
@@ -86,28 +115,7 @@ class Memory implements DriverInterface
         } else {
             $this->values = [];
         }
-        return true;
-    }
 
-    /**
-     * @inheritDoc
-     */
-    public function lock(array $key, $ttl)
-    {
-        $index = $this->getKeyIndex($key);
-        if (isset($this->locks[$index]) && $this->locks[$index] - time() > 0) {
-            return false;
-        }
-        $this->locks[$index] = time() + $ttl;
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function unlock(array $key)
-    {
-        unset($this->locks[$this->getKeyIndex($key)]);
         return true;
     }
 }

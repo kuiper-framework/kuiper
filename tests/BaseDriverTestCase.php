@@ -1,9 +1,8 @@
 <?php
+
 namespace kuiper\cache;
 
-use kuiper\test\TestCase;
-use kuiper\cache\Item;
-use kuiper\test\DotenvLoader;
+use Dotenv\Dotenv;
 
 abstract class BaseDriverTestCase extends TestCase
 {
@@ -12,12 +11,12 @@ abstract class BaseDriverTestCase extends TestCase
         'key' => 'value',
         'key1' => 'value1',
         'key2' => 'value2',
-        'key3' => 'value3'
+        'key3' => 'value3',
     ];
 
     public static function setUpBeforeClass()
     {
-        DotenvLoader::load(__DIR__);
+        (new Dotenv(__DIR__))->load();
     }
 
     abstract protected function createCachePool();
@@ -61,7 +60,7 @@ abstract class BaseDriverTestCase extends TestCase
     }
 
     /**
-     * @expectedException InvalidArgumentException
+     * @expectedException \InvalidArgumentException
      */
     public function testGetItemInvalidKeyMissingNode()
     {
@@ -148,7 +147,7 @@ abstract class BaseDriverTestCase extends TestCase
         }
 
         $this->assertTrue($pool->hasItem($keys[0]) && $pool->hasItem($keys[1]) && $pool->hasItem($keys[2]));
- 
+
         //clear
         $pool->deleteItem($keys[1].'/');
         $this->assertTrue($pool->hasItem($keys[0]));
@@ -164,12 +163,12 @@ abstract class BaseDriverTestCase extends TestCase
         $pool->save($item->set($this->data));
 
         $item1 = $pool->getItem('base');
-        $item1->setPrecomputeTime(3);
+        $item1->setPrecomputeTime(3, 3);
         $this->assertFalse($item1->isHit());
         $item2 = $pool->getItem('base');
-        $item2->setPrecomputeTime(3);
+        $item2->setPrecomputeTime(3, 3);
         $this->assertTrue($item2->isHit());
-        
+
         $item1->expiresAfter(4)
             ->save();
 

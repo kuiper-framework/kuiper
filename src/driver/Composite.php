@@ -1,10 +1,14 @@
 <?php
+
 namespace kuiper\cache\driver;
 
 class Composite implements DriverInterface
 {
+    /**
+     * @var DriverInterface[]
+     */
     protected $drivers;
-    
+
     public function __construct(array $drivers)
     {
         $this->drivers = $drivers;
@@ -16,7 +20,19 @@ class Composite implements DriverInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
+     */
+    public function setPrefix($prefix)
+    {
+        foreach ($this->drivers as $driver) {
+            $driver->setPrefix($prefix);
+        }
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function get(array $key)
     {
@@ -29,14 +45,16 @@ class Composite implements DriverInterface
                 foreach (array_reverse($failedDrivers) as $failedDriver) {
                     $failedDriver->set($key, $value['data'], $value['expiration']);
                 }
+
                 return $value;
             }
         }
+
         return false;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function mget(array $keys)
     {
@@ -70,11 +88,12 @@ class Composite implements DriverInterface
             $restKeys = $nextKeys;
             $indexes = $nextIndexes;
         }
+
         return $values;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function set(array $key, $data, $expiration)
     {
@@ -84,7 +103,7 @@ class Composite implements DriverInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function del(array $key)
     {
@@ -94,30 +113,32 @@ class Composite implements DriverInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
-    public function clear($prefix)
+    public function clear()
     {
         return $this->executeOnAll(function ($driver) use ($prefix) {
-            return $driver->clear($prefix);
+            return $driver->clear();
         });
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function lock(array $key, $ttl)
     {
         $driver = end($this->drivers);
+
         return $driver->lock($key, $ttl);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function unlock(array $key)
     {
         $driver = end($this->drivers);
+
         return $driver->unlock($key);
     }
 
@@ -129,6 +150,7 @@ class Composite implements DriverInterface
                 $success = false;
             }
         }
+
         return $success;
     }
 }

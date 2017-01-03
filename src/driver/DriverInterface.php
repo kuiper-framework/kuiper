@@ -1,52 +1,64 @@
 <?php
+
 namespace kuiper\cache\driver;
 
 interface DriverInterface
 {
     /**
-     * Returns the stored data as well as its expiration time
+     * @param string $prefix
+     */
+    public function setPrefix($prefix);
+
+    /**
+     * Returns the stored data as well as its expiration time.
      *
-     * @param array $key
-     * @return array|false the array contains two keys
+     * the data array contains keys:
      *  - data
      *  - expiration
+     *
+     * @param array $path
+     *
+     * @return array|false the array contains two keys
      */
-    public function get(array $key);
+    public function get(array $path);
 
     /**
-     * Returns the stored data as well as its expiration time
+     * Returns the stored data as well as its expiration time.
      *
-     * @param array $keys
+     * @param array $paths
+     *
      * @return array
      */
-    public function mget(array $keys);
+    public function mget(array $paths);
 
     /**
-     * @param array $key
+     * @param array $path
      * @param mixed $data
-     * @param int $expiration the expiration time as timestamp
+     * @param int   $expiration the expiration time as timestamp
+     *
      * @return bool
      */
-    public function set(array $key, $data, $expiration);
+    public function set(array $path, $data, $expiration);
 
     /**
-     * @param array $key
+     * @param array $path
+     *
      * @return bool
      */
-    public function del(array $key);
-
-    /**
-     * @return bool
-     */
-    public function clear($prefix);
+    public function del(array $path);
 
     /**
      * @return bool
      */
-    public function lock(array $key, $ttl);
+    public function clear();
 
     /**
      * @return bool
      */
-    public function unlock(array $key);
+    public function lock(array $path, $ttl);
+
+    /**
+     * @return bool
+     */
+    public function unlock(array $path);
 }
