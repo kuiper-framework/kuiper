@@ -56,7 +56,7 @@ class Redis extends RedisDriver implements DriverInterface
         return $this->getConnection();
     }
 
-    protected function getConnection()
+    public function getConnection()
     {
         if ($this->connection === null) {
             $this->connect();
