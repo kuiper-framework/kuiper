@@ -1,17 +1,17 @@
 <?php
 namespace kuiper\web;
 
-use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 use kuiper\annotations\ReaderInterface;
 use kuiper\helper\Text;
-use ReflectionClass;
-use kuiper\web\annotation\route\RoutePrefix;
+use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 use kuiper\web\annotation\route\Route;
+use kuiper\web\annotation\route\RoutePrefix;
+use ReflectionClass;
 
 class RouteScanner
 {
     /**
-     * @var ReaderInterface 
+     * @var ReaderInterface
      */
     private $annotationReader;
     
@@ -80,7 +80,7 @@ class RouteScanner
                 }
             }
         }
-        usort($routes, function($a, $b) {
+        usort($routes, function ($a, $b) {
             return $a['priority'] - $b['priority'];
         });
         return $routes;

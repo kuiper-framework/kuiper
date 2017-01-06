@@ -1,12 +1,12 @@
 <?php
 namespace kuiper\web\middlewares;
 
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use Interop\Container\ContainerInterface;
-use LogicException;
 use kuiper\annotations\ReaderInterface;
 use kuiper\web\annotation\filter\FilterInterface;
+use LogicException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use ReflectionClass;
 
 class Filter

@@ -1,15 +1,15 @@
 <?php
 namespace kuiper\web;
 
-use Psr\Http\Message\ServerRequestInterface;
+use kuiper\web\exception\AccessDeniedException;
+use kuiper\web\exception\BadRequestException;
+use kuiper\web\exception\MethodNotAllowedException;
+use kuiper\web\exception\NotFoundException;
+use kuiper\web\exception\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use kuiper\web\exception\NotFoundException;
-use kuiper\web\exception\MethodNotAllowedException;
-use kuiper\web\exception\AccessDeniedException;
-use kuiper\web\exception\UnauthorizedException;
-use kuiper\web\exception\BadRequestException;
 
 class DefaultErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
 {

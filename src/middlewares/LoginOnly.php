@@ -1,10 +1,10 @@
 <?php
 namespace kuiper\web\middlewares;
 
-use kuiper\web\security\AuthInterface;
 use kuiper\web\exception\UnauthorizedException;
-use Psr\Http\Message\ServerRequestInterface;
+use kuiper\web\security\AuthInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class LoginOnly
 {

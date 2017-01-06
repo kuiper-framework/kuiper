@@ -1,12 +1,12 @@
 <?php
 namespace kuiper\web\middlewares;
 
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use kuiper\web\security\PermissionCheckerInterface;
-use kuiper\web\exception\UnauthorizedException;
-use kuiper\web\exception\AccessDeniedException;
 use InvalidArgumentException;
+use kuiper\web\exception\AccessDeniedException;
+use kuiper\web\exception\UnauthorizedException;
+use kuiper\web\security\PermissionCheckerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class Acl
 {

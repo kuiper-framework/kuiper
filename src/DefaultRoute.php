@@ -2,8 +2,8 @@
 namespace kuiper\web;
 
 use Interop\Container\ContainerInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
 
 class DefaultRoute implements RouteInterface

@@ -1,10 +1,10 @@
 <?php
 namespace kuiper\web\session;
 
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Dflydev\FigCookies\SetCookies;
 use Dflydev\FigCookies\SetCookie;
+use Dflydev\FigCookies\SetCookies;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use SessionHandlerInterface;
 
 class ManagedSession implements ManagedSessionInterface
@@ -153,8 +153,8 @@ class ManagedSession implements ManagedSessionInterface
     }
 
     /**
-	 * @inheritdoc
-	 */
+     * @inheritdoc
+     */
     public function remove($index)
     {
         unset($this->sessionData[$index]);

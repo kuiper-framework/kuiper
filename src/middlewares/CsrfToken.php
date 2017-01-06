@@ -1,11 +1,11 @@
 <?php
 namespace kuiper\web\middlewares;
 
-use kuiper\web\exception\MethodNotAllowedException;
 use kuiper\web\exception\CsrfTokenInvalidException;
+use kuiper\web\exception\MethodNotAllowedException;
 use kuiper\web\security\CsrfTokenInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class CsrfToken
 {

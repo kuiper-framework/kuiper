@@ -1,10 +1,9 @@
 <?php
 namespace kuiper\web\middlewares;
 
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use kuiper\web\session\ManagedSessionInterface;
-
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Handle swoole php session

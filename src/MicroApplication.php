@@ -1,12 +1,12 @@
 <?php
 namespace kuiper\web;
 
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Zend\Diactoros\ServerRequestFactory;
-use Zend\Diactoros\Response;
-use InvalidArgumentException;
 use Closure;
+use InvalidArgumentException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\Response;
+use Zend\Diactoros\ServerRequestFactory;
 
 class MicroApplication extends Application implements RouteSourceInterface
 {
@@ -161,7 +161,7 @@ class MicroApplication extends Application implements RouteSourceInterface
 
     protected function getRouter()
     {
-        return new FastRouteRouter(\FastRoute\simpleDispatcher(function($r) {
+        return new FastRouteRouter(\FastRoute\simpleDispatcher(function ($r) {
             foreach ($this->routes as $route) {
                 $r->addRoute($route->getMethods(), $route->getPattern(), $route->getHandler());
             }

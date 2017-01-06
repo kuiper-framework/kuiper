@@ -3,8 +3,8 @@ namespace kuiper\web;
 
 use FastRoute\RouteParser;
 use FastRoute\RouteParser\Std as StdParser;
-use RuntimeException;
 use InvalidArgumentException;
+use RuntimeException;
 
 class FastRouteUrlResolver implements UrlResolverInterface
 {

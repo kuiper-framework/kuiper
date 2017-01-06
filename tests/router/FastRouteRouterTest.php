@@ -1,14 +1,14 @@
 <?php
 namespace kuiper\web\router;
 
-use kuiper\web\FastRouteRouter as Router;
-use kuiper\web\RouteScanner;
-use kuiper\web\RouteInterface;
-use kuiper\test\TestCase;
 use kuiper\annotations\AnnotationReader;
-use kuiper\reflection\ClassScanner;
-use Zend\Diactoros\ServerRequestFactory;
+use kuiper\reflection\ReflectionNamespaceFactory;
+use kuiper\test\TestCase;
+use kuiper\web\FastRouteRouter as Router;
+use kuiper\web\RouteInterface;
+use kuiper\web\RouteScanner;
 use Zend\Diactoros\Response;
+use Zend\Diactoros\ServerRequestFactory;
 
 /**
  * TestCase for Router
@@ -17,10 +17,8 @@ class FastRouteRouterTest extends TestCase
 {
     public function createRouter()
     {
-        $router = new Router(\FastRoute\simpleDispatcher(function($r) {
-            $classScanner = new ClassScanner;
-            $classScanner->register(__NAMESPACE__, __DIR__);
-            $scanner = new RouteScanner(new AnnotationReader(), $classScanner);
+        $router = new Router(\FastRoute\simpleDispatcher(function ($r) {
+            $scanner = new RouteScanner(new AnnotationReader(), ReflectionNamespaceFactory::createInstance());
             foreach ($scanner->scan(__NAMESPACE__) as $route) {
                 $r->addRoute($route['methods'], $route['pattern'], $route);
             }

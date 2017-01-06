@@ -1,11 +1,11 @@
 <?php
 namespace kuiper\web;
 
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use kuiper\web\exception\NotFoundException;
 use kuiper\web\exception\AccessDeniedException;
+use kuiper\web\exception\NotFoundException;
 use kuiper\web\exception\UnauthorizedException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 abstract class Controller implements ControllerInterface
 {

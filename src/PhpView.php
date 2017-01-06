@@ -1,6 +1,6 @@
 <?php
 namespace kuiper\web;
-    
+
 class PhpView implements ViewInterface
 {
     /**

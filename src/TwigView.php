@@ -2,7 +2,7 @@
 namespace kuiper\web;
 
 use Twig_Environment;
-    
+
 class TwigView implements ViewInterface
 {
     /**

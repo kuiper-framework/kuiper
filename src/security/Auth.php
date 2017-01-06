@@ -59,6 +59,28 @@ class Auth implements AuthInterface
         return $this->sessionKey;
     }
     
+    public function offsetExists($offset)
+    {
+        return isset($this->sessionData[$offset]);
+    }
+
+    public function offsetGet($offset)
+    {
+        if (isset($this->sessionData[$name])) {
+            return $this->sessionData[$name];
+        }
+    }
+
+    public function offsetSet($offset, $value)
+    {
+        $this->sessionData[$offset] = $value;
+    }
+    
+    public function offsetUnset($offset)
+    {
+        unset($this->sessionData[$offset]);
+    }
+    
     public function __get($name)
     {
         if (isset($this->sessionData[$name])) {
@@ -71,6 +93,16 @@ class Auth implements AuthInterface
         if (isset($this->sessionData[$name])) {
             $this->sessionData[$name] = $value;
         }
+    }
+
+    public function __isset($name)
+    {
+        return isset($this->sessionData[$name]);
+    }
+
+    public function getIdentity()
+    {
+        return $this->sessionData;
     }
 
     /**

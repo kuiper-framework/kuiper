@@ -5,7 +5,7 @@ interface UrlResolverInterface
 {
     /**
      * generates url
-     * 
+     *
      * @param string $name route name
      * @param array $arguments
      * @return string

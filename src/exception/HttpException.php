@@ -1,9 +1,9 @@
 <?php
 namespace kuiper\web\exception;
 
-use RuntimeException;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
 
 /**
  * Http Exception

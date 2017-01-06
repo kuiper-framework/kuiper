@@ -1,20 +1,20 @@
 <?php
 namespace kuiper\web;
 
+use Closure;
+use Exception;
 use Interop\Container\ContainerInterface;
 use InvalidArgumentException;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use kuiper\web\exception\NotFoundException;
-use kuiper\web\exception\MethodNotAllowedException;
-use kuiper\web\exception\HttpException;
-use kuiper\web\exception\DispatchException;
 use kuiper\web\ControllerInterface;
-use RuntimeException;
+use kuiper\web\exception\DispatchException;
+use kuiper\web\exception\HttpException;
+use kuiper\web\exception\MethodNotAllowedException;
+use kuiper\web\exception\NotFoundException;
 use LogicException;
-use Exception;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
 use Throwable;
-use Closure;
 
 class Application implements ApplicationInterface
 {
@@ -52,9 +52,9 @@ class Application implements ApplicationInterface
     /**
      * Avaliable options:
      *  - chuck_size response chuck size
-     * 
+     *
      * @param ContainerInterface $container
-     * @param array $options 
+     * @param array $options
      */
     public function __construct(ContainerInterface $container, array $options = [])
     {

@@ -2,11 +2,11 @@
 namespace kuiper\web;
 
 use FastRoute\Dispatcher;
-use RuntimeException;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use kuiper\web\exception\NotFoundException;
 use kuiper\web\exception\MethodNotAllowedException;
+use kuiper\web\exception\NotFoundException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
 
 /**
  * create router use nikic\fast-route ::

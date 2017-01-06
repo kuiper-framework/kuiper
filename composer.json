@@ -25,9 +25,11 @@
         "kuiper/annotations": "^0.1",
         "kuiper/helper": "^0.1",
         "kuiper/cache": "^0.1",
-        "kuiper/di": "^0.1"
+        "kuiper/di": "^0.1",
+        "winwin/composer-phpcs-plugin": "^0.1.0"
     },
     "suggest": {
+        "zendframework/zend-diactoros": "for psr-7 http message interfaces implements",
         "kuiper/annotations": "for filter middleware annotations and route definition"
     },
     "autoload": {
@@ -40,17 +42,6 @@
             "kuiper\\web\\": "tests/"
         }
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../*"
-        }
-    ],
     "minimum-stability": "dev",
-    "prefer-stable": true,
-    "extra": {
-        "branch-alias": {
-            "dev-master": "0.1-dev"
-        }
-    }
+    "prefer-stable": true
 }

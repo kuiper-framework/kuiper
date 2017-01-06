@@ -1,8 +1,8 @@
 <?php
 namespace kuiper\web\security;
 
-use kuiper\web\exception\UnauthorizedException;
 use InvalidArgumentException;
+use kuiper\web\exception\UnauthorizedException;
 
 class PermissionChecker implements PermissionCheckerInterface
 {

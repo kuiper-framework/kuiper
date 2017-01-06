@@ -1,13 +1,13 @@
 <?php
 namespace kuiper\web\router;
 
+use kuiper\annotations\AnnotationReader;
+use kuiper\reflection\ReflectionNamespaceFactory;
+use kuiper\test\TestCase;
 use kuiper\web\FastRouteUrlResolver;
 use kuiper\web\RouteScanner;
-use kuiper\test\TestCase;
-use kuiper\annotations\AnnotationReader;
-use kuiper\reflection\ClassScanner;
-use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Response;
+use Zend\Diactoros\ServerRequestFactory;
 
 /**
  * TestCase for Router
@@ -16,10 +16,8 @@ class FastRouteUrlResolverTest extends TestCase
 {
     public function createUrlResolver()
     {
-        $classScanner = new ClassScanner;
-        $classScanner->register(__NAMESPACE__, __DIR__);
-        $scanner = new RouteScanner(new AnnotationReader(), $classScanner);
-        return new FastRouteUrlResolver($scanner->scan(__NAMESPACE__));
+        $scanner = new RouteScanner(new AnnotationReader(), ReflectionNamespaceFactory::createInstance());
+        return new FastRouteUrlResolver($scanner->scan());
     }
 
     /**
@@ -39,5 +37,4 @@ class FastRouteUrlResolverTest extends TestCase
             ["user_edit", ["id" => 10], "/user/edit/10"],
         ];
     }
-
 }

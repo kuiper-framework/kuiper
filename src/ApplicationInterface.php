@@ -12,7 +12,7 @@ interface ApplicationInterface
 
     /**
      * Adds middleware
-     * 
+     *
      * @param callable $middleware
      * @param int|string $position if int, same as before:{constant}, if string, before:{id} or after:{id}
      * @param string $id
@@ -25,7 +25,7 @@ interface ApplicationInterface
      *
      * @param ServerRequestInterface $req request message
      * @param boolean $silent sending response when false
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function run(ServerRequestInterface $req = null, $silent = false);
