@@ -1,29 +1,30 @@
 <?php
+
 namespace kuiper\di\resolver;
 
-use Interop\Container\ContainerInterface;
-use kuiper\di\DefinitionEntry;
-use kuiper\di\source\EnvSource;
-use kuiper\di\definition\StringDefinition;
-use InvalidArgumentException;
-use kuiper\di\exception\DependencyException;
 use Exception;
+use Interop\Container\ContainerInterface;
+use InvalidArgumentException;
+use kuiper\di\definition\StringDefinition;
+use kuiper\di\DefinitionEntry;
+use kuiper\di\exception\DependencyException;
 
 class StringResolver implements ResolverInterface
 {
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function resolve(ContainerInterface $container, DefinitionEntry $entry, $parameters = [])
     {
         $definition = $entry->getDefinition();
         if (!$definition instanceof StringDefinition) {
             throw new InvalidArgumentException(sprintf(
-                "definition expects a %s, got %s",
+                'definition expects a %s, got %s',
                 StringDefinition::class,
                 is_object($definition) ? get_class($definition) : gettype($definition)
             ));
         }
+
         return preg_replace_callback('#\{([^\{\}]+)\}#', function (array $matches) use ($container, $entry) {
             try {
                 return $container->get($matches[1]);

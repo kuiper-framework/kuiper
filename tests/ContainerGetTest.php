@@ -1,20 +1,17 @@
 <?php
+
 namespace kuiper\di;
 
 use Interop\Container\ContainerInterface;
-use kuiper\di\Container;
-use kuiper\di\Scope;
-use kuiper\di\ContainerBuilder;
 use kuiper\di\definition\AliasDefinition;
-use kuiper\di\definition\ObjectDefinition;
 use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\definition\NamedParameters;
+use kuiper\di\definition\ObjectDefinition;
+use kuiper\di\fixtures\Class1CircularDependencies;
+use kuiper\di\fixtures\InvalidScope;
+use kuiper\di\fixtures\PassByReferenceDependency;
 use kuiper\di\fixtures\Prototype;
 use kuiper\di\fixtures\Singleton;
-use kuiper\di\fixtures\InvalidScope;
-use kuiper\di\fixtures\Class1CircularDependencies;
-use kuiper\di\fixtures\PassByReferenceDependency;
-use kuiper\test\TestCase;
 use stdClass;
 
 /**
@@ -26,6 +23,7 @@ class ContainerGetTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->addDefinitions($definitions);
+
         return $builder->build();
     }
 
@@ -88,7 +86,7 @@ class ContainerGetTest extends TestCase
     }
 
     /**
-     * @expectedException kuiper\di\exception\AnnotationException
+     * @expectedException \kuiper\di\exception\AnnotationException
      * @expectedExceptionMessage Constant 'kuiper\di\annotation\Injectable::FOOBAR' is not defined for attribute 'scope'
      * @coversNothing
      */
@@ -125,7 +123,7 @@ class ContainerGetTest extends TestCase
     public function testCircularDependencyExceptionWithAlias()
     {
         $container = $this->createContainer([
-            'foo' => new AliasDefinition('foo')
+            'foo' => new AliasDefinition('foo'),
         ]);
         $container->get('foo');
     }
@@ -154,7 +152,7 @@ class ContainerGetTest extends TestCase
     {
         $container = $this->createContainer([
             'foo' => (new ObjectDefinition(fixtures\ClassConstructor::class))
-            ->constructor(new NamedParameters(['param2' => 1]))
+            ->constructor(new NamedParameters(['param2' => 1])),
         ]);
         $object = $container->get('foo');
         // print_r($object);
@@ -164,9 +162,9 @@ class ContainerGetTest extends TestCase
     public function testFactoryParameters()
     {
         $container = $this->createContainer([
-            'foo' => function(fixtures\DummyClass $object) {
+            'foo' => function (fixtures\DummyClass $object) {
                 return $object;
-            }
+            },
         ]);
         $object = $container->get('foo');
         $this->assertInstanceOf(fixtures\DummyClass::class, $object);
@@ -179,7 +177,7 @@ class ContainerGetTest extends TestCase
             'foo' => (new ObjectDefinition(fixtures\DummyClass::class))
             ->method('foo'),
             'bar' => (new ObjectDefinition(fixtures\DeferredConstructor::class))
-            ->constructor(new AliasDefinition('foo'))
+            ->constructor(new AliasDefinition('foo')),
         ]);
         $foo = $container->get('foo');
         $bar = $container->get('bar');
@@ -191,7 +189,7 @@ class ContainerGetTest extends TestCase
     {
         $container = $this->createContainer([
             'foo' => (new ObjectDefinition(fixtures\DummyClass::class))
-            ->scope(Scope::REQUEST)
+            ->scope(Scope::REQUEST),
         ]);
         $container->startRequest();
         $foo = $container->get('foo');
@@ -207,16 +205,16 @@ class ContainerGetTest extends TestCase
     public function testFactoryDefaultParams()
     {
         $container = $this->createContainer([
-            'foo' => (new FactoryDefinition(function($param = []) {
+            'foo' => (new FactoryDefinition(function ($param = []) {
                 return $param;
             }))->scope(Scope::PROTOTYPE),
-            'bar' => (new FactoryDefinition(function(ContainerInterface $c) {
+            'bar' => (new FactoryDefinition(function (ContainerInterface $c) {
                 return $c;
             }))->scope(Scope::PROTOTYPE),
         ]);
         $ret = $container->make('foo');
         $this->assertEquals([], $ret);
-        $ret = $container->make('foo', [$obj = new \stdClass]);
+        $ret = $container->make('foo', [$obj = new \stdClass()]);
         $this->assertSame($obj, $ret);
 
         $ret = $container->make('bar');

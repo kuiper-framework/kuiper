@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\fixtures;
 
 class DummyClass
@@ -6,7 +7,7 @@ class DummyClass
     public static $calls = [];
 
     private $name;
-    
+
     public function foo()
     {
         self::$calls[] = __METHOD__;

@@ -1,15 +1,10 @@
 <?php
-namespace kuiper\di;
 
-use Interop\Container\ContainerInterface;
-use kuiper\di\Container;
-use kuiper\di\ContainerBuilder;
+namespace kuiper\di;
 
 use kuiper\di\fixtures\AnnotationFixture;
 use kuiper\di\fixtures\AnnotationFixture2;
 use kuiper\di\fixtures\AutowireProperty;
-use kuiper\test\TestCase;
-use stdClass;
 
 /**
  * Test class for Container.
@@ -21,7 +16,7 @@ class ContainerAnnotationTest extends TestCase
         parent::setUp();
         AnnotationFixture::$PARAMS = [];
     }
-    
+
     public function createContainer()
     {
         $builder = new ContainerBuilder();
@@ -29,8 +24,9 @@ class ContainerAnnotationTest extends TestCase
         $builder->addDefinitions([
             'foo' => 'foo value',
             'bar' => 'bar value',
-            'bim' => new \stdClass,
+            'bim' => new \stdClass(),
         ]);
+
         return $builder->build();
     }
 
@@ -45,22 +41,22 @@ class ContainerAnnotationTest extends TestCase
 
         $calls = AnnotationFixture::$PARAMS;
         $this->assertEquals($calls[0], [
-            AnnotationFixture::class . '::__construct', ['foo value', 'bar value']
+            AnnotationFixture::class.'::__construct', ['foo value', 'bar value'],
         ]);
 
         $this->assertEquals($calls[1], [
-            AnnotationFixture::class . '::method1', []
+            AnnotationFixture::class.'::method1', [],
         ]);
         $this->assertEquals($calls[2], [
-            AnnotationFixture::class . '::method2', ['foo value', 'bar value']
+            AnnotationFixture::class.'::method2', ['foo value', 'bar value'],
         ]);
-        $this->assertEquals($calls[3][0], AnnotationFixture::class . '::method3');
+        $this->assertEquals($calls[3][0], AnnotationFixture::class.'::method3');
         $this->assertInstanceOf(AnnotationFixture2::class, $calls[3][1][0]);
         $this->assertInstanceOf(AnnotationFixture2::class, $calls[3][1][1]);
         $this->assertEquals($calls[4], [
-            AnnotationFixture::class . '::method4', ['foo value', 'bar value']
+            AnnotationFixture::class.'::method4', ['foo value', 'bar value'],
         ]);
-        $this->assertEquals($calls[5][0], AnnotationFixture::class . '::optionalParameter');
+        $this->assertEquals($calls[5][0], AnnotationFixture::class.'::optionalParameter');
         $this->assertSame($calls[5][1][0], $container->get('bim'));
 
         $this->assertEquals(count($calls[5][1]), 1);

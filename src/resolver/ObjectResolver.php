@@ -1,18 +1,19 @@
 <?php
+
 namespace kuiper\di\resolver;
 
 use Interop\Container\ContainerInterface;
-use kuiper\di\DefinitionEntry;
-use kuiper\di\ProxyFactory;
+use InvalidArgumentException;
+use kuiper\di\ContainerAwareInterface;
+use kuiper\di\DeferredObject;
 use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\ObjectDefinition;
-use kuiper\di\ContainerAwareInterface;
-use InvalidArgumentException;
-use kuiper\di\DeferredObject;
+use kuiper\di\DefinitionEntry;
+use kuiper\di\ProxyFactory;
 use kuiper\di\Scope;
-use ReflectionClass;
-use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use ReflectionClass;
 
 class ObjectResolver implements ResolverInterface
 {
@@ -31,28 +32,25 @@ class ObjectResolver implements ResolverInterface
         $this->resolver = $resolver;
         $this->proxyFactory = $proxyFactory;
     }
-    
+
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function resolve(ContainerInterface $container, DefinitionEntry $entry, $parameters = [])
     {
         $definition = $entry->getDefinition();
         if (!$definition instanceof ObjectDefinition) {
             throw new InvalidArgumentException(sprintf(
-                "definition expects a %s, got %s",
+                'definition expects a %s, got %s',
                 ObjectDefinition::class,
                 is_object($definition) ? get_class($definition) : gettype($definition)
             ));
         }
         $className = $definition->getClassName() ?: $entry->getName();
         if ($definition->isLazy() || $definition->getScope() === Scope::REQUEST) {
-            return $this->proxyFactory->createProxy(
-                $className,
-                function () use ($container, $entry, $parameters) {
-                    return $this->createInstance($container, $entry, $parameters);
-                }
-            );
+            return $this->proxyFactory->createProxy($className, function () use ($container, $entry, $parameters) {
+                return $this->createInstance($container, $entry, $parameters);
+            });
         } else {
             return $this->createInstance($container, $entry, $parameters, true);
         }
@@ -120,6 +118,7 @@ class ObjectResolver implements ResolverInterface
                 }
             }
         }
+
         return $instance;
     }
 
@@ -132,7 +131,7 @@ class ObjectResolver implements ResolverInterface
     {
         $argc = count($parameters);
         if ($argc === 0) {
-            return new $className;
+            return new $className();
         } elseif ($argc === 1) {
             return new $className($parameters[0]);
         } elseif ($argc === 2) {
@@ -141,6 +140,7 @@ class ObjectResolver implements ResolverInterface
             return new $className($parameters[0], $parameters[1], $parameters[2]);
         } else {
             $class = new ReflectionClass($className);
+
             return $class->newInstanceArgs($parameters);
         }
     }

@@ -1,30 +1,54 @@
 <?php
+
 namespace kuiper\di;
 
+use Interop\Container\ContainerInterface;
 use InvalidArgumentException;
-use kuiper\di\exception\NotFoundException;
-use kuiper\di\exception\DependencyException;
-use kuiper\di\source\SourceInterface;
-use kuiper\di\source\MutableSourceInterface;
-use kuiper\di\resolver\DispatchResolver;
-use kuiper\di\source\CachedSource;
+use kuiper\di\definition\AliasDefinition;
+use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\DefinitionInterface;
+use kuiper\di\definition\EnvDefinition;
+use kuiper\di\definition\FactoryDefinition;
+use kuiper\di\definition\ObjectDefinition;
+use kuiper\di\definition\StringDefinition;
 use kuiper\di\definition\ValueDefinition;
-use kuiper\di\Scope;
-use ProxyManager\Proxy\VirtualProxyInterface;
+use kuiper\di\exception\DefinitionException;
+use kuiper\di\exception\DependencyException;
+use kuiper\di\exception\NotFoundException;
+use kuiper\di\resolver\ArrayResolver;
+use kuiper\di\resolver\EnvResolver;
+use kuiper\di\resolver\FactoryResolver;
+use kuiper\di\resolver\ObjectResolver;
+use kuiper\di\resolver\ResolvableInterface;
+use kuiper\di\resolver\ResolverInterface;
+use kuiper\di\resolver\StringResolver;
+use kuiper\di\source\MutableSourceInterface;
+use kuiper\di\source\SourceInterface;
 use LogicException;
+use ProxyManager\Proxy\VirtualProxyInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class Container implements ContainerInterface
+class Container implements ContainerInterface, ResolverInterface
 {
     /**
      * @var SourceInterface
      */
     private $source;
-    
+
     /**
-     * @var DispatchResolver
+     * @var ProxyFactory
      */
-    private $resolver;
+    private $proxyFactory;
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
+     * @var array
+     */
+    private $resolvers = [];
 
     /**
      * @var array
@@ -37,150 +61,253 @@ class Container implements ContainerInterface
     private $requestEntries = [];
 
     /**
+     * @var bool
+     */
+    private $isResolvingShared;
+
+    /**
      * @var array
      */
-    private $initializers = [];
+    private $resolvedValues = [];
 
-    public function __construct(SourceInterface $source, ProxyFactory $proxyFactory)
+    private static $DEFINITION_RESOLVERS = [
+        EnvDefinition::class => [__CLASS__, 'createEnvResolver'],
+        StringDefinition::class => [__CLASS__, 'createStringResolver'],
+        ArrayDefinition::class => [__CLASS__, 'createArrayResolver'],
+        FactoryDefinition::class => [__CLASS__, 'createFactoryResolver'],
+        ObjectDefinition::class => [__CLASS__, 'createObjectResolver'],
+    ];
+
+    public function __construct(MutableSourceInterface $source, ProxyFactory $proxyFactory, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->source = $source;
-        $this->resolver = new DispatchResolver($source, $proxyFactory, $this);
+        $this->proxyFactory = $proxyFactory;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
-     * Removes '\' at the beginning
-     */
-    protected function normalize($name)
-    {
-        if (!is_string($name)) {
-            throw new InvalidArgumentException("The name parameter must be of type string");
-        }
-        return ltrim($name, '\\');
-    }
-
-    protected function resolve($name, $reset, $parameters = [])
-    {
-        $definition = $this->source->get($name);
-        if ($definition === null) {
-            throw new NotFoundException("Cannot resolve entry '$name'");
-        }
-        if ($reset) {
-            $value = $this->resolver->reset()
-                   ->resolve($this, $definition, $parameters);
-            $this->resolver->reset();
-        } else {
-            $value = $this->resolver->resolve($this, $definition, $parameters);
-        }
-        return [$definition, $value];
-    }
-
-    /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function get($name)
     {
-        return $this->resolveShared($name);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getShared($name)
-    {
-        return $this->resolveShared($name, false);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function set($name, $value)
-    {
-        if ($this->source instanceof MutableSourceInterface) {
-            if (!$value instanceof DefinitionInterface) {
-                $value = new ValueDefinition($value);
-            }
-            unset($this->singletonEntries[$name]);
-            $this->source->set($name, $value);
-        } elseif ($this->source instanceof CachedSource) {
-            throw new LogicException("Cannot change di definition when cache enabled");
-        } else {
-            throw new LogicException("Cannot change di definition");
+        $name = $this->normalize($name);
+        if ($this->isResolved($name)) {
+            return $this->getResolved($name);
         }
+        $this->isResolvingShared = true;
+        $this->resolvedValues = [];
+
+        return $this->resolve($this, $this->getDefinition($name));
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
+     */
+    public function set($name, $definition)
+    {
+        $name = $this->normalize($name);
+        if (!$definition instanceof DefinitionInterface) {
+            $definition = new ValueDefinition($definition);
+        }
+        unset($this->singletonEntries[$name]);
+        unset($this->requestEntries[$name]);
+        $this->source->set($name, $definition);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function make($name, $parameters = [])
     {
         $name = $this->normalize($name);
-        list ($definition, $value) = $this->resolve($name, true, $parameters);
-        if ($value instanceof DeferredObject) {
-            $value->initialize();
-            $value = $value->getInstance();
-        }
-        return $value;
+        $this->isResolvingShared = false;
+        $this->resolvedValues = [];
+
+        return $this->resolve($this, $this->getDefinition($name), $parameters);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function has($name)
     {
         $name = $this->normalize($name);
-        return array_key_exists($name, $this->singletonEntries)
-            || array_key_exists($name, $this->requestEntries)
-            || $this->source->has($name);
+
+        return $this->isResolved($name) || $this->source->has($name);
     }
 
     /**
-     * @inheritDoc
-     */
-    public function hasShared($name)
-    {
-        $name = $this->normalize($name);
-        return array_key_exists($name, $this->singletonEntries)
-            || array_key_exists($name, $this->requestEntries);
-    }
-
-    /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function startRequest()
     {
         foreach ($this->requestEntries as $name => $entry) {
-            $entry->setProxyInitializer($this->initializers[$name]);
+            list($value, $initializer) = $entry;
+            $value->setProxyInitializer($initializer);
         }
+
         return $this;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function endRequest()
     {
         return $this;
     }
 
-    private function resolveShared($name, $resetResolver = true)
+    /**
+     * {@inheritdoc}
+     */
+    public function resolve(ContainerInterface $container, DefinitionEntry $entry, $parameters = [])
     {
-        $name = $this->normalize($name);
+        $name = $entry->getName();
+        if ($this->isResolvingShared && $this->isResolved($name)) {
+            return $this->getResolved($name);
+        }
+        if (array_key_exists($name, $this->resolvedValues)) {
+            return $this->resolvedValues[$name];
+        }
+        if (isset($this->resolving[$name])) {
+            throw new DependencyException("Circular dependency detected while trying to resolve entry '$name'");
+        }
+        $this->resolving[$name] = true;
+
+        $definition = $entry->getDefinition();
+        if ($definition instanceof ValueDefinition) {
+            $value = $definition->getValue();
+        } elseif ($definition instanceof AliasDefinition) {
+            $aliasEntry = $this->getDefinition($definition->getAlias());
+            $value = $this->resolve($container, $aliasEntry, $parameters);
+        } else {
+            $resolver = $this->getResolver($definition);
+            if ($resolver === null) {
+                throw new DefinitionException('Cannot resolve definition '.get_class($definition));
+            }
+            $value = $resolver->resolve($container, $entry, $parameters);
+        }
+        if ($value instanceof DeferredObject) {
+            $deferred = $value;
+            $value = $deferred->getInstance();
+        }
+        if ($this->isResolvingShared) {
+            $scope = $definition->getScope();
+            if ($scope === Scope::SINGLETON) {
+                $this->singletonEntries[$name] = $value;
+            } elseif ($scope === Scope::REQUEST) {
+                if (!$value instanceof VirtualProxyInterface) {
+                    throw new LogicException("Request entry '{$name}' is not object or factory");
+                }
+                $this->requestEntries[$name] = [$value, $value->getProxyInitializer()];
+            }
+        }
+        $this->resolvedValues[$name] = $value;
+        unset($this->resolving[$name]);
+        if (isset($deferred)) {
+            $deferred->initialize();
+        }
+
+        return $value;
+    }
+
+    public function getSource()
+    {
+        return $this->source;
+    }
+
+    public function getProxyFactory()
+    {
+        return $this->proxyFactory;
+    }
+
+    public function getEventDispatcher()
+    {
+        return $this->eventDispatcher;
+    }
+
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher)
+    {
+        $this->eventDispatcher = $eventDispatcher;
+
+        return $this;
+    }
+
+    /**
+     * Removes '\' at the beginning.
+     */
+    protected function normalize($name)
+    {
+        if (!is_string($name)) {
+            throw new InvalidArgumentException('The name parameter must be of type string');
+        }
+
+        return ltrim($name, '\\');
+    }
+
+    protected function getDefinition($name)
+    {
+        $definition = $this->source->get($name);
+        if ($definition === null) {
+            throw new NotFoundException("Cannot resolve entry '$name'");
+        }
+
+        return $definition;
+    }
+
+    protected function isResolved($name)
+    {
+        return array_key_exists($name, $this->singletonEntries)
+            || array_key_exists($name, $this->requestEntries);
+    }
+
+    protected function getResolved($name)
+    {
         if (array_key_exists($name, $this->singletonEntries)) {
             return $this->singletonEntries[$name];
         } elseif (array_key_exists($name, $this->requestEntries)) {
-            return $this->requestEntries[$name];
+            return $this->requestEntries[$name][0];
         }
-        list ($definition, $value) = $this->resolve($name, $resetResolver);
-        $scope = $definition->getScope();
-        if ($scope === Scope::SINGLETON) {
-            $this->singletonEntries[$name] = $value;
-        } elseif ($scope === Scope::REQUEST) {
-            $this->requestEntries[$name] = $value;
-            if (!$value instanceof VirtualProxyInterface) {
-                throw new LogicException("Request entry '{$name}' is not object or factory");
+    }
+
+    protected function getResolver($definition)
+    {
+        foreach (self::$DEFINITION_RESOLVERS as $definitionType => $resolverFactory) {
+            if ($definition instanceof $definitionType) {
+                if (!isset($this->resolvers[$definitionType])) {
+                    $this->resolvers[$definitionType] = call_user_func($resolverFactory, $this);
+                }
+
+                return $this->resolvers[$definitionType];
             }
-            $this->initializers[$name] = $value->getProxyInitializer();
         }
-        return $value;
+        if ($definition instanceof ResolvableInterface) {
+            return $definition->getResolver($this);
+        }
+    }
+
+    public static function createEnvResolver(Container $container)
+    {
+        return new EnvResolver();
+    }
+
+    public static function createStringResolver(Container $container)
+    {
+        return new StringResolver();
+    }
+
+    public static function createArrayResolver(Container $container)
+    {
+        return new ArrayResolver($container);
+    }
+
+    public static function createFactoryResolver(Container $container)
+    {
+        return new FactoryResolver($container, $container->proxyFactory);
+    }
+
+    public static function createObjectResolver(Container $container)
+    {
+        return new ObjectResolver($container, $container->proxyFactory);
     }
 }

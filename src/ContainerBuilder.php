@@ -1,30 +1,28 @@
 <?php
+
 namespace kuiper\di;
 
-use Interop\Container\ContainerInterface as BaseContainer;
-use Psr\Cache\CacheItemPoolInterface;
-use Psr\Log\LoggerInterface;
-use kuiper\annotations\ReaderInterface;
+use Interop\Container\ContainerInterface as InteropContainer;
 use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\DocReaderInterface;
 use kuiper\annotations\DocReader;
+use kuiper\annotations\DocReaderInterface;
+use kuiper\annotations\ReaderInterface;
+use kuiper\di\definition\decorator\AutowireDecorator;
+use kuiper\di\definition\decorator\DefinitionDecorator;
+use kuiper\di\definition\decorator\DummyDecorator;
 use kuiper\di\source\ArraySource;
+use kuiper\di\source\MutableSourceInterface;
 use kuiper\di\source\ObjectSource;
-use kuiper\di\source\CachedSource;
 use kuiper\di\source\SourceChain;
 use kuiper\di\source\SourceInterface;
-use kuiper\di\resolver\DispatchResolver;
-use kuiper\di\definition\decorator\DefinitionDecorator;
-use kuiper\di\definition\decorator\AutowireDecorator;
-use kuiper\di\definition\AliasDefinition;
-use kuiper\di\definition\ValueDefinition;
-use ReflectionClass;
-use RuntimeException;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ContainerBuilder
 {
     /**
      * Name of the container class, used to create the container.
+     *
      * @var string
      */
     private $containerClass;
@@ -55,9 +53,9 @@ class ContainerBuilder
     private $docReader;
 
     /**
-     * @var CacheItemPoolInterface
+     * @var EventDispatcherInterface
      */
-    private $cache;
+    private $eventDispatcher;
 
     /**
      * @var array<SourceInterface>
@@ -70,25 +68,24 @@ class ContainerBuilder
     private $proxyFactory;
 
     /**
-     * Constructs the builder
-     * 
-     * @param string $containerClass Name of the container class, used to create the container.
+     * Constructs the builder.
+     *
+     * @param string $containerClass name of the container class, used to create the container
      */
     public function __construct($containerClass = Container::class)
     {
         $this->containerClass = $containerClass;
-        $this->definitions = new ArraySource();
-        $this->proxyFactory = new ProxyFactory();
     }
 
     /**
-     * Build empty container with default configuration
-     * 
+     * Build empty container with default configuration.
+     *
      * @return Container
      */
     public static function buildDevContainer()
     {
         $builder = new self();
+
         return $builder->build();
     }
 
@@ -99,41 +96,43 @@ class ContainerBuilder
      */
     public function build()
     {
-        $sources = array_merge([$this->definitions], $this->sources);
+        $sources = $this->sources;
+        array_unshift($sources, $definitions = $this->getDefinitions());
         $sources[] = new ObjectSource();
         if ($this->useAnnotations) {
+            $definitions->addDefinitions([
+                ReaderInterface::class => $this->getAnnotationReader(),
+                DocReaderInterface::class => $this->getDocReader(),
+            ]);
             $decorator = new AutowireDecorator($this->getAnnotationReader(), $this->getDocReader());
         } elseif ($this->useAutowiring) {
             $decorator = new DefinitionDecorator();
+        } else {
+            $decorator = new DummyDecorator();
         }
-        $source = new SourceChain($sources, $this->definitions, $decorator);
-        if ($this->cache !== null) {
-            $source = new CachedSource($source, $this->cache);
-        }
+        $source = new SourceChain($sources, $definitions, $decorator);
+
         $containerClass = $this->containerClass;
-        $container = new $containerClass($source, $this->proxyFactory);
-        $this->definitions->addDefinitions([
+        $container = new $containerClass($source, $this->getProxyFactory(), $this->getEventDispatcher());
+        $definitions->addDefinitions([
             ContainerInterface::class => $container,
-            BaseContainer::class => $container,
-            Container::class => $container
+            InteropContainer::class => $container,
+            Container::class => $container,
         ]);
-        if ($this->useAnnotations) {
-            $this->definitions->addDefinitions([
-                ReaderInterface::class => $this->getAnnotationReader(),
-                DocReaderInterface::class => $this->getDocReader()
-            ]);
-        }
+
         return $container;
     }
 
     /**
      * @param array $definitions
-     * @param boolean $mergeDeeply
+     * @param bool  $mergeDeeply
+     *
      * @return self
      */
     public function addDefinitions(array $definitions, $mergeDeeply = false)
     {
-        $this->definitions->addDefinitions($definitions, $mergeDeeply);
+        $this->getDefinitions()->addDefinitions($definitions, $mergeDeeply);
+
         return $this;
     }
 
@@ -142,12 +141,14 @@ class ContainerBuilder
      *
      * Enabled by default.
      *
-     * @param bool $bool
+     * @param bool $autowiring
+     *
      * @return self
      */
-    public function useAutowiring($bool)
+    public function useAutowiring($autowiring = true)
     {
-        $this->useAutowiring = $bool;
+        $this->useAutowiring = $autowiring;
+
         return $this;
     }
 
@@ -156,32 +157,38 @@ class ContainerBuilder
      *
      * Disabled by default.
      *
-     * @param bool $bool
+     * @param bool $annotations
+     *
      * @return self
      */
-    public function useAnnotations($bool)
+    public function useAnnotations($annotations = true)
     {
-        $this->useAnnotations = $bool;
+        $this->useAnnotations = $annotations;
+
         return $this;
     }
 
     /**
      * @param SourceInterface $source
+     *
      * @return self
      */
     public function addSource(SourceInterface $source)
     {
         $this->sources[] = $source;
+
         return $this;
     }
 
     /**
      * @param ReaderInterface $reader
+     *
      * @return self
      */
     public function setAnnotationReader(ReaderInterface $reader)
     {
         $this->annotationReader = $reader;
+
         return $this;
     }
 
@@ -193,37 +200,31 @@ class ContainerBuilder
         if ($this->annotationReader === null) {
             $this->setAnnotationReader(new AnnotationReader());
         }
+
         return $this->annotationReader;
     }
 
     /**
-     * @return DocReaderInterface 
+     * @return DocReaderInterface
      */
     public function getDocReader()
     {
         if ($this->docReader === null) {
             $this->setDocReader(new DocReader());
         }
+
         return $this->docReader;
     }
 
     /**
      * @param DocReaderInterface $docReader
+     *
      * @return self
      */
     public function setDocReader(DocReaderInterface $docReader)
     {
         $this->docReader = $docReader;
-        return $this;
-    }
 
-    /**
-     * @param CacheItemPoolInterface $cache
-     * @return self
-     */
-    public function setCache(CacheItemPoolInterface $cache)
-    {
-        $this->cache = $cache;
         return $this;
     }
 
@@ -232,6 +233,45 @@ class ContainerBuilder
      */
     public function getProxyFactory()
     {
+        if ($this->proxyFactory === null) {
+            $this->proxyFactory = new ProxyFactory();
+        }
+
         return $this->proxyFactory;
+    }
+
+    public function setProxyFactory(ProxyFactory $proxyFactory)
+    {
+        $this->proxyFactory = $proxyFactory;
+
+        return $this;
+    }
+
+    public function getDefinitions()
+    {
+        if ($this->definitions === null) {
+            $this->definitions = new ArraySource();
+        }
+
+        return $this->definitions;
+    }
+
+    public function setDefinitions(MutableSourceInterface $definitions)
+    {
+        $this->definitions = $definitions;
+
+        return $this;
+    }
+
+    public function getEventDispatcher()
+    {
+        return $this->eventDispatcher;
+    }
+
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher)
+    {
+        $this->eventDispatcher = $eventDispatcher;
+
+        return $this;
     }
 }

@@ -1,7 +1,6 @@
 <?php
-namespace kuiper\di;
 
-use kuiper\test\TestCase;
+namespace kuiper\di;
 
 /**
  * Test class for Container.
@@ -12,6 +11,7 @@ class ContainerAwareTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->addDefinitions($definitions);
+
         return $builder->build();
     }
 

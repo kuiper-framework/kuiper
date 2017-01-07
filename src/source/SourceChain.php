@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\source;
 
 use kuiper\di\definition\decorator\DecoratorInterface;
@@ -25,7 +26,7 @@ class SourceChain implements MutableSourceInterface
      * @var array<\kuiper\di\DefinitionEntry>
      */
     private $resolvedEntries = [];
-    
+
     public function __construct(array $sources, MutableSourceInterface $mutable, DecoratorInterface $decorator)
     {
         $this->sources = $sources;
@@ -34,7 +35,7 @@ class SourceChain implements MutableSourceInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function has($name)
     {
@@ -46,11 +47,12 @@ class SourceChain implements MutableSourceInterface
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function get($name)
     {
@@ -66,7 +68,7 @@ class SourceChain implements MutableSourceInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function set($name, DefinitionInterface $value)
     {

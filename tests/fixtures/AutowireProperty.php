@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\fixtures;
 
 use kuiper\di\annotation\Autowired;
@@ -6,6 +7,7 @@ use kuiper\di\annotation\Inject;
 
 /**
  * Fixture class for the Autowiring tests.
+ *
  * @Autowired
  */
 class AutowireProperty

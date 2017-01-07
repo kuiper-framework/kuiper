@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\fixtures;
 
 class DeferredConstructor

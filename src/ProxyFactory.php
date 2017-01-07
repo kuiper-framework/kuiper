@@ -1,10 +1,10 @@
 <?php
+
 namespace kuiper\di;
 
-use ProxyManager\Configuration;
+use Closure;
 use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use RuntimeException;
-use Closure;
 
 /**
  * Creates proxy classes.
@@ -22,38 +22,38 @@ class ProxyFactory
      * Creates a new lazy proxy instance of the given class with
      * the given initializer.
      *
-     * @param string   $className   name of the class to be proxied
+     * @param string  $className   name of the class to be proxied
      * @param Closure $initializer initializer to be passed to the proxy
      *
      * @return \ProxyManager\Proxy\LazyLoadingInterface
      */
     public function createProxy($className, Closure $creator)
     {
-        return $this->getProxyManager()->createProxy(
-            $className,
-            function (& $wrappedObject, $proxy, $method, $params, & $initializer) use ($creator) {
-                $initializer = null;
-                $wrappedObject = $creator();
-                return true;
-            }
-        );
+        return $this->getProxyManager()->createProxy($className, function (&$wrappedObject, $proxy, $method, $params, &$initializer) use ($creator) {
+            $initializer = null;
+            $wrappedObject = $creator();
+
+            return true;
+        });
     }
 
-    private function getProxyManager()
+    public function getProxyManager()
     {
-        if ($this->proxyManager !== null) {
-            return $this->proxyManager;
+        if ($this->proxyManager === null) {
+            if (!class_exists('ProxyManager\Configuration')) {
+                throw new RuntimeException('The ocramius/proxy-manager library is not installed. Lazy injection requires that library to be installed with Composer in order to work. Run "composer require ocramius/proxy-manager".');
+            }
+
+            $this->proxyManager = new LazyLoadingValueHolderFactory();
         }
 
-        if (! class_exists('ProxyManager\Configuration')) {
-            throw new RuntimeException('The ocramius/proxy-manager library is not installed. Lazy injection requires that library to be installed with Composer in order to work. Run "composer require ocramius/proxy-manager".');
-        }
-        return $this->proxyManager = new LazyLoadingValueHolderFactory();
+        return $this->proxyManager;
     }
 
     public function setProxyManager(LazyLoadingValueHolderFactory $factory)
     {
         $this->proxyManager = $factory;
+
         return $this;
     }
 }

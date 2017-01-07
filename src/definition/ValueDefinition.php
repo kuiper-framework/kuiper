@@ -1,10 +1,9 @@
 <?php
+
 namespace kuiper\di\definition;
 
-class ValueDefinition implements DefinitionInterface
+class ValueDefinition extends AbstractDefinition
 {
-    use ScopeTrait;
-    
     /**
      * @var mixed
      */

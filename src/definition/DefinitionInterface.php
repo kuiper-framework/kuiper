@@ -1,10 +1,11 @@
 <?php
+
 namespace kuiper\di\definition;
 
 interface DefinitionInterface
 {
     /**
-     * Gets scope
+     * Gets scope.
      *
      * @return string $scope
      */

@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di;
 
 use Interop\Container\ContainerInterface as InteropContainer;
@@ -8,7 +9,7 @@ trait ContainerAwareTrait
     protected $container;
 
     /**
-     * Sets the container
+     * Sets the container.
      *
      * @param ContainerInterface $container
      */

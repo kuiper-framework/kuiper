@@ -1,8 +1,9 @@
 <?php
+
 namespace kuiper\di\source;
 
-use kuiper\di\DefinitionEntry;
 use kuiper\di\definition\ValueDefinition;
+use kuiper\di\DefinitionEntry;
 
 class EnvSource implements SourceInterface
 {
@@ -10,6 +11,7 @@ class EnvSource implements SourceInterface
      * Search the different places for environment variables and return first value found.
      *
      * @param string $name
+     *
      * @return string
      */
     public static function findEnvironmentVariable($name)
@@ -24,7 +26,7 @@ class EnvSource implements SourceInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function has($name)
     {
@@ -32,7 +34,7 @@ class EnvSource implements SourceInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function get($name)
     {

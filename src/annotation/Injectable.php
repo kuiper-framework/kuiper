@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\annotation;
 
 use kuiper\di\Scope;
@@ -16,7 +17,7 @@ final class Injectable
     const SINGLETON = Scope::SINGLETON;
     const REQUEST = Scope::REQUEST;
     const PROTOTYPE = Scope::PROTOTYPE;
-    
+
     /**
      * The scope of an class: prototype, singleton.
      *
@@ -25,7 +26,7 @@ final class Injectable
     public $scope;
 
     /**
-     * @var boolean
+     * @var bool
      */
     public $lazy = false;
 }

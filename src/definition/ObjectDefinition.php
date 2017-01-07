@@ -1,13 +1,9 @@
 <?php
+
 namespace kuiper\di\definition;
 
-use Serializable;
-
-class ObjectDefinition implements DefinitionInterface, Serializable
+class ObjectDefinition extends AbstractDefinition
 {
-    use ScopeTrait;
-    use SerializeTrait;
-    
     /**
      * @var string
      */
@@ -29,7 +25,7 @@ class ObjectDefinition implements DefinitionInterface, Serializable
     private $methods = [];
 
     /**
-     * @var boolean
+     * @var bool
      */
     private $isLazy = false;
 
@@ -45,12 +41,14 @@ class ObjectDefinition implements DefinitionInterface, Serializable
         } else {
             $this->constructorParameters = func_get_args();
         }
+
         return $this;
     }
 
     public function property($property, $value)
     {
         $this->properties[$property] = $value;
+
         return $this;
     }
 
@@ -59,12 +57,14 @@ class ObjectDefinition implements DefinitionInterface, Serializable
         $args = func_get_args();
         array_shift($args);
         $this->methods[$method][] = $args;
+
         return $this;
     }
 
     public function lazy()
     {
         $this->isLazy = true;
+
         return $this;
     }
 
@@ -81,6 +81,7 @@ class ObjectDefinition implements DefinitionInterface, Serializable
     public function setConstructorParameters(array $parameters)
     {
         $this->constructorParameters = $parameters;
+
         return $this;
     }
 
@@ -92,6 +93,7 @@ class ObjectDefinition implements DefinitionInterface, Serializable
     public function setProperties(array $properties)
     {
         $this->properties = $properties;
+
         return $this;
     }
 
@@ -103,6 +105,7 @@ class ObjectDefinition implements DefinitionInterface, Serializable
     public function setMethods(array $methods)
     {
         $this->methods = $methods;
+
         return $this;
     }
 

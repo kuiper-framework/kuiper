@@ -6,6 +6,7 @@ class AnnotationFixture5
 {
     /**
      * @Inject
+     *
      * @var foobar
      */
     public $property;

@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\source;
 
 use kuiper\di\definition\DefinitionInterface;
@@ -9,7 +10,7 @@ use kuiper\di\definition\DefinitionInterface;
 interface MutableSourceInterface extends SourceInterface
 {
     /**
-     * @param string $name
+     * @param string              $name
      * @param DefinitionInterface $defintion
      */
     public function set($name, DefinitionInterface $defintion);

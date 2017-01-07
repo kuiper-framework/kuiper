@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\source;
 
 use kuiper\di\definition\ObjectDefinition;
@@ -12,7 +13,7 @@ class ObjectSource implements SourceInterface
     const CLASS_NAME_REGEX = '/^\\\\?([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\\\\)*[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/';
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function has($name)
     {
@@ -20,7 +21,7 @@ class ObjectSource implements SourceInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function get($name)
     {

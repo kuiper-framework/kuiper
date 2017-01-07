@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\annotation;
 
 use kuiper\di\exception\AnnotationException;
@@ -15,6 +16,7 @@ final class Inject
 {
     /**
      * Entry name.
+     *
      * @var string
      */
     private $name;
@@ -23,6 +25,7 @@ final class Inject
      * Parameters, indexed by the parameter number (index) or name.
      *
      * Used if the annotation is set on a method
+     *
      * @var array
      */
     private $parameters = [];
@@ -40,6 +43,7 @@ final class Inject
         // @Inject(name="foo")
         if (isset($values['name']) && is_string($values['name'])) {
             $this->name = $values['name'];
+
             return;
         }
         if (!isset($values['value'])) {

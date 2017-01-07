@@ -1,8 +1,9 @@
 <?php
+
 namespace kuiper\di;
 
 /**
- * Initialize object later
+ * Initialize object later.
  */
 class DeferredObject
 {
@@ -15,7 +16,7 @@ class DeferredObject
      * @var callable
      */
     private $initializer;
-    
+
     public function __construct($instance, callable $initializer)
     {
         $this->instance = $instance;

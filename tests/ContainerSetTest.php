@@ -1,17 +1,7 @@
 <?php
+
 namespace kuiper\di;
 
-use Interop\Container\ContainerInterface;
-use kuiper\di\Container;
-use kuiper\di\ContainerBuilder;
-use kuiper\di\definition\factory\AliasDefinitionFactory;
-
-use kuiper\di\fixtures\Prototype;
-use kuiper\di\fixtures\Singleton;
-use kuiper\di\fixtures\InvalidScope;
-use kuiper\di\fixtures\Class1CircularDependencies;
-use kuiper\di\fixtures\PassByReferenceDependency;
-use kuiper\test\TestCase;
 use stdClass;
 
 /**
@@ -23,6 +13,7 @@ class ContainerSetTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->addDefinitions($definitions);
+
         return $builder->build();
     }
 

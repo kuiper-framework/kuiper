@@ -1,7 +1,6 @@
 <?php
-namespace kuiper\di\annotation;
 
-use kuiper\di\Scope;
+namespace kuiper\di\annotation;
 
 /**
  * "Autowired" annotation.

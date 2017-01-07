@@ -1,10 +1,8 @@
 <?php
+
 namespace kuiper\di;
 
 use Interop\Container\ContainerInterface;
-use kuiper\di\Container;
-use kuiper\di\ContainerBuilder;
-use kuiper\test\TestCase;
 use stdClass;
 
 /**
@@ -16,6 +14,7 @@ class ContainerTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->addDefinitions($definitions);
+
         return $builder->build();
     }
 
@@ -39,6 +38,7 @@ class ContainerTest extends TestCase
 
     /**
      * We should be able to set a null value.
+     *
      * @see https://github.com/mnapoli/PHP-DI/issues/79
      */
     public function testSetNullValue()

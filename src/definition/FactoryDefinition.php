@@ -1,13 +1,9 @@
 <?php
+
 namespace kuiper\di\definition;
 
-use Serializable;
-
-class FactoryDefinition implements DefinitionInterface, Serializable
+class FactoryDefinition extends AbstractDefinition
 {
-    use ScopeTrait;
-    use SerializeTrait;
-    
     /**
      * @var callable
      */
@@ -19,7 +15,7 @@ class FactoryDefinition implements DefinitionInterface, Serializable
     private $arguments = [];
 
     /**
-     * @var boolean
+     * @var bool
      */
     private $isLazy = false;
 
@@ -37,6 +33,7 @@ class FactoryDefinition implements DefinitionInterface, Serializable
     public function lazy()
     {
         $this->isLazy = true;
+
         return $this;
     }
 
@@ -58,6 +55,7 @@ class FactoryDefinition implements DefinitionInterface, Serializable
     public function willReturn($type)
     {
         $this->returnType = $type;
+
         return $this;
     }
 

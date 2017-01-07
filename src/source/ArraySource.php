@@ -1,25 +1,23 @@
 <?php
+
 namespace kuiper\di\source;
 
 use Closure;
+use kuiper\di\definition\ArrayDefinition;
+use kuiper\di\definition\DefinitionInterface;
 use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\definition\ValueDefinition;
-use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\DefinitionEntry;
-use kuiper\di\definition\DefinitionInterface;
 
-/**
- * @author Ye Wenbin<yewenbin@phoenixos.com>
- */
 class ArraySource implements MutableSourceInterface
 {
     /**
      * @var array
      */
     private $definitions = [];
-    
+
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function has($name)
     {
@@ -27,28 +25,30 @@ class ArraySource implements MutableSourceInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function get($name)
     {
         if (!$this->has($name)) {
             return null;
         }
+
         return $this->createEntry($name, $this->definitions[$name]);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function set($name, DefinitionInterface $value)
     {
         $this->definitions[$name] = $value;
+
         return $this;
     }
 
     /**
      * @param array $definitions
-     * @param boolean $deepMerge
+     * @param bool  $deepMerge
      */
     public function addDefinitions(array $definitions, $deepMerge = false)
     {
@@ -67,6 +67,7 @@ class ArraySource implements MutableSourceInterface
             }
             $arr1[$name] = $val;
         }
+
         return $arr1;
     }
 

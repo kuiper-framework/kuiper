@@ -1,14 +1,16 @@
 <?php
+
 namespace kuiper\di\resolver;
 
 use Interop\Container\ContainerInterface;
+use InvalidArgumentException;
+use kuiper\di\definition\ArrayDefinition;
+use kuiper\di\definition\DefinitionInterface;
+use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\DefinitionEntry;
 use kuiper\di\ProxyFactory;
 use kuiper\di\Scope;
-use kuiper\di\definition\FactoryDefinition;
-use kuiper\di\definition\ArrayDefinition;
-use kuiper\di\definition\DefinitionInterface;
-use InvalidArgumentException;
+use LogicException;
 
 class FactoryResolver implements ResolverInterface
 {
@@ -27,22 +29,26 @@ class FactoryResolver implements ResolverInterface
         $this->resolver = $resolver;
         $this->proxyFactory = $proxyFactory;
     }
-    
+
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function resolve(ContainerInterface $container, DefinitionEntry $entry, $parameters = [])
     {
         $definition = $entry->getDefinition();
         if (!$definition instanceof FactoryDefinition) {
             throw new InvalidArgumentException(sprintf(
-                "definition expects a %s, got %s",
+                'definition expects a %s, got %s',
                 FactoryDefinition::class,
                 is_object($definition) ? get_class($definition) : gettype($definition)
             ));
         }
         if ($definition->isLazy() || $definition->getScope() === Scope::REQUEST) {
             $className = $definition->getReturnType() ?: $entry->getName();
+            if (!interface_exists($className) && !class_exists($className)) {
+                throw new LogicException(sprintf("Factory definition for entry '%s' requires return type", $entry->getName()));
+            }
+
             return $this->proxyFactory->createProxy($className, function () use ($container, $entry, $parameters) {
                 return $this->createInstance($container, $entry, $parameters);
             });
@@ -70,6 +76,7 @@ class FactoryResolver implements ResolverInterface
                 );
             }
         }
+
         return call_user_func_array($factory, $parameters);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di;
 
 use kuiper\di\definition\DefinitionInterface;

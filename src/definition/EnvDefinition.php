@@ -1,13 +1,9 @@
 <?php
+
 namespace kuiper\di\definition;
 
-/**
- * Helps to define environment entry
- */
-class EnvDefinition implements DefinitionInterface
+class EnvDefinition extends AbstractDefinition
 {
-    use ScopeTrait;
-    
     /**
      * @var string
      */

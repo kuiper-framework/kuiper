@@ -1,10 +1,9 @@
 <?php
+
 namespace kuiper\di\definition;
 
-class ArrayDefinition implements DefinitionInterface
+class ArrayDefinition extends AbstractDefinition
 {
-    use ScopeTrait;
-
     /**
      * @var array
      */

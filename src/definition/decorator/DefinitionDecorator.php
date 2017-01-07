@@ -1,30 +1,28 @@
 <?php
+
 namespace kuiper\di\definition\decorator;
 
-use kuiper\annotations\exception\ClassNotFoundException;
-use kuiper\di\DefinitionEntry;
+use Closure;
+use kuiper\di\definition\AliasDefinition;
+use kuiper\di\definition\DefinitionInterface;
 use kuiper\di\definition\FactoryDefinition;
+use kuiper\di\definition\NamedParameters;
 use kuiper\di\definition\ObjectDefinition;
 use kuiper\di\definition\ValueDefinition;
-use kuiper\di\definition\AliasDefinition;
-use kuiper\di\definition\NamedParameters;
-use kuiper\di\definition\DefinitionInterface;
+use kuiper\di\DefinitionEntry;
 use kuiper\di\exception\DefinitionException;
-use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Closure;
 use ReflectionClass;
-use ReflectionFunction;
-use ReflectionMethod;
 use ReflectionException;
+use ReflectionFunction;
 
 class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function decorate(DefinitionEntry $entry)
     {
@@ -39,9 +37,9 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
     }
 
     /**
-     * reflection closure parameters
+     * reflection closure parameters.
      */
-    private function resolveFactoryParams(DefinitionEntry $entry)
+    protected function resolveFactoryParams(DefinitionEntry $entry)
     {
         $definition = $entry->getDefinition();
         $args = $definition->getArguments();
@@ -59,7 +57,7 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
         } elseif (is_string($factory) || $factory instanceof Closure) {
             $function = new ReflectionFunction($factory);
         } else {
-            throw new DefinitionException("Invalid factory for entry " . $entry->getName());
+            throw new DefinitionException('Invalid factory for entry '.$entry->getName());
         }
         $params = [];
         foreach ($function->getParameters() as $param) {
@@ -81,13 +79,15 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
         if ($definition->isLazy()) {
             $newDef->lazy();
         }
+        $newDef->scope($definition->getScope());
+
         return new DefinitionEntry($entry->getName(), $newDef);
     }
 
     /**
-     * reflection constructor or use annotation
+     * reflection constructor or use annotation.
      */
-    private function resolveObjectConstructorParams(DefinitionEntry $entry)
+    protected function resolveObjectConstructorParams(DefinitionEntry $entry)
     {
         $definition = $entry->getDefinition();
         $params = $definition->getConstructorParameters();
@@ -95,6 +95,7 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
             $className = $definition->getClassName() ?: $entry->getName();
             $definition->setConstructorParameters($this->getConstructorParameters($className, $params));
         }
+
         return $entry;
     }
 
@@ -117,7 +118,7 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
                         $paramTypes[$i] = new AliasDefinition($paramClass->getName());
                     } else {
                         throw new DefinitionException(sprintf(
-                            "The %dth parameter of constructor for class %s cannot resolved",
+                            'The %dth parameter of constructor for class %s cannot resolved',
                             $i,
                             $className
                         ));
@@ -125,20 +126,22 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
                 }
             }
         }
+
         return $paramTypes;
     }
 
-    private function getReflectionClass($className)
+    protected function getReflectionClass($className)
     {
         try {
             $class = new ReflectionClass($className);
             if (!$class->isInstantiable()) {
                 throw new DefinitionException(sprintf(
-                    "Cannot create class instance for %s because it is an %s",
+                    'Cannot create class instance for %s because it is an %s',
                     $className,
-                    $class->isInterface() ? "interface" : "abstract class"
+                    $class->isInterface() ? 'interface' : 'abstract class'
                 ));
             }
+
             return $class;
         } catch (ReflectionException $e) {
             throw new DefinitionException("Cannot load class '{$className}'");

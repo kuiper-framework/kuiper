@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\fixtures;
 
 use kuiper\di\annotation\Inject;
@@ -10,6 +11,7 @@ class Class2CircularDependencies
 {
     /**
      * @Inject
+     *
      * @var Class1CircularDependencies
      */
     public $class1;

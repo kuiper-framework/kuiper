@@ -6,6 +6,7 @@ class AnnotationFixture3
 {
     /**
      * @Inject
+     *
      * @param AnnotationFixture2 $param1
      * @param string             $param2
      */

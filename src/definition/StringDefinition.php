@@ -1,10 +1,9 @@
 <?php
+
 namespace kuiper\di\definition;
 
-class StringDefinition implements DefinitionInterface
+class StringDefinition extends AbstractDefinition
 {
-    use ScopeTrait;
-    
     /**
      * @var string
      */

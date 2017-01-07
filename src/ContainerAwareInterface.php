@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di;
 
 use Interop\Container\ContainerInterface as InteropContainer;
@@ -6,11 +7,9 @@ use Interop\Container\ContainerInterface as InteropContainer;
 interface ContainerAwareInterface
 {
     /**
-     * Sets the container
+     * Sets the container.
      *
-     * @param $container
-     *
-     * @return void
+     * @param InteropContainer $container
      */
     public function setContainer(InteropContainer $container);
 }

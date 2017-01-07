@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\exception;
 
 use Interop\Container\Exception\NotFoundException as BaseNotFoundException;

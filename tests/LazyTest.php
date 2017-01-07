@@ -1,12 +1,8 @@
 <?php
+
 namespace kuiper\di;
 
-use Interop\Container\ContainerInterface;
-use kuiper\di\Container;
-use kuiper\di\ContainerBuilder;
 use kuiper\di\definition\ObjectDefinition;
-use kuiper\test\TestCase;
-use stdClass;
 use ProxyManager\Proxy\VirtualProxyInterface;
 
 /**
@@ -18,6 +14,7 @@ class LazyTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->addDefinitions($definitions);
+
         return $builder->build();
     }
 
@@ -26,7 +23,7 @@ class LazyTest extends TestCase
         $container = $this->createContainer([
             'foo' => (new ObjectDefinition(fixtures\DummyClass::class))
             ->lazy(),
-            'bar' => new ObjectDefinition(fixtures\DummyClass::class)
+            'bar' => new ObjectDefinition(fixtures\DummyClass::class),
         ]);
         $ret = $container->get('foo');
         $this->assertInstanceOf(VirtualProxyInterface::class, $ret);

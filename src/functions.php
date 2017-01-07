@@ -1,20 +1,20 @@
 <?php
+
 namespace kuiper\di;
 
 use kuiper\di\definition\AliasDefinition;
-use kuiper\di\definition\ValueDefinition;
-use kuiper\di\definition\FactoryDefinition;
-use kuiper\di\definition\ArrayDefinition;
-use kuiper\di\definition\ObjectDefinition;
 use kuiper\di\definition\EnvDefinition;
-use kuiper\di\definition\StringDefinition;
+use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\definition\NamedParameters;
+use kuiper\di\definition\ObjectDefinition;
+use kuiper\di\definition\StringDefinition;
 
 if (!function_exists('\kuiper\di\get')) {
     /**
-     * reference another definition
+     * reference another definition.
      *
-     * @param  string $alias
+     * @param string $alias
+     *
      * @return DefinitionInterface
      */
     function get($alias)
@@ -23,23 +23,26 @@ if (!function_exists('\kuiper\di\get')) {
     }
 
     /**
-     * define entry using a factory function
+     * define entry using a factory function.
      *
      * @param callable $callable
-     * @param array $args
+     * @param array    $args
+     *
      * @return DefinitionInterface
      */
     function factory($callable)
     {
         $args = func_get_args();
         array_shift($args);
+
         return new FactoryDefinition($callable, $args);
     }
 
     /**
-     * define an object entry
+     * define an object entry.
      *
-     * @param  string $class
+     * @param string $class
+     *
      * @return DefineInterface
      */
     function object($class = null)
@@ -47,20 +50,22 @@ if (!function_exists('\kuiper\di\get')) {
         return new ObjectDefinition($class);
     }
 
-        /**
-         * @param array $params
-         * @return NamedParameters
-         */
-        function params(array $params)
-        {
-            return new NamedParameters($params);
-        }
+    /**
+     * @param array $params
+     *
+     * @return NamedParameters
+     */
+    function params(array $params)
+    {
+        return new NamedParameters($params);
+    }
 
     /**
-     * define an environment entry
+     * define an environment entry.
      *
-     * @param string $name name of environment
+     * @param string $name    name of environment
      * @param string $default
+     *
      * @return DefinitionInterface
      */
     function env($name, $default = null)
@@ -69,9 +74,10 @@ if (!function_exists('\kuiper\di\get')) {
     }
 
     /**
-     * define an string entry
+     * define an string entry.
      *
      * @param string $expression
+     *
      * @return DefinitionInterface
      */
     function string($expression)

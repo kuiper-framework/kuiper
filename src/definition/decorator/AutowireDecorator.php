@@ -1,28 +1,21 @@
 <?php
+
 namespace kuiper\di\definition\decorator;
 
 use kuiper\annotations\DocReaderInterface;
-use kuiper\annotations\ReaderInterface;
 use kuiper\annotations\exception\AnnotationException as AnnotationParseException;
 use kuiper\annotations\exception\ClassNotFoundException;
-use kuiper\di\DefinitionEntry;
-use kuiper\di\definition\FactoryDefinition;
-use kuiper\di\definition\ObjectDefinition;
-use kuiper\di\definition\NamedParameters;
-use kuiper\di\definition\AliasDefinition;
-use kuiper\di\exception\DefinitionException;
-use kuiper\di\exception\AnnotationException;
+use kuiper\annotations\ReaderInterface;
 use kuiper\di\annotation\Autowired;
-use kuiper\di\annotation\Injectable;
 use kuiper\di\annotation\Inject;
-use Psr\Log\LoggerInterface;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerAwareTrait;
-use Closure;
+use kuiper\di\annotation\Injectable;
+use kuiper\di\definition\AliasDefinition;
+use kuiper\di\definition\NamedParameters;
+use kuiper\di\definition\ObjectDefinition;
+use kuiper\di\DefinitionEntry;
+use kuiper\di\exception\AnnotationException;
 use ReflectionClass;
-use ReflectionFunction;
 use ReflectionMethod;
-use ReflectionException;
 
 class AutowireDecorator extends DefinitionDecorator
 {
@@ -35,7 +28,7 @@ class AutowireDecorator extends DefinitionDecorator
      * @var DocReaderInterface
      */
     private $docReader;
-    
+
     public function __construct(ReaderInterface $reader, DocReaderInterface $docReader)
     {
         $this->annotationReader = $reader;
@@ -43,7 +36,7 @@ class AutowireDecorator extends DefinitionDecorator
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function decorate(DefinitionEntry $entry)
     {
@@ -53,6 +46,7 @@ class AutowireDecorator extends DefinitionDecorator
             $class = new ReflectionClass($className);
             try {
                 $this->readAnnotations($class, $definition);
+
                 return $entry;
             } catch (AnnotationParseException $e) {
                 throw new AnnotationException($e->getMessage());
@@ -62,7 +56,7 @@ class AutowireDecorator extends DefinitionDecorator
         }
     }
 
-    private function readAnnotations(ReflectionClass $class, ObjectDefinition $definition)
+    protected function readAnnotations(ReflectionClass $class, ObjectDefinition $definition)
     {
         $autowired = false;
         $classAnnotations = $this->annotationReader->getClassAnnotations($class);
@@ -106,14 +100,14 @@ class AutowireDecorator extends DefinitionDecorator
         }
     }
 
-    private function readProperties(ReflectionClass $class, array $exists)
+    protected function readProperties(ReflectionClass $class, array $exists)
     {
         $definitions = [];
         foreach ($class->getProperties() as $property) {
             if ($property->isStatic() || array_key_exists($property->getName(), $exists)) {
                 continue;
             }
-            
+
             $injectAnnot = $this->annotationReader->getPropertyAnnotation($property, Inject::class);
             if ($injectAnnot === null) {
                 continue;
@@ -122,7 +116,7 @@ class AutowireDecorator extends DefinitionDecorator
                 $entryName = $this->docReader->getPropertyClass($property);
                 if ($entryName === null) {
                     throw new AnnotationException(sprintf(
-                        "@Inject found on property %s->%s but unable to guess what to inject, use a @var annotation",
+                        '@Inject found on property %s->%s but unable to guess what to inject, use a @var annotation',
                         $class->getName(),
                         $property->getName()
                     ));
@@ -130,10 +124,11 @@ class AutowireDecorator extends DefinitionDecorator
             }
             $definitions[$property->getName()] = new AliasDefinition($entryName);
         }
+
         return $definitions;
     }
 
-    private function readMethods(ReflectionClass $class, array $exists)
+    protected function readMethods(ReflectionClass $class, array $exists)
     {
         $definitions = [];
         foreach ($class->getMethods() as $method) {
@@ -161,8 +156,8 @@ class AutowireDecorator extends DefinitionDecorator
                     $type = $docParams[$index];
                 } elseif (!$parameter->isOptional()) {
                     throw new AnnotationException(sprintf(
-                        "@Inject found on method %s::%s but unable to guess parameter"
-                        . " '%s' type, use a @param annotation",
+                        '@Inject found on method %s::%s but unable to guess parameter'
+                        ." '%s' type, use a @param annotation",
                         $class->getName(),
                         $method->getName(),
                         $name
@@ -174,10 +169,11 @@ class AutowireDecorator extends DefinitionDecorator
             }
             $definitions[strtolower($method->getName())][] = $params;
         }
+
         return $definitions;
     }
 
-    private function autowire($class, &$properties, &$methods)
+    protected function autowire($class, &$properties, &$methods)
     {
         $definitions = [];
         $lowerProperties = array_map('strtolower', array_keys($properties));
@@ -221,7 +217,7 @@ class AutowireDecorator extends DefinitionDecorator
             if (isset($properties[$property->getName()])) {
                 continue;
             }
-            $setter = 'set' . strtolower($property->getName());
+            $setter = 'set'.strtolower($property->getName());
             if (isset($methods[$setter])) {
                 continue;
             }
@@ -232,7 +228,7 @@ class AutowireDecorator extends DefinitionDecorator
         }
     }
 
-    private function getParameterClasses(ReflectionMethod $method)
+    protected function getParameterClasses(ReflectionMethod $method)
     {
         $docParams = $this->docReader->getParameterClasses($method);
         $paramTypes = [];
@@ -249,6 +245,17 @@ class AutowireDecorator extends DefinitionDecorator
             }
             $paramTypes[] = $type;
         }
+
         return $paramTypes;
+    }
+
+    public function getReader()
+    {
+        return $this->reader;
+    }
+
+    public function getDocReader()
+    {
+        return $this->docReader;
     }
 }

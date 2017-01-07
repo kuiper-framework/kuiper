@@ -1,9 +1,10 @@
 <?php
+
 namespace kuiper\di\source;
 
-use kuiper\helper\DotArray;
 use kuiper\di\definition\ValueDefinition;
 use kuiper\di\DefinitionEntry;
+use kuiper\helper\DotArray;
 
 class DotArraySource implements SourceInterface
 {
@@ -21,19 +22,19 @@ class DotArraySource implements SourceInterface
      * @var int
      */
     private $prefixLength;
-    
-    public function __construct($data, $prefix = "settings")
+
+    public function __construct($data, $prefix = 'settings')
     {
         if (!$data instanceof DotArray) {
             $data = new DotArray($data);
         }
         $this->dotArray = $data;
-        $this->prefix = $prefix . '.';
+        $this->prefix = $prefix.'.';
         $this->prefixLength = strlen($this->prefix);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function has($name)
     {
@@ -44,11 +45,12 @@ class DotArraySource implements SourceInterface
         if (strpos($name, $this->prefix) === 0) {
             $name = substr($name, $this->prefixLength);
         }
+
         return $this->dotArray->offsetExists($name);
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function get($name)
     {
@@ -60,7 +62,7 @@ class DotArraySource implements SourceInterface
         }
         $value = $this->dotArray->offsetGet($name);
         if (isset($value)) {
-            return new DefinitionEntry($this->prefix . $name, new ValueDefinition($value));
+            return new DefinitionEntry($this->prefix.$name, new ValueDefinition($value));
         }
     }
 }

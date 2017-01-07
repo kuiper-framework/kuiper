@@ -1,8 +1,8 @@
 <?php
+
 namespace kuiper\di\source;
 
-use kuiper\test\TestCase;
-use kuiper\di\source\DotArraySource;
+use kuiper\di\TestCase;
 
 class DotArraySourceTest extends TestCase
 {
@@ -10,9 +10,10 @@ class DotArraySourceTest extends TestCase
     {
         $resolver = new DotArraySource([
             'db' => [
-                'host' => 'localhost'
-            ]
+                'host' => 'localhost',
+            ],
         ]);
+
         return $resolver;
     }
 

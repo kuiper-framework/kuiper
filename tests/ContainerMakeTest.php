@@ -1,17 +1,13 @@
 <?php
+
 namespace kuiper\di;
 
-use Interop\Container\ContainerInterface;
-use kuiper\di\Container;
-use kuiper\di\ContainerBuilder;
 use kuiper\di\definition\AliasDefinition;
-
+use kuiper\di\fixtures\Class1CircularDependencies;
+use kuiper\di\fixtures\InvalidScope;
+use kuiper\di\fixtures\PassByReferenceDependency;
 use kuiper\di\fixtures\Prototype;
 use kuiper\di\fixtures\Singleton;
-use kuiper\di\fixtures\InvalidScope;
-use kuiper\di\fixtures\Class1CircularDependencies;
-use kuiper\di\fixtures\PassByReferenceDependency;
-use kuiper\test\TestCase;
 use stdClass;
 
 /**
@@ -25,6 +21,7 @@ class ContainerMakeTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->addDefinitions($definitions);
+
         return $builder->build();
     }
 
@@ -115,7 +112,7 @@ class ContainerMakeTest extends TestCase
     public function testCircularDependencyExceptionWithAlias()
     {
         $container = $this->createContainer([
-            'foo' => new AliasDefinition('foo')
+            'foo' => new AliasDefinition('foo'),
         ]);
         $container->make('foo');
     }

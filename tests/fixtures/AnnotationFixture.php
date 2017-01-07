@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\di\fixtures;
 
 use kuiper\di\annotation\Inject;
@@ -12,6 +13,7 @@ class AnnotationFixture
 
     /**
      * @Inject
+     *
      * @var AnnotationFixture2
      */
     protected $property2;
@@ -58,6 +60,7 @@ class AnnotationFixture
 
     /**
      * @Inject
+     *
      * @param $param1
      * @param AnnotationFixture2 $param2
      */
@@ -68,6 +71,7 @@ class AnnotationFixture
 
     /**
      * @Inject({"foo", "bar"})
+     *
      * @param AnnotationFixture2 $param1
      * @param AnnotationFixture2 $param2
      */

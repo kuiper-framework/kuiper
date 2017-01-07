@@ -1,23 +1,20 @@
 <?php
+
 namespace kuiper\di\source;
 
-use Closure;
-use kuiper\di\definition\AliasDefinition;
-use kuiper\di\DefinitionEntry;
-use kuiper\di\definition\DefinitionInterface;
-use kuiper\di\annotation\Component;
-use kuiper\reflection\ReflectionNamespaceFactoryInterface;
-use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\annotations\ReaderInterface;
-use ReflectionClass;
-use Psr\Log\LoggerInterface;
+use kuiper\di\annotation\Component;
+use kuiper\di\definition\AliasDefinition;
+use kuiper\reflection\ReflectionNamespaceFactory;
+use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use ReflectionClass;
 
 class ComponentSource implements SourceInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
-    
+
     /**
      * @var ReflectionNamespaceFactoryInterface
      */
@@ -37,7 +34,7 @@ class ComponentSource implements SourceInterface, LoggerAwareInterface
      * @var array
      */
     private $definitions;
-    
+
     public function __construct(
         array $namespaces,
         ReaderInterface $reader,
@@ -51,15 +48,17 @@ class ComponentSource implements SourceInterface, LoggerAwareInterface
     public function has($name)
     {
         $this->scanComponents();
+
         return isset($this->definitions[$name]);
     }
 
     public function get($name)
     {
         $this->scanComponents();
+
         return isset($this->definitions[$name]) ? $this->definitions[$name] : null;
     }
-    
+
     protected function scanComponents()
     {
         if (isset($this->definitions)) {
@@ -118,8 +117,10 @@ class ComponentSource implements SourceInterface, LoggerAwareInterface
             } elseif (isset($b['name'])) {
                 return -1;
             }
+
             return 0;
         });
+
         return $components;
     }
 }

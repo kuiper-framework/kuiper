@@ -1,13 +1,9 @@
 <?php
+
 namespace kuiper\di\definition;
 
-/**
- * Helps to define alias
- */
-class AliasDefinition implements DefinitionInterface
+class AliasDefinition extends AbstractDefinition
 {
-    use ScopeTrait;
-    
     /**
      * @var string
      */
