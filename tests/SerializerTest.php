@@ -7,12 +7,11 @@ use kuiper\annotations\DocReader;
 use kuiper\serializer\fixtures\Company;
 use kuiper\serializer\fixtures\Member;
 use kuiper\serializer\fixtures\Organization;
-use kuiper\test\TestCase;
 
 /**
  * TestCase for Serializer.
  */
-class SerializerTest extends TestCase
+class SerializerTest extends \PHPUnit_Framework_TestCase
 {
     public function createSerializer()
     {
