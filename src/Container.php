@@ -12,6 +12,9 @@ use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\definition\ObjectDefinition;
 use kuiper\di\definition\StringDefinition;
 use kuiper\di\definition\ValueDefinition;
+use kuiper\di\event\DefinitionEvent;
+use kuiper\di\event\Events;
+use kuiper\di\event\ResolveEvent;
 use kuiper\di\exception\DefinitionException;
 use kuiper\di\exception\DependencyException;
 use kuiper\di\exception\NotFoundException;
@@ -174,22 +177,33 @@ class Container implements ContainerInterface, ResolverInterface
         }
         $this->resolving[$name] = true;
 
-        $definition = $entry->getDefinition();
-        if ($definition instanceof ValueDefinition) {
-            $value = $definition->getValue();
-        } elseif ($definition instanceof AliasDefinition) {
-            $aliasEntry = $this->getDefinition($definition->getAlias());
-            $value = $this->resolve($container, $aliasEntry, $parameters);
-        } else {
-            $resolver = $this->getResolver($definition);
-            if ($resolver === null) {
-                throw new DefinitionException('Cannot resolve definition '.get_class($definition));
-            }
-            $value = $resolver->resolve($container, $entry, $parameters);
+        if ($this->eventDispatcher) {
+            $event = new ResolveEvent($container, $entry, $parameters);
+            $this->eventDispatcher->dispatch(Events::BEFORE_RESOLVE, $event);
+            $value = $event->getValue();
         }
-        if ($value instanceof DeferredObject) {
-            $deferred = $value;
-            $value = $deferred->getInstance();
+        if (!isset($value)) {
+            $definition = $entry->getDefinition();
+            if ($definition instanceof ValueDefinition) {
+                $value = $definition->getValue();
+            } elseif ($definition instanceof AliasDefinition) {
+                $aliasEntry = $this->getDefinition($definition->getAlias());
+                $value = $this->resolve($container, $aliasEntry, $parameters);
+            } else {
+                $resolver = $this->getResolver($definition);
+                if ($resolver === null) {
+                    throw new DefinitionException('Cannot resolve definition '.get_class($definition));
+                }
+                $value = $resolver->resolve($container, $entry, $parameters);
+            }
+            if ($value instanceof DeferredObject) {
+                $deferred = $value;
+                $value = $deferred->getInstance();
+            }
+            if ($this->eventDispatcher) {
+                $event->setValue($value);
+                $this->eventDispatcher->dispatch(Events::AFTER_RESOLVE, $event);
+            }
         }
         if ($this->isResolvingShared) {
             $scope = $definition->getScope();
@@ -247,9 +261,20 @@ class Container implements ContainerInterface, ResolverInterface
 
     protected function getDefinition($name)
     {
+        if ($this->eventDispatcher) {
+            $event = new DefinitionEvent($name);
+            $this->eventDispatcher->dispatch(Events::BEFORE_GET_DEFINITION, $event);
+            if ($definition = $event->getDefinition()) {
+                return $definition;
+            }
+        }
         $definition = $this->source->get($name);
         if ($definition === null) {
             throw new NotFoundException("Cannot resolve entry '$name'");
+        }
+        if ($this->eventDispatcher) {
+            $event->setDefinition($definition);
+            $this->eventDispatcher->dispatch(Events::AFTER_GET_DEFINITION, $event);
         }
 
         return $definition;
