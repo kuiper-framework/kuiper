@@ -1,14 +1,14 @@
 <?php
 namespace kuiper\web\session;
 
-use kuiper\cache\Pool;
-use kuiper\cache\driver\Memory;
-use kuiper\web\session\ManagedSession;
-use kuiper\web\session\CacheSessionHandler;
-use kuiper\test\TestCase;
-use Zend\Diactoros\ServerRequestFactory;
-use Zend\Diactoros\Response;
 use Dflydev\FigCookies\SetCookies;
+use kuiper\cache\driver\Memory;
+use kuiper\cache\Pool;
+use kuiper\web\session\CacheSessionHandler;
+use kuiper\web\session\ManagedSession;
+use kuiper\web\TestCase;
+use Zend\Diactoros\Response;
+use Zend\Diactoros\ServerRequestFactory;
 
 class ManagedSessionTest extends TestCase
 {
@@ -70,5 +70,4 @@ class ManagedSessionTest extends TestCase
         $this->assertTrue($item->isHit());
         $this->assertEquals(['nick' => 'john'], $item->get());
     }
-
 }

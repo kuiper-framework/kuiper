@@ -1,13 +1,13 @@
 <?php
 namespace kuiper\web\middlewares;
 
-use kuiper\test\TestCase;
-use kuiper\annotations\AnnotationReader;
-use kuiper\web\middlewares\Filter;
-use kuiper\di\ContainerBuilder;
 use Interop\Container\ContainerInterface;
-use Zend\Diactoros\ServerRequestFactory;
+use kuiper\annotations\AnnotationReader;
+use kuiper\di\ContainerBuilder;
+use kuiper\web\middlewares\Filter;
+use kuiper\web\TestCase;
 use Zend\Diactoros\Response;
+use Zend\Diactoros\ServerRequestFactory;
 
 class FilterTest extends TestCase
 {
@@ -27,7 +27,7 @@ class FilterTest extends TestCase
                  ]);
         $response = new Response();
         $called = false;
-        $response = $filter($request, $response, function($request, $response) use(&$called){
+        $response = $filter($request, $response, function ($request, $response) use (&$called) {
             $called = true;
             return $response;
         });
@@ -48,7 +48,7 @@ class FilterTest extends TestCase
                      'action' => 'postAction'
                  ]);
         $response = new Response();
-        $response = $filter($request, $response, function($request, $response) use(&$called){
+        $response = $filter($request, $response, function ($request, $response) use (&$called) {
             return $response;
         });
     }

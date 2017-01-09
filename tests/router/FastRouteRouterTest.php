@@ -3,10 +3,10 @@ namespace kuiper\web\router;
 
 use kuiper\annotations\AnnotationReader;
 use kuiper\reflection\ReflectionNamespaceFactory;
-use kuiper\test\TestCase;
 use kuiper\web\FastRouteRouter as Router;
 use kuiper\web\RouteInterface;
 use kuiper\web\RouteScanner;
+use kuiper\web\TestCase;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequestFactory;
 

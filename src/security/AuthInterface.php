@@ -1,7 +1,7 @@
 <?php
 namespace kuiper\web\security;
 
-interface AuthInterface extends ArrayAccess
+interface AuthInterface extends \ArrayAccess
 {
     /**
      * make current user logged in

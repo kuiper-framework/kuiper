@@ -66,8 +66,8 @@ class Auth implements AuthInterface
 
     public function offsetGet($offset)
     {
-        if (isset($this->sessionData[$name])) {
-            return $this->sessionData[$name];
+        if (isset($this->sessionData[$offset])) {
+            return $this->sessionData[$offset];
         }
     }
 
