@@ -1,15 +1,16 @@
 <?php
+
 namespace kuiper\serializer;
 
-use kuiper\test\TestCase;
-use kuiper\serializer\fixtures\Organization;
-use kuiper\serializer\fixtures\Member;
-use kuiper\serializer\fixtures\Company;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\DocReader;
+use kuiper\serializer\fixtures\Company;
+use kuiper\serializer\fixtures\Member;
+use kuiper\serializer\fixtures\Organization;
+use kuiper\test\TestCase;
 
 /**
- * TestCase for Serializer
+ * TestCase for Serializer.
  */
 class SerializerTest extends TestCase
 {
@@ -17,20 +18,20 @@ class SerializerTest extends TestCase
     {
         return new Serializer(new AnnotationReader(), new DocReader());
     }
-    
+
     public function testDeserializeType()
     {
         $serializer = $this->createSerializer();
-        $json = "{\"name\": \"Les-Tilleuls.coop\",\"members\":[{\"name\":\"K\\u00e9vin\"}]}";
+        $json = '{"name": "Les-Tilleuls.coop","members":[{"name":"K\\u00e9vin"}]}';
         $org = $serializer->fromJson($json, Organization::class);
         // print_r($org);
 
         $this->assertTrue($org instanceof Organization);
-        $this->assertEquals($org->getName(), "Les-Tilleuls.coop");
+        $this->assertEquals($org->getName(), 'Les-Tilleuls.coop');
         $members = $org->getMembers();
         $this->assertTrue(is_array($members));
         $this->assertTrue($members[0] instanceof Member);
-        $this->assertEquals($members[0]->getName(), "Kévin");
+        $this->assertEquals($members[0]->getName(), 'Kévin');
     }
 
     public function testDeserializeName()
@@ -46,7 +47,7 @@ class SerializerTest extends TestCase
     public function testSerializeName()
     {
         $serializer = $this->createSerializer();
-        $obj = new Company;
+        $obj = new Company();
         $obj->name = 'Acme Inc.';
         $obj->address = '123 Main Street, Big City';
         $obj->employers = ['a', 'b'];
@@ -56,12 +57,12 @@ class SerializerTest extends TestCase
     public function testSerializeType()
     {
         $serializer = $this->createSerializer();
-        $org = new Organization;
+        $org = new Organization();
         $org->setName('Les-Tilleuls.coop');
-        $member = new Member;
+        $member = new Member();
         $member->setName('Kevin');
         $org->setMembers([$member]);
-        
+
         $this->assertEquals(
             $serializer->toJson($org),
             '{"name":"Les-Tilleuls.coop","members":[{"name":"Kevin"}]}'
@@ -82,9 +83,37 @@ class SerializerTest extends TestCase
         $serializer = $this->createSerializer();
         $result = $serializer->fromArray([
             'values' => [
-                ['name' => 'john']
+                ['name' => 'john'],
             ],
         ], fixtures\TypeOverrideByProperty::class);
         $this->assertInstanceOf(Member::class, $result->getValues()[0]);
+    }
+
+    public function testIntTypeAutoconvert()
+    {
+        $serializer = $this->createSerializer();
+        $result = $serializer->fromArray(['id' => 1], fixtures\User::class);
+        $this->assertInstanceOf(fixtures\User::class, $result);
+        // var_export($result);
+        $this->assertEquals(1, $result->getId());
+    }
+
+    public function testIntTypeAutoconvertNull()
+    {
+        $serializer = $this->createSerializer();
+        $result = $serializer->fromArray(['id' => null], fixtures\User::class);
+        $this->assertInstanceOf(fixtures\User::class, $result);
+        // var_export($result);
+        $this->assertNull($result->getId());
+    }
+
+    public function testIntTypeSerialize()
+    {
+        $serializer = $this->createSerializer();
+        $user = new fixtures\User();
+        $user->setId(1);
+        $result = $serializer->toArray($user);
+        // var_export($result);
+        $this->assertEquals(['id' => 1], $result);
     }
 }

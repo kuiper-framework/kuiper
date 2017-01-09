@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\serializer\exception;
 
 use RuntimeException;

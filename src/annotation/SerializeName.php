@@ -1,8 +1,9 @@
 <?php
+
 namespace kuiper\serializer\annotation;
 
 /**
- * changes serialize field name
+ * changes serialize field name.
  *
  * @Annotation
  * @Target({"METHOD", "PROPERTY"})

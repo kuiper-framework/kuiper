@@ -26,8 +26,4 @@
         <directory suffix="Test.php">./tests</directory>
       </testsuite>
     </testsuites>
-
-    <listeners>
-      <listener class="JohnKary\PHPUnit\Listener\SpeedTrapListener" />
-    </listeners>
 </phpunit>
