@@ -4,6 +4,7 @@ namespace kuiper\boot;
 use Composer\Autoload\ClassLoader;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\source\DotArraySource;
+use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\helper\DotArray;
 
 class Application
@@ -52,6 +53,8 @@ class Application
     public function setLoader(ClassLoader $loader)
     {
         $this->loader = $loader;
+        ReflectionNamespaceFactory::createInstance()
+            ->registerLoader($loader);
         return $this;
     }
 
@@ -77,6 +80,13 @@ class Application
     public function getServices()
     {
         return $this->getContainerBuilder();
+    }
+
+    public function useAnnotations($annotations = true)
+    {
+        $this->getContainerBuilder()->useAnnotations($annotations);
+
+        return $this;
     }
 
     public function addProvider(ProviderInterface $provider)
