@@ -41,5 +41,10 @@
         "psr-4": {
             "kuiper\\web\\": "tests/"
         }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
     }
 }
