@@ -151,8 +151,8 @@ class MicroApplication extends Application implements RouteSourceInterface
 
     protected function getRequest()
     {
-        if ($this->container->has(ServerRequestInterface::class)) {
-            return $this->container->get(ServerRequestInterface::class);
+        if ($this->getContainer()->has(ServerRequestInterface::class)) {
+            return $this->getContainer()->get(ServerRequestInterface::class);
         } else {
             return ServerRequestFactory::fromGlobals();
         }
@@ -160,8 +160,8 @@ class MicroApplication extends Application implements RouteSourceInterface
 
     protected function getResponse()
     {
-        if ($this->container->has(ResponseInterface::class)) {
-            return $this->container->get(ResponseInterface::class);
+        if ($this->getContainer()->has(ResponseInterface::class)) {
+            return $this->getContainer()->get(ResponseInterface::class);
         } else {
             return new Response();
         }
