@@ -4,6 +4,7 @@ namespace kuiper\rpc\client;
 use kuiper\serializer\NormalizerInterface;
 use kuiper\annotations\DocReaderInterface;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\RequestException;
 
 class HttpJsonClient extends AbstractJsonClient
 {
@@ -24,14 +25,25 @@ class HttpJsonClient extends AbstractJsonClient
     
     public function sendRequest($requestBody)
     {
-        $response = $this->httpClient->request('POST', '/', [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
-            ],
-            'body' => $requestBody
-        ]);
-        return $response->getBody();
+        $retry = 0;
+        SEND_REQUEST: {
+            try {
+                $response = $this->httpClient->request('POST', '/', [
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json'
+                    ],
+                    'body' => $requestBody
+                ]);
+                return $response->getBody();
+            } catch (RequestException $e) {
+                $retry++;
+                if ($retry < 3) {
+                    goto SEND_REQUEST;
+                }
+                throw $e;
+            }
+        }
     }
 
     public function setHttpClient(ClientInterface $client)
