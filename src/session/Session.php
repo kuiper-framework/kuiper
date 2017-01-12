@@ -8,6 +8,16 @@ class Session implements SessionInterface
      */
     private $started = false;
 
+    public function __construct(array $options = [])
+    {
+        if (isset($options['cookie_lifetime'])) {
+            ini_set('session.cookie_lifetime', $options['cookie_lifetime']);
+        }
+        if (isset($options['cookie_name'])) {
+            ini_set('session.name', $options['cookie_name']);
+        }
+    }
+
     /**
      * @inheritDoc
      */

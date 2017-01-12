@@ -84,6 +84,7 @@ class CacheSessionHandler implements SessionHandlerInterface
         $item = $this->cache->getItem($this->prefix . $sessionId);
         $item->expiresAfter($this->lifetime);
         $this->cache->save($item->set($data));
+        return true;
     }
 
     /**
@@ -91,7 +92,8 @@ class CacheSessionHandler implements SessionHandlerInterface
      */
     public function destroy($session_id)
     {
-        return $this->cache->deleteItem($this->prefix.$session_id);
+        $this->cache->deleteItem($this->prefix.$session_id);
+        return true;
     }
 
     /**
