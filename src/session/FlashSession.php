@@ -79,6 +79,7 @@ class FlashSession implements FlashInterface
     {
         if ($this->messages === null) {
             $this->messages = $this->session->get($this->sessionKey);
+            $this->session->remove($this->sessionKey);
         }
         return $this->messages;
     }
