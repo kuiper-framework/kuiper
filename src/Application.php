@@ -45,6 +45,16 @@ class Application implements ApplicationInterface
     private $errorHandler;
 
     /**
+     * @var ServerRequestInterface
+     */
+    private $request;
+
+    /**
+     * @var ResponseInterface
+     */
+    private $response;
+
+    /**
      * @var array
      */
     private static $STAGES = ['START', 'ERROR', 'ROUTE', 'DISPATCH'];
@@ -175,6 +185,8 @@ class Application implements ApplicationInterface
             if ($middleware instanceof Closure) {
                 $middleware->bindTo($this->getContainer());
             }
+            $this->request = $request;
+            $this->response = $response;
             return $middleware($request, $response, function ($request, $response) use ($i) {
                 return $this->callMiddlewareQueue($request, $response, $i+1);
             });
@@ -235,9 +247,9 @@ class Application implements ApplicationInterface
         try {
             return $next($request, $response);
         } catch (Exception $e) {
-            return $this->handleException($e, $request, $response);
+            return $this->handleException($e, $this->request, $this->response);
         } catch (Throwable $e) {
-            return $this->handleException($e, $request, $response);
+            return $this->handleException($e, $this->request, $this->response);
         }
     }
 

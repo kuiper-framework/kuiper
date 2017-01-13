@@ -33,12 +33,13 @@ class Filter
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
-        $routeInfo = $request->getAttribute('routeInfo');
-        if ($routeInfo === null) {
+        $route = $request->getAttribute('route');
+        if ($route === null) {
             throw new LogicException("Please add Filter middleware before dispatch");
         }
-        if (isset($routeInfo['controller']) && isset($routeInfo['action'])) {
-            $filters = $this->getFilters($routeInfo['controller'], strtolower($routeInfo['action']));
+        $callback = $route->getHandler();
+        if (is_array($callback)) {
+            $filters = $this->getFilters($callback[0], $callback[1]);
             return $this->callFilters($request, $response, $filters, $next);
         } else {
             return $next($request, $response);

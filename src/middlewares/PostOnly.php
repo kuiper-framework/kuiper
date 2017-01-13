@@ -5,6 +5,6 @@ class PostOnly extends RequestMethod
 {
     public function __construct()
     {
-        parent::__construct(['Post']);
+        parent::__construct(['POST']);
     }
 }
