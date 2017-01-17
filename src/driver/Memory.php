@@ -58,7 +58,7 @@ class Memory extends AbstractDriver implements DriverInterface
      */
     public function clear()
     {
-        return $this->deleteAll();
+        return $this->deleteAll(null);
     }
 
     /**
