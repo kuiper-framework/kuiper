@@ -1,11 +1,12 @@
 <?php
+
 namespace kuiper\boot;
 
 use Composer\Autoload\ClassLoader;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\source\DotArraySource;
-use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\helper\DotArray;
+use kuiper\reflection\ReflectionNamespaceFactory;
 
 class Application
 {
@@ -29,19 +30,26 @@ class Application
      */
     private $containerBuilder;
 
+    /**
+     * @var Provider[]
+     */
+    private $providers = [];
+
     public function loadConfig($configPath)
     {
         $config = [];
-        foreach (glob($configPath . '/*.php') as $file) {
+        foreach (glob($configPath.'/*.php') as $file) {
             $prefix = basename($file, '.php');
-            $config[$prefix] = require($file);
+            $config[$prefix] = require $file;
         }
+
         return $this->setSettings($config);
     }
-    
+
     public function setSettings(array $config)
     {
         $this->settings = new DotArray($config);
+
         return $this;
     }
 
@@ -55,6 +63,7 @@ class Application
         $this->loader = $loader;
         ReflectionNamespaceFactory::createInstance()
             ->registerLoader($loader);
+
         return $this;
     }
 
@@ -66,6 +75,7 @@ class Application
     public function setContainerBuilder(ContainerBuilder $builder)
     {
         $this->containerBuilder = $builder;
+
         return $this;
     }
 
@@ -74,6 +84,7 @@ class Application
         if ($this->containerBuilder === null) {
             $this->setContainerBuilder(new ContainerBuilder());
         }
+
         return $this->containerBuilder;
     }
 
@@ -92,6 +103,7 @@ class Application
     public function addProvider(ProviderInterface $provider)
     {
         $this->providers[] = $provider;
+
         return $this;
     }
 
@@ -106,6 +118,7 @@ class Application
             $this->container = $this->buildContainer();
             $this->bootstrap();
         }
+
         return $this->container;
     }
 
@@ -129,6 +142,7 @@ class Application
         foreach ($this->providers as $provider) {
             $provider->register();
         }
+
         return $builder->build();
     }
 }

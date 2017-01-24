@@ -13,7 +13,8 @@
     "require": {
         "php": "^5.5 || ^7.0",
         "kuiper/di": "^0.1",
-        "kuiper/helper": "^0.1"
+        "kuiper/helper": "^0.1",
+        "kuiper/reflection": "^0.1"
     },
     "require-dev": {
         "zendframework/zend-diactoros": "^1.3",
@@ -21,7 +22,10 @@
         "kuiper/test-helper": "^0.1",
         "kuiper/annotations": "^0.1",
         "kuiper/cache": "^0.1",
-        "kuiper/di": "^0.1"
+        "kuiper/di": "^0.1",
+        "monolog/monolog": "^1.22",
+        "kuiper/web": "^0.1.0",
+        "winwin/composer-phpcs-plugin": "^0.1.0"
     },
     "suggest": {
         "kuiper/annotations": "for filter middleware annotations and route definition"

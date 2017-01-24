@@ -1,11 +1,12 @@
 <?php
+
 namespace kuiper\boot\providers;
 
-use Monolog\Logger;
-use Monolog\Handler\StreamHandler;
-use Psr\Log\LoggerInterface;
 use kuiper\boot\Provider;
 use kuiper\di;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 class MonologProvider extends Provider
 {
@@ -21,7 +22,7 @@ class MonologProvider extends Provider
         $settings = $this->app->getSettings();
 
         $logger = new Logger($settings['logger.name'] ?: $settings['app.name'] ?: 'unnamed');
-        $logLevel = constant(Logger::class. '::' . strtoupper($settings['logger.level'] ?: 'debug'));
+        $logLevel = constant(Logger::class.'::'.strtoupper($settings['logger.level'] ?: 'debug'));
         if (isset($settings['logger.file'])) {
             $logFile = $this->template($settings['logger.file']);
         } else {
@@ -38,6 +39,7 @@ class MonologProvider extends Provider
                 $logger->pushProcessor($container->get($processor));
             }
         }
+
         return $logger;
     }
 }
