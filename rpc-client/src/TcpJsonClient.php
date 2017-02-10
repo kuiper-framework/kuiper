@@ -41,7 +41,7 @@ class TcpJsonClient extends AbstractJsonClient
         if ($this->connection === null) {
             $address = $this->servers[array_rand($this->servers)];
             $this->connection = stream_socket_client($address, $err_no, $err_msg);
-            if(!$this->connection) {
+            if (!$this->connection) {
                 throw new ConnectionException("can not connect to $address , $err_no:$err_msg");
             }
             stream_set_blocking($this->connection, true);

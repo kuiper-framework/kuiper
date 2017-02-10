@@ -35,7 +35,7 @@ class HttpJsonClientTest extends TestCase
 
     public function testClient()
     {
-        list ($client, $mock) = $this->createClient();
+        list($client, $mock) = $this->createClient();
         $mock->append(new Response(200, [], '{"id":"1","result":[{"name":"foo"}]}'));
         $result = $client->query($this->createRequest('foo'));
         // print_r($result);
@@ -49,7 +49,7 @@ class HttpJsonClientTest extends TestCase
      */
     public function testException()
     {
-        list ($client, $mock) = $this->createClient();
+        list($client, $mock) = $this->createClient();
         $mock->append(new Response(200, [], '{"id":"1","error":{"code":-32000,"message":"invalid query","data":"YTozOntzOjU6ImNsYXNzIjtzOjI0OiJJbnZhbGlkQXJndW1lbnRFeGNlcHRpb24iO3M6NzoibWVzc2FnZSI7czoxMzoiaW52YWxpZCBxdWVyeSI7czo0OiJjb2RlIjtpOjA7fQ=="}}'));
         $result = $client->query($this->createRequest('foo'));
     }
