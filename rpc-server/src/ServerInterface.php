@@ -1,24 +1,24 @@
 <?php
-namespace kuiper\rpc\server;
 
-use kuiper\rpc\server\request\RequestInterface;
+namespace kuiper\rpc\server;
 
 interface ServerInterface
 {
     /**
-     * Adds service
-     * 
-     * @param string|object $service
-     * @param string $name
+     * Add one middleware.
+     *
+     * The prototype of the callback should match MiddlewareInterface
+     *
+     * @param callable $callback
+     *
      * @return static
      */
-    public function add($service, $name = null);
+    public function add(callable $callback);
 
     /**
-     * Handles request
+     * Handles request.
      *
-     * @param request\RequestInterface
-     * @return response\ResponseInterface
+     * @param RequestInterface $request
      */
-    public function handle(RequestInterface $request);
+    public function serve(RequestInterface $request, ResponseInterface $response);
 }

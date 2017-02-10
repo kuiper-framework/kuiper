@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\rpc\server\exception;
 
 use RuntimeException;

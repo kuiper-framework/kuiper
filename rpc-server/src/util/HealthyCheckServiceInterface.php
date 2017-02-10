@@ -5,7 +5,7 @@ namespace kuiper\rpc\server\util;
 interface HealthyCheckServiceInterface
 {
     /**
-     * Checks service
+     * Checks service.
      *
      * @return string
      */
