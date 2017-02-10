@@ -19,7 +19,7 @@ class Memory extends AbstractDriver implements DriverInterface
      */
     protected function fetch($key)
     {
-        return isset($this->values[$key]) ? $this->values[$key] : false;
+        return isset($this->values[$key]) ? unserialize($this->values[$key]) : false;
     }
 
     /**
@@ -40,7 +40,7 @@ class Memory extends AbstractDriver implements DriverInterface
      */
     protected function store($key, $value, $ttl)
     {
-        $this->values[$key] = $value;
+        $this->values[$key] = serialize($value);
 
         return true;
     }

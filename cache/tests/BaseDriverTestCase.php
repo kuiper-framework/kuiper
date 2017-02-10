@@ -176,4 +176,15 @@ abstract class BaseDriverTestCase extends TestCase
         $this->assertTrue($item3->isHit());
         $this->assertAttributeEquals(false, 'locked', $item3);
     }
+
+    public function testSaveGetDiffObj()
+    {
+        $pool = $this->createCachePool();
+        $obj = new \stdClass();
+        $item = $pool->getItem('base/one');
+        $item->set($obj)->save();
+
+        $cached = $pool->getItem('base/one');
+        $this->assertTrue($obj !== $cached);
+    }
 }
