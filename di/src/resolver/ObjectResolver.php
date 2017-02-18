@@ -2,7 +2,7 @@
 
 namespace kuiper\di\resolver;
 
-use Interop\Container\ContainerInterface;
+use kuiper\di\ContainerInterface;
 use InvalidArgumentException;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\DeferredObject;
@@ -26,6 +26,16 @@ class ObjectResolver implements ResolverInterface
      * @var ProxyFactory
      */
     private $proxyFactory;
+
+    /**
+     * @var string[]
+     */
+    private $awarables = [];
+
+    /**
+     * @var string[]
+     */
+    private static $AWARABLE_IDS = [];
 
     public function __construct(ResolverInterface $resolver, ProxyFactory $proxyFactory)
     {
@@ -69,15 +79,15 @@ class ObjectResolver implements ResolverInterface
         $className = $definition->getClassName() ?: $entry->getName();
         $instance = $this->newInstance($className, $parameters);
         $methods = $definition->getMethods();
-        if ($instance instanceof LoggerAwareInterface
-            && !isset($methods['setLogger'])
-            && $container->has(LoggerInterface::class)) {
-            $definition->method('setLogger', $container->get(LoggerInterface::class));
-            $methods = $definition->getMethods();
-        }
-        if ($instance instanceof ContainerAwareInterface
-            && !isset($methods['setContainer'])) {
-            $definition->method('setContainer', $container);
+        if (!empty($this->awarables)) {
+            foreach ($this->awarables as $method => $pair) {
+                list($awareInterface, $interface) = $pair;
+                if ($instance instanceof $awareInterface
+                    && !isset($methods[$method])
+                    && $container->has($interface)) {
+                    $definition->method($method, $container->get($interface));
+                }
+            }
             $methods = $definition->getMethods();
         }
         if (!$deferInit) {
@@ -143,5 +153,19 @@ class ObjectResolver implements ResolverInterface
 
             return $class->newInstanceArgs($parameters);
         }
+    }
+
+    public function setAwarables(array $awarables)
+    {
+        $this->awarables = $awarables;
+
+        return $this;
+    }
+
+    public function addAwarables(array $awarables)
+    {
+        $this->awarables = array_merge($this->awarables, $awarables);
+
+        return $this;
     }
 }

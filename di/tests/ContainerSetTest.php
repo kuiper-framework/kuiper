@@ -19,9 +19,11 @@ class ContainerSetTest extends TestCase
 
     public function testSetGet()
     {
-        $dummy = new stdClass();
-        $container = $this->createContainer();
-        $container->set('key', $dummy);
+        $container = $this->createContainer([
+            'key' => (object) ['foo' => 'bar']
+        ]);
+        $old = $container->get('key');
+        $container->set('key', $dummy = new stdClass);
         $this->assertSame($dummy, $container->get('key'));
     }
 }

@@ -2,7 +2,8 @@
 
 namespace kuiper\di;
 
-use Interop\Container\ContainerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
 use kuiper\di\definition\AliasDefinition;
 use kuiper\di\definition\ArrayDefinition;
@@ -173,7 +174,7 @@ class Container implements ContainerInterface, ResolverInterface
             return $this->resolvedValues[$name];
         }
         if (isset($this->resolving[$name])) {
-            throw new DependencyException("Circular dependency detected while trying to resolve entry '$name'");
+            throw new DependencyException("Circular dependency detected while trying to resolve entry '$name': " . json_encode($this->resolving));
         }
         $this->resolving[$name] = true;
 
@@ -295,10 +296,10 @@ class Container implements ContainerInterface, ResolverInterface
         }
     }
 
-    protected function getResolver($definition)
+    public function getResolver($definition)
     {
         foreach (self::$DEFINITION_RESOLVERS as $definitionType => $resolverFactory) {
-            if ($definition instanceof $definitionType) {
+            if (is_a($definition, $definitionType, true)) {
                 if (!isset($this->resolvers[$definitionType])) {
                     $this->resolvers[$definitionType] = call_user_func($resolverFactory, $this);
                 }
@@ -309,6 +310,14 @@ class Container implements ContainerInterface, ResolverInterface
         if ($definition instanceof ResolvableInterface) {
             return $definition->getResolver($this);
         }
+        throw new DefinitionException("Cannot found resolver");
+    }
+
+    public function setResolver($definitionType, ResolverInterface $resolver)
+    {
+        $this->resolvers[$definitionType] = $resolver;
+
+        return $this;
     }
 
     public static function createEnvResolver(Container $container)
@@ -333,6 +342,10 @@ class Container implements ContainerInterface, ResolverInterface
 
     public static function createObjectResolver(Container $container)
     {
-        return new ObjectResolver($container, $container->proxyFactory);
+        return (new ObjectResolver($container, $container->proxyFactory))
+            ->setAwarables([
+                'setLogger' => [LoggerAwareInterface::class, LoggerInterface::class],
+                'setContainer' => [ContainerAwareInterface::class, ContainerInterface::class]
+            ]);
     }
 }

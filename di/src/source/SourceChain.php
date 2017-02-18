@@ -72,6 +72,7 @@ class SourceChain implements MutableSourceInterface
      */
     public function set($name, DefinitionInterface $value)
     {
+        unset($this->resolvedEntries[$name]);
         $this->mutable->set($name, $value);
     }
 }

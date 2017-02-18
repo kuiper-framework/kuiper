@@ -2,7 +2,7 @@
 
 namespace kuiper\di\resolver;
 
-use Interop\Container\ContainerInterface;
+use kuiper\di\ContainerInterface;
 use kuiper\di\DefinitionEntry;
 
 interface ResolverInterface

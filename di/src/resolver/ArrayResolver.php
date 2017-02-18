@@ -3,7 +3,7 @@
 namespace kuiper\di\resolver;
 
 use Closure;
-use Interop\Container\ContainerInterface;
+use kuiper\di\ContainerInterface;
 use InvalidArgumentException;
 use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\DefinitionInterface;

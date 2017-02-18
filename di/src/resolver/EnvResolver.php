@@ -2,7 +2,7 @@
 
 namespace kuiper\di\resolver;
 
-use Interop\Container\ContainerInterface;
+use kuiper\di\ContainerInterface;
 use InvalidArgumentException;
 use kuiper\di\definition\EnvDefinition;
 use kuiper\di\DefinitionEntry;
