@@ -1,6 +1,10 @@
 <?php
 namespace kuiper\web\exception;
 
+use kuiper\web\RequestAwareInterface;
+use kuiper\web\RequestAwareTrait;
+use kuiper\web\ResponseAwareInterface;
+use kuiper\web\ResponseAwareTrait;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
@@ -8,52 +12,42 @@ use RuntimeException;
 /**
  * Http Exception
  */
-class HttpException extends RuntimeException
+class HttpException extends RuntimeException implements RequestAwareInterface, ResponseAwareInterface
 {
-    /**
-     * A request object
-     *
-     * @var ServerRequestInterface
-     */
-    protected $request;
-
-    /**
-     * A response object to send to the HTTP client
-     *
-     * @var ResponseInterface
-     */
-    protected $response;
-
-    /**
-     * Create new exception
-     *
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     */
-    public function __construct(ServerRequestInterface $request, ResponseInterface $response, $message = null, $prev = null)
-    {
-        parent::__construct($message, 0, $prev);
-        $this->request = $request;
-        $this->response = $response;
+    use RequestAwareTrait;
+    use ResponseAwareTrait {
+        getResponse as protected getPsrResponse;
     }
 
     /**
-     * Get request
-     *
-     * @return ServerRequestInterface
+     * @var int
      */
-    public function getRequest()
+    protected $statusCode;
+
+    /**
+     * Gets status code
+     *
+     * @return int
+     */
+    public function getStatusCode()
     {
-        return $this->request;
+        return $this->statusCode;
     }
 
     /**
-     * Get response
+     * Sets status code
      *
-     * @return ResponseInterface
+     * @param int
      */
+    public function setStatusCode($statusCode)
+    {
+        $this->statusCode = $statusCode;
+
+        return $this;
+    }
+
     public function getResponse()
     {
-        return $this->response;
+        return $this->getPsrResponse()->withStatus($this->statusCode);
     }
 }

@@ -1,6 +1,15 @@
 <?php
 namespace kuiper\web\exception;
 
-class DispatchException extends HttpException
+use kuiper\web\ServerRequestAwareInterface;
+use kuiper\web\ServerRequestAwareTrait;
+use kuiper\web\ResponseAwareInterface;
+use kuiper\web\ResponseAwareTrait;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
+
+class DispatchException extends RuntimeException implements RequestAwareInterface, ResponseAwareInterface
 {
+    use RequestAwareTrait, ResponseAwareTrait;
 }

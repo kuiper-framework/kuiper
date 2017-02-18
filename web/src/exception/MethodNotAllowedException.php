@@ -1,9 +1,6 @@
 <?php
 namespace kuiper\web\exception;
 
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-
 class MethodNotAllowedException extends HttpException
 {
     /**
@@ -14,17 +11,9 @@ class MethodNotAllowedException extends HttpException
     protected $allowedMethods;
 
     /**
-     * Create new exception
-     *
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     * @param string[] $allowedMethods
+     * @var int
      */
-    public function __construct(array $allowedMethods, ServerRequestInterface $request, ResponseInterface $response)
-    {
-        parent::__construct($request, $response);
-        $this->allowedMethods = $allowedMethods;
-    }
+    protected $statusCode = 405;
 
     /**
      * Get allowed methods

@@ -6,4 +6,8 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class AccessDeniedException extends HttpException
 {
+    /**
+     * @var int
+     */
+    protected $statusCode = 403;
 }
