@@ -131,6 +131,13 @@ class Application
 
     protected function buildContainer()
     {
+        $this->registerProviders();
+
+        return $this->getContainerBuilder()->build();
+    }
+
+    protected function registerProviders()
+    {
         $builder = $this->getContainerBuilder();
         $builder->addSource(new DotArraySource($this->settings));
         $providers = $this->settings['app.providers'];
@@ -142,7 +149,5 @@ class Application
         foreach ($this->providers as $provider) {
             $provider->register();
         }
-
-        return $builder->build();
     }
 }
