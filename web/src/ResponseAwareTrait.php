@@ -7,14 +7,14 @@ use Psr\Http\Message\ResponseInterface;
 trait ResponseAwareTrait
 {
     /**
-     * A response object to send to the HTTP client
+     * A response object to send to the HTTP client.
      *
      * @var ResponseInterface
      */
     protected $response;
-    
+
     /**
-     * Sets response
+     * Sets response.
      *
      * @param ResponseInterface $response
      */
@@ -26,7 +26,7 @@ trait ResponseAwareTrait
     }
 
     /**
-     * Gets response
+     * Gets response.
      *
      * @return ResponseInterface
      */

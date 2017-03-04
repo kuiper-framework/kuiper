@@ -7,7 +7,7 @@ use Psr\Http\Message\ServerRequestInterface;
 interface RequestAwareInterface
 {
     /**
-     * Sets request
+     * Sets request.
      *
      * @param ServerRequestInterface $request
      */

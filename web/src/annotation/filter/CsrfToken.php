@@ -1,8 +1,10 @@
 <?php
+
 namespace kuiper\web\annotation\filter;
 
 use Interop\Container\ContainerInterface;
 use kuiper\web\middlewares;
+use kuiper\web\security\CsrfTokenInterface;
 
 /**
  * @Annotation
@@ -11,15 +13,15 @@ use kuiper\web\middlewares;
 class CsrfToken extends AbstractFilter
 {
     /**
-     * @var boolean
+     * @var bool
      */
     public $repeatOk = false;
-    
+
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function createMiddleware(ContainerInterface $container)
     {
-        return new middlewares\CsrfToken($container->get('security'), $this->repeatOk);
+        return new middlewares\CsrfToken($container->get(CsrfTokenInterface::class), $this->repeatOk);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\exception;
 
 class BadRequestException extends HttpException

@@ -1,11 +1,12 @@
 <?php
+
 namespace kuiper\web\session;
 
 use Psr\Cache\CacheItemPoolInterface;
 use SessionHandlerInterface;
 
 /**
- * Use cache compoent as session storage
+ * Use cache compoent as session storage.
  */
 class CacheSessionHandler implements SessionHandlerInterface
 {
@@ -35,9 +36,9 @@ class CacheSessionHandler implements SessionHandlerInterface
             $this->lifetime = $options['lifetime'];
         }
     }
-    
+
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function open($save_path, $session_name)
     {
@@ -45,7 +46,7 @@ class CacheSessionHandler implements SessionHandlerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function create_sid()
     {
@@ -57,11 +58,12 @@ class CacheSessionHandler implements SessionHandlerInterface
         if (empty($func)) {
             $func = 'sha256';
         }
+
         return substr(hash($func, uniqid('session', true)), 0, $len);
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function close()
     {
@@ -69,35 +71,37 @@ class CacheSessionHandler implements SessionHandlerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function read($sessionId)
     {
-        return $this->cache->getItem($this->prefix .$sessionId)->get();
+        return $this->cache->getItem($this->prefix.$sessionId)->get();
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function write($sessionId, $data)
     {
-        $item = $this->cache->getItem($this->prefix . $sessionId);
+        $item = $this->cache->getItem($this->prefix.$sessionId);
         $item->expiresAfter($this->lifetime);
         $this->cache->save($item->set($data));
+
         return true;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function destroy($session_id)
     {
         $this->cache->deleteItem($this->prefix.$session_id);
+
         return true;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function gc($lifetime)
     {

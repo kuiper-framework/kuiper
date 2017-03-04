@@ -1,7 +1,8 @@
 <?php
+
 namespace kuiper\web\exception;
 
-class CsrfTokenInvalidException extends HttpException
+class CsrfTokenException extends HttpException
 {
     /**
      * @var int

@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\annotation\filter;
 
 use Interop\Container\ContainerInterface;
@@ -14,9 +15,9 @@ class LoginOnly extends AbstractFilter
      * @var int
      */
     public $priority = 101;
-    
+
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function createMiddleware(ContainerInterface $container)
     {

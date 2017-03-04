@@ -7,7 +7,7 @@ use Psr\Http\Message\ResponseInterface;
 interface ResponseAwareInterface
 {
     /**
-     * Sets response
+     * Sets response.
      *
      * @param ResponseInterface $response
      */

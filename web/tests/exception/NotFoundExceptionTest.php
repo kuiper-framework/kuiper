@@ -5,15 +5,14 @@ namespace kuiper\web\exception;
 use Zend\Diactoros\Response;
 use kuiper\web\TestCase;
 
-class HttpExceptionTest extends TestCase
+class NotFoundExceptionTest extends TestCase
 {
     public function testResponse()
     {
-        $e = new HttpException();
-        $e->setResponse(new Response())
-            ->setStatusCode(400);
+        $e = new NotFoundException();
+        $e->setResponse(new Response());
         $resp = $e->getResponse();
-        $this->assertEquals(400, $resp->getStatusCode());
+        $this->assertEquals(404, $resp->getStatusCode());
         // print_r($resp);
     }
 }

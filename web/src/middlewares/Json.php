@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\middlewares;
 
 use Psr\Http\Message\ResponseInterface;

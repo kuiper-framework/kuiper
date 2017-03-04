@@ -22,6 +22,6 @@ class RedirectException extends HttpException
     public function getResponse()
     {
         return parent::getResponse()
-            ->withHeader("location", $this->url);
+            ->withHeader('location', $this->url);
     }
 }

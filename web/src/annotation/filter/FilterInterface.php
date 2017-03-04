@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\annotation\filter;
 
 use Interop\Container\ContainerInterface;
@@ -6,7 +7,7 @@ use Interop\Container\ContainerInterface;
 interface FilterInterface
 {
     /**
-     * filter priority, the smaller one run first
+     * filter priority, the smaller one run first.
      *
      * @return int
      */
@@ -14,6 +15,7 @@ interface FilterInterface
 
     /**
      * @param ContainerInterface $container
+     *
      * @return callable
      */
     public function createMiddleware(ContainerInterface $container);

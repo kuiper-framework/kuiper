@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\annotation\filter;
 
 use Interop\Container\ContainerInterface;
@@ -11,12 +12,13 @@ class RequestMethod extends AbstractFilter
 {
     /**
      * @Default
+     *
      * @var array
      */
     public $methods;
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function createMiddleware(ContainerInterface $container)
     {

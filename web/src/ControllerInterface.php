@@ -1,25 +1,16 @@
 <?php
+
 namespace kuiper\web;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-interface ControllerInterface
+interface ControllerInterface extends RequestAwareInterface, ResponseAwareInterface
 {
-    /**
-     * @param ServerRequestInterface $request
-     */
-    public function setRequest(ServerRequestInterface $request);
-
     /**
      * @return ServerRequestInterface
      */
     public function getRequest();
-
-    /**
-     * @param ResponseInterface $response
-     */
-    public function setResponse(ResponseInterface $response);
 
     /**
      * @return ResponseInterface
@@ -27,7 +18,9 @@ interface ControllerInterface
     public function getResponse();
 
     /**
-     * Initialize controller
+     * Initialize controller.
+     *
+     * @return bool
      */
     public function initialize();
 }

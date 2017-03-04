@@ -1,8 +1,8 @@
 <?php
+
 namespace kuiper\web\security;
 
 use InvalidArgumentException;
-use kuiper\web\exception\UnauthorizedException;
 
 class PermissionChecker implements PermissionCheckerInterface
 {
@@ -27,7 +27,7 @@ class PermissionChecker implements PermissionCheckerInterface
         $this->auth = $auth;
         $this->superUserRole = $superUserRole;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -36,7 +36,7 @@ class PermissionChecker implements PermissionCheckerInterface
         if ($this->auth->isGuest()) {
             return false;
         }
-        
+
         $roles = $this->getRoles();
         if (empty($roles)) {
             return false;
@@ -53,6 +53,7 @@ class PermissionChecker implements PermissionCheckerInterface
                 return true;
             }
         }
+
         return false;
     }
 
@@ -74,6 +75,7 @@ class PermissionChecker implements PermissionCheckerInterface
     public function setAcl(AclInterface $acl)
     {
         $this->acl = $acl;
+
         return $this;
     }
 
@@ -85,6 +87,7 @@ class PermissionChecker implements PermissionCheckerInterface
     public function setAuth(AuthInterface $auth)
     {
         $this->auth = $auth;
+
         return $this;
     }
 
@@ -96,6 +99,7 @@ class PermissionChecker implements PermissionCheckerInterface
     public function setSuperUserRole($superUserRole)
     {
         $this->superUserRole = $superUserRole;
+
         return $this;
     }
 }

@@ -1,35 +1,13 @@
 <?php
-namespace kuiper\web;
 
-use kuiper\web\exception\AccessDeniedException;
-use kuiper\web\exception\NotFoundException;
-use kuiper\web\exception\UnauthorizedException;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+namespace kuiper\web;
 
 abstract class Controller implements ControllerInterface
 {
-    /**
-     * @var ServerRequestInterface
-     */
-    protected $request;
+    use RequestAwareTrait, ResponseAwareTrait;
 
     /**
-     * @var ResponseInterface
-     */
-    protected $response;
-
-    /**
-     * @inheritDoc
-     */
-    public function setRequest(ServerRequestInterface $request)
-    {
-        $this->request = $request;
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getRequest()
     {
@@ -37,16 +15,7 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
-     * @inheritDoc
-     */
-    public function setResponse(ResponseInterface $response)
-    {
-        $this->response = $response;
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getResponse()
     {
@@ -54,24 +23,10 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function initialize()
     {
-    }
-
-    protected function notFound($message = null)
-    {
-        throw new NotFoundException($this->request, $this->response, $message);
-    }
-
-    protected function accessDenied()
-    {
-        throw new AccessDeniedException($this->request, $this->response);
-    }
-
-    protected function authorizationRequired()
-    {
-        throw new UnauthorizedException($this->request, $this->response);
+        return true;
     }
 }

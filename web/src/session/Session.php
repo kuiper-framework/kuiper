@@ -1,10 +1,11 @@
 <?php
+
 namespace kuiper\web\session;
 
 class Session implements SessionInterface
 {
     /**
-     * @var boolean
+     * @var bool
      */
     private $started = false;
 
@@ -19,20 +20,22 @@ class Session implements SessionInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function start()
     {
         if (!headers_sent() && !$this->started && session_status() != PHP_SESSION_ACTIVE) {
             session_start();
             $this->started = true;
+
             return true;
         }
+
         return false;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function get($index, $defaultValue = null)
     {
@@ -40,7 +43,7 @@ class Session implements SessionInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function set($index, $value)
     {
@@ -48,7 +51,7 @@ class Session implements SessionInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function has($index)
     {
@@ -56,7 +59,7 @@ class Session implements SessionInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function remove($index)
     {
@@ -64,7 +67,7 @@ class Session implements SessionInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getId()
     {
@@ -72,7 +75,7 @@ class Session implements SessionInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function isStarted()
     {
@@ -80,7 +83,7 @@ class Session implements SessionInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function destroy($removeData = false)
     {
@@ -88,11 +91,12 @@ class Session implements SessionInterface
             $_SESSION = [];
         }
         $this->started = false;
+
         return session_destroy();
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function regenerateId($deleteOldSession = true)
     {

@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\middlewares;
 
 use Interop\Container\ContainerInterface;
@@ -15,6 +16,7 @@ class Filter
      * @var ReaderInterface
      */
     private $annotationReader;
+
     /**
      * @var ContainerInterface
      */
@@ -24,7 +26,7 @@ class Filter
      * @var array
      */
     private $cache;
-    
+
     public function __construct(ReaderInterface $annotationReader, ContainerInterface $container)
     {
         $this->annotationReader = $annotationReader;
@@ -35,11 +37,12 @@ class Filter
     {
         $route = $request->getAttribute('route');
         if ($route === null) {
-            throw new LogicException("Please add Filter middleware before dispatch");
+            throw new LogicException('Please add Filter middleware before dispatch');
         }
-        $callback = $route->getHandler();
+        $callback = $route->getAction();
         if (is_array($callback)) {
             $filters = $this->getFilters($callback[0], $callback[1]);
+
             return $this->callFilters($request, $response, $filters, $next);
         } else {
             return $next($request, $response);
@@ -54,7 +57,7 @@ class Filter
         }
         $class = new ReflectionClass($className);
         $method = $class->getMethod($action);
-        
+
         $annots = [];
         foreach ($this->annotationReader->getClassAnnotations($class) as $annot) {
             if ($annot instanceof FilterInterface) {
@@ -73,6 +76,7 @@ class Filter
         foreach ($annots as $annot) {
             $filters[] = $annot->createMiddleware($this->container);
         }
+
         return $this->cache[$className][$action] = $filters;
     }
 
@@ -80,7 +84,7 @@ class Filter
     {
         if ($i < count($filters)) {
             return $filters[$i]($request, $response, function ($request, $response) use ($filters, $final, $i) {
-                return $this->callFilters($request, $response, $filters, $final, $i+1);
+                return $this->callFilters($request, $response, $filters, $final, $i + 1);
             });
         } else {
             return $final($request, $response);

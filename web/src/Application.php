@@ -1,16 +1,14 @@
 <?php
+
 namespace kuiper\web;
 
 use Closure;
 use Exception;
 use Interop\Container\ContainerInterface;
 use InvalidArgumentException;
-use kuiper\web\ControllerInterface;
-use kuiper\web\exception\DispatchException;
 use kuiper\web\exception\HttpException;
 use kuiper\web\exception\MethodNotAllowedException;
 use kuiper\web\exception\NotFoundException;
-use LogicException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
@@ -18,7 +16,6 @@ use Throwable;
 
 class Application implements ApplicationInterface
 {
-    
     /**
      * @var ContainerInterface
      */
@@ -37,12 +34,7 @@ class Application implements ApplicationInterface
     /**
      * @var array
      */
-    private $middlewareQueue;
-
-    /**
-     * @var ErrorHandlerInterface
-     */
-    private $errorHandler;
+    private $middlewareStack;
 
     /**
      * @var ServerRequestInterface
@@ -57,14 +49,19 @@ class Application implements ApplicationInterface
     /**
      * @var array
      */
-    private static $STAGES = ['START', 'ERROR', 'ROUTE', 'DISPATCH'];
+    private static $STAGES = [
+        'START',
+        'ERROR',
+        'ROUTE',
+        'DISPATCH',
+    ];
 
     /**
      * Avaliable options:
-     *  - chuck_size response chuck size
+     *  - chuck_size response chuck size.
      *
      * @param ContainerInterface $container
-     * @param array $options
+     * @param array              $options
      */
     public function __construct(ContainerInterface $container, array $options = [])
     {
@@ -73,69 +70,114 @@ class Application implements ApplicationInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function add(callable $middleware, $position = self::ROUTE, $id = null)
     {
         if (is_int($position)) {
-            if (!in_array($position, [self::START, self::ERROR, self::ROUTE, self::DISPATCH])) {
-                throw new InvalidArgumentException("Invalid position '{$position}'");
+            return $this->addMiddleware($position, $id, $middleware);
+        }
+        if (!preg_match('/^(before|after):(.*)/', $position, $matches)) {
+            throw new InvalidArgumentException("Invalid position, expects 'before:{ID}' or 'after:{ID}', gots '{$position}'");
+        }
+        $isBefore = $matches[1] == 'before';
+        $position = $matches[2];
+
+        if (($key = array_search(strtoupper($position), self::$STAGES)) !== false) {
+            if ($key === count(self::$STAGES) - 1 && !$isBefore) {
+                throw new InvalidArgumentException('Cannot add middleware after dispatch stage');
             }
-            $this->middlewares[$position][] = [$id, $middleware];
-        } elseif (is_string($position)) {
-            if (strpos($position, 'before:') === 0) {
-                $before = true;
-                $position = substr($position, 7 /*strlen('before:')*/);
-            } elseif (strpos($position, 'after:') === 0) {
-                $before = false;
-                $position = substr($position, 6 /*strlen('after:')*/);
-            } else {
-                throw new InvalidArgumentException("Invalid position '{$position}', expects 'before:ID' or 'after:ID'");
-            }
-            if (($key = array_search(strtoupper($position), self::$STAGES)) !== false) {
-                if ($key === count(self::$STAGES)-1 && !$before) {
-                    throw new InvalidArgumentException("Cannot add middleware after dispatch");
-                }
-                $position = constant(__CLASS__.'::'.self::$STAGES[$before ? $key : $key+1]);
-                $this->middlewares[$position][] = [$id, $middleware];
-            } else {
-                $found = false;
-                foreach ($this->middlewares as $stage => &$stageMiddlewares) {
-                    foreach ($stageMiddlewares as $i => $scope) {
-                        if ($position === $scope[0]) {
-                            array_splice($stageMiddlewares, ($before ? $i : $i+1), 0, [[$id, $middleware]]);
-                            $found = true;
-                            break 2;
-                        }
-                    }
-                }
-                if (!$found) {
-                    throw new InvalidArgumentException("Middleware '{$position}' was not registered");
+            $position = constant(__CLASS__.'::'.self::$STAGES[$isBefore ? $key : $key + 1]);
+
+            return $this->addMiddleware($position, $id, $middleware);
+        }
+
+        $found = false;
+        foreach ($this->middlewares as $stage => &$stageMiddlewares) {
+            foreach ($stageMiddlewares as $i => $scope) {
+                if ($position === $scope[0]) {
+                    array_splice($stageMiddlewares, ($isBefore ? $i : $i + 1), 0, [[$id, $middleware]]);
+                    $found = true;
+                    break 2;
                 }
             }
         }
+        if (!$found) {
+            throw new InvalidArgumentException("Middleware '{$position}' was not registered");
+        }
+
         return $this;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
-    public function run(ServerRequestInterface $req = null, $silent = false)
+    public function run(ServerRequestInterface $request = null, $silent = false)
     {
-        if ($this->middlewareQueue === null) {
-            $this->buildMiddlewareQueue();
+        if ($this->middlewareStack === null) {
+            $this->buildMiddlewareStack();
         }
-        $request = $req ?: $this->getRequest();
-        $response = $this->getResponse();
-        $response = $this->callMiddlewareQueue($request, $response);
-        if (!$silent) {
-            $this->respond($response);
+        $response = $this->callMiddlewareStack($request ?: $this->getRequest(), $this->getResponse());
+
+        return $silent ? $response : $this->respond($response);
+    }
+
+    protected function addMiddleware($position, $id, callable $middleware)
+    {
+        if (!in_array($position, [self::START, self::ERROR, self::ROUTE, self::DISPATCH])) {
+            throw new InvalidArgumentException("Invalid position '{$position}'");
         }
-        return $response;
+        $this->middlewares[$position][] = [$id, $middleware];
+
+        return $this;
+    }
+
+    protected function getKernelMiddlewares()
+    {
+        return [
+            self::ERROR => [$this, 'handleError'],
+            self::ROUTE => [$this, 'resolveRoute'],
+            self::DISPATCH => [$this, 'dispatch'],
+        ];
+    }
+
+    protected function buildMiddlewareStack()
+    {
+        $stack = [];
+        $kernel = $this->getKernelMiddlewares();
+        foreach ([self::START, self::ERROR, self::ROUTE, self::DISPATCH] as $stage) {
+            if (isset($this->middlewares[$stage])) {
+                foreach ($this->middlewares[$stage] as $scope) {
+                    $stack[] = $scope[1];
+                }
+            }
+            if (isset($kernel[$stage])) {
+                $stack[] = $kernel[$stage];
+            }
+        }
+        $this->middlewareStack = $stack;
+    }
+
+    protected function callMiddlewareStack(ServerRequestInterface $request, ResponseInterface $response, $i = 0)
+    {
+        if ($i < count($this->middlewareStack)) {
+            $middleware = $this->middlewareStack[$i];
+            if ($middleware instanceof Closure) {
+                $middleware->bindTo($this->getContainer());
+            }
+            $this->request = $request;
+            $this->response = $response;
+
+            return $middleware($request, $response, function ($request, $response) use ($i) {
+                return $this->callMiddlewareStack($request, $response, $i + 1);
+            });
+        } else {
+            return $response;
+        }
     }
 
     /**
-     * Send the response the client
+     * Send the response the client.
      *
      * @param ResponseInterface $response
      */
@@ -144,103 +186,22 @@ class Application implements ApplicationInterface
         if (isset($this->options['chuck_size'])) {
             $chunkSize = $this->options['chuck_size'];
             if (!is_int($chunkSize) || $chunkSize < 1) {
-                throw new RuntimeException("chuck_size should be an positive integer");
+                throw new RuntimeException('chuck_size should be an positive integer');
             }
         } else {
             $chunkSize = 4096;
         }
         $this->send($response, $chunkSize);
-    }
-    
-    protected function getKernelMiddlewares()
-    {
-        return [
-            self::ERROR => [$this, 'handleError'],
-            self::ROUTE => [$this, 'resolveRoute'],
-            self::DISPATCH => [$this, 'dispatch']
-        ];
-    }
 
-    protected function buildMiddlewareQueue()
-    {
-        $middlewares = [];
-        $kernel = $this->getKernelMiddlewares();
-        foreach ([self::START, self::ERROR, self::ROUTE, self::DISPATCH] as $stage) {
-            if (isset($this->middlewares[$stage])) {
-                foreach ($this->middlewares[$stage] as $scope) {
-                    $middlewares[] = $scope[1];
-                }
-            }
-            if (isset($kernel[$stage])) {
-                $middlewares[] = $kernel[$stage];
-            }
-        }
-        $this->middlewareQueue = $middlewares;
-    }
-
-    protected function callMiddlewareQueue(ServerRequestInterface $request, ResponseInterface $response, $i = 0)
-    {
-        if ($i < count($this->middlewareQueue)) {
-            $middleware = $this->middlewareQueue[$i];
-            if ($middleware instanceof Closure) {
-                $middleware->bindTo($this->getContainer());
-            }
-            $this->request = $request;
-            $this->response = $response;
-            return $middleware($request, $response, function ($request, $response) use ($i) {
-                return $this->callMiddlewareQueue($request, $response, $i+1);
-            });
-        } else {
-            return $response;
-        }
+        return $response;
     }
 
     /**
-     * The middleware to resolve route info
+     * The middleware to handle exception.
      *
      * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     * @param callable $next
-     * @throws MethodNotAllowedException
-     *       NotFoundException
-     */
-    protected function resolveRoute(ServerRequestInterface $request, ResponseInterface $response, callable $next)
-    {
-        $route = $this->getRouter()->dispatch($request, $response);
-        if (!($route instanceof RouteInterface)) {
-            throw new LogicException("RouterInterface::dispatch should return RouteInterface, got " . gettype($route));
-        }
-        return $next($request->withAttribute('route', $route), $response);
-    }
-
-    /**
-     * The middleware to execute route callback
-     *
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     * @param callable $next
-     * @throws DispatchException
-     */
-    protected function dispatch(ServerRequestInterface $request, ResponseInterface $response, callable $next)
-    {
-        try {
-            $route = $request->getAttribute('route');
-            if (method_exists($route, 'setContainer')) {
-                $route->setContainer($this->container);
-            }
-            return $route->run($request, $response);
-        } catch (Exception $e) {
-            throw new DispatchException($request, $response, null, $e);
-        }
-    }
-
-    /**
-     * The middleware to handle exception
-     *
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     * @param callable $next
-     * @throws DispatchException
+     * @param ResponseInterface      $response
+     * @param callable               $next
      */
     protected function handleError(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
@@ -253,17 +214,55 @@ class Application implements ApplicationInterface
         }
     }
 
+    /**
+     * The middleware to resolve route.
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface      $response
+     * @param callable               $next
+     *
+     * @throws MethodNotAllowedException
+     *                                   NotFoundException
+     */
+    protected function resolveRoute(ServerRequestInterface $request, ResponseInterface $response, callable $next)
+    {
+        $route = $this->getRouter()->dispatch($request, $response);
+        if (!($route instanceof RouteInterface)) {
+            throw new \BadMethodCallException(RouterInterface::class.'::dispatch should return RouteInterface, got '.gettype($route));
+        }
+
+        return $next($request->withAttribute('route', $route), $response);
+    }
+
+    /**
+     * The middleware to execute route callback.
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface      $response
+     * @param callable               $next
+     */
+    protected function dispatch(ServerRequestInterface $request, ResponseInterface $response, callable $next)
+    {
+        $route = $request->getAttribute('route');
+        if (method_exists($route, 'setContainer')) {
+            $route->setContainer($this->container);
+        }
+
+        return $route->run($request, $response);
+    }
+
     protected function handleException($e, ServerRequestInterface $request, ResponseInterface $response)
     {
         $handler = $this->getErrorHandler();
         if ($e instanceof HttpException) {
-            $handler->setRequest($e->getRequest());
-            $handler->setResponse($e->getResponse());
+            $handler->setRequest($e->getRequest() ?: $this->request);
+            $handler->setResponse($e->getResponse() ?: $this->response);
         } else {
-            $handler->setRequest($request);
-            $handler->setResponse($response);
+            $handler->setRequest($this->request);
+            $handler->setResponse($this->response);
         }
-        return $handler->handle($e instanceof DispatchException ? $e->getPrevious() : $e);
+
+        return $handler->handle($e);
     }
 
     /**
@@ -273,6 +272,7 @@ class Application implements ApplicationInterface
      * see https://tools.ietf.org/html/rfc7231
      *
      * @param ResponseInterface $response
+     *
      * @return bool
      */
     protected function isEmptyResponse(ResponseInterface $response)
@@ -310,7 +310,7 @@ class Application implements ApplicationInterface
             if ($body->isSeekable()) {
                 $body->rewind();
             }
-            $contentLength  = $response->getHeaderLine('Content-Length');
+            $contentLength = $response->getHeaderLine('Content-Length');
             if (!$contentLength) {
                 $contentLength = $body->getSize();
             }
@@ -320,9 +320,9 @@ class Application implements ApplicationInterface
                 while ($amountToRead > 0 && !$body->eof()) {
                     $data = $body->read(min($chunkSize, $amountToRead));
                     echo $data;
-                    
+
                     $amountToRead -= strlen($data);
-                                        
+
                     if (connection_status() != CONNECTION_NORMAL) {
                         break;
                     }
@@ -345,28 +345,37 @@ class Application implements ApplicationInterface
 
     protected function getRouter()
     {
+        if ($this->container->has(RouteInterface::class)) {
+            throw new \RuntimeException(RouterInterface::class.' is not defined in container');
+        }
+
         return $this->container->get(RouterInterface::class);
     }
 
     protected function getErrorHandler()
     {
-        if ($this->errorHandler === null) {
-            if ($this->container->has(ErrorHandlerInterface::class)) {
-                $this->errorHandler = $this->container->get(ErrorHandlerInterface::class);
-            } else {
-                $this->errorHandler = new DefaultErrorHandler();
-            }
+        if ($this->container->has(ErrorHandlerInterface::class)) {
+            return $this->container->get(ErrorHandlerInterface::class);
+        } else {
+            return new ErrorHandler();
         }
-        return $this->errorHandler;
     }
 
     protected function getRequest()
     {
+        if ($this->container->has(ServerRequestInterface::class)) {
+            throw new \RuntimeException(ServerRequestInterface::class.' is not defined in container');
+        }
+
         return $this->container->get(ServerRequestInterface::class);
     }
 
     protected function getResponse()
     {
+        if ($this->container->has(ResponseInterface::class)) {
+            throw new \RuntimeException(ResponseInterface::class.' is not defined in container');
+        }
+
         return $this->container->get(ResponseInterface::class);
     }
 }

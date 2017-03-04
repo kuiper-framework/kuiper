@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\middlewares;
 
 class PostOnly extends RequestMethod

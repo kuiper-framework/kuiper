@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\middlewares;
 
 use kuiper\web\exception\UnauthorizedException;
@@ -17,12 +18,13 @@ class LoginOnly
     {
         $this->auth = $auth;
     }
-    
+
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         if ($this->auth->isGuest()) {
             throw new UnauthorizedException($request, $response);
         }
+
         return $next($request, $response);
     }
 }

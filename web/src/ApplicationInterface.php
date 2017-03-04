@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web;
 
 use Psr\Http\Message\ServerRequestInterface;
@@ -11,22 +12,26 @@ interface ApplicationInterface
     const DISPATCH = 30;
 
     /**
-     * Adds middleware
+     * Adds middleware.
      *
-     * @param callable $middleware
-     * @param int|string $position if int, same as before:{constant}, if string, before:{id} or after:{id}
-     * @param string $id
+     * Position can be either the constants defined in ApplicationInterface or
+     * an string like 'before:{middleware_id}' or 'after:{middleware_id}'
+     *
+     * @param callable   $middleware
+     * @param int|string $position
+     * @param string     $id
+     *
      * @return self
      */
     public function add(callable $middleware, $position = self::ROUTE, $id = null);
 
     /**
-     * run application
+     * Run application.
      *
-     * @param ServerRequestInterface $req request message
-     * @param boolean $silent sending response when false
+     * @param ServerRequestInterface $request request message
+     * @param bool                   $silent  won't sending response when true
      *
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function run(ServerRequestInterface $req = null, $silent = false);
+    public function run(ServerRequestInterface $request = null, $silent = false);
 }

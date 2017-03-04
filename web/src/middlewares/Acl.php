@@ -1,9 +1,8 @@
 <?php
+
 namespace kuiper\web\middlewares;
 
-use InvalidArgumentException;
 use kuiper\web\exception\AccessDeniedException;
-use kuiper\web\exception\UnauthorizedException;
 use kuiper\web\security\PermissionCheckerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -19,7 +18,7 @@ class Acl
      * @var array<string>
      */
     private $resources;
-    
+
     public function __construct(PermissionCheckerInterface $checker, $resources)
     {
         $this->checker = $checker;
@@ -28,12 +27,13 @@ class Acl
         }
         $this->resources = $resources;
     }
-    
+
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         if (!$this->checkPermission()) {
-            throw new AccessDeniedException($request, $response);
+            throw new AccessDeniedException();
         }
+
         return $next($request, $response);
     }
 
@@ -44,6 +44,7 @@ class Acl
                 return false;
             }
         }
+
         return true;
     }
 }

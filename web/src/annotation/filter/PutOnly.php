@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\annotation\filter;
 
 use Interop\Container\ContainerInterface;
@@ -10,7 +11,7 @@ use Interop\Container\ContainerInterface;
 class PutOnly extends AbstractFilter
 {
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function createMiddleware(ContainerInterface $container)
     {

@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\middlewares;
 
 use kuiper\web\exception\MethodNotAllowedException;
@@ -22,6 +23,7 @@ class RequestMethod
         if (!in_array(strtoupper($request->getMethod()), $this->methods)) {
             throw new MethodNotAllowedException($this->methods, $request, $response);
         }
+
         return $next($request, $response);
     }
 

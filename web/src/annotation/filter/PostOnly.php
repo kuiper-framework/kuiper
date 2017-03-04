@@ -1,7 +1,9 @@
 <?php
+
 namespace kuiper\web\annotation\filter;
 
 use Interop\Container\ContainerInterface;
+use kuiper\web\middlewares;
 
 /**
  * @Annotation
@@ -10,10 +12,10 @@ use Interop\Container\ContainerInterface;
 class PostOnly extends AbstractFilter
 {
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function createMiddleware(ContainerInterface $container)
     {
-        return new \kuiper\web\middlewares\PostOnly();
+        return new middlewares\PostOnly();
     }
 }

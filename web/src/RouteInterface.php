@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web;
 
 use Psr\Http\Message\ResponseInterface;
@@ -7,85 +8,118 @@ use Psr\Http\Message\ServerRequestInterface;
 interface RouteInterface
 {
     /**
-     * Replace route arguments
+     * Constructs the route.
      *
-     * @param array $arguments
-     *
-     * @return static
+     * @param string[]        $methods Numeric array of HTTP method names
+     * @param string          $pattern The route URI pattern
+     * @param callable|string $action  The route callback routine
      */
-    public function setArguments(array $arguments);
+    public function __construct(array $methods, $pattern, $action);
 
     /**
-     * Get route arguments
+     * Gets the request methods.
      *
-     * @return array
-     */
-    public function getArguments();
-
-    /**
-     * Set route name
-     *
-     * @param string $name
-     *
-     * @return static
-     * @throws \InvalidArgumentException if the route name is not a string
-     */
-    public function setName($name);
-
-    /**
-     * Get route name
-     *
-     * @return null|string
-     */
-    public function getName();
-
-    /**
-     * Gets route http request methods
-     *
-     * @param string[] $methods
-     *
-     * @return self
-     */
-    public function setMethods(array $methods);
-
-    /**
      * @return string[]
      */
     public function getMethods();
 
     /**
-     * Set route pattern
+     * Return an instance with the specified http request methods.
      *
-     * @param string $pattern
+     * @param array $methods
      *
      * @return static
-     * @throws \InvalidArgumentException if the route pattern is not a string
      */
-    public function setPattern($pattern);
+    public function withMethods(array $methods);
 
     /**
-     * Get route pattern
+     * Gets route pattern.
      *
      * @return string
      */
     public function getPattern();
 
     /**
-     * Get route callback
+     * Gets route callback.
      *
      * @return callable
      */
-    public function getHandler();
+    public function getAction();
 
     /**
-     * Run route
+     * Return an instance with the specified action.
+     *
+     * @param callable|string $action
+     *
+     * @return static
+     */
+    public function withAction($action);
+
+    /**
+     * Sets route name.
+     *
+     * @param string $name
+     *
+     * @return static
+     *
+     * @throws \InvalidArgumentException if the route name is not a string
+     */
+    public function name($name);
+
+    /**
+     * Gets route name.
+     *
+     * @return null|string
+     */
+    public function getName();
+
+    /**
+     * Return an instance with the specified attributes.
+     *
+     * - scheme
+     * - host
+     * - port
+     * - prefix
+     *
+     * @param array $condition
+     *
+     * @return self
+     */
+    public function match(array $attributes);
+
+    /**
+     * Gets the attributes.
+     *
+     * @return array
+     */
+    public function getAttributes();
+
+    /**
+     * Replace route arguments.
+     *
+     * @param array $arguments
+     *
+     * @return static
+     */
+    public function withArguments(array $arguments);
+
+    /**
+     * Gets route arguments.
+     *
+     * @return array
+     */
+    public function getArguments();
+
+    /**
+     * Run route.
      *
      * This method traverses the middleware stack, including the route's callable
      * and captures the resultant HTTP response object. It then sends the response
      * back to the Application.
      *
      * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
+     * @param ResponseInterface      $response
+     *
      * @return ResponseInterface
      */
     public function run(ServerRequestInterface $request, ResponseInterface $response);

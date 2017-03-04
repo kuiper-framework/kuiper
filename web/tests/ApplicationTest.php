@@ -1,16 +1,13 @@
 <?php
 namespace kuiper\web;
 
-use Interop\Container\ContainerInterface;
 use kuiper\web\Application;
 
 class ApplicationTest extends TestCase
 {
     public function createApplication()
     {
-        $stub = $this->getMockBuilder(ContainerInterface::class)
-            ->getMock();
-        return new Application($stub);
+        return new Application($this->getContainer());
     }
 
     public function testAddMiddlewareBeforeDispatch()

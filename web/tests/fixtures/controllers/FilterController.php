@@ -1,22 +1,22 @@
 <?php
-namespace kuiper\web\middlewares\fixtures;
+namespace kuiper\web\fixtures\controllers;
 
 use kuiper\web\annotation\filter\Json;
 use kuiper\web\annotation\filter\PostOnly;
 
-class IndexController
+class FilterController
 {
     /**
      * @Json
      */
-    public function indexAction()
+    public function index()
     {
     }
 
     /**
      * @PostOnly
      */
-    public function postAction()
+    public function post()
     {
     }
 }

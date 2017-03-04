@@ -1,10 +1,11 @@
 <?php
+
 namespace kuiper\web\exception;
 
 class MethodNotAllowedException extends HttpException
 {
     /**
-     * HTTP methods allowed
+     * HTTP methods allowed.
      *
      * @var string[]
      */
@@ -15,8 +16,13 @@ class MethodNotAllowedException extends HttpException
      */
     protected $statusCode = 405;
 
+    public function __construct(array $allowedMethods)
+    {
+        $this->allowedMethods = $allowedMethods;
+    }
+
     /**
-     * Get allowed methods
+     * Get allowed methods.
      *
      * @return string[]
      */

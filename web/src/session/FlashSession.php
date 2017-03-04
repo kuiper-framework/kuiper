@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\session;
 
 class FlashSession implements FlashInterface
@@ -25,7 +26,7 @@ class FlashSession implements FlashInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function error($message)
     {
@@ -33,7 +34,7 @@ class FlashSession implements FlashInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function notice($message)
     {
@@ -41,7 +42,7 @@ class FlashSession implements FlashInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function success($message)
     {
@@ -49,7 +50,7 @@ class FlashSession implements FlashInterface
     }
 
     /**
-     * Shows a HTML warning message
+     * Shows a HTML warning message.
      */
     public function warning($message)
     {
@@ -57,7 +58,7 @@ class FlashSession implements FlashInterface
     }
 
     /**
-     * Outputs a message
+     * Outputs a message.
      */
     public function message($type, $message)
     {
@@ -72,6 +73,7 @@ class FlashSession implements FlashInterface
         if (isset($type)) {
             return !empty($messages);
         }
+
         return !empty($messages);
     }
 
@@ -81,6 +83,7 @@ class FlashSession implements FlashInterface
             $this->messages = $this->session->get($this->sessionKey);
             $this->session->remove($this->sessionKey);
         }
+
         return $this->messages;
     }
 

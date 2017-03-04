@@ -1,17 +1,17 @@
 <?php
+
 namespace kuiper\web;
 
 use FastRoute\RouteParser;
 use FastRoute\RouteParser\Std as StdParser;
-use InvalidArgumentException;
-use RuntimeException;
+use kuiper\web\exception\RouteNotFoundException;
 
 class FastRouteUrlResolver implements UrlResolverInterface
 {
     /**
-     * @var array
+     * @var RouteRegistarInterface
      */
-    private $routes;
+    private $routeRegistar;
 
     /**
      * @var string
@@ -24,23 +24,28 @@ class FastRouteUrlResolver implements UrlResolverInterface
     private $routeParser;
 
     /**
-     * Constructs url resolver
-     *
-     * @param RouteSourceInterface $routes
-     * @param string $baseUri
-     * @param RouteParser $parser
+     * @var array
      */
-    public function __construct(RouteSourceInterface $routes, $baseUri = null, RouteParser $parser = null)
+    private $routes;
+
+    /**
+     * Constructs url resolver.
+     *
+     * @param RouteRegistarInterface $routeRegistar
+     * @param string                 $baseUri
+     * @param RouteParser            $parser
+     */
+    public function __construct(RouteRegistarInterface $routeRegistar, $baseUri, RouteParser $parser = null)
     {
-        $this->routes = $routes;
+        $this->routeRegistar = $routeRegistar;
         $this->baseUri = $baseUri;
-        $this->routeParser = $parser ?: new StdParser;
+        $this->routeParser = $parser ?: new StdParser();
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
-    public function get($name, array $data)
+    public function get($name, array $data = [], $absolute = false)
     {
         $route = $this->getNamedRoute($name);
         $pattern = $route->getPattern();
@@ -81,24 +86,31 @@ class FastRouteUrlResolver implements UrlResolverInterface
         }
 
         if (empty($segments)) {
-            throw new InvalidArgumentException('Missing data for URL segment: ' . $segmentName);
+            throw new \InvalidArgumentException('Missing data for URL segment: '.$segmentName);
         }
         $url = implode('', $segments);
 
         if (!empty($data)) {
-            $url .= '?' . http_build_query($data);
+            $url .= '?'.http_build_query($data);
         }
 
-        return $this->baseUri ? $this->baseUri . $url : $url;
+        return $absolute ? $this->baseUri.$url : $url;
     }
 
     protected function getNamedRoute($name)
     {
-        foreach ($this->routes->getRoutes() as $route) {
-            if ($route->getName() === $name) {
-                return $route;
+        if ($this->routes === null) {
+            $this->routes = [];
+            foreach ($this->routeRegistar->getRoutes() as $route) {
+                if ($route->getName()) {
+                    $this->routes[$route->getName()] = $route;
+                }
             }
         }
-        throw new RuntimeException('Named route does not exist for name: ' . $name);
+        if (!isset($this->routes[$name])) {
+            throw new RouteNotFoundException($name);
+        }
+
+        return $this->routes[$name];
     }
 }

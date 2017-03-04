@@ -1,18 +1,17 @@
 <?php
+
 namespace kuiper\web\exception;
 
 use kuiper\web\RequestAwareInterface;
 use kuiper\web\RequestAwareTrait;
 use kuiper\web\ResponseAwareInterface;
 use kuiper\web\ResponseAwareTrait;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use RuntimeException;
+use LogicException;
 
 /**
- * Http Exception
+ * Http Exception.
  */
-class HttpException extends RuntimeException implements RequestAwareInterface, ResponseAwareInterface
+abstract class HttpException extends LogicException implements RequestAwareInterface, ResponseAwareInterface
 {
     use RequestAwareTrait;
     use ResponseAwareTrait {
@@ -25,7 +24,7 @@ class HttpException extends RuntimeException implements RequestAwareInterface, R
     protected $statusCode;
 
     /**
-     * Gets status code
+     * Gets status code.
      *
      * @return int
      */
@@ -35,7 +34,7 @@ class HttpException extends RuntimeException implements RequestAwareInterface, R
     }
 
     /**
-     * Sets status code
+     * Sets status code.
      *
      * @param int
      */

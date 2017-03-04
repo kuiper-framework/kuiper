@@ -1,7 +1,9 @@
 <?php
+
 namespace kuiper\web\annotation\filter;
 
 use Interop\Container\ContainerInterface;
+use kuiper\web\middlewares;
 
 /**
  * @Annotation
@@ -13,12 +15,12 @@ class Json extends AbstractFilter
      * @var int
      */
     public $priority = 100;
-    
+
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function createMiddleware(ContainerInterface $container)
     {
-        return new \kuiper\web\middlewares\Json();
+        return new middlewares\Json();
     }
 }

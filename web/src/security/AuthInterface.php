@@ -1,10 +1,11 @@
 <?php
+
 namespace kuiper\web\security;
 
 interface AuthInterface extends \ArrayAccess
 {
     /**
-     * make current user logged in
+     * make current user logged in.
      *
      * @param array $identity the user identity info
      */
@@ -16,23 +17,23 @@ interface AuthInterface extends \ArrayAccess
     public function getIdentity();
 
     /**
-     * make current user logged out
+     * make current user logged out.
      *
      * @param bool $destroySession trigger destroy session
      */
     public function logout($destroySession = true);
 
     /**
-     * whether current user is logged in
+     * whether current user is logged in.
      *
-     * @return boolean
+     * @return bool
      */
     public function isGuest();
 
     /**
-     * whether current user is required to login
+     * whether current user is required to login.
      *
-     * @return boolean
+     * @return bool
      */
     public function isNeedLogin();
 }

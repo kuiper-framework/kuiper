@@ -37,7 +37,8 @@
         "monolog/monolog": "^1.22",
         "nikic/fast-route": "^1.0",
         "ocramius/proxy-manager": "^1.0",
-        "phpunit/phpunit": "^5.0",
+        "phpunit/phpunit": "^5.0",,
+        "mockery/mockery": "^0.9.9"
         "predis/predis": "^1.1",
         "twig/twig": "^1.7",
         "vlucas/phpdotenv": "^2.4",

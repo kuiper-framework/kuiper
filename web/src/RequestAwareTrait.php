@@ -12,7 +12,7 @@ trait RequestAwareTrait
     protected $request;
 
     /**
-     * Sets request
+     * Sets request.
      *
      * @param ServerRequestInterface $request
      */
@@ -24,7 +24,7 @@ trait RequestAwareTrait
     }
 
     /**
-     * Gets request
+     * Gets request.
      *
      * @return ServerRequestInterface
      */

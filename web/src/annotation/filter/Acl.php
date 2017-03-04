@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\annotation\filter;
 
 use Interop\Container\ContainerInterface;
@@ -14,10 +15,14 @@ class Acl extends AbstractFilter
     /**
      * @Default
      * @Required
+     *
      * @var array<string>|string
      */
     public $resources;
-    
+
+    /**
+     * {@inheritdoc}
+     */
     public function createMiddleware(ContainerInterface $container)
     {
         return new middlewares\Acl($container->get(PermissionCheckerInterface::class), $this->resources);

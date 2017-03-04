@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\middlewares;
 
 use kuiper\web\session\ManagedSessionInterface;
@@ -6,7 +7,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Handle swoole php session
+ * Handle swoole php session.
  */
 class Session
 {
@@ -14,7 +15,7 @@ class Session
      * @var ManagedSessionInterface
      */
     private $session;
-    
+
     public function __construct(ManagedSessionInterface $session)
     {
         $this->session = $session;
@@ -27,6 +28,7 @@ class Session
             $this->session->start();
         }
         $response = $next($request, $response);
+
         return $this->session->respond($response);
     }
 }

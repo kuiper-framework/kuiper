@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\web\session;
 
 use Dflydev\FigCookies\SetCookie;
@@ -10,7 +11,7 @@ use SessionHandlerInterface;
 class ManagedSession implements ManagedSessionInterface
 {
     /**
-     * @var boolean
+     * @var bool
      */
     private $started;
 
@@ -46,7 +47,7 @@ class ManagedSession implements ManagedSessionInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function start()
     {
@@ -59,21 +60,23 @@ class ManagedSession implements ManagedSessionInterface
             $this->sessionId = $cookies[$name];
             $this->sessionData = $this->handler->read($this->sessionId);
         }
+
         return $this->started = true;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setRequest(ServerRequestInterface $request)
     {
         $this->started = false;
         $this->request = $request;
+
         return $this;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function respond(ResponseInterface $response)
     {
@@ -99,6 +102,7 @@ class ManagedSession implements ManagedSessionInterface
             if ($secure) {
                 $cookie = $cookie->withSecure($secure);
             }
+
             return $cookies->with($cookie)
                 ->renderIntoSetCookieHeader($response);
         } else {
@@ -113,7 +117,7 @@ class ManagedSession implements ManagedSessionInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function regenerateId($deleteOldSession = true)
     {
@@ -124,11 +128,12 @@ class ManagedSession implements ManagedSessionInterface
             $this->sessionData = [];
         }
         $this->sessionId = null;
+
         return $this;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function get($index, $default = null)
     {
@@ -136,16 +141,17 @@ class ManagedSession implements ManagedSessionInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function set($index, $value)
     {
         $this->sessionData[$index] = $value;
+
         return $this;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function has($index)
     {
@@ -153,27 +159,29 @@ class ManagedSession implements ManagedSessionInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function remove($index)
     {
         unset($this->sessionData[$index]);
+
         return $this;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getId()
     {
         if ($this->sessionId === null) {
             $this->sessionId = $this->handler->create_sid();
         }
+
         return $this->sessionId;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isStarted()
     {
@@ -181,7 +189,7 @@ class ManagedSession implements ManagedSessionInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function destroy($remove = false)
     {
@@ -193,6 +201,7 @@ class ManagedSession implements ManagedSessionInterface
         }
         $this->started = false;
         $this->sessionId = null;
+
         return true;
     }
 
