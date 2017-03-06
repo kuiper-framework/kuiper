@@ -21,6 +21,20 @@
          stopOnFailure="false"
          syntaxCheck="false"
          bootstrap="vendor/autoload.php">
+  <filter>
+    <whitelist processUncoveredFilesFromWhitelist="true">
+      <directory suffix=".php">annotations/src/</directory>
+      <directory suffix=".php">boot/src/</directory>
+      <directory suffix=".php">cache/src/</directory>
+      <directory suffix=".php">di/src/</directory>
+      <directory suffix=".php">helper/src/</directory>
+      <directory suffix=".php">reflection/src/</directory>
+      <directory suffix=".php">rpc-client/src/</directory>
+      <directory suffix=".php">rpc-server/src/</directory>
+      <directory suffix=".php">serializer/src/</directory>
+      <directory suffix=".php">web/src/</directory>
+    </whitelist>
+  </filter>
     <testsuites>
       <testsuite name="default">
         <directory suffix="Test.php">./*/tests</directory>

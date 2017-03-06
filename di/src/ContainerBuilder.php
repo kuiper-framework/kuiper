@@ -2,7 +2,7 @@
 
 namespace kuiper\di;
 
-use Interop\Container\ContainerInterface as InteropContainer;
+use Psr\Container\ContainerInterface as PsrContainer;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\DocReader;
 use kuiper\annotations\DocReaderInterface;
@@ -26,6 +26,11 @@ class ContainerBuilder
      * @var string
      */
     private $containerClass;
+
+    /**
+     * @var PsrContainer
+     */
+    private $parentContainer;
 
     /**
      * @var bool
@@ -110,13 +115,13 @@ class ContainerBuilder
         } else {
             $decorator = new DummyDecorator();
         }
-        $source = new SourceChain($sources, $definitions, $decorator);
+        $source = new SourceChain($sources, $definitions, $decorator, $this->getEventDispatcher());
 
         $containerClass = $this->containerClass;
-        $container = new $containerClass($source, $this->getProxyFactory(), $this->getEventDispatcher());
+        $container = new $containerClass($definitions, $source, $this->getProxyFactory(), $this->getParentContainer(), $this->getEventDispatcher());
         $definitions->addDefinitions([
             ContainerInterface::class => $container,
-            InteropContainer::class => $container,
+            PsrContainer::class => $container,
             Container::class => $container,
         ]);
 
@@ -133,6 +138,28 @@ class ContainerBuilder
     {
         $this->getDefinitions()->addDefinitions($definitions, $mergeDeeply);
 
+        return $this;
+    }
+
+    /**
+     * @return PsrContainer
+     */
+    public function getParentContainer()
+    {
+        return $this->parentContainer;
+    }
+
+    /**
+     * Sets the parent container associated to that container. This container will call
+     * the parent container to fetch dependencies.
+     *
+     * @param PsrContainer $parentContainer
+     *
+     * @return self
+     */
+    public function setParentContainer(PsrContainer $parentContainer)
+    {
+        $this->parentContainer = $parentContainer;
         return $this;
     }
 

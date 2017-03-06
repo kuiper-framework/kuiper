@@ -75,13 +75,7 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
                 $params[] = new AliasDefinition($class->getName());
             }
         }
-        $newDef = new FactoryDefinition($factory, $params);
-        if ($definition->isLazy()) {
-            $newDef->lazy();
-        }
-        $newDef->scope($definition->getScope());
-
-        return new DefinitionEntry($entry->getName(), $newDef);
+        return new DefinitionEntry($entry->getName(), $definition->withArguments($params));
     }
 
     /**

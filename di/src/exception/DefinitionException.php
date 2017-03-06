@@ -2,12 +2,11 @@
 
 namespace kuiper\di\exception;
 
-use Interop\Container\Exception\ContainerException;
-use RuntimeException;
+use Psr\Container\ContainerExceptionInterface;
 
 /**
  * Exception for the Container.
  */
-class DefinitionException extends RuntimeException implements ContainerException
+class DefinitionException extends \RuntimeException implements ContainerExceptionInterface
 {
 }

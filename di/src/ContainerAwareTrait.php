@@ -2,10 +2,13 @@
 
 namespace kuiper\di;
 
-use Interop\Container\ContainerInterface as InteropContainer;
+use Psr\Container\ContainerInterface as PsrContainer;
 
 trait ContainerAwareTrait
 {
+    /**
+     * @var PsrContainer
+     */
     protected $container;
 
     /**
@@ -13,7 +16,7 @@ trait ContainerAwareTrait
      *
      * @param ContainerInterface $container
      */
-    public function setContainer(InteropContainer $container)
+    public function setContainer(PsrContainer $container)
     {
         $this->container = $container;
     }

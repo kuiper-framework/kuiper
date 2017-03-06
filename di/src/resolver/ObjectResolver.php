@@ -57,7 +57,7 @@ class ObjectResolver implements ResolverInterface
             ));
         }
         $className = $definition->getClassName() ?: $entry->getName();
-        if ($definition->isLazy() || $definition->getScope() === Scope::REQUEST) {
+        if ($definition->isLazy()) {
             return $this->proxyFactory->createProxy($className, function () use ($container, $entry, $parameters) {
                 return $this->createInstance($container, $entry, $parameters);
             });

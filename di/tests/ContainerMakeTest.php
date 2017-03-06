@@ -12,15 +12,16 @@ use stdClass;
 
 /**
  * Test class for Container.
- *
- * @covers \DI\Container
  */
 class ContainerMakeTest extends TestCase
 {
-    public function createContainer($definitions = [])
+    public function createContainer($definitions = [], $useAnnotations = false)
     {
         $builder = new ContainerBuilder();
         $builder->addDefinitions($definitions);
+        if ($useAnnotations) {
+            $builder->useAnnotations(true);
+        }
 
         return $builder->build();
     }
@@ -65,9 +66,7 @@ class ContainerMakeTest extends TestCase
 
     public function testMakeWithPrototypeScope()
     {
-        $builder = new ContainerBuilder();
-        $builder->useAnnotations(true);
-        $container = $builder->build();
+        $container = $this->createContainer([], true);
         // With @Injectable(scope="prototype") annotation
         $instance1 = $container->make(Prototype::class);
         $instance2 = $container->make(Prototype::class);
@@ -81,9 +80,7 @@ class ContainerMakeTest extends TestCase
      */
     public function testMakeWithInvalidScope()
     {
-        $builder = new ContainerBuilder();
-        $builder->useAnnotations(true);
-        $container = $builder->build();
+        $container = $this->createContainer([], true);
         $container->make(InvalidScope::class);
     }
 
@@ -99,9 +96,7 @@ class ContainerMakeTest extends TestCase
 
     public function testCircularDependencyOk()
     {
-        $builder = new ContainerBuilder();
-        $builder->useAnnotations(true);
-        $container = $builder->build();
+        $container = $this->createContainer([], true);
         $container->make(Class1CircularDependencies::class);
     }
 

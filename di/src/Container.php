@@ -2,6 +2,7 @@
 
 namespace kuiper\di;
 
+use Psr\Container\ContainerInterface as PsrContainer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
@@ -13,7 +14,6 @@ use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\definition\ObjectDefinition;
 use kuiper\di\definition\StringDefinition;
 use kuiper\di\definition\ValueDefinition;
-use kuiper\di\event\DefinitionEvent;
 use kuiper\di\event\Events;
 use kuiper\di\event\ResolveEvent;
 use kuiper\di\exception\DefinitionException;
@@ -37,6 +37,11 @@ class Container implements ContainerInterface, ResolverInterface
     /**
      * @var SourceInterface
      */
+    private $definitions;
+
+    /**
+     * @var MutableSourceInterface
+     */
     private $source;
 
     /**
@@ -45,9 +50,19 @@ class Container implements ContainerInterface, ResolverInterface
     private $proxyFactory;
 
     /**
+     * @var PsrContainer
+     */
+    private $parentContainer;
+
+    /**
      * @var EventDispatcherInterface
      */
     private $eventDispatcher;
+
+    /**
+     * @var boolean
+     */
+    private $requestStarted = false;
 
     /**
      * @var array
@@ -82,10 +97,12 @@ class Container implements ContainerInterface, ResolverInterface
         ObjectDefinition::class => [__CLASS__, 'createObjectResolver'],
     ];
 
-    public function __construct(MutableSourceInterface $source, ProxyFactory $proxyFactory, EventDispatcherInterface $eventDispatcher = null)
+    public function __construct(SourceInterface $definitions, MutableSourceInterface $source, ProxyFactory $proxyFactory, PsrContainer $parentContainer = null, EventDispatcherInterface $eventDispatcher = null)
     {
+        $this->definitions = $definitions;
         $this->source = $source;
         $this->proxyFactory = $proxyFactory;
+        $this->parentContainer = $parentContainer;
         $this->eventDispatcher = $eventDispatcher;
     }
 
@@ -95,13 +112,17 @@ class Container implements ContainerInterface, ResolverInterface
     public function get($name)
     {
         $name = $this->normalize($name);
-        if ($this->isResolved($name)) {
-            return $this->getResolved($name);
-        }
-        $this->isResolvingShared = true;
-        $this->resolvedValues = [];
+        if ($this->isResolvableByParent($name)) {
+            return $this->parentContainer->get($name);
+        } else {
+            if ($this->isResolved($name)) {
+                return $this->getResolved($name);
+            }
+            $this->isResolvingShared = true;
+            $this->resolvedValues = [];
 
-        return $this->resolve($this, $this->getDefinition($name));
+            return $this->resolve($this, $this->getDefinition($name));
+        }
     }
 
     /**
@@ -133,11 +154,16 @@ class Container implements ContainerInterface, ResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function has($name)
+    public function has($name, $onlyDefined = false)
     {
         $name = $this->normalize($name);
+        if ($onlyDefined) {
+            return $this->definitions->has($name);
+        }
 
-        return $this->isResolved($name) || $this->source->has($name);
+        return $this->isResolved($name)
+            || $this->source->has($name)
+            || ($this->parentContainer && $this->parentContainer->has($name));
     }
 
     /**
@@ -145,10 +171,8 @@ class Container implements ContainerInterface, ResolverInterface
      */
     public function startRequest()
     {
-        foreach ($this->requestEntries as $name => $entry) {
-            list($value, $initializer) = $entry;
-            $value->setProxyInitializer($initializer);
-        }
+        $this->requestStarted = true;
+        $this->requestEntries = [];
 
         return $this;
     }
@@ -158,6 +182,9 @@ class Container implements ContainerInterface, ResolverInterface
      */
     public function endRequest()
     {
+        $this->requestStarted = false;
+        $this->requestEntries = [];
+
         return $this;
     }
 
@@ -174,7 +201,7 @@ class Container implements ContainerInterface, ResolverInterface
             return $this->resolvedValues[$name];
         }
         if (isset($this->resolving[$name])) {
-            throw new DependencyException("Circular dependency detected while trying to resolve entry '$name': " . json_encode($this->resolving));
+            throw new DependencyException("Circular dependency detected while trying to resolve entry '$name', resolving chain " . json_encode(array_keys($this->resolving)));
         }
         $this->resolving[$name] = true;
 
@@ -208,13 +235,10 @@ class Container implements ContainerInterface, ResolverInterface
         }
         if ($this->isResolvingShared) {
             $scope = $definition->getScope();
-            if ($scope === Scope::SINGLETON) {
+            if ($scope === Scope::REQUEST || $this->requestStarted) {
+                $this->requestEntries[$name] = $value;
+            } elseif ($scope === Scope::SINGLETON) {
                 $this->singletonEntries[$name] = $value;
-            } elseif ($scope === Scope::REQUEST) {
-                if (!$value instanceof VirtualProxyInterface) {
-                    throw new LogicException("Request entry '{$name}' is not object or factory");
-                }
-                $this->requestEntries[$name] = [$value, $value->getProxyInitializer()];
             }
         }
         $this->resolvedValues[$name] = $value;
@@ -262,23 +286,19 @@ class Container implements ContainerInterface, ResolverInterface
 
     protected function getDefinition($name)
     {
-        if ($this->eventDispatcher) {
-            $event = new DefinitionEvent($name);
-            $this->eventDispatcher->dispatch(Events::BEFORE_GET_DEFINITION, $event);
-            if ($definition = $event->getDefinition()) {
-                return $definition;
-            }
-        }
         $definition = $this->source->get($name);
         if ($definition === null) {
             throw new NotFoundException("Cannot resolve entry '$name'");
         }
-        if ($this->eventDispatcher) {
-            $event->setDefinition($definition);
-            $this->eventDispatcher->dispatch(Events::AFTER_GET_DEFINITION, $event);
-        }
 
         return $definition;
+    }
+
+    protected function isResolvableByParent($name)
+    {
+        return !$this->definitions->has($name)
+            && $this->parentContainer
+            && $this->parentContainer->has($name, $onlyDefined = true);
     }
 
     protected function isResolved($name)
@@ -292,7 +312,7 @@ class Container implements ContainerInterface, ResolverInterface
         if (array_key_exists($name, $this->singletonEntries)) {
             return $this->singletonEntries[$name];
         } elseif (array_key_exists($name, $this->requestEntries)) {
-            return $this->requestEntries[$name][0];
+            return $this->requestEntries[$name];
         }
     }
 

@@ -24,7 +24,7 @@ class FactoryDefinition extends AbstractDefinition
      */
     private $returnType;
 
-    public function __construct($factory, $arguments = [])
+    public function __construct($factory, array $arguments = [])
     {
         $this->factory = $factory;
         $this->arguments = $arguments;
@@ -62,5 +62,13 @@ class FactoryDefinition extends AbstractDefinition
     public function getReturnType()
     {
         return $this->returnType;
+    }
+
+    public function withArguments(array $arguments)
+    {
+        $factory = clone $this;
+        $factory->arguments = $arguments;
+
+        return $factory;
     }
 }
