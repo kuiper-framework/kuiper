@@ -231,6 +231,7 @@ class Container implements ContainerInterface, ResolverInterface
             if ($this->eventDispatcher) {
                 $event->setValue($value);
                 $this->eventDispatcher->dispatch(Events::AFTER_RESOLVE, $event);
+                $value = $event->getValue();
             }
         }
         if ($this->isResolvingShared) {
