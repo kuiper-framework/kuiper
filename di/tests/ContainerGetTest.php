@@ -2,7 +2,7 @@
 
 namespace kuiper\di;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use kuiper\di\definition\AliasDefinition;
 use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\definition\NamedParameters;
@@ -19,10 +19,13 @@ use stdClass;
  */
 class ContainerGetTest extends TestCase
 {
-    public function createContainer($definitions = [])
+    public function createContainer($definitions = [], $useAnnotations = false)
     {
         $builder = new ContainerBuilder();
         $builder->addDefinitions($definitions);
+        if ($useAnnotations) {
+            $builder->useAnnotations(true);
+        }
 
         return $builder->build();
     }
@@ -63,9 +66,7 @@ class ContainerGetTest extends TestCase
 
     public function testGetWithPrototypeScope()
     {
-        $builder = new ContainerBuilder();
-        $builder->useAnnotations(true);
-        $container = $builder->build();
+        $container = $this->createContainer([], true);
         // With @Injectable(scope="prototype") annotation
         $instance1 = $container->get(Prototype::class);
         $instance2 = $container->get(Prototype::class);
@@ -92,9 +93,7 @@ class ContainerGetTest extends TestCase
      */
     public function testGetWithInvalidScope()
     {
-        $builder = new ContainerBuilder();
-        $builder->useAnnotations(true);
-        $container = $builder->build();
+        $container = $this->createContainer([], true);
         $container->get(InvalidScope::class);
     }
 
@@ -110,9 +109,7 @@ class ContainerGetTest extends TestCase
 
     public function testCircularDependencyOk()
     {
-        $builder = new ContainerBuilder();
-        $builder->useAnnotations(true);
-        $container = $builder->build();
+        $container = $this->createContainer([], true);
         $container->get(Class1CircularDependencies::class);
     }
 

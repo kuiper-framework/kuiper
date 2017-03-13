@@ -2,14 +2,14 @@
 
 namespace kuiper\di;
 
-use Interop\Container\ContainerInterface as InteropContainer;
+use Psr\Container\ContainerInterface as PsrContainer;
 
 interface ContainerAwareInterface
 {
     /**
      * Sets the container.
      *
-     * @param InteropContainer $container
+     * @param PsrContainer $container
      */
-    public function setContainer(InteropContainer $container);
+    public function setContainer(PsrContainer $container);
 }

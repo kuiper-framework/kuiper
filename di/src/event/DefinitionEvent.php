@@ -2,36 +2,24 @@
 
 namespace kuiper\di\event;
 
-use kuiper\di\ContainerInterface;
-use kuiper\di\definition\DefinitionInterface;
+use kuiper\di\DefinitionEntry;
 use Symfony\Component\EventDispatcher\Event;
 
 class DefinitionEvent extends Event
 {
-    /**
-     * @var ContainerInterface
-     */
-    private $container;
-
     /**
      * @var string
      */
     private $name;
 
     /**
-     * @var DefinitionInterface
+     * @var DefinitionEntry
      */
     private $definition;
 
-    public function __construct(ContainerInterface $container, $name)
+    public function __construct($name)
     {
-        $this->container = $container;
         $this->name = $name;
-    }
-
-    public function getContainer()
-    {
-        return $this->container;
     }
 
     public function getName()
@@ -44,7 +32,7 @@ class DefinitionEvent extends Event
         return $this->definition;
     }
 
-    public function setDefinition(DefinitionInterface $definition)
+    public function setDefinition(DefinitionEntry $definition)
     {
         $this->definition = $definition;
 

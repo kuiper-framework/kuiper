@@ -24,6 +24,9 @@ class LazyTest extends TestCase
             'foo' => (new ObjectDefinition(fixtures\DummyClass::class))
             ->lazy(),
             'bar' => new ObjectDefinition(fixtures\DummyClass::class),
+            'baz' => factory(function () {
+                return new fixtures\DummyClass();
+            })->willReturn(fixtures\DummyClass::class)->lazy()
         ]);
         $ret = $container->get('foo');
         $this->assertInstanceOf(VirtualProxyInterface::class, $ret);
@@ -33,5 +36,8 @@ class LazyTest extends TestCase
         $this->assertInstanceOf(fixtures\DummyClass::class, $ret);
         $this->assertNotInstanceOf(VirtualProxyInterface::class, $ret);
         // print_r($ret);
+        $ret = $container->get('baz');
+        $this->assertInstanceOf(VirtualProxyInterface::class, $ret);
+        $this->assertInstanceOf(fixtures\DummyClass::class, $ret);
     }
 }

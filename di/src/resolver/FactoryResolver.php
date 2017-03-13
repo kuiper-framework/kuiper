@@ -43,7 +43,7 @@ class FactoryResolver implements ResolverInterface
                 is_object($definition) ? get_class($definition) : gettype($definition)
             ));
         }
-        if ($definition->isLazy() || $definition->getScope() === Scope::REQUEST) {
+        if ($definition->isLazy()) {
             $className = $definition->getReturnType() ?: $entry->getName();
             if (!interface_exists($className) && !class_exists($className)) {
                 throw new LogicException(sprintf("Factory definition for entry '%s' requires return type", $entry->getName()));

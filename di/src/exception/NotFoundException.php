@@ -2,12 +2,11 @@
 
 namespace kuiper\di\exception;
 
-use Interop\Container\Exception\NotFoundException as BaseNotFoundException;
-use RuntimeException;
+use Psr\Container\NotFoundExceptionInterface;
 
 /**
  * Exception thrown when a class or a value is not found in the container.
  */
-class NotFoundException extends RuntimeException implements BaseNotFoundException
+class NotFoundException extends \RuntimeException implements NotFoundExceptionInterface
 {
 }

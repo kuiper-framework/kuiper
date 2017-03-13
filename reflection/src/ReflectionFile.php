@@ -195,7 +195,7 @@ class ReflectionFile implements ReflectionFileInterface
                 $prevToken = $token;
             }
         }
-        $this->namespaces = array_unique($namespaces);
+        $this->namespaces = array_unique(array_merge($namespaces, array_keys($imports)));
         $this->classes = $classes;
         $this->imports = $imports;
     }

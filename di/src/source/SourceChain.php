@@ -4,6 +4,9 @@ namespace kuiper\di\source;
 
 use kuiper\di\definition\decorator\DecoratorInterface;
 use kuiper\di\definition\DefinitionInterface;
+use kuiper\di\event\DefinitionEvent;
+use kuiper\di\event\Events;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class SourceChain implements MutableSourceInterface
 {
@@ -23,15 +26,21 @@ class SourceChain implements MutableSourceInterface
     private $decorator;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
      * @var array<\kuiper\di\DefinitionEntry>
      */
     private $resolvedEntries = [];
 
-    public function __construct(array $sources, MutableSourceInterface $mutable, DecoratorInterface $decorator)
+    public function __construct(array $sources, MutableSourceInterface $mutable, DecoratorInterface $decorator, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->sources = $sources;
         $this->mutable = $mutable;
         $this->decorator = $decorator;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -59,10 +68,22 @@ class SourceChain implements MutableSourceInterface
         if (isset($this->resolvedEntries[$name])) {
             return $this->resolvedEntries[$name];
         }
+        if ($this->eventDispatcher) {
+            $event = new DefinitionEvent($name);
+            $this->eventDispatcher->dispatch(Events::BEFORE_GET_DEFINITION, $event);
+            if ($definition = $event->getDefinition()) {
+                return $definition;
+            }
+        }
         foreach ($this->sources as $source) {
             $entry = $source->get($name);
             if ($entry !== null) {
-                return $this->resolvedEntries[$name] = $this->decorator->decorate($entry);
+                $this->resolvedEntries[$name] = $entry = $this->decorator->decorate($entry);
+                if ($this->eventDispatcher) {
+                    $event->setDefinition($entry);
+                    $this->eventDispatcher->dispatch(Events::AFTER_GET_DEFINITION, $event);
+                }
+                return $entry;
             }
         }
     }
