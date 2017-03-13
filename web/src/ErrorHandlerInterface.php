@@ -6,6 +6,8 @@ interface ErrorHandlerInterface extends RequestAwareInterface, ResponseAwareInte
 {
     /**
      * Handles the exception.
+     *
+     * @param \Error $e
      */
     public function handle($e);
 }

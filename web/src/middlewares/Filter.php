@@ -2,10 +2,10 @@
 
 namespace kuiper\web\middlewares;
 
-use Interop\Container\ContainerInterface;
 use kuiper\annotations\ReaderInterface;
 use kuiper\web\annotation\filter\FilterInterface;
 use LogicException;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionClass;

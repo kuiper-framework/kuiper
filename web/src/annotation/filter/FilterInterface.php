@@ -2,7 +2,7 @@
 
 namespace kuiper\web\annotation\filter;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 
 interface FilterInterface
 {

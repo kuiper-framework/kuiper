@@ -3,7 +3,7 @@
 namespace kuiper\rpc\server;
 
 use Closure;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 
 class Server implements ServerInterface, MiddlewareInterface
 {

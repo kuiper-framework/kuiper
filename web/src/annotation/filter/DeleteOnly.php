@@ -2,8 +2,8 @@
 
 namespace kuiper\web\annotation\filter;
 
-use Interop\Container\ContainerInterface;
 use kuiper\web\middlewares;
+use Psr\Container\ContainerInterface;
 
 /**
  * @Annotation

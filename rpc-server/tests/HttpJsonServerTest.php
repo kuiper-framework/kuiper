@@ -1,125 +1,69 @@
 <?php
+
 namespace kuiper\rpc\server;
 
-use PHPUnit_Framework_TestCase as TestCase;
-use kuiper\rpc\server\fixtures\CalculatorInterface;
-use kuiper\rpc\server\fixtures\Calculator;
-use kuiper\rpc\server\fixtures\ApiServiceInterface;
-use kuiper\rpc\server\fixtures\ApiService;
-use kuiper\rpc\server\util\HealthyCheckService;
-use kuiper\rpc\server\util\HealthyCheckServiceInterface;
-use kuiper\rpc\server\response\ResponseInterface;
-use kuiper\rpc\server\request\RequestFactory;
-use kuiper\di\ContainerBuilder;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\DocReader;
 use kuiper\annotations\DocReaderInterface;
+use kuiper\di;
+use kuiper\di\ContainerBuilder;
+use kuiper\rpc\server\fixtures\ApiService;
+use kuiper\rpc\server\fixtures\ApiServiceInterface;
+use kuiper\rpc\server\fixtures\Calculator;
+use kuiper\rpc\server\fixtures\CalculatorInterface;
+use kuiper\rpc\server\middleware\JsonRpc;
+use kuiper\rpc\server\util\HealthyCheckService;
+use kuiper\rpc\server\util\HealthyCheckServiceInterface;
 use kuiper\serializer\JsonSerializerInterface as SerializerInterface;
 use kuiper\serializer\Serializer;
-use InvalidArgumentException;
-use UnexpectedValueException;
+use PHPUnit_Framework_TestCase as TestCase;
 
-class JsonServerTest extends TestCase
+class HttpJsonServerTest extends TestCase
 {
     public function createServer()
     {
-        $container = ContainerBuilder::buildDevContainer();
         $docReader = new DocReader();
-        $container->set(SerializerInterface::class, new Serializer(new AnnotationReader(), $docReader));
-        $container->set(DocReaderInterface::class, $docReader);
-        $container->set(CalculatorInterface::class, new Calculator());
-        $container->set(ApiServiceInterface::class, new ApiService());
-        $container->set(HealthyCheckServiceInterface::class, new HealthyCheckService());
-        
-        $server = new JsonServer($container);
-        $server->add(CalculatorInterface::class);
-        $server->add(ApiServiceInterface::class);
-        $server->add(HealthyCheckServiceInterface::class);
+        $builder = new ContainerBuilder();
+        $builder->addDefinitions([
+            SerializerInterface::class => new Serializer(new AnnotationReader(), $docReader),
+            DocReaderInterface::class => $docReader,
+            CalculatorInterface::class => di\object(Calculator::class),
+            ApiServiceInterface::class => di\object(ApiService::class),
+            HealthyCheckServiceInterface::class => di\object(HealthyCheckService::class),
+        ]);
+
+        $resolver = new ServiceResolver();
+        $resolver->setContainer($container = $builder->build());
+        $resolver->add(CalculatorInterface::class);
+        $resolver->add(ApiServiceInterface::class);
+        $resolver->add(HealthyCheckServiceInterface::class);
+
+        $server = new Server($resolver);
+        $server->add(new JsonRpc());
+
         return $server;
     }
 
-    public function testHandle()
+    public function testHandleOk()
     {
         $server = $this->createServer();
-        $request = RequestFactory::fromString('{"method":"'.addslashes(CalculatorInterface::class).'.multiply","id":"1","params":[10,10]}');
-        $response = $server->handle($request);
+        $request = new Request('{"method":"'.addslashes(CalculatorInterface::class).'.multiply","id":"1","params":[10,10]}');
+        $response = $server->serve($request, new Response());
         // print_r($response);
         $this->assertInstanceOf(ResponseInterface::class, $response);
-        $this->assertEquals('{"id":"1","result":100}', $response->getBody());
-    }
-
-    public function testError()
-    {
-        $server = $this->createServer();
-        $request = RequestFactory::fromString('{"method":"'.addslashes(CalculatorInterface::class).'.divide","id":"1","params":[10,0]}');
-        $response = $server->handle($request);
-        // print_r($response);
-        $this->assertContains('-32602', $response->getBody());
-    }
-
-    public function testInvalidParam()
-    {
-        $server = $this->createServer();
-        $request = RequestFactory::fromString('{"method":"'.addslashes(CalculatorInterface::class).'.divide","id":"1","params":[10,"a"]}');
-        $response = $server->handle($request);
-        // print_r($response);
-        $this->assertContains('-32602', $response->getBody());
-    }
-
-    public function testHandleObject()
-    {
-        $server = $this->createServer();
-        $request = RequestFactory::fromString(json_encode([
-            "method" => ApiServiceInterface::class.'.query',
-            "id" => "1",
-            "params" => [ ["query" => 'foo'] ]
-        ]));
-        $response = $server->handle($request);
-        // print_r($response);
-        $this->assertEquals($response->getBody(), '{"id":"1","result":[{"name":"foo"}]}');
-    }
-
-    public function testHandleEmptyQuery()
-    {
-        $server = $this->createServer();
-        $request = RequestFactory::fromString(json_encode([
-            "method" => ApiServiceInterface::class.'.query',
-            "id" => "1",
-            "params" => [ ["query" => "foo"] ]
-        ]));
-        // print_r($request);
-        $response = $server->handle($request);
-        // print_r($response);
-        $this->assertEquals($response->getBody(), '{"id":"1","result":[{"name":"foo"}]}');
-    }
-
-    public function testException()
-    {
-        $server = $this->createServer();
-        $request = RequestFactory::fromString(json_encode([
-            "method" => ApiServiceInterface::class.'.query',
-            "id" => "1",
-            "params" => [ ["query" => null] ]
-        ]));
-        $response = $server->handle($request);
-        // print_r($response);
-        $result = json_decode($response->getBody(), true);
-        $this->assertArrayHasKey('error', $result);
-        $e = unserialize(base64_decode($result['error']['data']));
-        // print_r($e);
-        $this->assertEquals('InvalidArgumentException', $e['class']);
+        $this->assertEquals('{"id":"1","jsonrpc":"1.0","result":100}', (string) $response->getBody());
     }
 
     public function testHealthyCheck()
     {
         $server = $this->createServer();
-        $request = RequestFactory::fromString(json_encode([
-            "method" => HealthyCheckServiceInterface::class.'.ping',
-            "id" => "1",
-            "params" => [],
+        $request = new Request(json_encode([
+            'method' => HealthyCheckServiceInterface::class.'.ping',
+            'id' => '1',
+            'params' => [],
         ]));
-        $response = $server->handle($request);
-        $result = json_decode($response->getBody(), true);
+        $response = $server->serve($request, new Response());
+        $result = json_decode((string) $response->getBody(), true);
         $this->assertEquals('pong', $result['result']);
     }
 }

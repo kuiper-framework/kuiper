@@ -4,11 +4,11 @@ namespace kuiper\web;
 
 use Closure;
 use Exception;
-use Interop\Container\ContainerInterface;
 use InvalidArgumentException;
 use kuiper\web\exception\HttpException;
 use kuiper\web\exception\MethodNotAllowedException;
 use kuiper\web\exception\NotFoundException;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;

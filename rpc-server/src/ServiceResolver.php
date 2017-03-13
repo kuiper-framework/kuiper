@@ -2,8 +2,8 @@
 
 namespace kuiper\rpc\server;
 
-use Interop\Container\ContainerInterface;
 use kuiper\rpc\server\exception\MethodNotFoundException;
+use Psr\Container\ContainerInterface;
 use ReflectionClass;
 
 class ServiceResolver implements ServiceResolverInterface

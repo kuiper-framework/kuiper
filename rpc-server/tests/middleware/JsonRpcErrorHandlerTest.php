@@ -12,7 +12,7 @@ use kuiper\rpc\server\ServiceResolver;
 use kuiper\rpc\server\TestCase;
 use kuiper\serializer\Serializer;
 
-class JsonRpcTest extends TestCase
+class JsonRpcErrorHandlerTest extends TestCase
 {
     public function createServer()
     {

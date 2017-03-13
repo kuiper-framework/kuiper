@@ -2,16 +2,11 @@
 
 namespace kuiper\web\session;
 
+use kuiper\web\RequestAwareInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 
-interface ManagedSessionInterface extends SessionInterface
+interface ManagedSessionInterface extends SessionInterface, RequestAwareInterface
 {
-    /**
-     * @param ServerRequestInterface $request
-     */
-    public function setRequest(ServerRequestInterface $request);
-
     /**
      * @param ResponseInterface $response
      *

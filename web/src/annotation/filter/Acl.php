@@ -2,9 +2,9 @@
 
 namespace kuiper\web\annotation\filter;
 
-use Interop\Container\ContainerInterface;
 use kuiper\web\middlewares;
 use kuiper\web\security\PermissionCheckerInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * @Annotation

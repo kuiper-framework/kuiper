@@ -2,8 +2,8 @@
 
 namespace kuiper\web;
 
-use Interop\Container\ContainerInterface;
 use Mockery;
+use Psr\Container\ContainerInterface;
 
 abstract class TestCase extends \PHPUnit_Framework_TestCase
 {

@@ -2,9 +2,9 @@
 
 namespace kuiper\web;
 
-use Interop\Container\ContainerInterface;
 use kuiper\web\fixtures\controllers;
 use Mockery;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response;
