@@ -2,7 +2,6 @@
 
 namespace kuiper\di;
 
-use Psr\Container\ContainerInterface as PsrContainer;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\DocReader;
 use kuiper\annotations\DocReaderInterface;
@@ -15,10 +14,11 @@ use kuiper\di\source\MutableSourceInterface;
 use kuiper\di\source\ObjectSource;
 use kuiper\di\source\SourceChain;
 use kuiper\di\source\SourceInterface;
+use Psr\Container\ContainerInterface as PsrContainer;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class ContainerBuilder
+class ContainerBuilder implements ContainerBuilderInterface
 {
     /**
      * Name of the container class, used to create the container.
@@ -160,6 +160,7 @@ class ContainerBuilder
     public function setParentContainer(PsrContainer $parentContainer)
     {
         $this->parentContainer = $parentContainer;
+
         return $this;
     }
 

@@ -119,9 +119,27 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
-     * Gets all enum oridinals.
+     * Gets all enum intval.
      *
      * @return array
+     *
+     * @deprecated use intvals instead
+     */
+    public static function intvals()
+    {
+        if (empty(static::$PROPERTIES['intval'])) {
+            throw new \RuntimeException("property 'intval' is not defined, please set value for ".get_called_class().'::$PROPERTIES["intval"]');
+        }
+
+        return array_values(static::$PROPERTIES['intval']);
+    }
+
+    /**
+     * Gets all enum ordinals.
+     *
+     * @return array
+     *
+     * @deprecated use intvals instead
      */
     public static function ordinals()
     {
@@ -229,12 +247,52 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
+     * Gets the enum instance match properties intval.
+     *
+     * @param int    $intval
+     * @param object $default
+     *
+     * @return Enum
+     */
+    public static function fromIntval($intval, $default = null)
+    {
+        if (empty(static::$PROPERTIES['intval'])) {
+            throw new \RuntimeException("property 'intval' is not defined, please set value for ".get_called_class().'::$PROPERTIES["intval"]');
+        }
+        $value = array_search($intval, static::$PROPERTIES['intval']);
+        if ($value !== false) {
+            return self::fromValue($value);
+        } else {
+            if ($default === null) {
+                throw new InvalidArgumentException("No enum intval for '$intval' class ".get_called_class());
+            }
+
+            return $default;
+        }
+    }
+
+    /**
+     * Gets the enum instance match properties intval.
+     *
+     * @param int    $intval
+     * @param object $default
+     *
+     * @return Enum
+     */
+    public static function fromInt($intval, $default = null)
+    {
+        return self::fromIntval($intval, $default);
+    }
+
+    /**
      * Gets the enum instance match properties ordinal.
      *
      * @param int    $ordinal
      * @param object $default
      *
      * @return Enum
+     *
+     * @deprecated use fromIntval
      */
     public static function fromOrdinal($ordinal, $default = null)
     {
@@ -246,7 +304,7 @@ abstract class Enum implements \JsonSerializable
             return self::fromValue($value);
         } else {
             if ($default === null) {
-                throw new InvalidArgumentException("No enum oridinal for '$value' class ".get_called_class());
+                throw new InvalidArgumentException("No enum ordinal for '$ordinal' class ".get_called_class());
             }
 
             return $default;

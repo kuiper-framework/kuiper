@@ -3,7 +3,8 @@
 namespace kuiper\boot;
 
 use Composer\Autoload\ClassLoader;
-use kuiper\di\ContainerBuilder;
+use kuiper\di\CompositeContainerBuilder;
+use kuiper\di\ContainerBuilderInterface;
 use kuiper\di\source\DotArraySource;
 use kuiper\helper\DotArray;
 use kuiper\reflection\ReflectionNamespaceFactory;
@@ -26,7 +27,7 @@ class Application
     private $container;
 
     /**
-     * @var ContainerBuilder
+     * @var ContainerBuilderInterface
      */
     private $containerBuilder;
 
@@ -72,7 +73,7 @@ class Application
         return $this->loader;
     }
 
-    public function setContainerBuilder(ContainerBuilder $builder)
+    public function setContainerBuilder(ContainerBuilderInterface $builder)
     {
         $this->containerBuilder = $builder;
 
@@ -82,7 +83,7 @@ class Application
     public function getContainerBuilder()
     {
         if ($this->containerBuilder === null) {
-            $this->setContainerBuilder(new ContainerBuilder());
+            $this->setContainerBuilder(new CompositeContainerBuilder());
         }
 
         return $this->containerBuilder;
