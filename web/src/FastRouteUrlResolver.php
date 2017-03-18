@@ -93,8 +93,18 @@ class FastRouteUrlResolver implements UrlResolverInterface
         if (!empty($data)) {
             $url .= '?'.http_build_query($data);
         }
+        if ($absolute) {
+            $attrs = $route->getAttributes();
+            if (isset($attrs['host'])) {
+                $scheme = isset($attrs['scheme']) ? $attrs['scheme'] : 'http';
 
-        return $absolute ? $this->baseUri.$url : $url;
+                return sprintf('%s://%s%s', $scheme, $attrs['host'], $url);
+            } else {
+                return $this->baseUri.$url;
+            }
+        } else {
+            return $url;
+        }
     }
 
     protected function getNamedRoute($name)

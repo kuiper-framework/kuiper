@@ -10,7 +10,7 @@ class CompositeContainerBuilderTest extends TestCase
         $builder->root()
             ->addDefinitions(['kuiper\q\a' => 'root']);
 
-        $builder->namespace('kuiper\q')
+        $builder->withNamespace('kuiper\q')
             ->addDefinitions(['kuiper\q\a' => 'a']);
 
         $container = $builder->build();

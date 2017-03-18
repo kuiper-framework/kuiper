@@ -24,13 +24,13 @@ class MonologProvider extends Provider
         $logger = new Logger($settings['logger.name'] ?: $settings['app.name'] ?: 'unnamed');
         $logLevel = constant(Logger::class.'::'.strtoupper($settings['logger.level'] ?: 'debug'));
         if (isset($settings['logger.file'])) {
-            $logFile = $this->template($settings['logger.file']);
+            $logFile = $settings['logger.file'];
         } else {
             $logFile = 'php://stderr';
         }
         $logger->pushHandler(new StreamHandler($logFile, $logLevel));
         if (isset($settings['logger.error_file'])) {
-            $logger->pushHandler(new StreamHandler($this->template($settings['logger.error_file']), Logger::ERROR));
+            $logger->pushHandler(new StreamHandler($settings['logger.error_file'], Logger::ERROR));
         }
         $processors = $settings['logger.processors'];
         if (is_array($processors)) {

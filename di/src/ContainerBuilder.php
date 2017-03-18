@@ -124,6 +124,11 @@ class ContainerBuilder implements ContainerBuilderInterface
             PsrContainer::class => $container,
             Container::class => $container,
         ]);
+        if ($this->getEventDispatcher()) {
+            $definitions->addDefinitions([
+                EventDispatcherInterface::class => $this->getEventDispatcher(),
+            ]);
+        }
 
         return $container;
     }

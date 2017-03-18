@@ -15,7 +15,7 @@ class CompositeContainer implements ContainerInterface
     private $containers;
 
     /**
-     * @var string[]
+     * @var array
      */
     private $namespaces;
 
@@ -23,6 +23,20 @@ class CompositeContainer implements ContainerInterface
     {
         $this->containers = $containers;
         $this->buildNamespaces();
+    }
+
+    public function hasNamespace($namespace)
+    {
+        return isset($this->containers[$namespace]);
+    }
+
+    public function withNamespace($namespace)
+    {
+        if (!isset($this->containers[$namespace])) {
+            throw new \InvalidArgumentException("Unknown namespace '$namespace'");
+        }
+
+        return $this->containers[$namespace];
     }
 
     /**

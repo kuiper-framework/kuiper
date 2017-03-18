@@ -38,7 +38,13 @@ class CompositeContainerBuilder implements ContainerBuilderInterface
     {
         foreach ($this->calls as $method => $val) {
             foreach ($this->builders as $builder) {
-                $builder->$method($val);
+                if ($method == 'addSource') {
+                    foreach ($val as $source) {
+                        $builder->addSource($source);
+                    }
+                } else {
+                    $builder->$method($val);
+                }
             }
         }
         $rootContainer = $this->root()->build();
@@ -62,7 +68,7 @@ class CompositeContainerBuilder implements ContainerBuilderInterface
         return $this->builders[self::ROOT_NAMESPACE];
     }
 
-    public function namespace($namespace)
+    public function withNamespace($namespace)
     {
         $namespace = (string) $namespace;
         if ($namespace === self::ROOT_NAMESPACE) {
@@ -117,9 +123,16 @@ class CompositeContainerBuilder implements ContainerBuilderInterface
         return $this;
     }
 
+    public function addDefinitions(array $definitions, $mergeDeeply = false)
+    {
+        $this->root()->addDefinitions($definitions, $mergeDeeply);
+
+        return $this;
+    }
+
     public function addSource(SourceInterface $source)
     {
-        $this->root()->addSource($source);
+        $this->calls['addSource'][] = $source;
 
         return $this;
     }

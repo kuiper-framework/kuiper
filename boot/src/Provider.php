@@ -9,32 +9,70 @@ abstract class Provider implements ProviderInterface
      */
     protected $app;
 
-    public function __construct(Application $app)
+    /**
+     * @var Module
+     */
+    protected $module;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setApplication(Application $app)
     {
         $this->app = $app;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function initialize()
+    {
+    }
+
+    public function getModule()
+    {
+        if ($this->module === null) {
+            $this->setModule($this->createModule());
+        }
+
+        return $this->module;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setModule(Module $module)
+    {
+        $this->module = $module;
+        $this->module->setProvider($this);
+
+        return $this;
+    }
+
+    protected function createModule()
+    {
+        return Module::dummy();
+    }
+
     public function __get($name)
     {
-        if (in_array($name, ['settings', 'loader', 'services', 'containerBuilder'])) {
-            $method = 'get'.$name;
-
-            return $this->app->$method();
+        if ($name === 'settings') {
+            return $this->app->getSettings();
+        } elseif ($name === 'services') {
+            $services = $this->app->getServices();
+            if ($namespace = $this->getModule()->getNamespace()) {
+                return $services->withNamespace($namespace);
+            } else {
+                return $services;
+            }
         } else {
             throw new \LogicException("Property '$name' is undefined");
         }
     }
 
-    public function template($expression)
-    {
-        $settings = $this->app->getSettings();
-        $container = $this->app->getContainer();
-
-        return preg_replace_callback('#\{([^\{\}]+)\}#', function (array $matches) use ($settings, $container) {
-            return isset($settings[$matches[1]]) ? $settings[$matches[1]] : $container->get($matches[1]);
-        }, $expression);
-    }
-
+    /**
+     * {@inheritdoc}
+     */
     public function boot()
     {
     }

@@ -12,6 +12,8 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\EventDispatcher\GenericEvent;
 use Throwable;
 
 class Application implements ApplicationInterface
@@ -117,7 +119,17 @@ class Application implements ApplicationInterface
         if ($this->middlewareStack === null) {
             $this->buildMiddlewareStack();
         }
-        $response = $this->callMiddlewareStack($request ?: $this->getRequest(), $this->getResponse());
+        $request = $request ?: $this->getRequest();
+        $eventDispatcher = $this->getEventDispatcher();
+        if ($eventDispatcher) {
+            $eventDispatcher->dispatch(Events::BEGIN_REQUEST, $event = new GenericEvent($request));
+        }
+        $response = $this->callMiddlewareStack($request, $this->getResponse());
+        if ($eventDispatcher) {
+            $event['response'] = $response;
+            $eventDispatcher->dispatch(Events::END_REQUEST, $event);
+            $response = $event['response'];
+        }
 
         return $silent ? $response : $this->respond($response);
     }
@@ -256,10 +268,10 @@ class Application implements ApplicationInterface
         $handler = $this->getErrorHandler();
         if ($e instanceof HttpException) {
             $handler->setRequest($e->getRequest() ?: $this->request);
-            $handler->setResponse($e->getResponse() ?: $this->response);
+            $handler->setResponse(($e->getResponse() ?: $this->response)->withStatus($e->getStatusCode()));
         } else {
             $handler->setRequest($this->request);
-            $handler->setResponse($this->response);
+            $handler->setResponse($this->response->withStatus(500));
         }
 
         return $handler->handle($e);
@@ -377,5 +389,12 @@ class Application implements ApplicationInterface
         }
 
         return $this->container->get(ResponseInterface::class);
+    }
+
+    protected function getEventDispatcher()
+    {
+        if ($this->container->has(EventDispatcherInterface::class)) {
+            return $this->container->get(EventDispatcherInterface::class);
+        }
     }
 }

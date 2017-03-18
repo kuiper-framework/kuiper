@@ -14,9 +14,7 @@ use LogicException;
 abstract class HttpException extends LogicException implements RequestAwareInterface, ResponseAwareInterface
 {
     use RequestAwareTrait;
-    use ResponseAwareTrait {
-        getResponse as protected getPsrResponse;
-    }
+    use ResponseAwareTrait;
 
     /**
      * @var int
@@ -43,10 +41,5 @@ abstract class HttpException extends LogicException implements RequestAwareInter
         $this->statusCode = $statusCode;
 
         return $this;
-    }
-
-    public function getResponse()
-    {
-        return $this->getPsrResponse()->withStatus($this->statusCode);
     }
 }

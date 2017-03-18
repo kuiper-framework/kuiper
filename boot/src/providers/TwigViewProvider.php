@@ -19,10 +19,23 @@ class TwigViewProvider extends Provider
 
     public function provideTwigView()
     {
-        $loader = new \Twig_Loader_Filesystem($this->settings['app.views_path']);
+        $settings = $this->settings;
+        $loader = new \Twig_Loader_Filesystem($settings['app.views_path']);
+        $options = [];
+        if (!$settings['app.dev_mode'] && $settings['app.runtime_path']) {
+            $cacheDir = $settings['app.runtime_path'].'/views_cache';
+            if (!is_dir($cacheDir) && !mkdir($cacheDir, 0777, true)) {
+                throw new \RuntimeException("Cannot create twig cache dir '$cacheDir'");
+            }
+            $options['cache'] = $cacheDir;
+        }
+        $twig = new \Twig_Environment($loader, $options);
+        if ($baseUri = $settings['app.static_base_uri']) {
+            $twig->addFunction(new \Twig_SimpleFunction('static_url', function ($path) use ($baseUri) {
+                return $baseUri.$path;
+            }));
+        }
 
-        return $twig = new \Twig_Environment($loader, [
-            'cache' => $this->settings['app.views_cache_path'] ?: $this->settings['app.runtime_path'].'/views',
-        ]);
+        return $twig = new \Twig_Environment($loader, $options);
     }
 }

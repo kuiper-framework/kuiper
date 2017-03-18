@@ -2,9 +2,6 @@
 
 namespace kuiper\di;
 
-use Psr\Container\ContainerInterface as PsrContainer;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
 use kuiper\di\definition\AliasDefinition;
 use kuiper\di\definition\ArrayDefinition;
@@ -28,8 +25,9 @@ use kuiper\di\resolver\ResolverInterface;
 use kuiper\di\resolver\StringResolver;
 use kuiper\di\source\MutableSourceInterface;
 use kuiper\di\source\SourceInterface;
-use LogicException;
-use ProxyManager\Proxy\VirtualProxyInterface;
+use Psr\Container\ContainerInterface as PsrContainer;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class Container implements ContainerInterface, ResolverInterface
@@ -60,7 +58,7 @@ class Container implements ContainerInterface, ResolverInterface
     private $eventDispatcher;
 
     /**
-     * @var boolean
+     * @var bool
      */
     private $requestStarted = false;
 
@@ -112,17 +110,13 @@ class Container implements ContainerInterface, ResolverInterface
     public function get($name)
     {
         $name = $this->normalize($name);
-        if ($this->isResolvableByParent($name)) {
-            return $this->parentContainer->get($name);
-        } else {
-            if ($this->isResolved($name)) {
-                return $this->getResolved($name);
-            }
-            $this->isResolvingShared = true;
-            $this->resolvedValues = [];
-
-            return $this->resolve($this, $this->getDefinition($name));
+        if ($this->isResolved($name)) {
+            return $this->getResolved($name);
         }
+        $this->isResolvingShared = true;
+        $this->resolvedValues = [];
+
+        return $this->resolve($this, $this->getDefinition($name));
     }
 
     /**
@@ -201,7 +195,7 @@ class Container implements ContainerInterface, ResolverInterface
             return $this->resolvedValues[$name];
         }
         if (isset($this->resolving[$name])) {
-            throw new DependencyException("Circular dependency detected while trying to resolve entry '$name', resolving chain " . json_encode(array_keys($this->resolving)));
+            throw new DependencyException("Circular dependency detected while trying to resolve entry '$name', resolving chain ".json_encode(array_keys($this->resolving)));
         }
         $this->resolving[$name] = true;
 
@@ -287,6 +281,9 @@ class Container implements ContainerInterface, ResolverInterface
 
     protected function getDefinition($name)
     {
+        if ($this->isResolvableByParent($name)) {
+            return new DefinitionEntry($name, new ValueDefinition($this->parentContainer->get($name)));
+        }
         $definition = $this->source->get($name);
         if ($definition === null) {
             throw new NotFoundException("Cannot resolve entry '$name'");
@@ -331,7 +328,7 @@ class Container implements ContainerInterface, ResolverInterface
         if ($definition instanceof ResolvableInterface) {
             return $definition->getResolver($this);
         }
-        throw new DefinitionException("Cannot found resolver");
+        throw new DefinitionException('Cannot found resolver');
     }
 
     public function setResolver($definitionType, ResolverInterface $resolver)
@@ -366,7 +363,7 @@ class Container implements ContainerInterface, ResolverInterface
         return (new ObjectResolver($container, $container->proxyFactory))
             ->setAwarables([
                 'setLogger' => [LoggerAwareInterface::class, LoggerInterface::class],
-                'setContainer' => [ContainerAwareInterface::class, ContainerInterface::class]
+                'setContainer' => [ContainerAwareInterface::class, ContainerInterface::class],
             ]);
     }
 }

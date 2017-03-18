@@ -47,6 +47,21 @@ class DotArray implements ArrayAccess, Iterator
     }
 
     /**
+     * Merge data.
+     *
+     * @param array $array
+     * @param bool  $deeply
+     */
+    public function merge(array $array, $deeply = true)
+    {
+        if ($deeply && !empty($this->data)) {
+            $this->data = Arrays::merge($this->data, $array);
+        } else {
+            $this->data = array_merge($this->data, $array);
+        }
+    }
+
+    /**
      * create flatten array.
      *
      * @return array
