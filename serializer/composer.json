@@ -15,8 +15,8 @@
         "ext-json": "*",
         "psr/log": "^1.0",
         "psr/cache": "^1.0",
-        "kuiper/helper": "^0.1",
-        "kuiper/annotations": "^0.1"
+        "kuiper/helper": "~0.2",
+        "kuiper/annotations": "~0.2"
     },
     "suggests": {
         "kuiper/cache": "For cache metadata"
@@ -33,6 +33,11 @@
     "autoload-dev": {
         "psr-4": {
             "kuiper\\serializer\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.2-dev"
         }
     }
 }

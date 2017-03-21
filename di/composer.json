@@ -26,8 +26,8 @@
     "require-dev": {
         "ocramius/proxy-manager": "^1.0",
         "phpunit/phpunit": "^5.0",
-        "kuiper/annotations": "^0.1",
-        "kuiper/helper": "^0.1",
+        "kuiper/annotations": "~0.2",
+        "kuiper/helper": "~0.2",
         "winwin/composer-phpcs-plugin": "^0.1"
     },
     "autoload": {
@@ -41,6 +41,11 @@
     "autoload-dev": {
         "psr-4": {
             "kuiper\\di\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.2-dev"
         }
     }
 }
