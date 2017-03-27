@@ -2,6 +2,8 @@
 
 namespace kuiper\rpc;
 
+use InvalidArgumentException;
+
 trait MiddlewareStackTrait
 {
     /**
@@ -36,11 +38,11 @@ trait MiddlewareStackTrait
             } else {
                 throw new InvalidArgumentException("Invalid position '{$position}', expects 'before:ID' or 'after:ID'");
             }
-            if (($position = array_search(strtoupper($position), $this->stages)) !== false) {
-                if ($position === count($this->stages) - 1 && !$before) {
+            if (($key = array_search(strtoupper($position), $this->stages)) !== false) {
+                if ($key === count($this->stages) - 1 && !$before) {
                     throw new InvalidArgumentException('Cannot add middleware after call');
                 }
-                $this->middlewares[$position][] = [$id, $middleware];
+                $this->middlewares[$key][] = [$id, $middleware];
             } else {
                 $found = false;
                 foreach ($this->middlewares as $stage => &$stageMiddlewares) {
