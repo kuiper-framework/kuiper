@@ -47,7 +47,37 @@ class FastRouteUrlResolver implements UrlResolverInterface
      */
     public function get($name, array $data = [], $absolute = false)
     {
-        $route = $this->getNamedRoute($name);
+        if (!is_string($name) || empty($name)) {
+            throw new \InvalidArgumentException("Invalid uri for name '{$name}'");
+        }
+        if ($name[0] == '/') {
+            $url = $name;
+        } else {
+            $route = $this->getNamedRoute($name);
+            $url = $this->getRoutePath($route, $data);
+        }
+
+        if (!empty($data)) {
+            $url .= '?'.http_build_query($data);
+        }
+        if ($absolute) {
+            if (isset($route)) {
+                $attrs = $route->getAttributes();
+                if (isset($attrs['host'])) {
+                    $scheme = isset($attrs['scheme']) ? $attrs['scheme'] : 'http';
+
+                    return sprintf('%s://%s%s', $scheme, $attrs['host'], $url);
+                }
+            }
+
+            return $this->baseUri.$url;
+        } else {
+            return $url;
+        }
+    }
+
+    protected function getRoutePath($route, &$data)
+    {
         $pattern = $route->getPattern();
 
         $routeDatas = $this->routeParser->parse($pattern);
@@ -88,23 +118,8 @@ class FastRouteUrlResolver implements UrlResolverInterface
         if (empty($segments)) {
             throw new \InvalidArgumentException('Missing data for URL segment: '.$segmentName);
         }
-        $url = implode('', $segments);
 
-        if (!empty($data)) {
-            $url .= '?'.http_build_query($data);
-        }
-        if ($absolute) {
-            $attrs = $route->getAttributes();
-            if (isset($attrs['host'])) {
-                $scheme = isset($attrs['scheme']) ? $attrs['scheme'] : 'http';
-
-                return sprintf('%s://%s%s', $scheme, $attrs['host'], $url);
-            } else {
-                return $this->baseUri.$url;
-            }
-        } else {
-            return $url;
-        }
+        return $url = implode('', $segments);
     }
 
     protected function getNamedRoute($name)

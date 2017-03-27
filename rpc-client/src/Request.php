@@ -1,12 +1,13 @@
 <?php
 
-namespace kuiper\rpc\server;
+namespace kuiper\rpc\client;
 
-use function GuzzleHttp\Psr7\stream_for;
-
-class Request implements RequestInterface
+class Request extends \kuiper\rpc\Request
 {
-    use MessageTrait;
+    /**
+     * @var string
+     */
+    private $class;
 
     /**
      * @var string
@@ -16,11 +17,19 @@ class Request implements RequestInterface
     /**
      * @var array
      */
-    private $parameters = [];
+    private $parameters;
 
-    public function __construct($body)
+    public function __construct($class, $method, array $params)
     {
-        $this->stream = stream_for($body);
+        $this->class = $class;
+        $this->method = $method;
+        $this->parameters = $params;
+        parent::__construct('');
+    }
+
+    public function getClass()
+    {
+        return $this->class;
     }
 
     /**

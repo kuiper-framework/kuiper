@@ -266,11 +266,14 @@ class Application implements ApplicationInterface
     protected function handleException($e, ServerRequestInterface $request, ResponseInterface $response)
     {
         $handler = $this->getErrorHandler();
+        $handler->setRequest($this->request);
         if ($e instanceof HttpException) {
-            $handler->setRequest($e->getRequest() ?: $this->request);
-            $handler->setResponse(($e->getResponse() ?: $this->response)->withStatus($e->getStatusCode()));
+            if (!$e->getResponse()) {
+                $e->setResponse($this->response);
+            }
+
+            $handler->setResponse($e->getResponse());
         } else {
-            $handler->setRequest($this->request);
             $handler->setResponse($this->response->withStatus(500));
         }
 

@@ -2,7 +2,6 @@
 
 namespace kuiper\di;
 
-use InvalidArgumentException;
 use kuiper\di\definition\AliasDefinition;
 use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\DefinitionInterface;
@@ -273,7 +272,7 @@ class Container implements ContainerInterface, ResolverInterface
     protected function normalize($name)
     {
         if (!is_string($name)) {
-            throw new InvalidArgumentException('The name parameter must be of type string');
+            throw new \InvalidArgumentException('The name parameter must be of type string');
         }
 
         return ltrim($name, '\\');

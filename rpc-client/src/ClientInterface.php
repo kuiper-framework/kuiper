@@ -1,11 +1,10 @@
 <?php
 
-namespace kuiper\rpc\server;
+namespace kuiper\rpc\client;
 
-use kuiper\rpc\RequestInterface;
-use kuiper\rpc\ResponseInterface;
+use ProxyManager\Factory\RemoteObject\AdapterInterface;
 
-interface ServerInterface
+interface ClientInterface extends AdapterInterface
 {
     const START = 0;
     const CALL = 10;
@@ -22,11 +21,4 @@ interface ServerInterface
      * @return static
      */
     public function add(callable $middleware, $position = self::CALL, $id = null);
-
-    /**
-     * Handles request.
-     *
-     * @param RequestInterface $request
-     */
-    public function serve(RequestInterface $request, ResponseInterface $response);
 }

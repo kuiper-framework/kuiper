@@ -27,9 +27,7 @@
     },
     "suggest": {
         "kuiper/annotations": "for filter middleware annotations and route definition",
-        "winwin/profiler": "for profiling log",
-        "ocramius/proxy-manager": "for profile annotation and lazy object",
-        "winwin/xstatic": "for use facades"
+        "ocramius/proxy-manager": "for profile annotation and lazy object"
     },
     "autoload": {
         "psr-4": {

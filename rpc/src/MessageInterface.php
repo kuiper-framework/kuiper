@@ -1,6 +1,6 @@
 <?php
 
-namespace kuiper\rpc\server;
+namespace kuiper\rpc;
 
 use Psr\Http\Message\StreamInterface;
 

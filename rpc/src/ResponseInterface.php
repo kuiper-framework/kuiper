@@ -1,6 +1,6 @@
 <?php
 
-namespace kuiper\rpc\server;
+namespace kuiper\rpc;
 
 interface ResponseInterface extends MessageInterface
 {

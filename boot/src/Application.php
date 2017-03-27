@@ -13,7 +13,6 @@ use kuiper\reflection\ReflectionNamespaceFactory;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use winwin\xstatic\ProxyManager;
 
 class Application implements ApplicationInterface
 {
@@ -128,6 +127,10 @@ class Application implements ApplicationInterface
     public function setContainerBuilder(ContainerBuilderInterface $builder)
     {
         $this->containerBuilder = $builder;
+        $this->containerBuilder->addDefinitions([
+            ApplicationInterface::class => $this,
+        ]);
+        $this->containerBuilder->setEventDispatcher($this->getEventDispatcher());
 
         return $this;
     }
@@ -205,14 +208,12 @@ class Application implements ApplicationInterface
     {
         if (!$this->bootstrap) {
             $this->registerProviders();
+            $this->container = $this->getContainerBuilder()->build();
+            $this->bootstrap = true;
+
             foreach ($this->providers as $provider) {
                 $provider->boot();
             }
-
-            $this->container = $this->getContainerBuilder()->build();
-            $this->bootstrap = true;
-            $this->addEventSubscribers();
-            $this->createFacades();
         }
 
         return $this;
@@ -247,7 +248,6 @@ class Application implements ApplicationInterface
     public function setEventDispatcher(EventDispatcherInterface $eventDispatcher)
     {
         $this->eventDispatcher = $eventDispatcher;
-        $this->getContainerBuilder()->setEventDispatcher($eventDispatcher);
 
         return $this;
     }
@@ -320,6 +320,7 @@ class Application implements ApplicationInterface
         }
         if ($module->getBasePath()) {
             $this->loadModuleConfig($module);
+            $this->settings[$module->getName().'.base_path'] = $module->getBasePath();
         }
         if ($namespace = $module->getNamespace()) {
             $this->getServices()->withNamespace($namespace)->addDefinitions([
@@ -389,41 +390,5 @@ class Application implements ApplicationInterface
             return;
         }
         $this->loadConfig($configDir);
-    }
-
-    protected function addEventSubscribers()
-    {
-        $subscribers = $this->settings['app.event_subscribers'];
-        if (is_array($subscribers)) {
-            $eventDispatcher = $this->getEventDispatcher();
-            foreach ($subscribers as $subscriber) {
-                $eventDispatcher->addSubscriber($this->get($subscriber));
-            }
-        }
-    }
-
-    protected function createFacades()
-    {
-        $facades = $this->settings['app.facades'];
-        if (is_array($facades)) {
-            $proxyManager = new ProxyManager($this->getContainer());
-            foreach ($facades as $name => $id) {
-                $facadeClass = __NAMESPACE__.'\\facades\\'.$name;
-                if (class_exists($facadeClass)) {
-                    continue;
-                }
-                eval(sprintf('namespace %s\facades {
-    class %s extends \winwin\xstatic\StaticProxy
-    {
-        public static function getInstanceIdentifier()
-        {
-            return "%s";
-        }
-    }
-}', __NAMESPACE__, $name, $id));
-                $proxyManager->addProxy($name, $facadeClass);
-            }
-            $proxyManager->enable(ProxyManager::ROOT_NAMESPACE_ANY);
-        }
     }
 }

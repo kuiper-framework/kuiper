@@ -3,6 +3,7 @@
 namespace kuiper\di;
 
 use kuiper\di\source\SourceInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 interface ContainerBuilderInterface
 {
@@ -47,4 +48,11 @@ interface ContainerBuilderInterface
      * @return self
      */
     public function useAutowiring($autowiring = true);
+
+    /**
+     * @param EventDispatcherInterface $eventDispatcher
+     *
+     * @return self
+     */
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher);
 }

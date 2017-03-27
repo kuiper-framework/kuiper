@@ -211,4 +211,12 @@ class AnnotationReaderTest extends TestCase
 
         $reader->getMethodAnnotations($class->getMethod('bar'));
     }
+
+    public function testTraitAnnotation()
+    {
+        $reader = $this->createReader();
+        $class = new ReflectionClass(fixtures\ClassWithTraitAnnotation::class);
+        $annotations = $reader->getAnnotations($class);
+        // print_r($annotations);
+    }
 }

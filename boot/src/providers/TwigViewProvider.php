@@ -13,11 +13,11 @@ class TwigViewProvider extends Provider
     {
         $this->services->addDefinitions([
             ViewInterface::class => di\object(TwigView::class),
-            \Twig_Environment::class => di\factory([$this, 'provideTwigView']),
+            \Twig_Environment::class => di\factory([$this, 'provideTwig']),
         ]);
     }
 
-    public function provideTwigView()
+    public function provideTwig()
     {
         $settings = $this->settings;
         $loader = new \Twig_Loader_Filesystem($settings['app.views_path']);
@@ -36,6 +36,6 @@ class TwigViewProvider extends Provider
             }));
         }
 
-        return $twig = new \Twig_Environment($loader, $options);
+        return $twig;
     }
 }

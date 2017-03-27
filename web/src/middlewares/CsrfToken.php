@@ -31,12 +31,12 @@ class CsrfToken
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         if (!in_array($request->getMethod(), self::$ALLOWED_METHODS)) {
-            throw new MethodNotAllowedException(self::$ALLOWED_METHODS, $request, $response);
+            throw new MethodNotAllowedException(self::$ALLOWED_METHODS);
         }
         if ($this->csrfToken->check($request, $destroy = !$this->repeatOk)) {
             return $next($request, $response);
         } else {
-            throw new CsrfTokenException($request, $response);
+            throw new CsrfTokenException();
         }
     }
 }

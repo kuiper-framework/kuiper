@@ -3,6 +3,7 @@
 namespace kuiper\di;
 
 use kuiper\di\exception\NotFoundException;
+use Psr\Container\ContainerInterface as PsrContainer;
 
 class CompositeContainer implements ContainerInterface
 {
@@ -18,6 +19,11 @@ class CompositeContainer implements ContainerInterface
      * @var array
      */
     private $namespaces;
+
+    private static $CONTAINER_IDS = [
+        ContainerInterface::class,
+        PsrContainer::class,
+    ];
 
     public function __construct(array $containers)
     {
@@ -44,6 +50,10 @@ class CompositeContainer implements ContainerInterface
      */
     public function get($id)
     {
+        $id = $this->normalize($id);
+        if (in_array($id, self::$CONTAINER_IDS)) {
+            return $this;
+        }
         if (strpos($id, '\\') !== false) {
             $container = $this->getContainer($id);
             if ($container) {
@@ -63,6 +73,10 @@ class CompositeContainer implements ContainerInterface
      */
     public function has($id, $onlyDefined = false)
     {
+        $id = $this->normalize($id);
+        if (in_array($id, self::$CONTAINER_IDS)) {
+            return true;
+        }
         foreach ($this->containers as $container) {
             if ($container->has($id, $onlyDefined)) {
                 return true;
@@ -77,6 +91,7 @@ class CompositeContainer implements ContainerInterface
      */
     public function make($id, $parameters = [])
     {
+        $id = $this->normalize($id);
         if (strpos($id, '\\') !== false) {
             $container = $this->getContainer($id);
             if ($container) {
@@ -121,7 +136,7 @@ class CompositeContainer implements ContainerInterface
         }
     }
 
-    private function buildNamespaces()
+    protected function buildNamespaces()
     {
         $namespaces = [];
 
@@ -145,7 +160,7 @@ class CompositeContainer implements ContainerInterface
         $this->namespaces = $namespaces;
     }
 
-    private function getContainer($id)
+    protected function getContainer($id)
     {
         $parts = explode('\\', $id);
         $current = $this->namespaces;
@@ -164,5 +179,17 @@ class CompositeContainer implements ContainerInterface
                 return $this->containers[$namespace];
             }
         }
+    }
+
+    /**
+     * Removes '\' at the beginning.
+     */
+    protected function normalize($name)
+    {
+        if (!is_string($name)) {
+            throw new \InvalidArgumentException('The name parameter must be of type string');
+        }
+
+        return ltrim($name, '\\');
     }
 }

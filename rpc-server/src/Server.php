@@ -3,10 +3,16 @@
 namespace kuiper\rpc\server;
 
 use Closure;
+use kuiper\rpc\MiddlewareInterface;
+use kuiper\rpc\MiddlewareStackTrait;
+use kuiper\rpc\RequestInterface;
+use kuiper\rpc\ResponseInterface;
 use Psr\Container\ContainerInterface;
 
 class Server implements ServerInterface, MiddlewareInterface
 {
+    use MiddlewareStackTrait;
+
     /**
      * @var ContainerInterface
      */
@@ -20,12 +26,10 @@ class Server implements ServerInterface, MiddlewareInterface
     /**
      * @var array
      */
-    private $middlewares = [];
-
-    /**
-     * @var array
-     */
-    private $middlewareStack;
+    private $stages = [
+        self::START => 'START',
+        self::CALL => 'CALL',
+    ];
 
     public function __construct(ServiceResolverInterface $resolver)
     {
@@ -35,9 +39,12 @@ class Server implements ServerInterface, MiddlewareInterface
     /**
      * {@inheritdoc}
      */
-    public function add(callable $callback)
+    public function add(callable $middleware, $position = self::CALL, $id = null)
     {
-        $this->middlewares[] = $callback;
+        if ($this->container && $middleware instanceof Closure) {
+            $middleware->bindTo($this->container);
+        }
+        $this->addMiddleware($middleware, $position, $id);
 
         return $this;
     }
@@ -47,6 +54,11 @@ class Server implements ServerInterface, MiddlewareInterface
      */
     public function serve(RequestInterface $request, ResponseInterface $response)
     {
+        if ($this->middlewareStack === null) {
+            $this->addMiddleware($this, self::CALL);
+            $this->buildMiddlewareStack();
+        }
+
         return $this->callMiddlewareStack($request, $response);
     }
 
@@ -59,26 +71,6 @@ class Server implements ServerInterface, MiddlewareInterface
         $result = call_user_func_array($method->getCallable(), $request->getParameters());
 
         return $response->withResult($result);
-    }
-
-    protected function callMiddlewareStack(RequestInterface $request, ResponseInterface $response, $i = 0)
-    {
-        if ($this->middlewareStack === null) {
-            $this->middlewareStack = $this->middlewares;
-            $this->middlewareStack[] = $this;
-        }
-        if ($i < count($this->middlewareStack)) {
-            $middleware = $this->middlewareStack[$i];
-            if ($this->container && $middleware instanceof Closure) {
-                $middleware->bindTo($this->container);
-            }
-
-            return $middleware($request, $response, function ($request, $response) use ($i) {
-                return $this->callMiddlewareStack($request, $response, $i + 1);
-            });
-        } else {
-            return $response;
-        }
     }
 
     public function setContainer(ContainerInterface $container)

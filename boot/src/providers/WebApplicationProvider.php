@@ -2,6 +2,7 @@
 
 namespace kuiper\boot\providers;
 
+use kuiper\boot\Events;
 use kuiper\boot\Provider;
 use kuiper\di;
 use kuiper\web\ApplicationInterface;
@@ -22,6 +23,7 @@ use kuiper\web\session\SessionInterface;
 use kuiper\web\UrlResolverInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\EventDispatcher\GenericEvent as Event;
 use Zend\Diactoros\ServerRequestFactory;
 
 class WebApplicationProvider extends Provider
@@ -41,7 +43,7 @@ class WebApplicationProvider extends Provider
             FlashInterface::class => di\object(FlashSession::class),
             AuthInterface::class => di\object(Auth::class)
             ->method('initialize'),
-            SessionInterface::class => di\factory([$this, 'providerSession']),
+            SessionInterface::class => di\factory([$this, 'provideSession']),
             PermissionCheckerInterface::class => di\object(PermissionChecker::class),
         ]);
     }
@@ -75,6 +77,7 @@ class WebApplicationProvider extends Provider
                 }
             }
         }
+        $this->app->getEventDispatcher()->dispatch(Events::BOOT_WEB_APPLICATION, new Event($app));
 
         return $app;
     }

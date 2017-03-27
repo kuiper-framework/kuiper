@@ -2,6 +2,8 @@
 
 namespace kuiper\web\exception;
 
+use Psr\Http\Message\ResponseInterface;
+
 class RedirectException extends HttpException
 {
     /**
@@ -19,9 +21,16 @@ class RedirectException extends HttpException
         $this->url = $url;
     }
 
-    public function getResponse()
+    /**
+     * {@inheritdoc}
+     */
+    public function setResponse(ResponseInterface $response)
     {
-        return parent::getResponse()
-            ->withHeader('location', $this->url);
+        return parent::setResponse($response->withHeader('location', $this->url));
+    }
+
+    public function getUrl()
+    {
+        return $this->url;
     }
 }

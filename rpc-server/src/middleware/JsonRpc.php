@@ -3,9 +3,9 @@
 namespace kuiper\rpc\server\middleware;
 
 use kuiper\helper\Arrays;
-use kuiper\rpc\server\MiddlewareInterface;
-use kuiper\rpc\server\RequestInterface;
-use kuiper\rpc\server\ResponseInterface;
+use kuiper\rpc\MiddlewareInterface;
+use kuiper\rpc\RequestInterface;
+use kuiper\rpc\ResponseInterface;
 
 class JsonRpc implements MiddlewareInterface
 {

@@ -22,7 +22,7 @@ class LoginOnly
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         if ($this->auth->isGuest()) {
-            throw new UnauthorizedException($request, $response);
+            throw new UnauthorizedException();
         }
 
         return $next($request, $response);

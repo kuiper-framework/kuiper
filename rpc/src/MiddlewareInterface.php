@@ -1,11 +1,11 @@
 <?php
 
-namespace kuiper\rpc\server;
+namespace kuiper\rpc;
 
 interface MiddlewareInterface
 {
     /**
-     * RPC server middleware.
+     * RPC middleware.
      *
      * @param RequestInterface  $request
      * @param ResponseInterface $response

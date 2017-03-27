@@ -2,9 +2,11 @@
 
 namespace kuiper\boot\providers;
 
+use kuiper\boot\Events;
 use kuiper\boot\Provider;
 use kuiper\di;
 use Symfony\Component\Console\Application as ConsoleApplication;
+use Symfony\Component\EventDispatcher\GenericEvent as Event;
 
 class ConsoleApplicationProvider extends Provider
 {
@@ -25,6 +27,7 @@ class ConsoleApplicationProvider extends Provider
                 $app->add($this->app->get($command));
             }
         }
+        $this->app->getEventDispatcher()->dispatch(Events::BOOT_CONSOLE_APPLICATION, new Event($app));
 
         return $app;
     }

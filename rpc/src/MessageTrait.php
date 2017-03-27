@@ -1,6 +1,6 @@
 <?php
 
-namespace kuiper\rpc\server;
+namespace kuiper\rpc;
 
 use Psr\Http\Message\StreamInterface;
 use function GuzzleHttp\Psr7\stream_for;

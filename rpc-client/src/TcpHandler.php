@@ -1,11 +1,13 @@
 <?php
+
 namespace kuiper\rpc\client;
 
+use kuiper\rpc\RequestInterface;
+use kuiper\rpc\ResponseInterface;
+use kuiper\rpc\Response;
 use kuiper\rpc\client\exception\ConnectionException;
-use kuiper\serializer\NormalizerInterface;
-use kuiper\annotations\DocReaderInterface;
 
-class TcpJsonClient extends AbstractJsonClient
+class TcpHandler implements HandlerInterface
 {
     /**
      * @var array
@@ -23,17 +25,25 @@ class TcpJsonClient extends AbstractJsonClient
      * @var resource
      */
     private $connection;
-    
-    public function __construct(
-        array $servers,
-        NormalizerInterface $normalizer,
-        DocReaderInterface $docReader,
-        array $map = [],
-        array $options = []
-    ) {
+
+    public function __construct(array $servers, array $options = [])
+    {
         $this->servers = $servers;
         $this->options = array_merge($this->options, $options);
-        parent::__construct($normalizer, $docReader, $map);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function handle(RequestInterface $request, ResponseInterface $response)
+    {
+        if (fwrite($this->getConnection(), (string) $request->getBody()) !== $request->getBody()->getSize()) {
+            throw new ConnectionException("Cannot send data");
+        }
+
+        $response->getBody()->write(fgets($this->connection));
+
+        return $response;
     }
 
     protected function getConnection()
@@ -48,25 +58,5 @@ class TcpJsonClient extends AbstractJsonClient
             stream_set_timeout($this->connection, $this->getOption('timeout'));
         }
         return $this->connection;
-    }
-
-    public function sendRequest($requestBody)
-    {
-        $requestBody = str_replace("\n", " ", $requestBody) . "\n";
-        if (fwrite($this->getConnection(), $requestBody) !== strlen($requestBody)) {
-            throw new ConnectionException("Cannot send data");
-        }
-
-        return fgets($this->connection);
-    }
-
-    protected function getOption($name)
-    {
-        return isset($this->options[$name]) ? $this->options[$name] : null;
-    }
-
-    public function getServers()
-    {
-        return $this->servers;
     }
 }
