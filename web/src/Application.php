@@ -11,6 +11,7 @@ use kuiper\web\exception\NotFoundException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -372,7 +373,12 @@ class Application implements ApplicationInterface
         if ($this->container->has(ErrorHandlerInterface::class)) {
             return $this->container->get(ErrorHandlerInterface::class);
         } else {
-            return new ErrorHandler();
+            $errorHandler = new ErrorHandler();
+            if ($this->container->has(LoggerInterface::class)) {
+                $errorHandler->setLogger($this->container->get(LoggerInterface::class));
+            }
+
+            return $errorHandler;
         }
     }
 

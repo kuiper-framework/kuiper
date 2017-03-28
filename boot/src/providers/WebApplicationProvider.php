@@ -6,6 +6,8 @@ use kuiper\boot\Events;
 use kuiper\boot\Provider;
 use kuiper\di;
 use kuiper\web\ApplicationInterface;
+use kuiper\web\ErrorHandler;
+use kuiper\web\ErrorHandlerInterface;
 use kuiper\web\FastRouteUrlResolver;
 use kuiper\web\MicroApplication;
 use kuiper\web\Router;
@@ -33,6 +35,7 @@ class WebApplicationProvider extends Provider
         $settings = $this->settings;
         $this->services->addDefinitions([
             ApplicationInterface::class => di\factory([$this, 'provideWebApplication']),
+            ErrorHandlerInterface::class => di\object(ErrorHandler::class),
             RouteRegistarInterface::class => di\get(ApplicationInterface::class),
             RouterInterface::class => di\object(Router::class),
             UrlResolverInterface::class => di\object(FastRouteUrlResolver::class)
