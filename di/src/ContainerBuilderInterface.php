@@ -55,4 +55,11 @@ interface ContainerBuilderInterface
      * @return self
      */
     public function setEventDispatcher(EventDispatcherInterface $eventDispatcher);
+
+    /**
+     * @param ProxyFactory $proxyFactory
+     *
+     * @return self
+     */
+    public function setProxyFactory(ProxyFactory $proxyFactory)
 }

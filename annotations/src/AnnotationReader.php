@@ -174,6 +174,10 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
      */
     public function getAnnotations(ReflectionClass $class)
     {
+        $file = $class->getFileName();
+        if ($file && strpos($file, "eval()'d code") !== false) {
+            return ['class' => [], 'methods' => [], 'properties' => []];
+        }
         $className = $class->getName();
         if (isset($this->annotations[$className])) {
             return $this->annotations[$className];
