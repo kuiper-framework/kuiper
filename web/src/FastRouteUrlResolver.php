@@ -89,6 +89,7 @@ class FastRouteUrlResolver implements UrlResolverInterface
 
         $segments = [];
         foreach ($routeDatas as $routeData) {
+            $vars = $data;
             foreach ($routeData as $item) {
                 if (is_string($item)) {
                     // this segment is a static string
@@ -97,7 +98,7 @@ class FastRouteUrlResolver implements UrlResolverInterface
                 }
 
                 // This segment has a parameter: first element is the name
-                if (!array_key_exists($item[0], $data)) {
+                if (!array_key_exists($item[0], $vars)) {
                     // we don't have a data element for this segment: cancel
                     // testing this routeData item, so that we can try a less
                     // specific routeData item.
@@ -105,10 +106,11 @@ class FastRouteUrlResolver implements UrlResolverInterface
                     $segmentName = $item[0];
                     break;
                 }
-                $segments[] = $data[$item[0]];
-                unset($data[$item[0]]);
+                $segments[] = $vars[$item[0]];
+                unset($vars[$item[0]]);
             }
             if (!empty($segments)) {
+                $data = $vars;
                 // we found all the parameters for this route data, no need to check
                 // less specific ones
                 break;
