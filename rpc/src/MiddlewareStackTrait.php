@@ -16,11 +16,6 @@ trait MiddlewareStackTrait
      */
     private $middlewareStack;
 
-    /**
-     * @var string[]
-     */
-    private $stages;
-
     protected function addMiddleware(callable $middleware, $position, $id = null)
     {
         if (is_int($position)) {
