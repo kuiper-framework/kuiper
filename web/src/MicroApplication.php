@@ -11,6 +11,11 @@ class MicroApplication extends Application implements RouteRegistarInterface
 {
     use RouteRegistarTrait;
 
+    /**
+     * @var RouterInterface
+     */
+    protected $router;
+
     protected function getRequest()
     {
         if ($this->getContainer()->has(ServerRequestInterface::class)) {
@@ -31,10 +36,22 @@ class MicroApplication extends Application implements RouteRegistarInterface
 
     protected function getRouter()
     {
-        if ($this->getContainer()->has(RouterInterface::class)) {
-            return $this->getContainer()->get(RouterInterface::class);
-        } else {
-            return new Router($this);
+        if ($this->router === null) {
+            if ($this->getContainer()->has(RouterInterface::class)) {
+                $router = $this->getContainer()->get(RouterInterface::class);
+            } else {
+                $router = new Router($this);
+            }
+            $this->setRouter($router);
         }
+
+        return $this->router;
+    }
+
+    public function setRouter(RouterInterface $router)
+    {
+        $this->router = $router;
+
+        return $this;
     }
 }

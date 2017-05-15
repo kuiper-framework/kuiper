@@ -10,9 +10,7 @@ use kuiper\web\ErrorHandler;
 use kuiper\web\ErrorHandlerInterface;
 use kuiper\web\FastRouteUrlResolver;
 use kuiper\web\MicroApplication;
-use kuiper\web\Router;
 use kuiper\web\RouteRegistarInterface;
-use kuiper\web\RouterInterface;
 use kuiper\web\security\Auth;
 use kuiper\web\security\AuthInterface;
 use kuiper\web\security\PermissionChecker;
@@ -37,7 +35,6 @@ class WebApplicationProvider extends Provider
             ApplicationInterface::class => di\factory([$this, 'provideWebApplication']),
             ErrorHandlerInterface::class => di\object(ErrorHandler::class),
             RouteRegistarInterface::class => di\get(ApplicationInterface::class),
-            RouterInterface::class => di\object(Router::class),
             UrlResolverInterface::class => di\object(FastRouteUrlResolver::class)
             ->constructor(di\params([
                 'baseUri' => $settings['app.base_uri'],

@@ -24,9 +24,7 @@ class Session
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $next)
     {
         $this->session->setRequest($request);
-        if (ini_get('session.auto_start')) {
-            $this->session->start();
-        }
+        $this->session->start();
         $response = $next($request, $response);
 
         return $this->session->respond($response);
