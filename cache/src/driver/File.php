@@ -117,7 +117,7 @@ class File extends AbstractDriver implements DriverInterface
 
         if (!$fh) {
             $error = error_get_last();
-            throw new IOException($error['message'], 0, null, $this->file);
+            throw new \RuntimeException($error['message']);
         }
 
         // On Windows, even if PHP doc says the contrary, LOCK_NB works, see

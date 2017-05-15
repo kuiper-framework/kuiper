@@ -61,5 +61,5 @@ interface ContainerBuilderInterface
      *
      * @return self
      */
-    public function setProxyFactory(ProxyFactory $proxyFactory)
+    public function setProxyFactory(ProxyFactory $proxyFactory);
 }
