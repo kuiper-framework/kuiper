@@ -20,6 +20,7 @@ use kuiper\web\session\CacheSessionHandler;
 use kuiper\web\session\FlashInterface;
 use kuiper\web\session\FlashSession;
 use kuiper\web\session\ManagedSession;
+use kuiper\web\session\ManagedSessionInterface;
 use kuiper\web\session\Session;
 use kuiper\web\session\SessionInterface;
 use kuiper\web\UrlResolverInterface;
@@ -50,22 +51,32 @@ class WebApplicationProvider extends Provider
         ]);
     }
 
+    public function boot()
+    {
+        $conf = $this->settings['app.session'];
+        if (isset($conf['built-in']) && $conf['built-in'] === false) {
+            $this->app->getEventDispatcher()->addListener(Events::BOOT_WEB_APPLICATION, function ($event) use ($session) {
+                $app = $event->getSubject();
+                $session = $this->app->get(SessionInterface::class);
+                if ($session instanceof ManagedSessionInterface) {
+                    $app->add(new SessionMiddleware($session), 'before:start');
+                }
+            });
+        }
+    }
+
     public function provideSession()
     {
         $conf = $this->settings['app.session'];
         $cache = $this->app->get(CacheItemPoolInterface::class);
         $handler = new CacheSessionHandler($cache, $conf);
-        if ($conf['built-in']) {
+        if (isset($conf['built-in']) && $conf['built-in'] === false) {
+            $session = new ManagedSession($handler, $conf);
+        } else {
             session_set_save_handler($handler, true);
 
             $session = new Session();
             $session->start();
-        } else {
-            $session = new ManagedSession($handler, $conf);
-            $this->app->getEventDispatcher()->addListener(Events::BOOT_WEB_APPLICATION, function ($event) use ($session) {
-                $app = $event->getSubject();
-                $app->add(new SessionMiddleware($session), 'before:start');
-            });
         }
 
         return $session;
