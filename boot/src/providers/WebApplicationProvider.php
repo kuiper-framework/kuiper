@@ -6,11 +6,12 @@ use kuiper\boot\Events;
 use kuiper\boot\Provider;
 use kuiper\di;
 use kuiper\web\ApplicationInterface;
-use kuiper\web\ErrorHandler;
-use kuiper\web\ErrorHandlerInterface;
 use kuiper\web\FastRouteUrlResolver;
 use kuiper\web\MicroApplication;
+use kuiper\web\middlewares\Session as SessionMiddleware;
+use kuiper\web\Router;
 use kuiper\web\RouteRegistarInterface;
+use kuiper\web\RouterInterface;
 use kuiper\web\security\Auth;
 use kuiper\web\security\AuthInterface;
 use kuiper\web\security\PermissionChecker;
@@ -18,6 +19,7 @@ use kuiper\web\security\PermissionCheckerInterface;
 use kuiper\web\session\CacheSessionHandler;
 use kuiper\web\session\FlashInterface;
 use kuiper\web\session\FlashSession;
+use kuiper\web\session\ManagedSession;
 use kuiper\web\session\Session;
 use kuiper\web\session\SessionInterface;
 use kuiper\web\UrlResolverInterface;
@@ -33,8 +35,8 @@ class WebApplicationProvider extends Provider
         $settings = $this->settings;
         $this->services->addDefinitions([
             ApplicationInterface::class => di\factory([$this, 'provideWebApplication']),
-            ErrorHandlerInterface::class => di\object(ErrorHandler::class),
             RouteRegistarInterface::class => di\get(ApplicationInterface::class),
+            RouterInterface::class => di\object(Router::class),
             UrlResolverInterface::class => di\object(FastRouteUrlResolver::class)
             ->constructor(di\params([
                 'baseUri' => $settings['app.base_uri'],
@@ -50,10 +52,21 @@ class WebApplicationProvider extends Provider
 
     public function provideSession()
     {
-        $session = new Session($conf = $this->settings['app.session']);
+        $conf = $this->settings['app.session'];
         $cache = $this->app->get(CacheItemPoolInterface::class);
-        session_set_save_handler(new CacheSessionHandler($cache, $conf), true);
-        $session->start();
+        $handler = new CacheSessionHandler($cache, $conf);
+        if ($conf['built-in']) {
+            session_set_save_handler($handler, true);
+
+            $session = new Session();
+            $session->start();
+        } else {
+            $session = new ManagedSession($handler, $conf);
+            $this->app->getEventDispatcher()->addListener(Events::BOOT_WEB_APPLICATION, function ($event) use ($session) {
+                $app = $event->getSubject();
+                $app->add(new SessionMiddleware($session), 'before:start');
+            });
+        }
 
         return $session;
     }
