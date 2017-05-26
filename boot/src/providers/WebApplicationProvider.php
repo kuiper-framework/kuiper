@@ -55,7 +55,7 @@ class WebApplicationProvider extends Provider
     {
         $conf = $this->settings['app.session'];
         if (isset($conf['built-in']) && $conf['built-in'] === false) {
-            $this->app->getEventDispatcher()->addListener(Events::BOOT_WEB_APPLICATION, function ($event) use ($session) {
+            $this->app->getEventDispatcher()->addListener(Events::BOOT_WEB_APPLICATION, function ($event) {
                 $app = $event->getSubject();
                 $session = $this->app->get(SessionInterface::class);
                 if ($session instanceof ManagedSessionInterface) {
