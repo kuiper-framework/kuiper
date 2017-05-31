@@ -10,11 +10,29 @@ use Psr\Log\LoggerInterface;
 
 class MonologProvider extends Provider
 {
+    private static $LOGGERS = [];
+
     public function register()
     {
         $this->services->addDefinitions([
             LoggerInterface::class => di\factory([$this, 'provideLogger']),
         ]);
+    }
+
+    public static function pushLogger(Logger $logger)
+    {
+        self::$LOGGERS[] = $logger;
+    }
+
+    public static function reopen()
+    {
+        foreach (self::$LOGGERS as $logger) {
+            foreach ($logger->getHandlers() as $handler) {
+                if ($handler instanceof StreamHandler) {
+                    $handler->close();
+                }
+            }
+        }
     }
 
     public function provideLogger()
@@ -39,6 +57,8 @@ class MonologProvider extends Provider
                 $logger->pushProcessor($container->get($processor));
             }
         }
+
+        self::pushLogger($logger);
 
         return $logger;
     }
