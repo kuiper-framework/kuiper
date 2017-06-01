@@ -59,6 +59,9 @@ class ManagedSession implements ManagedSessionInterface
         if (isset($cookies[$name])) {
             $this->sessionId = $cookies[$name];
             $this->sessionData = $this->handler->read($this->sessionId);
+        } else {
+            $this->sessionId = null;
+            $this->sessionData = [];
         }
 
         return $this->started = true;
