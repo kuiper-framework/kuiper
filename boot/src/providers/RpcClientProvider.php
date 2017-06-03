@@ -36,6 +36,9 @@ class RpcClientProvider extends Provider
     {
         $config = $this->settings['app.rpc'];
         $server = Arrays::fetch($config['servers'], $serviceName, $config['servers']['default']);
+        if (empty($server)) {
+            throw new \InvalidArgumentException("Server uri for '$serviceName' should not be empty");
+        }
         if (parse_url($server, PHP_URL_SCHEME) == 'tcp') {
             $handler = new TcpHandler([$server]);
         } else {

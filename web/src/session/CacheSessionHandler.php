@@ -75,7 +75,7 @@ class CacheSessionHandler implements SessionHandlerInterface
      */
     public function read($sessionId)
     {
-        return $this->cache->getItem($this->prefix.$sessionId)->get();
+        return $this->cache->getItem($this->prefix.$sessionId)->get() ?: '';
     }
 
     /**
