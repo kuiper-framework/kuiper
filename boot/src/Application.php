@@ -286,7 +286,11 @@ class Application implements ApplicationInterface
         $providers = $settings['app.providers'];
         if ($providers && is_array($providers)) {
             foreach ($providers as $provider) {
-                $this->addProvider(new $provider());
+                if (is_subclass_of($provider, ProviderInterface::class)) {
+                    $this->addProvider(new $provider());
+                } else {
+                    throw new \UnexpectedValueException("$provider is not instanceof ".ProviderInterface::class);
+                }
             }
         }
         foreach ($this->providers as $provider) {
@@ -303,13 +307,13 @@ class Application implements ApplicationInterface
     protected function registerModule($provider)
     {
         $module = $provider->getModule();
-        if (!$module->getName()) {
+        if ($module === Module::dummy()) {
             if ($this->useAnnotations) {
                 $module = $this->createModuleFromAnnotation($provider);
             }
-            if (!$module || !$module->getName()) {
-                return;
-            }
+        }
+        if (!$module || !$module->getName()) {
+            return;
         }
 
         if (isset($this->modules[$module->getName()])) {
@@ -320,14 +324,42 @@ class Application implements ApplicationInterface
         }
         if ($module->getBasePath()) {
             $this->loadModuleConfig($module);
-            $this->settings[$module->getName().'.base_path'] = $module->getBasePath();
+            if (!isset($this->settings[$module->getName().'.base_path'])) {
+                $this->settings[$module->getName().'.base_path'] = $module->getBasePath();
+            }
         }
-        if ($namespace = $module->getNamespace()) {
+        $namespace = $module->getNamespace();
+        if ($namespace) {
             $this->getServices()->withNamespace($namespace)->addDefinitions([
                 Module::class => $module,
             ]);
         }
         $this->modules[$module->getName()] = $module;
+    }
+
+    protected function createModuleFromAnnotation($provider)
+    {
+        $class = new \ReflectionClass($provider);
+        $annotation = $this->getAnnotationReader()->getClassAnnotation($class, annotation\Module::class);
+        if (!$annotation) {
+            return;
+        }
+        try {
+            $info = $this->readComposerInfo(dirname($class->getFilename()));
+        } catch (\RuntimeException $e) {
+            if (empty($annotation->name)) {
+                throw new \RuntimeException('Cannot find composer.json for '.get_class($provider));
+            }
+        }
+        foreach (get_object_vars($annotation) as $key => $val) {
+            if (empty($annotation->$key) && !empty($info[$key])) {
+                $annotation->$key = $info[$key];
+            }
+        }
+        $module = new Module($annotation->name, $annotation->basePath, $annotation->namespace);
+        $provider->setModule($module);
+
+        return $module;
     }
 
     protected function readComposerInfo($path)
@@ -353,34 +385,6 @@ class Application implements ApplicationInterface
         }
 
         return $info;
-    }
-
-    protected function createModuleFromAnnotation($provider)
-    {
-        $class = new \ReflectionClass($provider);
-        $annotation = $this->getAnnotationReader()->getClassAnnotation($class, annotation\Module::class);
-        if (!$annotation) {
-            return;
-        }
-        if (empty($annotation->name)) {
-            try {
-                $info = $this->readComposerInfo(dirname($class->getFilename()));
-                if (empty($info['name'])) {
-                    return;
-                }
-                foreach (get_object_vars($annotation) as $key => $val) {
-                    if (empty($annotation->$key) && !empty($info[$key])) {
-                        $annotation->$key = $info[$key];
-                    }
-                }
-            } catch (\RuntimeException $e) {
-                throw new \RuntimeException('Cannot find composer.json for '.get_class($provider));
-            }
-        }
-        $module = new Module($annotation->name, $annotation->basePath, $annotation->namespace);
-        $provider->setModule($module);
-
-        return $module;
     }
 
     protected function loadModuleConfig($module)

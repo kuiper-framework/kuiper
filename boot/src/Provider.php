@@ -60,7 +60,8 @@ abstract class Provider implements ProviderInterface
             return $this->app->getSettings();
         } elseif ($name === 'services') {
             $services = $this->app->getServices();
-            if ($namespace = $this->getModule()->getNamespace()) {
+            $namespace = $this->getModule()->getNamespace();
+            if ($namespace) {
                 return $services->withNamespace($namespace);
             } else {
                 return $services;
