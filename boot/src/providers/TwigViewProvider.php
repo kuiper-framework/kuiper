@@ -38,7 +38,7 @@ class TwigViewProvider extends Provider
         foreach ($this->app->getModules() as $module) {
             $path = $settings[$module->getName().'.views_path'];
             if ($path) {
-                $twig->addPath($path, $module->getName());
+                $loader->addPath($path, $module->getName());
             }
         }
 
