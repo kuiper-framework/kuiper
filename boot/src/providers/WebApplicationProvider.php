@@ -9,9 +9,7 @@ use kuiper\web\ApplicationInterface;
 use kuiper\web\FastRouteUrlResolver;
 use kuiper\web\MicroApplication;
 use kuiper\web\middlewares\Session as SessionMiddleware;
-use kuiper\web\Router;
 use kuiper\web\RouteRegistarInterface;
-use kuiper\web\RouterInterface;
 use kuiper\web\security\Auth;
 use kuiper\web\security\AuthInterface;
 use kuiper\web\security\PermissionChecker;
@@ -37,31 +35,20 @@ class WebApplicationProvider extends Provider
         $this->services->addDefinitions([
             ApplicationInterface::class => di\factory([$this, 'provideWebApplication']),
             RouteRegistarInterface::class => di\get(ApplicationInterface::class),
-            RouterInterface::class => di\object(Router::class),
             UrlResolverInterface::class => di\object(FastRouteUrlResolver::class)
             ->constructor(di\params([
                 'baseUri' => $settings['app.base_uri'],
             ])),
             ServerRequestInterface::class => di\factory([ServerRequestFactory::class, 'fromGlobals']),
-            FlashInterface::class => di\object(FlashSession::class),
-            AuthInterface::class => di\object(Auth::class)
-            ->method('initialize'),
-            SessionInterface::class => di\factory([$this, 'provideSession']),
-            PermissionCheckerInterface::class => di\object(PermissionChecker::class),
         ]);
-    }
-
-    public function boot()
-    {
-        $conf = $this->settings['app.session'];
-        if (isset($conf['built-in']) && $conf['built-in'] === false) {
-            $this->app->getEventDispatcher()->addListener(Events::BOOT_WEB_APPLICATION, function ($event) {
-                $app = $event->getSubject();
-                $session = $this->app->get(SessionInterface::class);
-                if ($session instanceof ManagedSessionInterface) {
-                    $app->add(new SessionMiddleware($session), 'before:start');
-                }
-            });
+        if ($settings['app.session']) {
+            $this->services->addDefinitions([
+                FlashInterface::class => di\object(FlashSession::class),
+                AuthInterface::class => di\object(Auth::class)
+                ->method('initialize'),
+                SessionInterface::class => di\factory([$this, 'provideSession']),
+                PermissionCheckerInterface::class => di\object(PermissionChecker::class),
+            ]);
         }
     }
 
@@ -85,6 +72,7 @@ class WebApplicationProvider extends Provider
     public function provideWebApplication()
     {
         $app = new MicroApplication($container = $this->app->getContainer());
+
         foreach ($this->app->getModules() as $module) {
             if ($module->getBasePath()) {
                 $file = $module->getBasePath().'/routes/web.php';
@@ -93,14 +81,27 @@ class WebApplicationProvider extends Provider
                         $app->group([
                             'namespace' => $namespace.'\\controllers',
                         ], function ($app) use ($container, $file) {
-                            require $file;
+                            require_once $file;
                         });
                     } else {
-                        require $file;
+                        require_once $file;
                     }
                 }
             }
         }
+        if ($this->settings['app.base_path'] && file_exists($file = $this->settings['app.base_path'].'/routes/web.php')) {
+            require_once $file;
+        }
+
+        // auto add SessionMiddleware
+        $conf = $this->settings['app.session'];
+        if (isset($conf['built-in']) && $conf['built-in'] === false) {
+            $session = $this->app->get(SessionInterface::class);
+            if ($session instanceof ManagedSessionInterface) {
+                $app->add(new SessionMiddleware($session), 'before:start');
+            }
+        }
+
         $this->app->getEventDispatcher()->dispatch(Events::BOOT_WEB_APPLICATION, new Event($app));
 
         return $app;

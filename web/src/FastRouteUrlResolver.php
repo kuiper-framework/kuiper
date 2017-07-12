@@ -42,6 +42,18 @@ class FastRouteUrlResolver implements UrlResolverInterface
         $this->routeParser = $parser ?: new StdParser();
     }
 
+    public function getBaseUri()
+    {
+        return $this->baseUri;
+    }
+
+    public function setBaseUri($baseUri)
+    {
+        $this->baseUri = $baseUri;
+
+        return $this;
+    }
+
     /**
      * {@inheritdoc}
      */
