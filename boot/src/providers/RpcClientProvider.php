@@ -55,7 +55,7 @@ class RpcClientProvider extends Provider
             foreach ($config['middlewares'] as $middleware) {
                 $middleware = (array) $middleware;
                 $server->add(
-                    $container->get($middleware[0]),
+                    $this->app->get($middleware[0]),
                     $position = isset($middleware[1]) ? $middleware[1] : 'before:call',
                     $id = isset($middleware[2]) ? $middleware[2] : null
                 );

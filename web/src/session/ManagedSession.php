@@ -56,9 +56,12 @@ class ManagedSession implements ManagedSessionInterface
         }
         $name = $this->getCookieName();
         $cookies = $this->request->getCookieParams();
-        if (isset($cookies[$name])) {
+        if (isset($cookies[$name]) && $this->validateSessionId($cookies[$name])) {
             $this->sessionId = $cookies[$name];
             $this->sessionData = $this->handler->read($this->sessionId);
+            if (!is_array($this->sessionData)) {
+                $this->sessionData = [];
+            }
         } else {
             $this->sessionId = null;
             $this->sessionData = [];
@@ -231,5 +234,10 @@ class ManagedSession implements ManagedSessionInterface
     protected function getCookieName()
     {
         return ini_get('session.name');
+    }
+
+    protected function validateSessionId($sid)
+    {
+        return preg_match('/^[0-9a-zA-Z]+$/', $sid);
     }
 }

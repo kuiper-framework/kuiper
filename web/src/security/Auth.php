@@ -21,7 +21,7 @@ class Auth implements AuthInterface
     /**
      * session 数据.
      */
-    private $sessionData = false;
+    private $sessionData;
 
     /**
      * session 组件.
@@ -40,8 +40,16 @@ class Auth implements AuthInterface
         $this->lifetime = $lifetime;
     }
 
+    public function reset()
+    {
+        $this->sessionData = null;
+    }
+
     public function initialize()
     {
+        if (isset($this->sessionData)) {
+            return;
+        }
         $this->sessionData = $this->session->get($this->sessionKey);
         if (isset($this->sessionData)) {
             $now = time();
@@ -52,8 +60,6 @@ class Auth implements AuthInterface
         } else {
             $this->sessionData = false;
         }
-
-        return $this;
     }
 
     public function getSessionKey()
@@ -63,11 +69,14 @@ class Auth implements AuthInterface
 
     public function offsetExists($offset)
     {
+        $this->initialize();
+
         return isset($this->sessionData[$offset]);
     }
 
     public function offsetGet($offset)
     {
+        $this->initialize();
         if (isset($this->sessionData[$offset])) {
             return $this->sessionData[$offset];
         }
@@ -75,16 +84,19 @@ class Auth implements AuthInterface
 
     public function offsetSet($offset, $value)
     {
+        $this->initialize();
         $this->sessionData[$offset] = $value;
     }
 
     public function offsetUnset($offset)
     {
+        $this->initialize();
         unset($this->sessionData[$offset]);
     }
 
     public function __get($name)
     {
+        $this->initialize();
         if (isset($this->sessionData[$name])) {
             return $this->sessionData[$name];
         }
@@ -92,6 +104,7 @@ class Auth implements AuthInterface
 
     public function __set($name, $value)
     {
+        $this->initialize();
         if (isset($this->sessionData[$name])) {
             $this->sessionData[$name] = $value;
         }
@@ -99,11 +112,15 @@ class Auth implements AuthInterface
 
     public function __isset($name)
     {
+        $this->initialize();
+
         return isset($this->sessionData[$name]);
     }
 
     public function getIdentity()
     {
+        $this->initialize();
+
         return $this->sessionData;
     }
 
@@ -114,6 +131,7 @@ class Auth implements AuthInterface
      */
     public function login($identity)
     {
+        $this->initialize();
         if ($this->needRegenerate) {
             $this->session->regenerateId(true);
         }
@@ -130,6 +148,7 @@ class Auth implements AuthInterface
      */
     public function logout($destroySession = true)
     {
+        $this->initialize();
         if ($destroySession) {
             $this->session->destroy();
         } else {
@@ -138,21 +157,13 @@ class Auth implements AuthInterface
         $this->sessionData = false;
     }
 
-    protected function getSessionData($key = null)
-    {
-        if (isset($key)) {
-            return $this->sessionData && isset($this->sessionData[$key])
-                ? $this->sessionData[$key] : null;
-        } else {
-            return $this->sessionData;
-        }
-    }
-
     /**
      * 判断用户是否登录.
      */
     public function isGuest()
     {
+        $this->initialize();
+
         return $this->sessionData === false;
     }
 
@@ -161,6 +172,8 @@ class Auth implements AuthInterface
      */
     public function isNeedLogin()
     {
+        $this->initialize();
+
         return $this->isGuest() || $this->needRegenerate;
     }
 }

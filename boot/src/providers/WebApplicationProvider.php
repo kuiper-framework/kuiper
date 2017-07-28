@@ -44,8 +44,7 @@ class WebApplicationProvider extends Provider
         if ($settings['app.session']) {
             $this->services->addDefinitions([
                 FlashInterface::class => di\object(FlashSession::class),
-                AuthInterface::class => di\object(Auth::class)
-                ->method('initialize'),
+                AuthInterface::class => di\object(Auth::class),
                 SessionInterface::class => di\factory([$this, 'provideSession']),
                 PermissionCheckerInterface::class => di\object(PermissionChecker::class),
             ]);
