@@ -35,6 +35,11 @@ class ManagedSession implements ManagedSessionInterface
      */
     private $handler;
 
+    /**
+     * @var bool
+     */
+    private $compatibleMode;
+
     public function __construct(SessionHandlerInterface $handler, array $options = [])
     {
         if (isset($options['cookie_lifetime'])) {
@@ -42,6 +47,10 @@ class ManagedSession implements ManagedSessionInterface
         }
         if (isset($options['cookie_name'])) {
             ini_set('session.name', $options['cookie_name']);
+        }
+        $this->compatibleMode = !empty($options['compatible_mode']);
+        if ($this->compatibleMode) {
+            session_start(); // for session_encode/session_decode
         }
         $this->handler = $handler;
     }
@@ -58,10 +67,7 @@ class ManagedSession implements ManagedSessionInterface
         $cookies = $this->request->getCookieParams();
         if (isset($cookies[$name]) && $this->validateSessionId($cookies[$name])) {
             $this->sessionId = $cookies[$name];
-            $this->sessionData = $this->handler->read($this->sessionId);
-            if (!is_array($this->sessionData)) {
-                $this->sessionData = [];
-            }
+            $this->sessionData = $this->decode($this->handler->read($this->sessionId));
         } else {
             $this->sessionId = null;
             $this->sessionData = [];
@@ -89,7 +95,7 @@ class ManagedSession implements ManagedSessionInterface
         $name = $this->getCookieName();
         $cookies = SetCookies::fromResponse($response);
         if ($this->started) {
-            $this->handler->write($sid = $this->getId(), $this->sessionData);
+            $this->handler->write($sid = $this->getId(), $this->encode($this->sessionData));
             $cookie = SetCookie::create($name, $sid)
                     ->withPath(ini_get('session.cookie_path'));
             $domain = ini_get('session.cookie_domain');
@@ -239,5 +245,27 @@ class ManagedSession implements ManagedSessionInterface
     protected function validateSessionId($sid)
     {
         return preg_match('/^[0-9a-zA-Z]+$/', $sid);
+    }
+
+    protected function decode($data)
+    {
+        if ($this->compatibleMode) {
+            session_decode($data);
+
+            return $_SESSION;
+        } else {
+            return @unserialize($data) ?: [];
+        }
+    }
+
+    protected function encode($session)
+    {
+        if ($this->compatibleMode) {
+            $_SESSION = $session;
+
+            return session_encode();
+        } else {
+            return serialize($session);
+        }
     }
 }

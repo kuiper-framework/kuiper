@@ -35,7 +35,8 @@ class RpcClientProvider extends Provider
     public function createProxy($serviceName)
     {
         $config = $this->settings['app.rpc'];
-        $server = Arrays::fetch($config['servers'], $serviceName, $config['servers']['default']);
+        $default = isset($config['servers']['default']) ? $config['servers']['default'] : null;
+        $server = Arrays::fetch($config['servers'], $serviceName, $default);
         if (empty($server)) {
             throw new \InvalidArgumentException("Server uri for '$serviceName' should not be empty");
         }
