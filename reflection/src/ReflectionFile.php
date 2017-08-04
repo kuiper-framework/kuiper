@@ -350,7 +350,9 @@ class ReflectionFile implements ReflectionFileInterface
         while ($tokens->valid()) {
             $token = $tokens->current();
             $tokens->next();
-            if (is_string($token)) {
+            if (is_array($token) && $token[0] == T_CURLY_OPEN) {
+                $stack[] = '{';
+            } elseif (is_string($token)) {
                 if ($token === '{') {
                     $stack[] = '{';
                 } elseif ($token === '}') {
