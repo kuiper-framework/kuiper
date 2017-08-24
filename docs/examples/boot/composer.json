@@ -1,0 +1,14 @@
+{
+    "require": {
+        "kuiper/boot": "^0.2.5",
+        "twig/twig": "^2.3",
+        "symfony/console": "^3.2",
+        "kuiper/annotations": "^0.2.3",
+        "monolog/monolog": "^1.22"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "src/"
+        }
+    }
+}

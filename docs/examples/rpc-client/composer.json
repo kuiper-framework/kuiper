@@ -1,0 +1,11 @@
+{
+    "require": {
+        "kuiper/rpc-client": "^0.2.1",
+        "guzzlehttp/guzzle": "^6.2"
+    },
+    "autoload": {
+        "classmap": [
+            "../rpc-server/CalculatorInterface.php"
+        ]
+    }
+}
