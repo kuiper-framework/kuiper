@@ -250,6 +250,7 @@ class ManagedSession implements ManagedSessionInterface
     protected function decode($data)
     {
         if ($this->compatibleMode) {
+            $_SESSION = [];
             session_decode($data);
 
             return $_SESSION;
