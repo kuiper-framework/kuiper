@@ -95,7 +95,10 @@ class ManagedSession implements ManagedSessionInterface
         $name = $this->getCookieName();
         $cookies = SetCookies::fromResponse($response);
         if ($this->started) {
-            $this->handler->write($sid = $this->getId(), $this->encode($this->sessionData));
+            $sid = $this->getId();
+            if ($this->sessionData) {
+                $this->handler->write($sid, $this->encode($this->sessionData));
+            }
             $cookie = SetCookie::create($name, $sid)
                     ->withPath(ini_get('session.cookie_path'));
             $domain = ini_get('session.cookie_domain');

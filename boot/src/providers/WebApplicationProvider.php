@@ -97,7 +97,7 @@ class WebApplicationProvider extends Provider
         if (isset($conf['built-in']) && $conf['built-in'] === false) {
             $session = $this->app->get(SessionInterface::class);
             if ($session instanceof ManagedSessionInterface) {
-                $app->add(new SessionMiddleware($session), 'before:start');
+                $app->add(new SessionMiddleware($session), 'before:start', 'session');
             }
         }
 
