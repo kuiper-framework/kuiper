@@ -30,6 +30,15 @@ interface ReflectionFileInterface
     public function getClasses();
 
     /**
+     * Gets all traits defined in the file.
+     *
+     * @return string[]
+     *
+     * @throws exception\SyntaxErrorException
+     */
+    public function getTraits();
+
+    /**
      * Gets all imported classes in the namespace
      * return array key is alias, value is the Full Qualified Class Name.
      *
