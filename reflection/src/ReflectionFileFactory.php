@@ -2,8 +2,6 @@
 
 namespace kuiper\reflection;
 
-use InvalidArgumentException;
-
 class ReflectionFileFactory implements ReflectionFileFactoryInterface
 {
     /**
@@ -35,7 +33,7 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
     {
         $file = realpath($filePath);
         if (false === $file) {
-            throw new InvalidArgumentException("File '$filePath' does not exist");
+            throw new \InvalidArgumentException("File '$filePath' does not exist");
         }
         if (isset($this->files[$file])) {
             return $this->files[$file];

@@ -228,5 +228,7 @@ abstract class TypeUtils
         if (isset(self::$FILTERS[get_class($type)])) {
             return new self::$FILTERS[get_class($type)]($type);
         }
+
+        return null;
     }
 }

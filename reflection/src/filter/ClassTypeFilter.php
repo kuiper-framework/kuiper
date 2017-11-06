@@ -2,10 +2,8 @@
 
 namespace kuiper\reflection\filter;
 
-use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\reflection\type\ClassType;
 use kuiper\reflection\TypeFilterInterface;
-use kuiper\reflection\TypeUtils;
 
 class ClassTypeFilter implements TypeFilterInterface
 {
@@ -16,10 +14,11 @@ class ClassTypeFilter implements TypeFilterInterface
 
     /**
      * ClassTypeFilter constructor.
+     *
+     * @param ClassType $type
      */
     public function __construct(ClassType $type)
     {
-
         $this->type = $type;
     }
 
@@ -32,7 +31,9 @@ class ClassTypeFilter implements TypeFilterInterface
      */
     public function validate($value)
     {
-        return $value instanceof $this->type->getName();
+        $className = $this->type->getName();
+
+        return $value instanceof $className;
     }
 
     /**

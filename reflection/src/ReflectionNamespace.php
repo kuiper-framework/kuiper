@@ -77,9 +77,9 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
                 if (!in_array($fileInfo->getExtension(), $this->extensions)) {
                     continue;
                 }
-                $reflFile = $this->reflectionFileFactory->create($file);
+                $reflectionFile = $this->reflectionFileFactory->create($file);
                 try {
-                    foreach ($reflFile->getClasses() as $class) {
+                    foreach ($reflectionFile->getClasses() as $class) {
                         if (strpos($class, $this->namespace) === 0) {
                             $classes[] = $class;
                         }

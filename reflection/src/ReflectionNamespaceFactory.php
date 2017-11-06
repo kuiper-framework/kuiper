@@ -22,7 +22,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
     private $namespaces = [];
 
     /**
-     * @var string[]
+     * @var array
      */
     private $namespaceDirs = [];
 
@@ -34,18 +34,18 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public static function createInstance(ReflectionFileFactoryInterface $reflfileFactory = null)
+    public static function createInstance(ReflectionFileFactoryInterface $reflectionFileFactory = null)
     {
         if (!isset(self::$INSTANCE)) {
-            self::$INSTANCE = new self($reflfileFactory);
+            self::$INSTANCE = new self($reflectionFileFactory);
         }
 
         return self::$INSTANCE;
     }
 
-    private function __construct(ReflectionFileFactoryInterface $reflfileFactory = null)
+    private function __construct(ReflectionFileFactoryInterface $factory = null)
     {
-        $this->reflectionFileFactory = $reflfileFactory ?: ReflectionFileFactory::createInstance();
+        $this->reflectionFileFactory = $factory ?: ReflectionFileFactory::createInstance();
     }
 
     /**
@@ -138,13 +138,13 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
     /**
      * Sets php code file extension list.
      *
-     * @param string[]
+     * @param string[] $extensions
      *
      * @return self
      */
-    public function setExtensions(array $exts)
+    public function setExtensions(array $extensions)
     {
-        $this->extensions = $exts;
+        $this->extensions = $extensions;
 
         return $this;
     }

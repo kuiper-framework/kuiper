@@ -16,6 +16,8 @@ class ArrayTypeFilter implements TypeFilterInterface
 
     /**
      * ArrayTypeFilter constructor.
+     *
+     * @param ArrayType $type
      */
     public function __construct(ArrayType $type)
     {

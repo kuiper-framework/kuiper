@@ -15,7 +15,7 @@ class IterableTypeFilter implements TypeFilterInterface
      */
     public function validate($value)
     {
-        return is_array($value) || $value instanceof Traversable;
+        return is_array($value) || $value instanceof \Traversable;
     }
 
     /**

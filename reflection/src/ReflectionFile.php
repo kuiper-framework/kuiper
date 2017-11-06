@@ -2,21 +2,13 @@
 
 namespace kuiper\reflection;
 
-use ArrayIterator;
-use InvalidArgumentException;
-use Iterator;
+use kuiper\reflection\exception\InvalidTokenException;
 use kuiper\reflection\exception\SyntaxErrorException;
+use kuiper\reflection\exception\TokenStoppedException;
 
 class ReflectionFile implements ReflectionFileInterface
 {
-    const T_CLASSES = 'classes';
-    const T_CONSTANTS = 'constants';
-    const T_FUNCTIONS = 'functions';
-
-    /**
-     * @var array
-     */
-    private static $TOKEN_TYPES;
+    const NAMESPACE_SEPARATOR = '\\';
 
     /**
      * @var string
@@ -34,14 +26,29 @@ class ReflectionFile implements ReflectionFileInterface
     private $classes;
 
     /**
+     * @var string[]
+     */
+    private $traits;
+
+    /**
      * @var array
      */
     private $imports;
 
     /**
+     * @var string
+     */
+    private $currentNamespace;
+
+    /**
+     * @var bool
+     */
+    private $multipleClasses;
+
+    /**
      * @param string $file
      */
-    public function __construct($file)
+    public function __construct(string $file)
     {
         $this->file = $file;
     }
@@ -49,7 +56,7 @@ class ReflectionFile implements ReflectionFileInterface
     /**
      * {@inheritdoc}
      */
-    public function getFile()
+    public function getFile(): string
     {
         return $this->file;
     }
@@ -57,7 +64,7 @@ class ReflectionFile implements ReflectionFileInterface
     /**
      * {@inheritdoc}
      */
-    public function getNamespaces()
+    public function getNamespaces(): array
     {
         $this->parse();
 
@@ -67,7 +74,7 @@ class ReflectionFile implements ReflectionFileInterface
     /**
      * {@inheritdoc}
      */
-    public function getClasses()
+    public function getClasses(): array
     {
         $this->parse();
 
@@ -75,42 +82,47 @@ class ReflectionFile implements ReflectionFileInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Gets all traits defined in the file.
+     *
+     * @return string[]
+     *
+     * @throws exception\SyntaxErrorException
      */
-    public function getImportedClasses($namespace)
+    public function getTraits(): array
     {
         $this->parse();
-        if (isset($this->imports[$namespace][self::T_CLASSES])) {
-            return $this->imports[$namespace][self::T_CLASSES];
-        }
 
-        return [];
+        return $this->traits;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getImportedFunctions($namespace)
+    public function getImportedClasses(string $namespace): array
     {
         $this->parse();
-        if (isset($this->imports[$namespace][self::T_FUNCTIONS])) {
-            return $this->imports[$namespace][self::T_FUNCTIONS];
-        }
 
-        return [];
+        return $this->getImported($namespace, T_STRING);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getImportedConstants($namespace)
+    public function getImportedFunctions(string $namespace): array
     {
         $this->parse();
-        if (isset($this->imports[$namespace][self::T_CONSTANTS])) {
-            return $this->imports[$namespace][self::T_CONSTANTS];
-        }
 
-        return [];
+        return $this->getImported($namespace, T_FUNCTION);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getImportedConstants(string $namespace): array
+    {
+        $this->parse();
+
+        return $this->getImported($namespace, T_CONST);
     }
 
     private function parse()
@@ -120,283 +132,128 @@ class ReflectionFile implements ReflectionFileInterface
         }
         $code = file_get_contents($this->file);
         if ($code === false) {
-            throw new InvalidArgumentException("Cannot read file '{$this->file}'");
+            throw new \InvalidArgumentException("Cannot read file '{$this->file}'");
         }
-        $tokens = new ArrayIterator(token_get_all($code));
-        $imports = [];
-        $classes = [];
-        $namespaces = [];
-        $line = 1;
-        $prevToken = null;
-        $namespace = '';
-        while ($tokens->valid()) {
-            $token = $tokens->current();
-            $tokens->next();
-            if (!is_array($token)) {
-                $tokens->next();
-                continue;
-            }
-            if ($token[0] === T_NAMESPACE) {
-                $this->skipWhitespaceAndComment($tokens);
-                $namespace = $this->matchIdentifier($tokens);
-                $namespaces[] = $namespace;
-            } elseif ($token[0] === T_USE) {
-                $line = $token[2];
-                $this->skipWhitespaceAndComment($tokens);
-                try {
-                    list($type, $stmtImports) = $this->parseUseStatement($tokens);
-                    if (isset($imports[$namespace][$type])) {
-                        $prev = $imports[$namespace][$type];
-                        foreach ($stmtImports as $alias => $name) {
-                            if (isset($prev[$alias])) {
-                                throw new SyntaxErrorException(sprintf(
-                                    "duplicated import alias '%s' for '%s', previous '%s'",
-                                    $name,
-                                    $alias,
-                                    $prev[$alias]
-                                ));
-                            }
+        $tokens = new TokenStream(token_get_all($code));
+
+        $this->namespaces = [];
+        $this->currentNamespace = '';
+        $this->multipleClasses = $this->detectMultipleClasses($code);
+
+        try {
+            while (true) {
+                $token = $tokens->next();
+                if (!is_array($token)) {
+                    continue;
+                }
+                switch ($token[0]) {
+                    case T_NAMESPACE:
+                        $this->currentNamespace = $this->matchNamespace($tokens);
+                        if (!in_array($this->currentNamespace, $this->namespaces)) {
+                            $this->namespaces[] = $this->currentNamespace;
                         }
-                        $imports[$namespace][$type] = array_merge($prev, $stmtImports);
-                    } else {
-                        $imports[$namespace][$type] = $stmtImports;
-                    }
-                } catch (SyntaxErrorException $e) {
-                    throw new SyntaxErrorException("Syntax error at '{$this->file}' line {$line}: ".$e->getMessage());
-                }
-            } elseif (in_array($token[0], [T_CLASS, T_INTERFACE])) {
-                if ($token[0] === T_CLASS) {
-                    if ($prevToken && $prevToken[0] === T_DOUBLE_COLON) {
-                        // ignore  Foo::class
-                        continue;
-                    }
-                }
-                $this->skipWhitespaceAndComment($tokens);
-                $class = $this->matchIdentifier($tokens);
-                if (!$class) {
-                    throw new SyntaxErrorException(
-                        "Syntax error at '{$this->file}' line {$line}: expected class name or interface name, got "
-                        .$this->describeToken($tokens->current())
-                    );
-                }
-                $classes[] = $namespace ? $namespace.'\\'.$class : $class;
-
-                try {
-                    $this->matchParentheses($tokens);
-                } catch (SyntaxErrorException $e) {
-                    throw new SyntaxErrorException(sprintf(
-                        "Syntax error at '%s' line %d: %s",
-                        $this->file,
-                        $token[2],
-                        $e->getMessage()
-                    ));
-                }
-            } elseif ($token[0] !== T_WHITESPACE) {
-                $prevToken = $token;
-            }
-        }
-        $this->namespaces = array_unique(array_merge($namespaces, array_keys($imports)));
-        $this->classes = $classes;
-        $this->imports = $imports;
-    }
-
-    /**
-     * Skips whitespace and comment.
-     * Stops when first token that is not whitespace or comment is occured.
-     */
-    private function skipWhitespaceAndComment(Iterator $tokens)
-    {
-        while ($tokens->valid()) {
-            $token = $tokens->current();
-            if (!is_array($token) || !in_array($token[0], [T_WHITESPACE, T_COMMENT])) {
-                break;
-            }
-            $tokens->next();
-        }
-    }
-
-    /**
-     * Reads the identifiers at current position.
-     * Stops when first token that not belong to identifier (not string or ns_separator).
-     *
-     * @return string
-     */
-    private function matchIdentifier(Iterator $tokens)
-    {
-        $identifier = '';
-        while ($tokens->valid()) {
-            $token = $tokens->current();
-            if (is_array($token) && in_array($token[0], [T_STRING, T_NS_SEPARATOR])) {
-                $identifier .= $token[1];
-            } else {
-                break;
-            }
-            $tokens->next();
-        }
-
-        return $identifier;
-    }
-
-    /**
-     * Reads use statment.
-     *
-     * @return array first element is type string, "classes" or "functions" or "constants"
-     *               and the second is an array, key is alias, value is import symbol
-     */
-    private function parseUseStatement(Iterator $tokens)
-    {
-        if (!$tokens->valid()) {
-            throw new SyntaxErrorException('expected use statement here');
-        }
-        $token = $tokens->current();
-        if (!is_array($token) || !in_array($token[0], [T_FUNCTION, T_CONST, T_STRING])) {
-            throw new SyntaxErrorException(
-                'expected class name or keyword function or const, got '
-                .$this->describeToken($token)
-            );
-        }
-        if ($token[0] === T_FUNCTION) {
-            $type = 'functions';
-            $tokens->next();
-            $this->skipWhitespaceAndComment($tokens);
-        } elseif ($token[0] === T_CONST) {
-            $type = 'constants';
-            $tokens->next();
-            $this->skipWhitespaceAndComment($tokens);
-        } else {
-            $type = 'classes';
-        }
-        $imports = $this->matchImportList($tokens, ';');
-
-        return [$type, $imports];
-    }
-
-    private function matchImportList(Iterator $tokens, $stopToken, $hasSubList = true)
-    {
-        $imports = [];
-        do {
-            foreach ($this->matchUseList($tokens, $hasSubList) as $alias => $name) {
-                if (isset($imports[$alias])) {
-                    throw new SyntaxErrorException(sprintf(
-                        "duplicated import alias '%s' for '%s', previous '%s'",
-                        $name,
-                        $alias,
-                        $imports[$alias]
-                    ));
-                }
-                $imports[$alias] = $name;
-            }
-            $this->skipWhitespaceAndComment($tokens);
-            $token = $tokens->current();
-            if ($token === ',') {
-                $tokens->next();
-                $this->skipWhitespaceAndComment($tokens);
-            } elseif ($token === $stopToken) {
-                $tokens->next();
-                break;
-            } else {
-                throw new SyntaxErrorException(
-                    'expected comma or semicolon here, got '.$this->describeToken($token)
-                );
-            }
-        } while (true);
-
-        return $imports;
-    }
-
-    private function matchUseList(Iterator $tokens, $hasSubList)
-    {
-        $imports = [];
-        $name = $this->matchIdentifier($tokens);
-        if (empty($name)) {
-            throw new SyntaxErrorException(
-                'expected imported identifier, got '
-                .$this->describeToken($tokens->current())
-            );
-        }
-        $token = $tokens->current();
-        if ($token === '{') {
-            if (!$hasSubList) {
-                throw new SyntaxErrorException('unexpected token '.$this->describeToken($token));
-            }
-            $tokens->next();
-            $imports = $this->matchImportList($tokens, '}', false);
-            $prefix = $name;
-            foreach ($imports as $alias => $name) {
-                $imports[$alias] = $prefix.$name;
-            }
-        } else {
-            $this->skipWhitespaceAndComment($tokens);
-            $token = $tokens->current();
-            if (is_array($token) && $token[0] === T_AS) {
-                $tokens->next();
-                $this->skipWhitespaceAndComment($tokens);
-                $alias = $this->matchIdentifier($tokens);
-                if (strpos($alias, '\\') !== false) {
-                    throw new SyntaxErrorException("import alias '{$alias}' cannot contain namespace seperator");
-                }
-            } else {
-                $alias = $this->getSimpleName($name);
-            }
-            $imports[$alias] = $name;
-        }
-
-        return $imports;
-    }
-
-    private function matchParentheses(Iterator $tokens)
-    {
-        $stack = [];
-        while ($tokens->valid()) {
-            $token = $tokens->current();
-            $tokens->next();
-            if (is_array($token) && $token[0] == T_CURLY_OPEN) {
-                $stack[] = '{';
-            } elseif (is_string($token)) {
-                if ($token === '{') {
-                    $stack[] = '{';
-                } elseif ($token === '}') {
-                    array_pop($stack);
-                    if (empty($stack)) {
                         break;
-                    }
+                    case T_USE:
+                        $this->matchUse($tokens);
+                        break;
+                    case T_CLASS:
+                    case T_INTERFACE:
+                        $this->classes[] = $this->matchClass($tokens);
+                        if (!$this->multipleClasses) {
+                            throw new TokenStoppedException();
+                        }
+                        break;
+                    case T_TRAIT:
+                        $this->traits[] = $this->matchClass($tokens);
+                        if (!$this->multipleClasses) {
+                            throw new TokenStoppedException();
+                        }
+                        break;
+                    case T_DOUBLE_COLON:
+                        // prevent '::class'
+                        $tokens->skipWhitespaceAndCommentMaybe();
+                        $tokens->next();
                 }
             }
-        }
-        if (!empty($stack)) {
-            throw new SyntaxErrorException('parentheses not match');
+        } catch (TokenStoppedException $e) {
+        } catch (InvalidTokenException $e) {
+            throw new SyntaxErrorException(sprintf(
+                '%s, got %s in %s on line %d',
+                $e->getMessage(), $tokens->describe($tokens->current()), $this->file, $tokens->getLine()
+            ), 0, $e);
         }
     }
 
-    private function getSimpleName($name)
+    private function matchNamespace(TokenStream $tokens)
     {
-        $parts = explode('\\', $name);
-
-        return end($parts);
-    }
-
-    private function describeToken($token)
-    {
-        if (is_array($token)) {
-            return '['.implode(', ', [$this->getTokenName($token), json_encode($token[1]), $token[2]]).']';
+        $tokens->next();
+        $tokens->skipWhitespaceAndCommentMaybe();
+        $token = $tokens->current();
+        if ($token == '{') {
+            return '';
         } else {
-            return json_encode($token);
+            return $tokens->matchIdentifier();
         }
     }
 
-    private function getTokenName($token)
+    private function matchClass(TokenStream $tokens)
     {
-        if (self::$TOKEN_TYPES === null) {
-            $contants = get_defined_constants();
-            $tokenTypes = [];
-            foreach ($contants as $key => $val) {
-                if (strpos($key, 'T_') === 0) {
-                    $tokenTypes[$val] = $key;
-                }
-            }
-            self::$TOKEN_TYPES = $tokenTypes;
+        $tokens->next();
+        $tokens->skipWhitespaceAndComment();
+        $class = $tokens->matchIdentifier();
+        if ($this->multipleClasses) {
+            $tokens->matchParentheses();
         }
 
-        return self::$TOKEN_TYPES[$token[0]];
+        return $this->currentNamespace ? $this->currentNamespace.self::NAMESPACE_SEPARATOR.$class : $class;
+    }
+
+    private function matchUse(TokenStream $tokens)
+    {
+        list($type, $stmtImports) = $tokens->matchUseStatement();
+        if (!isset($this->imports[$this->currentNamespace])) {
+            $this->imports[$this->currentNamespace] = [];
+        }
+        $imports = &$this->imports[$this->currentNamespace];
+
+        if (isset($imports[$type])) {
+            $prev = $imports[$type];
+            foreach ($stmtImports as $alias => $name) {
+                if (isset($prev[$alias])) {
+                    throw new InvalidTokenException(sprintf(
+                        "Duplicated import alias '%s' for '%s', previous '%s'",
+                        $name, $alias, $prev[$alias]
+                    ));
+                }
+            }
+            $imports[$type] = array_merge($prev, $stmtImports);
+        } else {
+            $imports[$type] = $stmtImports;
+        }
+    }
+
+    /**
+     * @param string $namespace
+     * @param int    $type
+     *
+     * @return array
+     */
+    private function getImported(string $namespace, int $type): array
+    {
+        if (isset($this->imports[$namespace][$type])) {
+            return $this->imports[$namespace][$type];
+        } else {
+            return [];
+        }
+    }
+
+    /**
+     * @param string $code
+     *
+     * @return int
+     */
+    private function detectMultipleClasses($code)
+    {
+        return preg_match_all('/^\s*((abstract|final)+ )?(class|interface|trait)\s+/sm', $code) > 1;
     }
 }

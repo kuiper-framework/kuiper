@@ -15,6 +15,8 @@ class CompositeTypeFilter implements TypeFilterInterface
 
     /**
      * CompositeTypeFilter constructor.
+     *
+     * @param CompositeType $type
      */
     public function __construct(CompositeType $type)
     {
