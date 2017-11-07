@@ -10,7 +10,10 @@ class AnnotationReaderTest extends TestCase
 {
     protected function createReader()
     {
-        return new AnnotationReader();
+        $reader = new AnnotationReader();
+        $reader->setErrorMode(AnnotationReader::ERRMODE_EXCEPTION);
+
+        return $reader;
     }
 
     protected function getReflectionClass()
@@ -22,7 +25,6 @@ class AnnotationReaderTest extends TestCase
     {
         $class = $this->getReflectionClass();
         $reader = $this->createReader();
-
         $classAnnotations = $reader->getClassAnnotations($class);
         $this->assertEquals(1, count($classAnnotations));
         // print_r($classAnnotations);
@@ -190,7 +192,7 @@ class AnnotationReaderTest extends TestCase
 
     /**
      * @expectedException \kuiper\annotations\exception\AnnotationException
-     * @expectedExceptionMessage Attribute 'integer' expects int, got '"abc"'.
+     * @expectedExceptionMessage Attribute 'integer' expects int, got string.
      */
     public function testClassWithPropertyInvalidVarTypeErrorProp()
     {
@@ -218,5 +220,6 @@ class AnnotationReaderTest extends TestCase
         $class = new ReflectionClass(fixtures\ClassWithTraitAnnotation::class);
         $annotations = $reader->getAnnotations($class);
         // print_r($annotations);
+        $this->assertInstanceOf(AnnotationSink::class, $annotations);
     }
 }

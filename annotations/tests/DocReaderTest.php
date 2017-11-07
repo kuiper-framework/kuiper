@@ -4,6 +4,8 @@ namespace kuiper\annotations;
 
 use kuiper\annotations\fixtures\DummyClass;
 use kuiper\annotations\fixtures\PhpDocVarType;
+use kuiper\reflection\type\ArrayType;
+use kuiper\reflection\TypeUtils;
 use ReflectionClass;
 
 class DocReaderTest extends TestCase
@@ -92,9 +94,10 @@ class DocReaderTest extends TestCase
         $class = new ReflectionClass(fixtures\DocMethodParams::class);
         $types = $reader->getParameterTypes($class->getMethod('setValues'));
         // print_r($types);
-        $this->assertTrue($types['values']->isArray());
-        $type = $types['values']->getArrayValueType();
-        $this->assertEquals(fixtures\DummyClass::class, $type->getClassName());
+        /** @var ArrayType $type */
+        $type = $types['values'];
+        $this->assertTrue(TypeUtils::isArray($type));
+        $this->assertEquals(fixtures\DummyClass::class, $type->getValueType()->getName());
     }
 
     public function methodTypes()
@@ -116,7 +119,7 @@ class DocReaderTest extends TestCase
             ['mixed', 'mixed'],
             ['boolean', 'bool'],
             ['bool', 'bool'],
-            ['float', 'double'],
+            ['float', 'float'],
             ['string', 'string'],
             ['integer', 'int'],
             ['array', 'array'],

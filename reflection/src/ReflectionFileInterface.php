@@ -17,6 +17,7 @@ interface ReflectionFileInterface
      * @return string[]
      *
      * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
     public function getNamespaces(): array;
 
@@ -26,6 +27,7 @@ interface ReflectionFileInterface
      * @return string[]
      *
      * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
     public function getClasses(): array;
 
@@ -35,6 +37,7 @@ interface ReflectionFileInterface
      * @return string[]
      *
      * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
     public function getTraits(): array;
 
@@ -45,6 +48,9 @@ interface ReflectionFileInterface
      * @param string $namespace
      *
      * @return array
+     *
+     * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
     public function getImportedClasses(string $namespace): array;
 
@@ -55,6 +61,9 @@ interface ReflectionFileInterface
      * @param string $namespace
      *
      * @return array
+     *
+     * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
     public function getImportedFunctions(string $namespace): array;
 
@@ -65,6 +74,9 @@ interface ReflectionFileInterface
      * @param string $namespace
      *
      * @return array
+     *
+     * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
     public function getImportedConstants(string $namespace): array;
 }

@@ -2,9 +2,7 @@
 
 namespace kuiper\annotations\exception;
 
-use RuntimeException;
-
-class AnnotationException extends RuntimeException
+class AnnotationException extends \RuntimeException
 {
     /**
      * @return AnnotationException

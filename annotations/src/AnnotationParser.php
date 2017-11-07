@@ -3,10 +3,11 @@
 namespace kuiper\annotations;
 
 use kuiper\annotations\exception\AnnotationException;
+use kuiper\reflection\exception\ReflectionException;
 use kuiper\reflection\FqcnResolver;
-use kuiper\reflection\ReflectionFileInterface;
+use kuiper\reflection\ReflectionFileFactoryInterface;
 
-class DocParser
+class AnnotationParser
 {
     /**
      * An array of all valid tokens for a class name.
@@ -26,37 +27,42 @@ class DocParser
     private $lexer;
 
     /**
-     * @var ReflectionFileInterface
+     * @var ReflectionFileFactoryInterface
      */
-    private $reflectionFile;
+    private $reflectionFileFactory;
 
     /**
-     * @var string
-     */
-    private $namespace;
-
-    /**
-     * @var string
+     * @var array
      */
     private $context;
 
-    public function __construct()
+    public function __construct(DocLexer $lexer, ReflectionFileFactoryInterface $reflectionFileFactory)
     {
-        $this->lexer = new DocLexer();
-        self::checkDocReadability();
+        $this->lexer = $lexer;
+        $this->reflectionFileFactory = $reflectionFileFactory;
     }
 
-    public function parse($input, ReflectionFileInterface $file, $namespace, $line)
+    /**
+     * @param string $doc
+     * @param string $namespace
+     * @param string $file
+     * @param int $line
+     * @return array
+     */
+    public function parse(string $doc, string $namespace, string $file, int $line)
     {
-        $pos = $this->findInitialTokenPosition($input);
+        $pos = $this->findInitialTokenPosition($doc);
         if ($pos === null) {
             return [];
         }
 
-        $this->reflectionFile = $file;
-        $this->namespace = $namespace;
-        $this->context = $input;
-        $this->lexer->setInput(trim(substr($input, $pos), '* /'));
+        $this->context = [
+            'doc' => $doc,
+            'namespace' => $namespace,
+            'file' => $file,
+            'line' => $line
+        ];
+        $this->lexer->setInput(trim(substr($doc, $pos), '* /'));
         $this->lexer->moveNext();
 
         return $this->matchAnnotations();
@@ -65,7 +71,7 @@ class DocParser
     /**
      * Finds the first valid annotation.
      *
-     * @param string $input The docblock string to parse
+     * @param string $input The doc string to parse
      *
      * @return int|null
      */
@@ -116,9 +122,8 @@ class DocParser
                 continue;
             }
 
-            $this->isNestedAnnotation = false;
-            if (false !== $annot = $this->matchAnnotation()) {
-                $annotations[] = $annot;
+            if (false !== $annotation = $this->matchAnnotation()) {
+                $annotations[] = $annotation;
             }
         }
 
@@ -140,10 +145,7 @@ class DocParser
     {
         $this->match(DocLexer::T_AT);
 
-        return new Annotation(
-            $name = $this->matchIdentifier(),
-            $arguments = $this->matchMethodCall()
-        );
+        return new Annotation($this->matchIdentifier(), $this->matchMethodCall());
     }
 
     /**
@@ -266,7 +268,7 @@ class DocParser
     private function matchPlainValue()
     {
         if ($this->lexer->isNextToken(DocLexer::T_OPEN_CURLY_BRACES)) {
-            return $this->matchArrayx();
+            return $this->matchArrays();
         }
 
         if ($this->lexer->isNextToken(DocLexer::T_AT)) {
@@ -310,6 +312,7 @@ class DocParser
 
             default:
                 $this->syntaxError('PlainValue');
+                return null;
         }
     }
 
@@ -317,7 +320,7 @@ class DocParser
      * FieldAssignment ::= FieldName "=" PlainValue
      * FieldName ::= identifier.
      *
-     * @return array
+     * @return object
      */
     private function matchFieldAssignment()
     {
@@ -338,7 +341,7 @@ class DocParser
      *
      * @return array
      */
-    private function matchArrayx()
+    private function matchArrays()
     {
         $array = $values = [];
 
@@ -419,16 +422,8 @@ class DocParser
         $identifier = $this->matchIdentifier();
 
         if (!defined($identifier) && false !== strpos($identifier, '::') && '\\' !== $identifier[0]) {
-            list($className, $const) = explode('::', $identifier);
-            $resolver = new FqcnResolver($this->reflectionFile);
-            $fullClassName = $resolver->resolve($className, $this->namespace);
-            if (class_exists($fullClassName) || interface_exists($fullClassName)) {
-                $className = $fullClassName;
-                $found = true;
-            }
-            if ($found) {
-                $identifier = $className.'::'.$const;
-            }
+              list($className, $const) = explode('::', $identifier);
+              $identifier = $this->resolveClassName($className) . '::' . $const;
         }
 
         // checks if identifier ends with ::class, \strlen('::class') === 7
@@ -438,7 +433,7 @@ class DocParser
         }
 
         if (!defined($identifier)) {
-            throw new AnnotationException("[Semantical Error] Couldn't find constant $identifier");
+            throw new AnnotationException("[Semantic Error] Couldn't find constant $identifier");
         }
 
         return constant($identifier);
@@ -463,11 +458,7 @@ class DocParser
             ? 'end of string'
             : sprintf("'%s' at position %s", $token['value'], $token['position']);
 
-        if (strlen($this->context)) {
-            $message .= ' in '.$this->context;
-        }
-
-        $message .= '.';
+        $message .= sprintf(' in %s on line %d.', $this->context['file'], $this->context['line']);
 
         throw new AnnotationException("[Syntax Error] $message");
     }
@@ -509,30 +500,21 @@ class DocParser
     }
 
     /**
-     * @throws AnnotationException
+     * @param string $className
+     * @return string
      */
-    public static function checkDocReadability()
+    private function resolveClassName(string $className): string
     {
-        if (extension_loaded('Zend Optimizer+')
-            && (ini_get('zend_optimizerplus.save_comments') === '0'
-                || ini_get('opcache.save_comments') === '0')) {
-            throw AnnotationException::optimizerPlusSaveComments();
-        }
-
-        if (extension_loaded('Zend OPcache') && ini_get('opcache.save_comments') == 0) {
-            throw AnnotationException::optimizerPlusSaveComments();
-        }
-
-        if (PHP_VERSION_ID < 70000) {
-            if (extension_loaded('Zend Optimizer+')
-                && (ini_get('zend_optimizerplus.load_comments') === '0'
-                    || ini_get('opcache.load_comments') === '0')) {
-                throw AnnotationException::optimizerPlusLoadComments();
+        $file = $this->reflectionFileFactory->create($this->context['file']);
+        $resolver = new FqcnResolver($file);
+        try {
+            $fullClassName = $resolver->resolve($className, $this->context['namespace']);
+            if (class_exists($fullClassName) || interface_exists($fullClassName)) {
+                return $fullClassName;
             }
-
-            if (extension_loaded('Zend OPcache') && ini_get('opcache.load_comments') == 0) {
-                throw AnnotationException::optimizerPlusLoadComments();
-            }
+        } catch (ReflectionException $e) {
+            trigger_error("Cannot resolve class '{$className}' in " . $this->context['file']);
         }
+        return $className;
     }
 }

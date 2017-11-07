@@ -154,6 +154,27 @@ abstract class TypeUtils
     /**
      * @param ReflectionTypeInterface $type
      *
+     * @return bool return true if type is composited type
+     */
+    public static function isComposite(ReflectionTypeInterface $type): bool
+    {
+        return $type instanceof CompositeType;
+    }
+
+    /**
+     * @param ReflectionTypeInterface $type
+     *
+     * @return bool
+     */
+    public static function isUnknown(ReflectionTypeInterface $type)
+    {
+        return $type instanceof MixedType
+            || (self::isArray($type) && $type->getValueType() instanceof MixedType);
+    }
+
+    /**
+     * @param ReflectionTypeInterface $type
+     *
      * @return bool return true if the type is one of:
      *              - scalar type: boolean, string, float, integer
      *              - special type: resource, null
@@ -222,6 +243,8 @@ abstract class TypeUtils
      * @param ReflectionTypeInterface $type
      *
      * @return TypeFilterInterface
+     *
+     * @SuppressWarnings(PHPMD)
      */
     private static function createFilter(ReflectionTypeInterface $type)
     {

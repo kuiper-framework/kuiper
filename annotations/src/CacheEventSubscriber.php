@@ -34,7 +34,7 @@ class CacheEventSubscriber implements EventSubscriberInterface, LoggerAwareInter
         ];
     }
 
-    public function beforeParse($event)
+    public function beforeParse(AnnotationEvent $event)
     {
         $this->logger && $this->logger->debug('[AnnotationSubscriber] before parse '.$event->getClassName());
         $item = $this->cache->getItem($key = 'annotations:'.$event->getClassName());
@@ -45,7 +45,7 @@ class CacheEventSubscriber implements EventSubscriberInterface, LoggerAwareInter
         }
     }
 
-    public function afterParse($event)
+    public function afterParse(AnnotationEvent $event)
     {
         $this->logger && $this->logger->info('[AnnotationSubscriber] after parse '.$event->getClassName());
         $key = 'annotations:'.$event->getClassName();

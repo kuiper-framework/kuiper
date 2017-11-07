@@ -28,6 +28,7 @@ class FqcnResolver
      * @return string
      *
      * @throws \InvalidArgumentException
+     * @throws exception\FileNotFoundException
      * @throws exception\SyntaxErrorException
      */
     public function resolve(string $name, string $namespace): string

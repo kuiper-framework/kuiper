@@ -6,6 +6,9 @@ use kuiper\reflection\type\ArrayType;
 use kuiper\reflection\type\ClassType;
 use kuiper\reflection\type\MixedType;
 
+/**
+ * @SuppressWarnings("NumberOfChildren")
+ */
 abstract class ReflectionType implements ReflectionTypeInterface
 {
     const CLASS_NAME_REGEX = '/^\\\\?([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\\\\)*[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/';
@@ -31,6 +34,8 @@ abstract class ReflectionType implements ReflectionTypeInterface
         'iterable' => type\IterableType::class,
     ];
 
+    private static $SINGLETONS = [];
+
     /**
      * Parses type string to type object.
      *
@@ -53,7 +58,12 @@ abstract class ReflectionType implements ReflectionTypeInterface
             if ($type == 'array') {
                 return new ArrayType(new MixedType());
             } elseif (isset(self::$TYPES[$type])) {
-                return new self::$TYPES[$type]();
+                $className = self::$TYPES[$type];
+                if (!isset(self::$SINGLETONS[$className])) {
+                    self::$SINGLETONS[$className] = new $className();
+                }
+
+                return self::$SINGLETONS[$className];
             } else {
                 return new ClassType($type);
             }

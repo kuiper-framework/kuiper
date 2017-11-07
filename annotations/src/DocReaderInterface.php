@@ -2,6 +2,7 @@
 
 namespace kuiper\annotations;
 
+use kuiper\reflection\ReflectionTypeInterface;
 use ReflectionMethod;
 use ReflectionProperty;
 
@@ -12,9 +13,9 @@ interface DocReaderInterface
      *
      * @param ReflectionProperty $property
      *
-     * @throws exception\ClassNotFoundException
+     * @return ReflectionTypeInterface
      *
-     * @return \kuiper\reflection\ReflectionType Type of the property
+     * @throws exception\ClassNotFoundException
      */
     public function getPropertyType(ReflectionProperty $property);
 
@@ -23,9 +24,9 @@ interface DocReaderInterface
      *
      * @param ReflectionProperty $property
      *
-     * @throws exception\ClassNotFoundException
+     * @return string|null
      *
-     * @return string|null Type of the property (content of var annotation)
+     * @throws exception\ClassNotFoundException
      */
     public function getPropertyClass(ReflectionProperty $property);
 
@@ -34,7 +35,9 @@ interface DocReaderInterface
      *
      * @param ReflectionMethod $method
      *
-     * @return array key is parameter name, value is ReflectionType
+     * @return ReflectionTypeInterface[] the key of array is parameter name
+     *
+     * @throws exception\ClassNotFoundException
      */
     public function getParameterTypes(ReflectionMethod $method);
 
@@ -43,7 +46,9 @@ interface DocReaderInterface
      *
      * @param ReflectionMethod $method
      *
-     * @return array key is parameter name, value is the class name
+     * @return string[] the key of array is parameter name
+     *
+     * @throws exception\ClassNotFoundException
      */
     public function getParameterClasses(ReflectionMethod $method);
 
@@ -52,7 +57,9 @@ interface DocReaderInterface
      *
      * @param ReflectionMethod $method
      *
-     * @return \kuiper\reflection\ReflectionType
+     * @return ReflectionTypeInterface
+     *
+     * @throws exception\ClassNotFoundException
      */
     public function getReturnType(ReflectionMethod $method);
 
@@ -62,6 +69,8 @@ interface DocReaderInterface
      * @param ReflectionMethod $method
      *
      * @return string|null
+     *
+     * @throws exception\ClassNotFoundException
      */
     public function getReturnClass(ReflectionMethod $method);
 }

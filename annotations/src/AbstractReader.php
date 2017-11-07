@@ -2,76 +2,57 @@
 
 namespace kuiper\annotations;
 
-use ReflectionClass;
-use ReflectionMethod;
-use ReflectionProperty;
-
 abstract class AbstractReader implements GreedyReaderInterface, ReaderInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function getClassAnnotations(ReflectionClass $class)
+    public function getClassAnnotations(\ReflectionClass $class)
     {
-        $annotations = $this->getAnnotations($class);
-
-        return $annotations['class'];
+        return $this->getAnnotations($class)->getClassAnnotations();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getClassAnnotation(ReflectionClass $class, $annotationName)
+    public function getClassAnnotation(\ReflectionClass $class, string $annotationName)
     {
-        return $this->getFirst($this->getClassAnnotations($class), $annotationName);
+        return $this->getAnnotations($class)->getFirstClassAnnotation($annotationName);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getMethodAnnotations(ReflectionMethod $method)
+    public function getMethodAnnotations(\ReflectionMethod $method)
     {
-        $annotations = $this->getAnnotations($method->getDeclaringClass());
-
-        return isset($annotations['methods'][$method->getName()])
-            ? $annotations['methods'][$method->getName()]
-            : [];
+        return $this->getAnnotations($method->getDeclaringClass())
+            ->getMethodAnnotations($method->getName());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getMethodAnnotation(ReflectionMethod $method, $annotationName)
+    public function getMethodAnnotation(\ReflectionMethod $method, string $annotationName)
     {
-        return $this->getFirst($this->getMethodAnnotations($method), $annotationName);
+        return $this->getAnnotations($method->getDeclaringClass())
+            ->getFirstMethodAnnotation($method->getName(), $annotationName);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getPropertyAnnotations(ReflectionProperty $property)
+    public function getPropertyAnnotations(\ReflectionProperty $property)
     {
-        $annotations = $this->getAnnotations($property->getDeclaringClass());
-
-        return isset($annotations['properties'][$property->getName()])
-            ? $annotations['properties'][$property->getName()]
-            : [];
+        return $this->getAnnotations($property->getDeclaringClass())
+            ->getPropertyAnnotations($property->getName());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getPropertyAnnotation(ReflectionProperty $property, $annotationName)
+    public function getPropertyAnnotation(\ReflectionProperty $property, string $annotationName)
     {
-        return $this->getFirst($this->getPropertyAnnotations($property), $annotationName);
-    }
-
-    protected function getFirst($annotations, $annotationName)
-    {
-        foreach ($annotations as $annotation) {
-            if ($annotation instanceof $annotationName) {
-                return $annotation;
-            }
-        }
+        return $this->getAnnotations($property->getDeclaringClass())
+            ->getFirstPropertyAnnotation($property->getName(), $annotationName);
     }
 }

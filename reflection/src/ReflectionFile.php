@@ -2,6 +2,7 @@
 
 namespace kuiper\reflection;
 
+use kuiper\reflection\exception\FileNotFoundException;
 use kuiper\reflection\exception\InvalidTokenException;
 use kuiper\reflection\exception\SyntaxErrorException;
 use kuiper\reflection\exception\TokenStoppedException;
@@ -132,7 +133,7 @@ class ReflectionFile implements ReflectionFileInterface
         }
         $code = file_get_contents($this->file);
         if ($code === false) {
-            throw new \InvalidArgumentException("Cannot read file '{$this->file}'");
+            throw new FileNotFoundException("Cannot read file '{$this->file}'");
         }
         $tokens = new TokenStream(token_get_all($code));
 

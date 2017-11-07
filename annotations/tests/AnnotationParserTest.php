@@ -3,12 +3,13 @@
 namespace kuiper\annotations;
 
 use kuiper\reflection\ReflectionFile;
+use kuiper\reflection\ReflectionFileFactory;
 
-class DocParserTest extends TestCase
+class AnnotationParserTest extends TestCase
 {
     public function createTestParser()
     {
-        $parser = new DocParser();
+        $parser = new AnnotationParser(new DocLexer(), ReflectionFileFactory::createInstance());
 
         return $parser;
     }
@@ -19,7 +20,7 @@ class DocParserTest extends TestCase
         $doc = '@Name(foo={1,2, {"key"=@Name}})';
 
         // Nested arrays with nested annotations
-        $result = $parser->parse($doc, new ReflectionFile(__FILE__), null, 1);
+        $result = $parser->parse($doc, '', __FILE__, 1);
         $annot = $result[0];
 
         $this->assertTrue($annot instanceof Annotation);
@@ -41,20 +42,20 @@ class DocParserTest extends TestCase
         $parser = $this->createTestParser();
 
         // Marker annotation
-        $result = $parser->parse('@Name', new ReflectionFile(__FILE__), null, 1);
+        $result = $parser->parse('@Name', '', __FILE__, 1);
         $annot = $result[0];
         $this->assertTrue($annot instanceof Annotation);
         $this->assertEquals('Name', $annot->getName());
         $this->assertEquals([], $annot->getArguments());
 
         // Associative arrays
-        $result = $parser->parse('@Name(foo={"key1" = "value1"})', new ReflectionFile(__FILE__), null, 1);
+        $result = $parser->parse('@Name(foo={"key1" = "value1"})', '', __FILE__, 1);
         $annot = $result[0];
         $this->assertTrue(is_array($annot->getArguments()['foo']));
         $this->assertTrue(isset($annot->getArguments()['foo']['key1']));
 
         // Numerical arrays
-        $result = $parser->parse('@Name({2="foo", 4="bar"})', new ReflectionFile(__FILE__), null, 1);
+        $result = $parser->parse('@Name({2="foo", 4="bar"})', '', __FILE__, 1);
         $args = $result[0]->getArguments()['value'];
         $this->assertEquals('foo', $args[2]);
         $this->assertEquals('bar', $args[4]);
@@ -63,13 +64,13 @@ class DocParserTest extends TestCase
         $this->assertFalse(isset($args[3]));
 
         // Multiple values
-        $result = $parser->parse('@Name(@Name, @Name)', new ReflectionFile(__FILE__), null, 1);
+        $result = $parser->parse('@Name(@Name, @Name)', '', __FILE__, 1);
         $args = $result[0]->getArguments()['value'];
         $this->assertTrue($args[0] instanceof Annotation);
         $this->assertTrue($args[1] instanceof Annotation);
 
         // Multiple types as values
-        $result = $parser->parse('@Name(foo="Bar", @Name, {"key1"="value1", "key2"="value2"})', new ReflectionFile(__FILE__), null, 1);
+        $result = $parser->parse('@Name(foo="Bar", @Name, {"key1"="value1", "key2"="value2"})', '', __FILE__, 1);
         $args = $result[0]->getArguments();
         // print_r($args); return;
 
@@ -88,7 +89,7 @@ class DocParserTest extends TestCase
  */
 DOCBLOCK;
 
-        $result = $parser->parse($docblock, new ReflectionFile(__FILE__), null, 1);
+        $result = $parser->parse($docblock, '', __FILE__, 1);
         $this->assertEquals(2, count($result));
     }
 }
