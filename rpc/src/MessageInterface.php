@@ -17,7 +17,7 @@ interface MessageInterface
      *
      * @return array attributes derived from the request
      */
-    public function getAttributes();
+    public function getAttributes(): array;
 
     /**
      * Retrieve a single derived request attribute.
@@ -36,7 +36,7 @@ interface MessageInterface
      *
      * @return mixed
      */
-    public function getAttribute($name, $default = null);
+    public function getAttribute(string $name, $default = null);
 
     /**
      * Return an instance with the specified derived request attribute.
@@ -55,7 +55,7 @@ interface MessageInterface
      *
      * @return static
      */
-    public function withAttribute($name, $value);
+    public function withAttribute(string $name, $value);
 
     /**
      * Return an instance that removes the specified derived request attribute.
@@ -73,14 +73,14 @@ interface MessageInterface
      *
      * @return static
      */
-    public function withoutAttribute($name);
+    public function withoutAttribute(string $name);
 
     /**
      * Gets the body of the message.
      *
      * @return StreamInterface Returns the body as stream
      */
-    public function getBody();
+    public function getBody(): StreamInterface;
 
     /**
      * Return an instance with the specified message body.

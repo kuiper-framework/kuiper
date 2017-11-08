@@ -57,7 +57,7 @@ class Normalize implements MiddlewareInterface
         if ($response->getBody()->getSize() == 0) {
             $result = $response->getResult();
             if (is_array($result) || is_object($result)) {
-                return $response->withResult($this->normalizer->toArray($result));
+                return $response->withResult($this->normalizer->normalize($result));
             }
         }
 
@@ -103,7 +103,7 @@ class Normalize implements MiddlewareInterface
             }
             if (is_array($value)) {
                 try {
-                    $value = $this->normalizer->fromArray($value, $type);
+                    $value = $this->normalizer->denormalize($value, $type);
                 } catch (SerializeException $e) {
                     throw new InvalidArgumentException($e->getMessage());
                 }

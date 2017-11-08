@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\serializer\fixtures;
 
 class Organization
@@ -6,7 +7,7 @@ class Organization
     private $name;
 
     /**
-     * @var array<Member>
+     * @var Member[]
      */
     private $members;
 
@@ -21,17 +22,19 @@ class Organization
     }
 
     /**
-     * @param $members array<Member>
+     * @param $members Member[]
+     *
      * @return static
      */
     public function setMembers(array $members)
     {
         $this->members = $members;
+
         return $this;
     }
 
     /**
-     * @return array<Member>
+     * @return Member[]
      */
     public function getMembers()
     {

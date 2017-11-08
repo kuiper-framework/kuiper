@@ -9,6 +9,11 @@ class User
      */
     private $id;
 
+    /**
+     * @var \DateTime
+     */
+    private $birthday;
+
     public function getId()
     {
         return $this->id;
@@ -19,5 +24,21 @@ class User
         $this->id = $id;
 
         return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getBirthday(): \DateTime
+    {
+        return $this->birthday;
+    }
+
+    /**
+     * @param \DateTime $birthday
+     */
+    public function setBirthday(\DateTime $birthday)
+    {
+        $this->birthday = $birthday;
     }
 }

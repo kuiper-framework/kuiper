@@ -38,7 +38,7 @@ class Normalize implements MiddlewareInterface
     public function __invoke(RequestInterface $request, ResponseInterface $response, callable $next)
     {
         try {
-            $request = $request->withParameters($this->normalizer->toArray($request->getParameters()));
+            $request = $request->withParameters($this->normalizer->normalize($request->getParameters()));
         } catch (SerializeException $e) {
             throw new \InvalidArgumentException($e->getMessage(), 0, $e);
         }
@@ -46,7 +46,7 @@ class Normalize implements MiddlewareInterface
         $result = $response->getResult();
         if (is_array($result)) {
             $returnType = $this->getReturnType($request->getClass(), $request->getMethod());
-            $response = $response->withResult($this->normalizer->fromArray($result, $returnType));
+            $response = $response->withResult($this->normalizer->denormalize($result, $returnType));
         }
 
         return $response;

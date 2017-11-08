@@ -7,6 +7,7 @@ use kuiper\annotations\DocReader;
 use kuiper\serializer\fixtures\Company;
 use kuiper\serializer\fixtures\Member;
 use kuiper\serializer\fixtures\Organization;
+use kuiper\serializer\normalizer\DateTimeNormalizer;
 
 /**
  * TestCase for Serializer.
@@ -80,7 +81,7 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
     public function testTypeOverriderByProperty()
     {
         $serializer = $this->createSerializer();
-        $result = $serializer->fromArray([
+        $result = $serializer->denormalize([
             'values' => [
                 ['name' => 'john'],
             ],
@@ -91,7 +92,7 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
     public function testIntTypeAutoconvert()
     {
         $serializer = $this->createSerializer();
-        $result = $serializer->fromArray(['id' => 1], fixtures\User::class);
+        $result = $serializer->denormalize(['id' => 1], fixtures\User::class);
         $this->assertInstanceOf(fixtures\User::class, $result);
         // var_export($result);
         $this->assertEquals(1, $result->getId());
@@ -100,7 +101,7 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
     public function testIntTypeAutoconvertNull()
     {
         $serializer = $this->createSerializer();
-        $result = $serializer->fromArray(['id' => null], fixtures\User::class);
+        $result = $serializer->denormalize(['id' => null], fixtures\User::class);
         $this->assertInstanceOf(fixtures\User::class, $result);
         // var_export($result);
         $this->assertNull($result->getId());
@@ -111,8 +112,21 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
         $serializer = $this->createSerializer();
         $user = new fixtures\User();
         $user->setId(1);
-        $result = $serializer->toArray($user);
+        $result = $serializer->normalize($user);
         // var_export($result);
         $this->assertEquals(['id' => 1], $result);
+    }
+
+    public function testDateTimeSerialize()
+    {
+        $serializer = $this->createSerializer();
+        $serializer->addObjectNormalizer(\DateTime::class, new DateTimeNormalizer());
+        $user = new fixtures\User();
+        $user->setId(1)
+            ->setBirthday(new \DateTime());
+        $str = $serializer->toJson($user);
+        $obj = $serializer->fromJson($str, fixtures\User::class);
+        // print_r($obj);
+        $this->assertInstanceOf(\DateTime::class, $obj->getBirthday());
     }
 }

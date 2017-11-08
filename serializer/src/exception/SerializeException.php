@@ -2,8 +2,6 @@
 
 namespace kuiper\serializer\exception;
 
-use RuntimeException;
-
-class SerializeException extends RuntimeException
+class SerializeException extends \RuntimeException
 {
 }

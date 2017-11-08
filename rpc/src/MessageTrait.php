@@ -17,7 +17,10 @@ trait MessageTrait
      */
     private $stream;
 
-    public function getBody()
+    /**
+     * @return StreamInterface
+     */
+    public function getBody(): StreamInterface
     {
         if (!$this->stream) {
             $this->stream = stream_for('');
@@ -26,6 +29,11 @@ trait MessageTrait
         return $this->stream;
     }
 
+    /**
+     * @param StreamInterface $body
+     *
+     * @return $this
+     */
     public function withBody(StreamInterface $body)
     {
         if ($body === $this->stream) {
@@ -38,12 +46,12 @@ trait MessageTrait
         return $new;
     }
 
-    public function getAttributes()
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
 
-    public function getAttribute($attribute, $default = null)
+    public function getAttribute(string $attribute, $default = null)
     {
         if (false === array_key_exists($attribute, $this->attributes)) {
             return $default;
@@ -52,7 +60,7 @@ trait MessageTrait
         return $this->attributes[$attribute];
     }
 
-    public function withAttribute($attribute, $value)
+    public function withAttribute(string $attribute, $value)
     {
         $new = clone $this;
         $new->attributes[$attribute] = $value;
@@ -60,7 +68,7 @@ trait MessageTrait
         return $new;
     }
 
-    public function withoutAttribute($attribute)
+    public function withoutAttribute(string $attribute)
     {
         if (false === array_key_exists($attribute, $this->attributes)) {
             return $this;
