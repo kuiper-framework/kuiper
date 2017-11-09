@@ -2,7 +2,7 @@
 
 namespace kuiper\web;
 
-trait RouteRegistarTrait
+class RouteRegistrar implements RouteRegistrarInterface
 {
     /**
      * @var array
@@ -37,7 +37,7 @@ trait RouteRegistarTrait
      *
      * @return RouteInterface
      */
-    public function get($pattern, $action)
+    public function get(string $pattern, $action)
     {
         return $this->map(['GET'], $pattern, $action);
     }
@@ -50,7 +50,7 @@ trait RouteRegistarTrait
      *
      * @return RouteInterface
      */
-    public function post($pattern, $action)
+    public function post(string $pattern, $action)
     {
         return $this->map(['POST'], $pattern, $action);
     }
@@ -63,7 +63,7 @@ trait RouteRegistarTrait
      *
      * @return RouteInterface
      */
-    public function put($pattern, $action)
+    public function put(string $pattern, $action)
     {
         return $this->map(['PUT'], $pattern, $action);
     }
@@ -76,7 +76,7 @@ trait RouteRegistarTrait
      *
      * @return RouteInterface
      */
-    public function patch($pattern, $action)
+    public function patch(string $pattern, $action)
     {
         return $this->map(['PATCH'], $pattern, $action);
     }
@@ -89,7 +89,7 @@ trait RouteRegistarTrait
      *
      * @return RouteInterface
      */
-    public function delete($pattern, $action)
+    public function delete(string $pattern, $action)
     {
         return $this->map(['DELETE'], $pattern, $action);
     }
@@ -102,7 +102,7 @@ trait RouteRegistarTrait
      *
      * @return RouteInterface
      */
-    public function options($pattern, $action)
+    public function options(string $pattern, $action)
     {
         return $this->map(['OPTIONS'], $pattern, $action);
     }
@@ -115,7 +115,7 @@ trait RouteRegistarTrait
      *
      * @return RouteInterface
      */
-    public function any($pattern, $action)
+    public function any(string $pattern, $action)
     {
         return $this->map(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], $pattern, $action);
     }
@@ -129,7 +129,7 @@ trait RouteRegistarTrait
      *
      * @return RouteInterface
      */
-    public function map(array $methods, $pattern, $action)
+    public function map(array $methods, string $pattern, $action)
     {
         if (empty($action)) {
             throw new \InvalidArgumentException('route callback must not be empty');
@@ -143,6 +143,7 @@ trait RouteRegistarTrait
             $namespace = $attributes['namespace'];
             unset($attributes['namespace']);
         }
+        /** @var RouteInterface $route */
         $route = new $this->routeClass($methods, $pattern, $this->parseAction($action, $namespace));
         if (!empty($attributes)) {
             $route->match($attributes);
@@ -164,7 +165,7 @@ trait RouteRegistarTrait
         array_pop($this->groupStack);
     }
 
-    public function getRoutes()
+    public function getRoutes() : array
     {
         return $this->routes;
     }
@@ -190,40 +191,6 @@ trait RouteRegistarTrait
         return $this;
     }
 
-    protected function parseAction($action, $namespace)
-    {
-        if (is_string($action)) {
-            if (($pos = strpos($action, $this->actionDelimiter)) !== false) {
-                $callback = [
-                    $controller = $this->addNamespace(substr($action, 0, $pos), $namespace),
-                    $method = substr($action, $pos + strlen($this->actionDelimiter)) ?: null,
-                ];
-            } else {
-                $callback = $action;
-            }
-        } elseif (is_array($action)) {
-            if (isset($action['controller'])) {
-                $callback = [
-                    is_string($action['controller']) ? $this->addNamespace($action['controller'], $name) : $action['controller'],
-                    isset($action['action']) ? $action['action'] : null,
-                ];
-            } elseif (isset($action[0])) {
-                $callback = [
-                    is_string($action[0]) ? $this->addNamespace($action[0], $name) : $action[0],
-                    isset($action[1]) ? $action[1] : null,
-                ];
-            } else {
-                throw new \InvalidArgumentException('Invalid action '.gettype($action));
-            }
-        } elseif (is_callable($action)) {
-            $callback = $action;
-        } else {
-            throw new \InvalidArgumentException('Invalid action '.gettype($action));
-        }
-
-        return $callback;
-    }
-
     protected function addNamespace($class, $namespace)
     {
         if (empty($class)) {
@@ -234,5 +201,57 @@ trait RouteRegistarTrait
         }
 
         return rtrim($namespace, '\\').'\\'.$class;
+    }
+
+    protected function parseAction($action, $namespace)
+    {
+        if (is_string($action)) {
+            return $this->parseActionFromString($action, $namespace);
+        } elseif (is_array($action)) {
+            return $this->parseActionFromArray($action, $namespace);
+        } elseif (is_callable($action)) {
+            return $action;
+        } else {
+            throw new \InvalidArgumentException('Invalid action '.gettype($action));
+        }
+    }
+
+    /**
+     * @param string $action
+     * @param string $namespace
+     * @return mixed
+     */
+    protected function parseActionFromString(string $action, $namespace): array
+    {
+        if (($pos = strpos($action, $this->actionDelimiter)) !== false) {
+            return [
+                $this->addNamespace(substr($action, 0, $pos), $namespace),
+                substr($action, $pos + strlen($this->actionDelimiter)) ?: null,
+            ];
+        } else {
+            return $action;
+        }
+    }
+
+    /**
+     * @param array $action
+     * @param string $namespace
+     * @return array
+     */
+    protected function parseActionFromArray(array $action, $namespace)
+    {
+        if (isset($action['controller'])) {
+            return [
+                is_string($action['controller']) ? $this->addNamespace($action['controller'], $namespace) : $action['controller'],
+                isset($action['action']) ? $action['action'] : null,
+            ];
+        } elseif (isset($action[0])) {
+            return [
+                is_string($action[0]) ? $this->addNamespace($action[0], $namespace) : $action[0],
+                isset($action[1]) ? $action[1] : null,
+            ];
+        } else {
+            throw new \InvalidArgumentException('Invalid action ' . gettype($action));
+        }
     }
 }

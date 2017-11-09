@@ -72,6 +72,8 @@ class DotArray implements ArrayAccess, Iterator
     }
 
     /**
+     * @param string $key
+     *
      * @return bool
      */
     public function isLeaf($key)
@@ -119,11 +121,11 @@ class DotArray implements ArrayAccess, Iterator
 
     protected function iterate($data, $prefix = null)
     {
-        foreach ($data as $name => $value) {
-            $path = $this->makePath([$prefix, $name]);
+        foreach ($data as $key => $value) {
+            $path = $this->makePath([$prefix, $key]);
             if (is_array($value) || $value instanceof Iterator) {
-                foreach ($this->iterate($value, $path) as $name => $value) {
-                    yield $name => $value;
+                foreach ($this->iterate($value, $path) as $name => $item) {
+                    yield $name => $item;
                 }
             } else {
                 yield $path => $value;
@@ -245,7 +247,7 @@ class DotArray implements ArrayAccess, Iterator
      */
     public function next()
     {
-        return $this->iterator->next();
+        $this->iterator->next();
     }
 
     /**

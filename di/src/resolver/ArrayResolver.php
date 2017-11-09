@@ -3,8 +3,8 @@
 namespace kuiper\di\resolver;
 
 use Closure;
-use kuiper\di\ContainerInterface;
 use InvalidArgumentException;
+use kuiper\di\ContainerInterface;
 use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\DefinitionInterface;
 use kuiper\di\definition\FactoryDefinition;

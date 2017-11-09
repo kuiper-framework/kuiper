@@ -27,8 +27,8 @@ class Filesystem
         $options = array_merge([
             'excludeHiddenFiles' => true,
         ], $options);
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
-        foreach ($it as $file => $fileInfo) {
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+        foreach ($iterator as $file => $fileInfo) {
             $name = $fileInfo->getFilename();
             if ($name == '.' || $name == '..') {
                 continue;
@@ -42,7 +42,7 @@ class Filesystem
             if (isset($options['includes'])) {
                 $ignore = false;
                 foreach ((array) $options['includes'] as $re) {
-                    if (!preg_match($options['includes'], $file)) {
+                    if (!preg_match($re, $file)) {
                         $ignore = true;
                         break;
                     }
@@ -54,7 +54,7 @@ class Filesystem
             if (isset($options['excludes'])) {
                 $ignore = false;
                 foreach ((array) $options['excludes'] as $re) {
-                    if (preg_match($options['excludes'], $file)) {
+                    if (preg_match($re, $file)) {
                         $ignore = true;
                     }
                 }
@@ -159,33 +159,34 @@ class Filesystem
     }
 
     /**
-     * Canonicalize a path by resolving it relative to some directory (by
+     * Normalize a path by resolving it relative to some directory (by
      * default PWD), following parent symlinks and removing artifacts. If the
      * path is itself a symlink it is left unresolved.
      *
-     * @param  string    path, absolute or relative to PWD
+     * @param string $path       , absolute or relative to PWD
+     * @param string $relativeTo
      *
      * @return string canonical, absolute path
      */
-    public static function absolutePath($path, $relative_to = null)
+    public static function absolutePath($path, $relativeTo = null)
     {
         if (self::isWindows()) {
-            $is_absolute = preg_match('/^[A-Za-z]+:/', $path);
+            $isAbsolute = preg_match('/^[A-Za-z]+:/', $path);
         } else {
-            $is_absolute = !strncmp($path, DIRECTORY_SEPARATOR, 1);
+            $isAbsolute = !strncmp($path, DIRECTORY_SEPARATOR, 1);
         }
 
-        if (!$is_absolute) {
-            if (!$relative_to) {
-                $relative_to = getcwd();
+        if (!$isAbsolute) {
+            if (!$relativeTo) {
+                $relativeTo = getcwd();
             }
-            $path = $relative_to.DIRECTORY_SEPARATOR.$path;
+            $path = $relativeTo.DIRECTORY_SEPARATOR.$path;
         }
 
         if (is_link($path)) {
-            $parent_realpath = realpath(dirname($path));
-            if ($parent_realpath !== false) {
-                return $parent_realpath.DIRECTORY_SEPARATOR.basename($path);
+            $parentRealpath = realpath(dirname($path));
+            if ($parentRealpath !== false) {
+                return $parentRealpath.DIRECTORY_SEPARATOR.basename($path);
             }
         }
 

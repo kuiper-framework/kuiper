@@ -58,33 +58,33 @@ class Filter
         $class = new ReflectionClass($className);
         $method = $class->getMethod($action);
 
-        $annots = [];
-        foreach ($this->annotationReader->getClassAnnotations($class) as $annot) {
-            if ($annot instanceof FilterInterface) {
-                $annots[get_class($annot)] = $annot;
+        $annotations = [];
+        foreach ($this->annotationReader->getClassAnnotations($class) as $annotation) {
+            if ($annotation instanceof FilterInterface) {
+                $annotations[get_class($annotation)] = $annotation;
             }
         }
-        foreach ($this->annotationReader->getMethodAnnotations($method) as $annot) {
-            if ($annot instanceof FilterInterface) {
-                $annots[get_class($annot)] = $annot;
+        foreach ($this->annotationReader->getMethodAnnotations($method) as $annotation) {
+            if ($annotation instanceof FilterInterface) {
+                $annotations[get_class($annotation)] = $annotation;
             }
         }
-        usort($annots, function ($a, $b) {
+        usort($annotations, function ($a, $b) {
             return $a->getPriority() - $b->getPriority();
         });
         $filters = [];
-        foreach ($annots as $annot) {
-            $filters[] = $annot->createMiddleware($this->container);
+        foreach ($annotations as $annotation) {
+            $filters[] = $annotation->createMiddleware($this->container);
         }
 
         return $this->cache[$className][$action] = $filters;
     }
 
-    private function callFilters($request, $response, $filters, $final, $i = 0)
+    private function callFilters($request, $response, $filters, $final, $index = 0)
     {
-        if ($i < count($filters)) {
-            return $filters[$i]($request, $response, function ($request, $response) use ($filters, $final, $i) {
-                return $this->callFilters($request, $response, $filters, $final, $i + 1);
+        if ($index < count($filters)) {
+            return $filters[$index]($request, $response, function ($request, $response) use ($filters, $final, $index) {
+                return $this->callFilters($request, $response, $filters, $final, $index + 1);
             });
         } else {
             return $final($request, $response);

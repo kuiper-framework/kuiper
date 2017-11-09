@@ -2,7 +2,7 @@
 
 namespace kuiper\web;
 
-interface RouteRegistarInterface
+interface RouteRegistrarInterface
 {
     /**
      * Register a new GET route with the router.
@@ -12,7 +12,7 @@ interface RouteRegistarInterface
      *
      * @return RouteInterface
      */
-    public function get($pattern, $action);
+    public function get(string $pattern, $action);
 
     /**
      * Register a new POST route with the router.
@@ -22,7 +22,7 @@ interface RouteRegistarInterface
      *
      * @return RouteInterface
      */
-    public function post($pattern, $action);
+    public function post(string $pattern, $action);
 
     /**
      * Register a new PUT route with the router.
@@ -32,7 +32,7 @@ interface RouteRegistarInterface
      *
      * @return RouteInterface
      */
-    public function put($pattern, $action);
+    public function put(string $pattern, $action);
 
     /**
      * Register a new DELETE route with the router.
@@ -42,7 +42,7 @@ interface RouteRegistarInterface
      *
      * @return RouteInterface
      */
-    public function delete($pattern, $action);
+    public function delete(string $pattern, $action);
 
     /**
      * Register a new PATCH route with the router.
@@ -52,7 +52,7 @@ interface RouteRegistarInterface
      *
      * @return RouteInterface
      */
-    public function patch($pattern, $action);
+    public function patch(string $pattern, $action);
 
     /**
      * Register a new OPTIONS route with the router.
@@ -62,7 +62,7 @@ interface RouteRegistarInterface
      *
      * @return RouteInterface
      */
-    public function options($pattern, $action);
+    public function options(string $pattern, $action);
 
     /**
      * Adds route for any HTTP method.
@@ -72,7 +72,7 @@ interface RouteRegistarInterface
      *
      * @return RouteInterface
      */
-    public function any($pattern, $action);
+    public function any(string $pattern, $action);
 
     /**
      * Register a new route with the given verbs.
@@ -83,7 +83,7 @@ interface RouteRegistarInterface
      *
      * @return RouteInterface
      */
-    public function map(array $methods, $pattern, $action);
+    public function map(array $methods, string $pattern, $action);
 
     /**
      * Create a route group with shared attributes.
@@ -98,5 +98,5 @@ interface RouteRegistarInterface
      *
      * @return RouteInterface[]
      */
-    public function getRoutes();
+    public function getRoutes() : array ;
 }

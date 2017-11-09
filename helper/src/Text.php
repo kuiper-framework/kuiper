@@ -12,6 +12,11 @@ final class Text
      *    echo Text::camelize('co_co-bon_go', '-'); // Co_coBon_go
      *    echo Text::camelize('co_co-bon_go', '_-'); // CoCoBonGo
      * </code>
+     *
+     * @param string $str
+     * @param string $delimiter
+     *
+     * @return string
      */
     public static function camelize($str, $delimiter = null)
     {
@@ -28,6 +33,11 @@ final class Text
      *    echo Text::uncamelize('CocoBongo'); // coco_bongo
      *    echo Text::uncamelize('CocoBongo', '-'); // coco-bongo
      * </code>
+     *
+     * @param string $str
+     * @param string $delimiter
+     *
+     * @return string
      */
     public static function uncamelize($str, $delimiter = null)
     {
@@ -48,6 +58,12 @@ final class Text
      *    echo Text::startsWith("Hello", "he", false); // false
      *    echo Text::startsWith("Hello", "he"); // true
      * </code>
+     *
+     * @param string $haystack
+     * @param string $needle
+     * @param bool   $ignoreCase
+     *
+     * @return bool
      */
     public static function startsWith($haystack, $needle, $ignoreCase = true)
     {
@@ -69,6 +85,12 @@ final class Text
      *    echo Text::endsWith("Hello", "LLO", false); // false
      *    echo Text::endsWith("Hello", "LLO"); // true
      * </code>
+     *
+     * @param string $haystack
+     * @param string $needle
+     * @param bool   $ignoreCase
+     *
+     * @return bool
      */
     public static function endsWith($haystack, $needle, $ignoreCase = true)
     {
@@ -87,7 +109,7 @@ final class Text
     }
 
     /**
-     * Lowercases a string, this function makes use of the mbstring extension if available.
+     * makes a string lowercase, this function makes use of the mbstring extension if available.
      *
      * <code>
      *    echo Text::lower("HELLO"); // hello
@@ -111,11 +133,16 @@ final class Text
     }
 
     /**
-     * Uppercases a string, this function makes use of the mbstring extension if available.
+     * makes a string uppercase, this function makes use of the mbstring extension if available.
      *
      * <code>
      *    echo Text::upper("hello"); // HELLO
      * </code>
+     *
+     * @param string $str
+     * @param string $encoding
+     *
+     * @return mixed|string
      */
     public static function upper($str, $encoding = 'UTF-8')
     {
@@ -138,6 +165,8 @@ final class Text
      * </code>
      *
      * @param string $text
+     *
+     * @return string
      */
     public static function underscore($text)
     {
@@ -153,6 +182,8 @@ final class Text
      * </code>
      *
      * @param string $text
+     *
+     * @return string
      */
     public static function humanize($text)
     {

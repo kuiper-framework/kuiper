@@ -2,6 +2,9 @@
 
 namespace kuiper\web\session;
 
+/**
+ * @SuppressWarnings("Globals")
+ */
 class Session implements SessionInterface
 {
     /**
@@ -69,7 +72,7 @@ class Session implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function getId()
+    public function getId(): string
     {
         return session_id();
     }
@@ -77,7 +80,7 @@ class Session implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function isStarted()
+    public function isStarted(): bool
     {
         return $this->started;
     }
@@ -110,7 +113,7 @@ class Session implements SessionInterface
 
     public function __set($index, $value)
     {
-        return $this->set($index, $value);
+        $this->set($index, $value);
     }
 
     public function __isset($index)
@@ -120,6 +123,6 @@ class Session implements SessionInterface
 
     public function __unset($index)
     {
-        return $this->remove($index);
+        $this->remove($index);
     }
 }

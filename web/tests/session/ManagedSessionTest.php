@@ -1,25 +1,25 @@
 <?php
+
 namespace kuiper\web\session;
 
 use Dflydev\FigCookies\SetCookies;
 use kuiper\cache\driver\Memory;
 use kuiper\cache\Pool;
-use kuiper\web\session\CacheSessionHandler;
-use kuiper\web\session\ManagedSession;
 use kuiper\web\TestCase;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequestFactory;
 
 class ManagedSessionTest extends TestCase
 {
-    const SID = "447a490aa4b2ccc0e17a06e43baf983c22a3c017b6d40e08";
-    
+    const SID = '447a490aa4b2ccc0e17a06e43baf983c22a3c017b6d40e08';
+
     public function createSession()
     {
         $cache = new Pool(new Memory());
         $handler = new CacheSessionHandler($cache);
+
         return $session = new ManagedSession($handler, [
-            'cookie_name' => 'SID'
+            'cookie_name' => 'SID',
         ]);
     }
 
@@ -27,7 +27,7 @@ class ManagedSessionTest extends TestCase
     {
         return ServerRequestFactory::fromGlobals(
             null, null, null, [
-                'SID' => self::SID
+                'SID' => self::SID,
             ], null
         );
     }
@@ -45,7 +45,7 @@ class ManagedSessionTest extends TestCase
         $session = $this->createSession();
         $cache = $this->readAttribute($this->readAttribute($session, 'handler'), 'cache');
         $item = $cache->getItem('session:'.self::SID);
-        $cache->save($item->set(['nick' => 'kuiper']));
+        $cache->save($item->set(serialize(['nick' => 'kuiper'])));
         $session->setRequest($this->createRequest());
         $session->start();
         $this->assertEquals('kuiper', $session->nick);
@@ -57,7 +57,7 @@ class ManagedSessionTest extends TestCase
         $session->setRequest(ServerRequestFactory::fromGlobals());
         $session->start();
         $session->nick = 'john';
-        $response = $session->respond(new Response);
+        $response = $session->respond(new Response());
         // print_r($response->getHeaders());
         $cookies = SetCookies::fromResponse($response);
         $cookie = $cookies->get('SID');
@@ -68,6 +68,6 @@ class ManagedSessionTest extends TestCase
         $item = $cache->getItem('session:'.$cookie->getValue());
         // print_r($item);
         $this->assertTrue($item->isHit());
-        $this->assertEquals(['nick' => 'john'], $item->get());
+        $this->assertEquals(['nick' => 'john'], unserialize($item->get()));
     }
 }

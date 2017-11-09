@@ -28,7 +28,7 @@ class FlashSession implements FlashInterface
     /**
      * {@inheritdoc}
      */
-    public function error($message)
+    public function error(string $message)
     {
         $this->message('error', $message);
     }
@@ -36,7 +36,7 @@ class FlashSession implements FlashInterface
     /**
      * {@inheritdoc}
      */
-    public function notice($message)
+    public function notice(string $message)
     {
         $this->message('notice', $message);
     }
@@ -44,30 +44,33 @@ class FlashSession implements FlashInterface
     /**
      * {@inheritdoc}
      */
-    public function success($message)
+    public function success(string $message)
     {
         $this->message('success', $message);
     }
 
     /**
-     * Shows a HTML warning message.
+     * {@inheritdoc}
      */
-    public function warning($message)
+    public function warning(string $message)
     {
         $this->message('warning', $message);
     }
 
     /**
-     * Outputs a message.
+     * {@inheritdoc}
      */
-    public function message($type, $message)
+    public function message(string $type, string $message)
     {
         $messages = $this->getMessages();
         $messages[$type][] = $message;
         $this->setMessages($messages);
     }
 
-    public function has($type = null)
+    /**
+     * {@inheritdoc}
+     */
+    public function has(string $type = null)
     {
         $messages = $this->getMessages();
         if (isset($type)) {

@@ -2,17 +2,13 @@
 
 namespace kuiper\di\resolver;
 
-use kuiper\di\ContainerInterface;
 use InvalidArgumentException;
-use kuiper\di\ContainerAwareInterface;
+use kuiper\di\ContainerInterface;
 use kuiper\di\DeferredObject;
 use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\ObjectDefinition;
 use kuiper\di\DefinitionEntry;
 use kuiper\di\ProxyFactory;
-use kuiper\di\Scope;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerInterface;
 use ReflectionClass;
 
 class ObjectResolver implements ResolverInterface
@@ -31,11 +27,6 @@ class ObjectResolver implements ResolverInterface
      * @var string[]
      */
     private $awarables = [];
-
-    /**
-     * @var string[]
-     */
-    private static $AWARABLE_IDS = [];
 
     public function __construct(ResolverInterface $resolver, ProxyFactory $proxyFactory)
     {

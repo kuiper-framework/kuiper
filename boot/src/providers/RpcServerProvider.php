@@ -22,8 +22,6 @@ class RpcServerProvider extends Provider
 {
     public function register()
     {
-        $settings = $this->settings;
-
         $this->services->addDefinitions([
             ServiceResolverInterface::class => di\factory([$this, 'provideServiceResolver']),
             ServerInterface::class => di\factory([$this, 'provideRpcServer']),

@@ -3,12 +3,11 @@
 namespace kuiper\web\session;
 
 use Psr\Cache\CacheItemPoolInterface;
-use SessionHandlerInterface;
 
 /**
- * Use cache compoent as session storage.
+ * Use cache component as session storage.
  */
-class CacheSessionHandler implements SessionHandlerInterface
+class CacheSessionHandler implements \SessionHandlerInterface
 {
     /**
      * @var CacheItemPoolInterface
@@ -39,14 +38,18 @@ class CacheSessionHandler implements SessionHandlerInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @SuppressWarnings("unused")
      */
-    public function open($save_path, $session_name)
+    public function open($savePath, $sessionName)
     {
         return true;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @SuppressWarnings("CamelCaseMethodName")
      */
     public function create_sid()
     {
@@ -93,15 +96,17 @@ class CacheSessionHandler implements SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function destroy($session_id)
+    public function destroy($sessionId)
     {
-        $this->cache->deleteItem($this->prefix.$session_id);
+        $this->cache->deleteItem($this->prefix.$sessionId);
 
         return true;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @SuppressWarnings("ShortMethodName")
      */
     public function gc($lifetime)
     {

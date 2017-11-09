@@ -4,10 +4,13 @@ namespace kuiper\serializer;
 
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\DocReader;
+use kuiper\helper\Enum;
 use kuiper\serializer\fixtures\Company;
+use kuiper\serializer\fixtures\Gender;
 use kuiper\serializer\fixtures\Member;
 use kuiper\serializer\fixtures\Organization;
 use kuiper\serializer\normalizer\DateTimeNormalizer;
+use kuiper\serializer\normalizer\EnumNormalizer;
 
 /**
  * TestCase for Serializer.
@@ -16,7 +19,10 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
 {
     public function createSerializer()
     {
-        return new Serializer(new AnnotationReader(), new DocReader());
+        return new Serializer(new AnnotationReader(), new DocReader(), [
+            \DateTime::class => new DateTimeNormalizer(),
+            Enum::class => new EnumNormalizer(),
+        ]);
     }
 
     public function testDeserializeType()
@@ -120,13 +126,36 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
     public function testDateTimeSerialize()
     {
         $serializer = $this->createSerializer();
-        $serializer->addObjectNormalizer(\DateTime::class, new DateTimeNormalizer());
-        $user = new fixtures\User();
-        $user->setId(1)
-            ->setBirthday(new \DateTime());
+        $user = $this->createUser();
         $str = $serializer->toJson($user);
         $obj = $serializer->fromJson($str, fixtures\User::class);
         // print_r($obj);
         $this->assertInstanceOf(\DateTime::class, $obj->getBirthday());
+    }
+
+    public function testDateTimeJsonSerialize()
+    {
+        $serializer = $this->createSerializer();
+        $user = $this->createUser();
+        $str = json_encode($user);
+        // echo $str;
+        /** @var fixtures\User $obj */
+        $obj = $serializer->fromJson($str, fixtures\User::class);
+         // print_r($obj);
+        $this->assertInstanceOf(\DateTime::class, $obj->getBirthday());
+        $this->assertEquals(Gender::MALE(), $obj->getGender());
+    }
+
+    /**
+     * @return fixtures\User
+     */
+    private function createUser(): fixtures\User
+    {
+        $user = new fixtures\User();
+        $user->setId(1)
+            ->setBirthday(new \DateTime())
+            ->setGender(Gender::MALE());
+
+        return $user;
     }
 }

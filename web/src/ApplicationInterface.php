@@ -23,7 +23,7 @@ interface ApplicationInterface
      *
      * @return self
      */
-    public function add(callable $middleware, $position = self::ROUTE, $id = null);
+    public function add(callable $middleware, $position = self::ROUTE, string $id = null);
 
     /**
      * Run application.

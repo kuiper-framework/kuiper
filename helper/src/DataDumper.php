@@ -57,6 +57,7 @@ class DataDumper
      *
      * @param mixed  $data
      * @param string $format
+     * @param bool   $pretty
      *
      * @return string
      */
@@ -68,6 +69,10 @@ class DataDumper
     /**
      * @param string $content
      * @param string $format
+     *
+     * @SuppressWarnings("eval")
+     *
+     * @return mixed
      */
     public static function load($content, $format)
     {
@@ -96,7 +101,7 @@ class DataDumper
             throw new InvalidArgumentException("Cannot guess format from file '{$file}'");
         }
 
-        return $format = self::$FORMATS[$ext];
+        return self::$FORMATS[$ext];
     }
 
     /**
@@ -117,6 +122,7 @@ class DataDumper
         } elseif ($format === 'yaml') {
             return Yaml::parse(file_get_contents($file));
         } elseif ($format === 'php') {
+            /* @noinspection PhpIncludeInspection */
             return require $file;
         } else {
             throw new InvalidArgumentException("Invalid format '{$format}'");
@@ -129,6 +135,9 @@ class DataDumper
      * @param string $file
      * @param mixed  $data
      * @param string $format file format. If null, determine from file extension
+     * @param bool   $pretty
+     *
+     * @return bool|int
      */
     public static function dumpFile($file, $data, $format = null, $pretty = true)
     {

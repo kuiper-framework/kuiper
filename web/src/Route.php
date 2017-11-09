@@ -43,7 +43,7 @@ class Route implements RouteInterface
      */
     private $container;
 
-    public function __construct(array $methods, $pattern, $action)
+    public function __construct(array $methods, string $pattern, $action)
     {
         $this->methods = $methods;
         $this->pattern = $pattern;
@@ -53,7 +53,27 @@ class Route implements RouteInterface
     /**
      * {@inheritdoc}
      */
-    public function getMethods()
+    public function name(string $name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function match(array $attributes)
+    {
+        $this->attributes = $attributes;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getMethods(): array
     {
         return $this->methods;
     }
@@ -72,7 +92,7 @@ class Route implements RouteInterface
     /**
      * {@inheritdoc}
      */
-    public function getPattern()
+    public function getPattern(): string
     {
         return $this->pattern;
     }
@@ -99,16 +119,6 @@ class Route implements RouteInterface
     /**
      * {@inheritdoc}
      */
-    public function name($name)
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getName()
     {
         return $this->name;
@@ -117,17 +127,7 @@ class Route implements RouteInterface
     /**
      * {@inheritdoc}
      */
-    public function match(array $attributes)
-    {
-        $this->attributes = $attributes;
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getAttributes()
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
@@ -146,7 +146,7 @@ class Route implements RouteInterface
     /**
      * {@inheritdoc}
      */
-    public function getArguments()
+    public function getArguments(): array
     {
         return $this->arguments;
     }
@@ -166,9 +166,10 @@ class Route implements RouteInterface
     /**
      * {@inheritdoc}
      */
-    public function run(ServerRequestInterface $request, ResponseInterface $response)
+    public function run(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $action = $this->getAction();
+
         if ($action instanceof \Closure) {
             if ($this->container) {
                 $action = $action->bindTo($this->container);
@@ -185,22 +186,17 @@ class Route implements RouteInterface
             throw new \BadMethodCallException('Invalid route action '.gettype($action));
         }
         $result = call_user_func($action, $request, $response, $this->arguments);
-        if ($result === null) {
-            return $response;
-        } elseif ($result instanceof ResponseInterface) {
-            return $result;
-        } else {
-            throw new \BadMethodCallException('Route action should return instance of '.ResponseInterface::class);
-        }
+
+        return $this->response($result, $response);
     }
 
-    protected function runController($controller, $method, $request, $response)
+    protected function runController(ControllerInterface $controller, $method, $request, $response)
     {
         if (!method_exists($controller, $method)) {
             throw new \BadMethodCallException(sprintf('Controller %s does not have method %s', get_class($controller), $method));
         }
-        $controller->setRequest($request)
-            ->setResponse($response);
+        $controller->setRequest($request);
+        $controller->setResponse($response);
         $result = $controller->initialize();
         if ($result === false) {
             return $controller->getResponse();
@@ -208,8 +204,20 @@ class Route implements RouteInterface
             return $result;
         }
         $result = call_user_func_array([$controller, $method], $this->arguments);
+
+        return $this->response($result, $controller->getResponse());
+    }
+
+    /**
+     * @param ResponseInterface $result
+     * @param ResponseInterface $defaultResponse
+     *
+     * @return ResponseInterface
+     */
+    private function response($result, ResponseInterface $defaultResponse): ResponseInterface
+    {
         if ($result === null) {
-            return $controller->getResponse();
+            return $defaultResponse;
         } elseif ($result instanceof ResponseInterface) {
             return $result;
         } else {

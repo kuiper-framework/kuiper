@@ -37,32 +37,7 @@ class FastRouteRouter implements RouterInterface
         $routeInfo = $this->dispatcher->dispatch($request->getMethod(), $request->getUri()->getPath());
 
         if ($routeInfo[0] === Dispatcher::FOUND) {
-            $requestUri = $request->getMethod().' '.$request->getUri()->getPath();
-            if ($routeInfo[1] instanceof RouteInterface) {
-                $params = $routeInfo[2];
-                $route = $routeInfo[1];
-                $action = $route->getAction();
-                if (is_array($action) && !isset($action[1])) {
-                    if (isset($params['action'])) {
-                        $method = $params['action'];
-                        unset($params['action']);
-                    } elseif ($this->defaultAction) {
-                        $method = $this->defaultAction;
-                    } else {
-                        throw new \BadMethodCallException("Route matched but default action not found for '$requestUri'");
-                    }
-
-                    $action[1] = $method.(isset($attributes['action_suffix']) ? $attributes['action_suffix'] : $this->actionSuffix);
-                    $route = $route->withAction($action);
-                }
-
-                return $route->withArguments($params);
-            } else {
-                throw new \InvalidArgumentException(sprintf(
-                    "Route should be instanceof %s, gots %s for '%s'",
-                    RouteInterface::class, gettype($routeInfo[1]), $requestUri
-                ));
-            }
+            return $this->getRoute($request, $routeInfo[1], $routeInfo[2]);
         } elseif ($routeInfo[0] === Dispatcher::METHOD_NOT_ALLOWED) {
             throw new MethodNotAllowedException($routeInfo[1]);
         } else {
@@ -92,5 +67,50 @@ class FastRouteRouter implements RouterInterface
         $this->actionSuffix = $actionSuffix;
 
         return $this;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @param RouteInterface         $route
+     * @param array                  $parameters
+     *
+     * @return RouteInterface
+     */
+    private function getRoute(ServerRequestInterface $request, $route, array $parameters)
+    {
+        $requestUri = $request->getMethod().' '.$request->getUri()->getPath();
+        if ($route instanceof RouteInterface) {
+            $action = $route->getAction();
+            if (is_array($action) && !isset($action[1])) {
+                $action[1] = $this->getAction($parameters);
+                $route = $route->withAction($action);
+            }
+
+            return $route->withArguments($parameters);
+        } else {
+            throw new \InvalidArgumentException(sprintf(
+                "Route should be instanceof %s, got %s for '%s'",
+                RouteInterface::class, gettype($route), $requestUri
+            ));
+        }
+    }
+
+    /**
+     * @param array $parameters
+     *
+     * @return string
+     */
+    private function getAction(array &$parameters)
+    {
+        if (isset($parameters['action'])) {
+            $method = $parameters['action'];
+            unset($parameters['action']);
+        } elseif ($this->defaultAction) {
+            $method = $this->defaultAction;
+        } else {
+            throw new \BadMethodCallException('Route matched but default action not found');
+        }
+
+        return $method.(isset($parameters['action_suffix']) ? $parameters['action_suffix'] : $this->actionSuffix);
     }
 }

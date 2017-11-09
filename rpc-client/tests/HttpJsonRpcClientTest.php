@@ -18,7 +18,7 @@ use kuiper\serializer\Serializer;
 use PHPUnit_Framework_TestCase as TestCase;
 use ProxyManager\Factory\RemoteObjectFactory;
 
-class ClientTest extends TestCase
+class HttpJsonRpcClientTest extends TestCase
 {
     public function createClient()
     {
@@ -31,6 +31,8 @@ class ClientTest extends TestCase
         $handler = HandlerStack::create($mock);
         $handler->push($history);
         $client = new HttpClient(['handler' => $handler]);
+        $this->mockHandler = $mock;
+        $this->requests = &$requests;
 
         $client = new Client(new HttpHandler($client));
         $client->add(new Normalize($serializer, $docReader), 'before:start');
@@ -38,17 +40,26 @@ class ClientTest extends TestCase
 
         $factory = new RemoteObjectFactory($client);
 
-        return [$factory->createProxy(ApiServiceInterface::class), $mock];
+        return $factory->createProxy(ApiServiceInterface::class);
     }
 
     public function testClient()
     {
-        list($client, $mock) = $this->createClient();
-        $mock->append(new Response(200, [], '{"id":"1","result":[{"name":"foo"}]}'));
+        $client = $this->createClient();
+        $this->mockHandler->append(new Response(200, [], '{"id":"1","result":[{"name":"foo"}]}'));
         $result = $client->query($this->createRequest('foo'));
         // print_r($result);
         $this->assertTrue(is_array($result));
         $this->assertInstanceOf(Item::class, $result[0]);
+
+        $request = $this->requests[0]['request'];
+        $this->assertEquals([
+            "method" => "kuiper\\rpc\\client\\fixtures\\ApiServiceInterface.query",
+            "id" => 1,
+            "params" => [
+                ["query" => "foo"]
+            ]
+        ], json_decode((string)$request->getBody(), true));
     }
 
     /**
@@ -57,9 +68,9 @@ class ClientTest extends TestCase
      */
     public function testException()
     {
-        list($client, $mock) = $this->createClient();
-        $mock->append(new Response(200, [], '{"id":"1","error":{"code":-32000,"message":"invalid query","data":"YTozOntzOjU6ImNsYXNzIjtzOjI0OiJJbnZhbGlkQXJndW1lbnRFeGNlcHRpb24iO3M6NzoibWVzc2FnZSI7czoxMzoiaW52YWxpZCBxdWVyeSI7czo0OiJjb2RlIjtpOjA7fQ=="}}'));
-        $result = $client->query($this->createRequest('foo'));
+        $client = $this->createClient();
+        $this->mockHandler->append(new Response(200, [], '{"id":"1","error":{"code":-32000,"message":"invalid query","data":"YTozOntzOjU6ImNsYXNzIjtzOjI0OiJJbnZhbGlkQXJndW1lbnRFeGNlcHRpb24iO3M6NzoibWVzc2FnZSI7czoxMzoiaW52YWxpZCBxdWVyeSI7czo0OiJjb2RlIjtpOjA7fQ=="}}'));
+        $client->query($this->createRequest('foo'));
     }
 
     public function createRequest($query)

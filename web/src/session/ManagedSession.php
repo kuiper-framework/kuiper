@@ -6,8 +6,10 @@ use Dflydev\FigCookies\SetCookie;
 use Dflydev\FigCookies\SetCookies;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use SessionHandlerInterface;
 
+/**
+ * @SuppressWarnings("Globals")
+ */
 class ManagedSession implements ManagedSessionInterface
 {
     /**
@@ -31,7 +33,7 @@ class ManagedSession implements ManagedSessionInterface
     private $sessionId;
 
     /**
-     * @var SessionHandlerInterface
+     * @var \SessionHandlerInterface
      */
     private $handler;
 
@@ -40,7 +42,7 @@ class ManagedSession implements ManagedSessionInterface
      */
     private $compatibleMode;
 
-    public function __construct(SessionHandlerInterface $handler, array $options = [])
+    public function __construct(\SessionHandlerInterface $handler, array $options = [])
     {
         if (isset($options['cookie_lifetime'])) {
             ini_set('session.cookie_lifetime', $options['cookie_lifetime']);
@@ -186,7 +188,7 @@ class ManagedSession implements ManagedSessionInterface
     /**
      * {@inheritdoc}
      */
-    public function getId()
+    public function getId(): string
     {
         if ($this->sessionId === null) {
             $this->sessionId = $this->handler->create_sid();
@@ -198,7 +200,7 @@ class ManagedSession implements ManagedSessionInterface
     /**
      * {@inheritdoc}
      */
-    public function isStarted()
+    public function isStarted(): bool
     {
         return $this->started;
     }

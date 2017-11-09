@@ -1,8 +1,7 @@
 <?php
+
 namespace kuiper\rpc\client\exception;
 
-use RuntimeException;
-
-class ConnectionException extends RuntimeException
+class ConnectionException extends RpcException
 {
 }

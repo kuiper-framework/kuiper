@@ -71,9 +71,7 @@ class ComponentSource implements SourceInterface, LoggerAwareInterface
             if (isset($definitions[$name])) {
                 $this->logger && $this->logger->debug(sprintf(
                     "[ContainerBuilder] ignore conflict component '%s' for '%s', previous was %s",
-                    $scope['definition']->getAlias(),
-                    $name,
-                    $definitions[$name]->getAlias()
+                    $scope['definition']->getAlias(), $name, $definitions[$name]->getAlias()
                 ));
             } else {
                 $definitions[$name] = $scope['definition'];

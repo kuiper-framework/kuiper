@@ -25,6 +25,9 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     private $objectNormalizer;
 
     /**
+     * Note：
+     * 注册的类型必须内处理所有子类的序列化。比如 Enum 的 Normalizer 必须能处理所有 Enum 子类的序列化.
+     *
      * @var NormalizerInterface[]
      */
     private $normalizers = [];
@@ -76,12 +79,12 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $className)
+    public function denormalize($exception, $className)
     {
         if ($className instanceof ReflectionTypeInterface) {
-            return $this->toType($data, $className);
+            return $this->toType($exception, $className);
         } elseif (is_string($className)) {
-            return $this->toType($data, TypeUtils::parse($className));
+            return $this->toType($exception, TypeUtils::parse($className));
         } else {
             throw new \InvalidArgumentException('Parameter type expects class name or object, got '.gettype($className));
         }
@@ -162,8 +165,10 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
 
     private function denormalizeObject($data, $className)
     {
-        if (isset($this->normalizers[$className])) {
-            return $this->normalizers[$className]->denormalize($data, $className);
+        foreach ($this->normalizers as $typeClass => $normalizer) {
+            if ($className == $typeClass || is_subclass_of($className, $typeClass, true)) {
+                return $normalizer->denormalize($data, $className);
+            }
         }
 
         return $this->objectNormalizer->denormalize($data, $className);

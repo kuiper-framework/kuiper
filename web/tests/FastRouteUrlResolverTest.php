@@ -6,7 +6,7 @@ class FastRouteUrlResolverTest extends RouterTestCase
 {
     public function createUrlResolver($baseUri = '')
     {
-        $app = new MicroApplication($this->getContainer());
+        $app = new RouteRegistrar();
         $app->get('/', 'IndexController:home')->name('home');
         $app->get('/user/{action}', 'UserController:')->name('users');
 

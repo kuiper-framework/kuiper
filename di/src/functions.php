@@ -15,7 +15,7 @@ if (!function_exists('\kuiper\di\get')) {
      *
      * @param string $alias
      *
-     * @return DefinitionInterface
+     * @return AliasDefinition
      */
     function get($alias)
     {
@@ -28,13 +28,10 @@ if (!function_exists('\kuiper\di\get')) {
      * @param callable $callable
      * @param array    $args
      *
-     * @return DefinitionInterface
+     * @return FactoryDefinition
      */
-    function factory($callable)
+    function factory($callable, ...$args)
     {
-        $args = func_get_args();
-        array_shift($args);
-
         return new FactoryDefinition($callable, $args);
     }
 
@@ -43,7 +40,7 @@ if (!function_exists('\kuiper\di\get')) {
      *
      * @param string $class
      *
-     * @return DefineInterface
+     * @return ObjectDefinition
      */
     function object($class = null)
     {
@@ -66,7 +63,7 @@ if (!function_exists('\kuiper\di\get')) {
      * @param string $name    name of environment
      * @param string $default
      *
-     * @return DefinitionInterface
+     * @return EnvDefinition
      */
     function env($name, $default = null)
     {
@@ -78,7 +75,7 @@ if (!function_exists('\kuiper\di\get')) {
      *
      * @param string $expression
      *
-     * @return DefinitionInterface
+     * @return StringDefinition
      */
     function string($expression)
     {

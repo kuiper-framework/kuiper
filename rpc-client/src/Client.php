@@ -3,31 +3,30 @@
 namespace kuiper\rpc\client;
 
 use kuiper\rpc\MiddlewareInterface;
-use kuiper\rpc\MiddlewareStackTrait;
+use kuiper\rpc\MiddlewareStack;
 use kuiper\rpc\RequestInterface;
 use kuiper\rpc\Response;
 use kuiper\rpc\ResponseInterface;
 
 class Client implements ClientInterface, MiddlewareInterface
 {
-    use MiddlewareStackTrait;
-
     /**
      * @var HandlerInterface
      */
     private $handler;
 
     /**
-     * @var array
+     * @var MiddlewareStack
      */
-    private $stages = [
-        self::START => 'START',
-        self::CALL => 'CALL',
-    ];
+    private $middlewares;
 
     public function __construct(HandlerInterface $handler)
     {
         $this->handler = $handler;
+        $this->middlewares = new MiddlewareStack([
+            self::START => 'START',
+            self::CALL => 'CALL',
+        ]);
     }
 
     /**
@@ -35,7 +34,7 @@ class Client implements ClientInterface, MiddlewareInterface
      */
     public function add(callable $middleware, $position = self::CALL, $id = null)
     {
-        $this->addMiddleware($middleware, $position, $id);
+        $this->middlewares->addMiddleware($middleware, $position, $id);
 
         return $this;
     }
@@ -46,11 +45,11 @@ class Client implements ClientInterface, MiddlewareInterface
     public function call($wrappedClass, $method, array $params = [])
     {
         $request = new Request($wrappedClass, $method, $params);
-        if ($this->middlewareStack === null) {
-            $this->addMiddleware($this, self::CALL);
-            $this->buildMiddlewareStack();
+        if (!$this->middlewares->isInitialized()) {
+            $this->middlewares->addMiddleware($this, self::CALL);
+            $this->middlewares->initialize();
         }
-        $response = $this->callMiddlewareStack($request, new Response());
+        $response = $this->middlewares->callMiddlewareStack($request, new Response());
 
         return $response->getResult();
     }

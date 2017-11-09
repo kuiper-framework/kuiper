@@ -24,7 +24,7 @@ class ConsoleApplicationProvider extends Provider
         $commands = $this->settings['app.commands'];
         if ($commands) {
             foreach ($commands as $command) {
-                $app->add($this->app->get($command));
+                $app->add($container->get($command));
             }
         }
         $this->app->getEventDispatcher()->dispatch(Events::BOOT_CONSOLE_APPLICATION, new Event($app));

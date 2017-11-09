@@ -6,9 +6,26 @@ use kuiper\helper\Arrays;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RequestInterface;
 use kuiper\rpc\ResponseInterface;
+use kuiper\serializer\normalizer\ExceptionNormalizer;
+use kuiper\serializer\NormalizerInterface;
 
 class JsonRpcErrorHandler implements MiddlewareInterface
 {
+    /**
+     * @var NormalizerInterface
+     */
+    private $exceptionNormalizer;
+
+    /**
+     * JsonRpcErrorHandler constructor.
+     *
+     * @param NormalizerInterface $exceptionNormalizer
+     */
+    public function __construct(NormalizerInterface $exceptionNormalizer = null)
+    {
+        $this->exceptionNormalizer = $exceptionNormalizer ?: new ExceptionNormalizer();
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -23,25 +40,23 @@ class JsonRpcErrorHandler implements MiddlewareInterface
         }
     }
 
-    public function handle($e, RequestInterface $request, ResponseInterface $response)
+    /**
+     * @param \Exception|\Error $exception
+     * @param RequestInterface  $request
+     * @param ResponseInterface $response
+     *
+     * @return ResponseInterface
+     */
+    public function handle($exception, RequestInterface $request, ResponseInterface $response)
     {
-        if ($e instanceof \Serializable) {
-            $data = $e;
-        } else {
-            $data = [
-                'class' => get_class($e),
-                'message' => $e->getMessage(),
-                'code' => $e->getCode(),
-            ];
-        }
         $payload = $request->getAttribute('body');
         $response->getBody()->write(json_encode([
             'id' => Arrays::fetch($payload, 'id'),
             'jsonrpc' => Arrays::fetch($payload, 'version', '1.0'),
             'error' => [
-                'code' => $e->getCode(),
-                'message' => $e->getMessage(),
-                'data' => base64_encode(serialize($data)),
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage(),
+                'data' => $this->exceptionNormalizer->normalize($exception),
             ],
         ]));
 

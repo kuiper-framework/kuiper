@@ -33,6 +33,11 @@ class Auth implements AuthInterface
      */
     private $needRegenerate = false;
 
+    /**
+     * @var int
+     */
+    private $lifetime;
+
     public function __construct(SessionInterface $session, $sessionKey = 'auth:id', $lifetime = null)
     {
         $this->session = $session;
@@ -53,10 +58,10 @@ class Auth implements AuthInterface
         $this->sessionData = $this->session->get($this->sessionKey);
         if (isset($this->sessionData)) {
             $now = time();
-            $discard_time = isset($this->sessionData[self::REGENERATE_AFTER])
+            $discardTime = isset($this->sessionData[self::REGENERATE_AFTER])
                 ? $this->sessionData[self::REGENERATE_AFTER]
                 : $now;
-            $this->needRegenerate = ($now >= $discard_time);
+            $this->needRegenerate = ($now >= $discardTime);
         } else {
             $this->sessionData = false;
         }
@@ -79,6 +84,8 @@ class Auth implements AuthInterface
         $this->initialize();
         if (isset($this->sessionData[$offset])) {
             return $this->sessionData[$offset];
+        } else {
+            return null;
         }
     }
 
@@ -99,6 +106,8 @@ class Auth implements AuthInterface
         $this->initialize();
         if (isset($this->sessionData[$name])) {
             return $this->sessionData[$name];
+        } else {
+            return null;
         }
     }
 
@@ -145,6 +154,8 @@ class Auth implements AuthInterface
 
     /**
      * 用户注销操作.
+     *
+     * @param bool $destroySession
      */
     public function logout($destroySession = true)
     {

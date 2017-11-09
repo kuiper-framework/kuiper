@@ -2,7 +2,7 @@
 
 namespace kuiper\di;
 
-use Psr\Container\ContainerInterface;
+use kuiper\annotations\AnnotationReader;
 use kuiper\di\definition\AliasDefinition;
 use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\definition\NamedParameters;
@@ -12,6 +12,7 @@ use kuiper\di\fixtures\InvalidScope;
 use kuiper\di\fixtures\PassByReferenceDependency;
 use kuiper\di\fixtures\Prototype;
 use kuiper\di\fixtures\Singleton;
+use Psr\Container\ContainerInterface;
 use stdClass;
 
 /**
@@ -25,6 +26,9 @@ class ContainerGetTest extends TestCase
         $builder->addDefinitions($definitions);
         if ($useAnnotations) {
             $builder->useAnnotations(true);
+            $annotationReader = new AnnotationReader();
+            $annotationReader->setErrorMode(AnnotationReader::ERRMODE_EXCEPTION);
+            $builder->setAnnotationReader($annotationReader);
         }
 
         return $builder->build();

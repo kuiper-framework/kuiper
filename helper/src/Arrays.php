@@ -21,21 +21,21 @@ class Arrays
     /**
      * Gets value from array by key.
      *
-     * @param ArrayAccess $array
-     * @param string      $key
-     * @param mixed       $default
+     * @param ArrayAccess|array $arr
+     * @param string            $key
+     * @param mixed             $default
      *
      * @return mixed
      */
-    public static function fetch($array, $key, $default = null)
+    public static function fetch($arr, $key, $default = null)
     {
-        return isset($array[$key]) ? $array[$key] : $default;
+        return isset($arr[$key]) ? $arr[$key] : $default;
     }
 
     /**
      * Collects value from array.
      *
-     * @param array|\Iterator $array
+     * @param array|\Iterator $arr
      * @param string          $name
      * @param string          $type
      *
@@ -65,7 +65,7 @@ class Arrays
     /**
      * Creates associated array.
      *
-     * @param array|\Iterator $array
+     * @param array|\Iterator $arr
      * @param string          $name
      * @param string          $type
      *
@@ -98,7 +98,7 @@ class Arrays
     /**
      * Excludes key in given keys.
      *
-     * @param array $array
+     * @param array $arr
      * @param array $excludedKeys
      *
      * @return array
@@ -111,7 +111,7 @@ class Arrays
     /**
      * Changes key name.
      *
-     * @param array $array
+     * @param array $arr
      * @param array $columnMap
      *
      * @return array
@@ -132,8 +132,9 @@ class Arrays
     /**
      * Create array with given keys.
      *
-     * @param array $array
-     * @param array $includedKeys
+     * @param array  $arr
+     * @param array  $includedKeys
+     * @param string $type
      *
      * @return array
      */
@@ -188,21 +189,23 @@ class Arrays
 
     /**
      * @param object          $bean
-     * @param array|\Iterator $attrs
+     * @param array|\Iterator $attributes
      * @param bool            $onlyPublic
+     *
+     * @return object
      */
-    public static function assign($bean, $attrs, $onlyPublic = true)
+    public static function assign($bean, $attributes, $onlyPublic = true)
     {
         if ($bean === null || !is_object($bean)) {
             throw new InvalidArgumentException("Parameter 'bean' need be an object, got ".gettype($bean));
         }
         if ($bean instanceof ArrayAccess) {
-            foreach ($attrs as $name => $val) {
+            foreach ($attributes as $name => $val) {
                 $bean[$name] = $val;
             }
         } else {
             $properties = get_object_vars($bean);
-            foreach ($attrs as $name => $val) {
+            foreach ($attributes as $name => $val) {
                 if (array_key_exists($name, $properties)) {
                     $bean->{$name} = $val;
                 } elseif (method_exists($bean, $method = 'set'.Text::camelize($name))) {
@@ -240,11 +243,11 @@ class Arrays
     public static function toArray($bean, $includeGetters = true, $uncamelizeKey = false, $recursive = false)
     {
         if ($bean === null || !is_object($bean)) {
-            throw new InvalidArgumentException("Parameter 'bean' need be an object, got ".gettype($bean));
+            throw new \InvalidArgumentException("Parameter 'bean' need be an object, got ".gettype($bean));
         }
         $properties = get_object_vars($bean);
         if ($includeGetters) {
-            $class = new ReflectionClass($bean);
+            $class = new \ReflectionClass($bean);
             foreach ($class->getMethods() as $method) {
                 if ($method->isStatic() || !$method->isPublic()) {
                     continue;
@@ -290,15 +293,12 @@ class Arrays
      *
      * Borrow from yii\helper\ArrayHelper
      *
-     * @param array $a array to be merged to
-     * @param array $b array to be merged from. You can specify additional
-     *                 arrays via third argument, fourth argument etc.
+     * @param array $args arrays to be merged
      *
      * @return array the merged array (the original arrays are not changed.)
      */
-    public static function merge($a, $b)
+    public static function merge(...$args)
     {
-        $args = func_get_args();
         $res = array_shift($args);
         while (!empty($args)) {
             $next = array_shift($args);
@@ -363,6 +363,8 @@ class Arrays
      *
      * @param array    $arr
      * @param callable $callback
+     *
+     * @return array
      */
     public static function mapKeys(array $arr, callable $callback)
     {

@@ -9,9 +9,9 @@ use kuiper\web\exception\RouteNotFoundException;
 class FastRouteUrlResolver implements UrlResolverInterface
 {
     /**
-     * @var RouteRegistarInterface
+     * @var RouteRegistrarInterface
      */
-    private $routeRegistar;
+    private $routeRegistrar;
 
     /**
      * @var string
@@ -31,14 +31,14 @@ class FastRouteUrlResolver implements UrlResolverInterface
     /**
      * Constructs url resolver.
      *
-     * @param RouteRegistarInterface $routeRegistar
-     * @param string                 $baseUri
-     * @param RouteParser            $parser
+     * @param RouteRegistrarInterface $routeRegistrar
+     * @param string                  $baseUri
+     * @param RouteParser             $parser
      */
-    public function __construct(RouteRegistarInterface $routeRegistar, $baseUri, RouteParser $parser = null)
+    public function __construct(RouteRegistrarInterface $routeRegistrar, $baseUri, RouteParser $parser = null)
     {
-        $this->routeRegistar = $routeRegistar;
-        $this->baseUri = $baseUri;
+        $this->routeRegistrar = $routeRegistrar;
+        $this->setBaseUri($baseUri);
         $this->routeParser = $parser ?: new StdParser();
     }
 
@@ -74,33 +74,29 @@ class FastRouteUrlResolver implements UrlResolverInterface
         }
         if ($absolute) {
             if (isset($route)) {
-                $attrs = $route->getAttributes();
-                if (isset($attrs['host'])) {
-                    $scheme = isset($attrs['scheme']) ? $attrs['scheme'] : 'http';
-
-                    return sprintf('%s://%s%s', $scheme, $attrs['host'], $url);
-                }
+                return $this->buildUrlFromRoute($route, $url);
+            } else {
+                return $this->baseUri.$url;
             }
-
-            return $this->baseUri.$url;
         } else {
             return $url;
         }
     }
 
-    protected function getRoutePath($route, &$data)
+    protected function getRoutePath(RouteInterface $route, &$data)
     {
         $pattern = $route->getPattern();
 
-        $routeDatas = $this->routeParser->parse($pattern);
-        // $routeDatas is an array of all possible routes that can be made. There is
-        // one routedata for each optional parameter plus one for no optional parameters.
+        $routeSegments = $this->routeParser->parse($pattern);
+        // $routeSegments is an array of all possible routes that can be made. There is
+        // one route data for each optional parameter plus one for no optional parameters.
         //
         // The most specific is last, so we look for that first.
-        $routeDatas = array_reverse($routeDatas);
+        $routeSegments = array_reverse($routeSegments);
 
         $segments = [];
-        foreach ($routeDatas as $routeData) {
+        $segmentName = null;
+        foreach ($routeSegments as $routeData) {
             $vars = $data;
             foreach ($routeData as $item) {
                 if (is_string($item)) {
@@ -133,23 +129,41 @@ class FastRouteUrlResolver implements UrlResolverInterface
             throw new \InvalidArgumentException('Missing data for URL segment: '.$segmentName);
         }
 
-        return $url = implode('', $segments);
+        return implode('', $segments);
     }
 
-    protected function getNamedRoute($name)
+    protected function getNamedRoute($name): RouteInterface
     {
         if ($this->routes === null) {
             $this->routes = [];
-            foreach ($this->routeRegistar->getRoutes() as $route) {
+            foreach ($this->routeRegistrar->getRoutes() as $route) {
                 if ($route->getName()) {
                     $this->routes[$route->getName()] = $route;
                 }
             }
         }
         if (!isset($this->routes[$name])) {
-            throw new RouteNotFoundException($name);
+            throw new RouteNotFoundException("Route does not exist for name '{$name}'");
         }
 
         return $this->routes[$name];
+    }
+
+    /**
+     * @param RouteInterface $route
+     * @param string         $url
+     *
+     * @return string
+     */
+    private function buildUrlFromRoute($route, $url)
+    {
+        $attributes = $route->getAttributes();
+        if (isset($attributes['host'])) {
+            $scheme = isset($attributes['scheme']) ? $attributes['scheme'] : 'http';
+
+            return sprintf('%s://%s%s', $scheme, $attributes['host'], $url);
+        }
+
+        return $this->baseUri.$url;
     }
 }

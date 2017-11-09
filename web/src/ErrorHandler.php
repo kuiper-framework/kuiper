@@ -19,9 +19,12 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         return $this->response;
     }
 
-    public function handle($e)
+    /**
+     * {@inheritdoc}
+     */
+    public function handle($exception)
     {
-        $this->logger && $this->logger->error(sprintf("Uncaught exception %s %s:\n%s", get_class($e), $e->getMessage(), $e->getTraceAsString()));
+        $this->logger && $this->logger->error(sprintf("Uncaught exception %s %s:\n%s", get_class($exception), $exception->getMessage(), $exception->getTraceAsString()));
 
         return $this->response;
     }

@@ -15,7 +15,6 @@ use kuiper\di\source\ObjectSource;
 use kuiper\di\source\SourceChain;
 use kuiper\di\source\SourceInterface;
 use Psr\Container\ContainerInterface as PsrContainer;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ContainerBuilder implements ContainerBuilderInterface

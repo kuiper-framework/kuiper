@@ -3,13 +3,12 @@
 namespace kuiper\web\exception;
 
 use kuiper\web\ResponseAwareInterface;
-use LogicException;
 use Psr\Http\Message\ResponseInterface;
 
 /**
  * Http Exception.
  */
-abstract class HttpException extends LogicException implements ResponseAwareInterface
+abstract class HttpException extends WebException implements ResponseAwareInterface
 {
     /**
      * @var int
@@ -34,7 +33,9 @@ abstract class HttpException extends LogicException implements ResponseAwareInte
     /**
      * Sets status code.
      *
-     * @param int
+     * @param int $statusCode
+     *
+     * @return $this
      */
     public function setStatusCode($statusCode)
     {

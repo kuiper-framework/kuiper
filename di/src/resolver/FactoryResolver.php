@@ -2,14 +2,13 @@
 
 namespace kuiper\di\resolver;
 
-use kuiper\di\ContainerInterface;
 use InvalidArgumentException;
+use kuiper\di\ContainerInterface;
 use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\DefinitionInterface;
 use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\DefinitionEntry;
 use kuiper\di\ProxyFactory;
-use kuiper\di\Scope;
 use LogicException;
 
 class FactoryResolver implements ResolverInterface

@@ -3,6 +3,7 @@
 namespace kuiper\rpc\client\middleware;
 
 use kuiper\annotations\DocReaderInterface;
+use kuiper\rpc\client\Request;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RequestInterface;
 use kuiper\rpc\ResponseInterface;
@@ -42,9 +43,11 @@ class Normalize implements MiddlewareInterface
         } catch (SerializeException $e) {
             throw new \InvalidArgumentException($e->getMessage(), 0, $e);
         }
+        /** @var ResponseInterface $response */
         $response = $next($request, $response);
         $result = $response->getResult();
         if (is_array($result)) {
+            /** @var Request $request */
             $returnType = $this->getReturnType($request->getClass(), $request->getMethod());
             $response = $response->withResult($this->normalizer->denormalize($result, $returnType));
         }

@@ -7,25 +7,30 @@ use kuiper\annotations\DocReader;
 use kuiper\annotations\DocReaderInterface;
 use kuiper\di;
 use kuiper\di\ContainerBuilder;
+use kuiper\rpc\Request;
+use kuiper\rpc\Response;
+use kuiper\rpc\ResponseInterface;
 use kuiper\rpc\server\fixtures\ApiService;
 use kuiper\rpc\server\fixtures\ApiServiceInterface;
 use kuiper\rpc\server\fixtures\Calculator;
 use kuiper\rpc\server\fixtures\CalculatorInterface;
 use kuiper\rpc\server\middleware\JsonRpc;
+use kuiper\rpc\server\middleware\Normalize;
 use kuiper\rpc\server\util\HealthyCheckService;
 use kuiper\rpc\server\util\HealthyCheckServiceInterface;
 use kuiper\serializer\JsonSerializerInterface as SerializerInterface;
 use kuiper\serializer\Serializer;
 use PHPUnit_Framework_TestCase as TestCase;
 
-class HttpJsonServerTest extends TestCase
+class HttpJsonRpcServerTest extends TestCase
 {
     public function createServer()
     {
         $docReader = new DocReader();
+        $serializer = new Serializer(new AnnotationReader(), $docReader);
         $builder = new ContainerBuilder();
         $builder->addDefinitions([
-            SerializerInterface::class => new Serializer(new AnnotationReader(), $docReader),
+            SerializerInterface::class => $serializer,
             DocReaderInterface::class => $docReader,
             CalculatorInterface::class => di\object(Calculator::class),
             ApiServiceInterface::class => di\object(ApiService::class),
@@ -40,6 +45,7 @@ class HttpJsonServerTest extends TestCase
 
         $server = new Server($resolver);
         $server->add(new JsonRpc());
+        $server->add(new Normalize($resolver, $serializer, $docReader));
 
         return $server;
     }

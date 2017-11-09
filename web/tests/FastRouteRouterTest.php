@@ -10,7 +10,7 @@ class FastRouteRouterTest extends RouterTestCase
 
     public function createRouter()
     {
-        $app = new MicroApplication($this->getContainer());
+        $app = new RouteRegistrar();
         $app->setDefaultNamespace($this->namespace);
         $app->get('/user/{action}', 'IndexController:');
 

@@ -2,20 +2,14 @@
 
 namespace kuiper\web;
 
-use Closure;
-use Exception;
-use InvalidArgumentException;
 use kuiper\web\exception\HttpException;
 use kuiper\web\exception\MethodNotAllowedException;
-use kuiper\web\exception\NotFoundException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
-use Throwable;
 
 class Application implements ApplicationInterface
 {
@@ -60,7 +54,7 @@ class Application implements ApplicationInterface
     ];
 
     /**
-     * Avaliable options:
+     * Available options:
      *  - chuck_size response chuck size.
      *
      * @param ContainerInterface $container
@@ -75,20 +69,20 @@ class Application implements ApplicationInterface
     /**
      * {@inheritdoc}
      */
-    public function add(callable $middleware, $position = self::ROUTE, $id = null)
+    public function add(callable $middleware, $position = self::ROUTE, string $id = null)
     {
         if (is_int($position)) {
             return $this->addMiddleware($position, $id, $middleware);
         }
         if (!preg_match('/^(before|after):(.*)/', $position, $matches)) {
-            throw new InvalidArgumentException("Invalid position, expects 'before:{ID}' or 'after:{ID}', gots '{$position}'");
+            throw new \InvalidArgumentException("Invalid position, expects 'before:{ID}' or 'after:{ID}', got '{$position}'");
         }
         $isBefore = $matches[1] == 'before';
         $position = $matches[2];
 
         if (($key = array_search(strtoupper($position), self::$STAGES)) !== false) {
             if ($key === count(self::$STAGES) - 1 && !$isBefore) {
-                throw new InvalidArgumentException('Cannot add middleware after dispatch stage');
+                throw new \InvalidArgumentException('Cannot add middleware after dispatch stage');
             }
             $position = constant(__CLASS__.'::'.self::$STAGES[$isBefore ? $key : $key + 1]);
 
@@ -106,7 +100,7 @@ class Application implements ApplicationInterface
             }
         }
         if (!$found) {
-            throw new InvalidArgumentException("Middleware '{$position}' was not registered");
+            throw new \InvalidArgumentException("Middleware '{$position}' was not registered");
         }
 
         return $this;
@@ -138,7 +132,10 @@ class Application implements ApplicationInterface
     protected function addMiddleware($position, $id, callable $middleware)
     {
         if (!in_array($position, [self::START, self::ERROR, self::ROUTE, self::DISPATCH])) {
-            throw new InvalidArgumentException("Invalid position '{$position}'");
+            throw new \InvalidArgumentException("Invalid position '{$position}'");
+        }
+        if ($middleware instanceof \Closure) {
+            $middleware->bindTo($this->getContainer());
         }
         $this->middlewares[$position][] = [$id, $middleware];
 
@@ -171,18 +168,15 @@ class Application implements ApplicationInterface
         $this->middlewareStack = $stack;
     }
 
-    protected function callMiddlewareStack(ServerRequestInterface $request, ResponseInterface $response, $i = 0)
+    protected function callMiddlewareStack(ServerRequestInterface $request, ResponseInterface $response, $index = 0)
     {
-        if ($i < count($this->middlewareStack)) {
-            $middleware = $this->middlewareStack[$i];
-            if ($middleware instanceof Closure) {
-                $middleware->bindTo($this->getContainer());
-            }
+        if ($index < count($this->middlewareStack)) {
+            $middleware = $this->middlewareStack[$index];
             $this->request = $request;
             $this->response = $response;
 
-            return $middleware($request, $response, function ($request, $response) use ($i) {
-                return $this->callMiddlewareStack($request, $response, $i + 1);
+            return $middleware($request, $response, function ($request, $response) use ($index) {
+                return $this->callMiddlewareStack($request, $response, $index + 1);
             });
         } else {
             return $response;
@@ -193,13 +187,15 @@ class Application implements ApplicationInterface
      * Send the response the client.
      *
      * @param ResponseInterface $response
+     *
+     * @return ResponseInterface
      */
     protected function respond(ResponseInterface $response)
     {
         if (isset($this->options['chuck_size'])) {
             $chunkSize = $this->options['chuck_size'];
             if (!is_int($chunkSize) || $chunkSize < 1) {
-                throw new RuntimeException('chuck_size should be an positive integer');
+                throw new \RuntimeException('chuck_size should be an positive integer');
             }
         } else {
             $chunkSize = 4096;
@@ -215,15 +211,17 @@ class Application implements ApplicationInterface
      * @param ServerRequestInterface $request
      * @param ResponseInterface      $response
      * @param callable               $next
+     *
+     * @return ResponseInterface
      */
     protected function handleError(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         try {
             return $next($request, $response);
-        } catch (Exception $e) {
-            return $this->handleException($e, $this->request, $this->response);
-        } catch (Throwable $e) {
-            return $this->handleException($e, $this->request, $this->response);
+        } catch (\Exception $e) {
+            return $this->handleException($e);
+        } catch (\Throwable $e) {
+            return $this->handleException($e);
         }
     }
 
@@ -252,9 +250,10 @@ class Application implements ApplicationInterface
      *
      * @param ServerRequestInterface $request
      * @param ResponseInterface      $response
-     * @param callable               $next
+     *
+     * @return
      */
-    protected function dispatch(ServerRequestInterface $request, ResponseInterface $response, callable $next)
+    protected function dispatch(ServerRequestInterface $request, ResponseInterface $response)
     {
         $route = $request->getAttribute('route');
         if (method_exists($route, 'setContainer')) {
@@ -264,21 +263,26 @@ class Application implements ApplicationInterface
         return $route->run($request, $response);
     }
 
-    protected function handleException($e, ServerRequestInterface $request, ResponseInterface $response)
+    /**
+     * @param $exception
+     *
+     * @return ResponseInterface
+     */
+    protected function handleException($exception)
     {
         $handler = $this->getErrorHandler();
         $handler->setRequest($this->request);
-        if ($e instanceof HttpException) {
-            if (!$e->getResponse()) {
-                $e->setResponse($this->response);
+        if ($exception instanceof HttpException) {
+            if (!$exception->getResponse()) {
+                $exception->setResponse($this->response);
             }
 
-            $handler->setResponse($e->getResponse());
+            $handler->setResponse($exception->getResponse());
         } else {
             $handler->setResponse($this->response->withStatus(500));
         }
 
-        return $handler->handle($e);
+        return $handler->handle($exception);
     }
 
     /**
@@ -300,7 +304,7 @@ class Application implements ApplicationInterface
         return in_array($response->getStatusCode(), [204, 205, 304]);
     }
 
-    protected function send($response, $chunkSize = 4096)
+    protected function send(ResponseInterface $response, $chunkSize = 4096)
     {
         // Send response
         if (!headers_sent()) {
@@ -404,6 +408,8 @@ class Application implements ApplicationInterface
     {
         if ($this->container->has(EventDispatcherInterface::class)) {
             return $this->container->get(EventDispatcherInterface::class);
+        } else {
+            return false;
         }
     }
 }

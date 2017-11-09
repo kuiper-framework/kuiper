@@ -4,12 +4,10 @@ namespace kuiper\rpc\server\middleware;
 
 use InvalidArgumentException;
 use kuiper\annotations\DocReaderInterface;
-use kuiper\reflection\ReflectionType;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RequestInterface;
 use kuiper\rpc\ResponseInterface;
 use kuiper\rpc\server\ServiceResolverInterface;
-use kuiper\serializer\exception\SerializeException;
 use kuiper\serializer\NormalizerInterface;
 use ReflectionClass;
 
@@ -50,9 +48,10 @@ class Normalize implements MiddlewareInterface
         $method = $this->resolver->resolve($request->getMethod());
         $callable = $method->getCallable();
         if (is_array($callable)) {
-            $parameters = $this->normalizeParamters($callable, $request->getParameters());
+            $parameters = $this->normalizeParameters($callable, $request->getParameters());
             $request = $request->withParameters($parameters);
         }
+        /** @var ResponseInterface $response */
         $response = $next($request, $response);
         if ($response->getBody()->getSize() == 0) {
             $result = $response->getResult();
@@ -70,7 +69,7 @@ class Normalize implements MiddlewareInterface
      *
      * @return mixed
      */
-    protected function normalizeParamters($callable, array $parameters)
+    protected function normalizeParameters($callable, array $parameters)
     {
         if (empty($parameters)) {
             return $parameters;
@@ -86,6 +85,7 @@ class Normalize implements MiddlewareInterface
         }
         $args = [];
         foreach ($parameters as $i => $value) {
+            $index = 0;
             if (isset($types[$i])) {
                 $index = $types[$i]['index'];
                 $type = $types[$i]['type'];
@@ -101,20 +101,7 @@ class Normalize implements MiddlewareInterface
                     throw new InvalidArgumentException("Unknown parameter '$i'");
                 }
             }
-            if (is_array($value)) {
-                try {
-                    $value = $this->normalizer->denormalize($value, $type);
-                } catch (SerializeException $e) {
-                    throw new InvalidArgumentException($e->getMessage());
-                }
-            } elseif ($type->validate($value)) {
-                $value = $type->sanitize($value);
-            } else {
-                throw new InvalidArgumentException(sprintf(
-                    'parameter %s of method %s expects %s, got %s',
-                    $i, $this->callableToString($callable), $type, ReflectionType::describe($value)
-                ));
-            }
+            $value = $this->normalizer->denormalize($value, $type);
             $args[$index] = $value;
         }
         ksort($args, SORT_NUMERIC);
@@ -124,7 +111,7 @@ class Normalize implements MiddlewareInterface
 
     protected function callableToString($callable)
     {
-        return $key = sprintf('%s::%s', is_string($callable[0]) ? $callable[0] : get_class($callable[0]), $callable[1]);
+        return sprintf('%s::%s', is_string($callable[0]) ? $callable[0] : get_class($callable[0]), $callable[1]);
     }
 
     protected function getParameterTypes($callable)

@@ -86,6 +86,11 @@ class Container implements ContainerInterface, ResolverInterface
      */
     private $resolvedValues = [];
 
+    /**
+     * @var string[]
+     */
+    private $resolving;
+
     private static $DEFINITION_RESOLVERS = [
         EnvDefinition::class => [__CLASS__, 'createEnvResolver'],
         StringDefinition::class => [__CLASS__, 'createStringResolver'],
@@ -194,7 +199,10 @@ class Container implements ContainerInterface, ResolverInterface
             return $this->resolvedValues[$name];
         }
         if (isset($this->resolving[$name])) {
-            throw new DependencyException("Circular dependency detected while trying to resolve entry '$name', resolving chain ".json_encode(array_keys($this->resolving)));
+            throw new DependencyException(sprintf(
+                "Circular dependency detected while trying to resolve entry '%s', resolving chain %s",
+                $name, json_encode(array_keys($this->resolving))
+            ));
         }
         $this->resolving[$name] = true;
 

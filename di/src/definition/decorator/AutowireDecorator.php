@@ -22,7 +22,7 @@ class AutowireDecorator extends DefinitionDecorator
     /**
      * @var ReaderInterface
      */
-    private $reader;
+    private $annotationReader;
 
     /**
      * @var DocReaderInterface
@@ -175,7 +175,6 @@ class AutowireDecorator extends DefinitionDecorator
 
     protected function autowire($class, &$properties, &$methods)
     {
-        $definitions = [];
         $lowerProperties = array_map('strtolower', array_keys($properties));
         $lowerMethods = array_map('strtolower', array_keys($methods));
         foreach ($class->getMethods() as $method) {

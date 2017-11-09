@@ -16,11 +16,13 @@ class Request implements RequestInterface
     /**
      * @var array
      */
-    private $parameters = [];
+    private $parameters;
 
-    public function __construct($body)
+    public function __construct($body, $method = null, array $parameters = [])
     {
         $this->stream = stream_for($body);
+        $this->method = $method;
+        $this->parameters = $parameters;
     }
 
     /**

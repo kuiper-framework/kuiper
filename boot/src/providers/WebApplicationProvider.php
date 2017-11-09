@@ -9,7 +9,8 @@ use kuiper\web\ApplicationInterface;
 use kuiper\web\FastRouteUrlResolver;
 use kuiper\web\MicroApplication;
 use kuiper\web\middlewares\Session as SessionMiddleware;
-use kuiper\web\RouteRegistarInterface;
+use kuiper\web\RouteRegistrar;
+use kuiper\web\RouteRegistrarInterface;
 use kuiper\web\security\Auth;
 use kuiper\web\security\AuthInterface;
 use kuiper\web\security\PermissionChecker;
@@ -34,7 +35,7 @@ class WebApplicationProvider extends Provider
         $settings = $this->settings;
         $this->services->addDefinitions([
             ApplicationInterface::class => di\factory([$this, 'provideWebApplication']),
-            RouteRegistarInterface::class => di\get(ApplicationInterface::class),
+            RouteRegistrarInterface::class => di\get(RouteRegistrar::class),
             UrlResolverInterface::class => di\object(FastRouteUrlResolver::class)
             ->constructor(di\params([
                 'baseUri' => $settings['app.base_uri'],
@@ -79,7 +80,7 @@ class WebApplicationProvider extends Provider
                     if ($namespace = $module->getNamespace()) {
                         $app->group([
                             'namespace' => $namespace.'\\controllers',
-                        ], function ($app) use ($container, $file) {
+                        ], function () use ($container, $file) {
                             require_once $file;
                         });
                     } else {

@@ -4,9 +4,9 @@ namespace kuiper\rpc\server\middleware;
 
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\DocReader;
+use kuiper\rpc\Request;
+use kuiper\rpc\Response;
 use kuiper\rpc\server\fixtures;
-use kuiper\rpc\server\Request;
-use kuiper\rpc\server\Response;
 use kuiper\rpc\server\Server;
 use kuiper\rpc\server\ServiceResolver;
 use kuiper\rpc\server\TestCase;
