@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "php": ">= 5.6",
+        "php": "^7.0",
         "psr/container": "^1.0",
         "psr/log": "^1.0",
         "psr/cache": "^1.0",
@@ -26,8 +26,8 @@
     "require-dev": {
         "ocramius/proxy-manager": "^1.0",
         "phpunit/phpunit": "^5.0",
-        "kuiper/annotations": "~0.2",
-        "kuiper/helper": "~0.2",
+        "kuiper/annotations": "^0.3",
+        "kuiper/helper": "^0.3",
         "winwin/composer-phpcs-plugin": "^0.1"
     },
     "autoload": {
