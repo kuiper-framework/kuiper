@@ -1,4 +1,4 @@
-n{
+{
     "name": "kuiper/annotations",
     "type": "library",
     "description": "Annotations parser component",
