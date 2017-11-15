@@ -24,6 +24,7 @@ class PhpView implements ViewInterface
     {
         extract($context);
         ob_start();
+        /** @noinspection PhpIncludeInspection */
         include $this->baseDir.'/'.$name.$this->extension;
 
         return ob_get_clean();

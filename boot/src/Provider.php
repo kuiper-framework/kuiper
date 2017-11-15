@@ -2,6 +2,12 @@
 
 namespace kuiper\boot;
 
+use kuiper\di\CompositeContainerBuilder;
+
+/**
+ * @property \kuiper\di\ContainerBuilderInterface services
+ * @property \ArrayAccess settings
+ */
 abstract class Provider implements ProviderInterface
 {
     /**
@@ -61,7 +67,7 @@ abstract class Provider implements ProviderInterface
         } elseif ($name === 'services') {
             $services = $this->app->getServices();
             $namespace = $this->getModule()->getNamespace();
-            if ($namespace) {
+            if ($namespace && $services instanceof CompositeContainerBuilder) {
                 return $services->withNamespace($namespace);
             } else {
                 return $services;

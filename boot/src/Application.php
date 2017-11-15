@@ -89,6 +89,7 @@ class Application implements ApplicationInterface
         $config = [];
         foreach (glob($configPath.'/*.php') as $file) {
             $prefix = basename($file, '.php');
+            /* @noinspection PhpIncludeInspection */
             $config[$prefix] = require $file;
         }
 
@@ -135,6 +136,9 @@ class Application implements ApplicationInterface
         return $this;
     }
 
+    /**
+     * @return ContainerBuilderInterface
+     */
     public function getContainerBuilder()
     {
         if ($this->containerBuilder === null) {
@@ -195,7 +199,7 @@ class Application implements ApplicationInterface
     public function getContainer()
     {
         if (!$this->bootstrap) {
-            throw new \RuntimeException('Application does not bootstap');
+            throw new \RuntimeException('Application does not bootstrap');
         }
 
         return $this->container;
@@ -304,7 +308,10 @@ class Application implements ApplicationInterface
         }
     }
 
-    protected function registerModule($provider)
+    /**
+     * @param ProviderInterface $provider
+     */
+    protected function registerModule(ProviderInterface $provider)
     {
         $module = $provider->getModule();
         if ($module === Module::dummy()) {
@@ -329,20 +336,21 @@ class Application implements ApplicationInterface
             }
         }
         $namespace = $module->getNamespace();
-        if ($namespace) {
-            $this->getServices()->withNamespace($namespace)->addDefinitions([
+        $containerBuilder = $this->getServices();
+        if ($namespace && $containerBuilder instanceof CompositeContainerBuilder) {
+            $containerBuilder->withNamespace($namespace)->addDefinitions([
                 Module::class => $module,
             ]);
         }
         $this->modules[$module->getName()] = $module;
     }
 
-    protected function createModuleFromAnnotation($provider)
+    protected function createModuleFromAnnotation(ProviderInterface $provider)
     {
         $class = new \ReflectionClass($provider);
         $annotation = $this->getAnnotationReader()->getClassAnnotation($class, annotation\Module::class);
         if (!$annotation) {
-            return;
+            return null;
         }
         try {
             $info = $this->readComposerInfo(dirname($class->getFilename()));
@@ -387,7 +395,7 @@ class Application implements ApplicationInterface
         return $info;
     }
 
-    protected function loadModuleConfig($module)
+    protected function loadModuleConfig(Module $module)
     {
         $configDir = $module->getBasePath().'/config';
         if (!is_dir($configDir)) {

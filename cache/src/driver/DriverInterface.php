@@ -53,11 +53,16 @@ interface DriverInterface
     public function clear();
 
     /**
+     * @param array $path
+     * @param int   $ttl
+     *
      * @return bool
      */
     public function lock(array $path, $ttl);
 
     /**
+     * @param array $path
+     *
      * @return bool
      */
     public function unlock(array $path);

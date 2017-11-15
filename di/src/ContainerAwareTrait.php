@@ -14,7 +14,7 @@ trait ContainerAwareTrait
     /**
      * Sets the container.
      *
-     * @param ContainerInterface $container
+     * @param PsrContainer $container
      */
     public function setContainer(PsrContainer $container)
     {

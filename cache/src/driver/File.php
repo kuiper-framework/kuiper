@@ -42,6 +42,7 @@ class File extends AbstractDriver implements DriverInterface
      */
     protected function batchFetch(array $keys)
     {
+        $values = [];
         foreach ($keys as $key) {
             $values[] = $this->fetch($key);
         }
@@ -161,8 +162,7 @@ class File extends AbstractDriver implements DriverInterface
      * A simple recursive delTree method.
      *
      * @param string $dir
-     *
-     * @return bool
+     * @param bool   $delTop
      */
     protected function delTree($dir, $delTop = false)
     {

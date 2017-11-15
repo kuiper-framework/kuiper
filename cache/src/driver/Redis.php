@@ -123,6 +123,7 @@ class Redis extends RedisDriver implements DriverInterface
         if (isset($this->options['servers'])) {
             $servers = [];
             foreach ($this->options['servers'] as $server) {
+                $host = 'localhost';
                 $port = 6379;
                 if (is_string($server)) {
                     $host = $server;

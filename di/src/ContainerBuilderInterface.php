@@ -2,6 +2,7 @@
 
 namespace kuiper\di;
 
+use kuiper\annotations\ReaderInterface;
 use kuiper\di\source\SourceInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -48,6 +49,13 @@ interface ContainerBuilderInterface
      * @return self
      */
     public function useAutowiring($autowiring = true);
+
+    /**
+     * @param ReaderInterface $annotationReader
+     *
+     * @return static
+     */
+    public function setAnnotationReader(ReaderInterface $annotationReader);
 
     /**
      * @param EventDispatcherInterface $eventDispatcher

@@ -82,6 +82,8 @@ interface ApplicationInterface
     public function bootstrap();
 
     /**
+     * @param string $id
+     *
      * @return mixed
      */
     public function get($id);

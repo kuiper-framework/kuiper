@@ -32,14 +32,14 @@ class RpcServerProvider extends Provider
 
     public function provideServiceResolver()
     {
-        $resovler = new ServiceResolver();
-        $resovler->setContainer($this->app->getContainer());
-        $resovler->add(HealthyCheckServiceInterface::class);
+        $resolver = new ServiceResolver();
+        $resolver->setContainer($this->app->getContainer());
+        $resolver->add(HealthyCheckServiceInterface::class);
         foreach ($this->settings['app.rpc_server.services'] as $service) {
-            $resovler->add($service);
+            $resolver->add($service);
         }
 
-        return $resovler;
+        return $resolver;
     }
 
     public function provideRpcServer()
