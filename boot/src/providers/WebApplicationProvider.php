@@ -9,6 +9,7 @@ use kuiper\web\ApplicationInterface;
 use kuiper\web\FastRouteUrlResolver;
 use kuiper\web\MicroApplication;
 use kuiper\web\middlewares\Session as SessionMiddleware;
+use kuiper\web\RouteCollector;
 use kuiper\web\RouteRegistrar;
 use kuiper\web\RouteRegistrarInterface;
 use kuiper\web\security\Auth;
@@ -71,8 +72,61 @@ class WebApplicationProvider extends Provider
 
     public function provideWebApplication()
     {
-        $app = new MicroApplication($container = $this->app->getContainer());
+        $app = new MicroApplication($this->app->getContainer());
 
+        $this->addRoutes($app);
+
+        // auto add SessionMiddleware
+        $conf = $this->settings['app.session'];
+        if (isset($conf['built-in']) && $conf['built-in'] === false) {
+            $session = $this->app->get(SessionInterface::class);
+            if ($session instanceof ManagedSessionInterface) {
+                $app->add(new SessionMiddleware($session), 'before:start', 'session');
+            }
+        }
+
+        $this->app->getEventDispatcher()->dispatch(Events::BOOT_WEB_APPLICATION, new Event($app));
+
+        return $app;
+    }
+
+    /**
+     * @param $app
+     */
+    private function addRoutes(RouteRegistrarInterface $app)
+    {
+        $routeConfig = $this->settings['app.routes'];
+        if ($routeConfig) {
+            $this->addRoutesByAnnotation($app, $routeConfig);
+        } else {
+            $this->addRoutesByFile($app);
+        }
+    }
+
+    /**
+     * @param RouteRegistrarInterface $app
+     * @param array                   $routeConfig
+     */
+    private function addRoutesByAnnotation(RouteRegistrarInterface $app, $routeConfig)
+    {
+        /** @var RouteCollector $collector */
+        $collector = $this->app->get(RouteCollector::class);
+        foreach ($routeConfig as $namespace => $matcher) {
+            if ($matcher) {
+                $app->group($matcher, function () use ($collector, $namespace) {
+                    $collector->addNamespace($namespace);
+                });
+            } else {
+                $collector->addNamespace($namespace);
+            }
+        }
+    }
+
+    /**
+     * @param RouteRegistrarInterface $app
+     */
+    private function addRoutesByFile(RouteRegistrarInterface $app)
+    {
         foreach ($this->app->getModules() as $module) {
             if ($module->getBasePath()) {
                 $file = $module->getBasePath().'/routes/web.php';
@@ -80,7 +134,7 @@ class WebApplicationProvider extends Provider
                     if ($namespace = $module->getNamespace()) {
                         $app->group([
                             'namespace' => $namespace.'\\controllers',
-                        ], function () use ($container, $file) {
+                        ], function () use ($app, $file) {
                             /** @noinspection PhpIncludeInspection */
                             require_once $file;
                         });
@@ -95,18 +149,5 @@ class WebApplicationProvider extends Provider
             /** @noinspection PhpIncludeInspection */
             require_once $file;
         }
-
-        // auto add SessionMiddleware
-        $conf = $this->settings['app.session'];
-        if (isset($conf['built-in']) && $conf['built-in'] === false) {
-            $session = $this->app->get(SessionInterface::class);
-            if ($session instanceof ManagedSessionInterface) {
-                $app->add(new SessionMiddleware($session), 'before:start', 'session');
-            }
-        }
-
-        $this->app->getEventDispatcher()->dispatch(Events::BOOT_WEB_APPLICATION, new Event($app));
-
-        return $app;
     }
 }
