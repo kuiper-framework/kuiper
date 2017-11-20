@@ -183,6 +183,10 @@ class CompositeContainer implements ContainerInterface
 
     /**
      * Removes '\' at the beginning.
+     *
+     * @param string $name
+     *
+     * @return string
      */
     protected function normalize($name)
     {

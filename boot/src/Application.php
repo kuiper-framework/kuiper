@@ -345,6 +345,13 @@ class Application implements ApplicationInterface
         $this->modules[$module->getName()] = $module;
     }
 
+    /**
+     * 根据 Module 注解和 composer.json 文件信息构造 Module 对象
+     *
+     * @param ProviderInterface $provider
+     *
+     * @return Module
+     */
     protected function createModuleFromAnnotation(ProviderInterface $provider)
     {
         $class = new \ReflectionClass($provider);
@@ -370,6 +377,16 @@ class Application implements ApplicationInterface
         return $module;
     }
 
+    /**
+     * 从 composer.json 文件中读取模块信息:
+     *  - basePath composer.json 文件所在目录
+     *  - name composer package 名字全替换为 _ 格式，如 foo/bar-baz 模块名为 foo_bar_baz
+     *  - namespace autoload 中 psr-4 第一个名字空间.
+     *
+     * @param string $path
+     *
+     * @return array
+     */
     protected function readComposerInfo($path)
     {
         if (!file_exists($path.'/composer.json')) {

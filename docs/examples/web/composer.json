@@ -1,7 +1,12 @@
 {
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "preferred-install": "dist"
+    },
     "require": {
-        "kuiper/web": "^0.2.6",
-        "kuiper/di": "^0.2.1",
+        "kuiper/web": "^0.3",
+        "kuiper/di": "^0.3",
         "zendframework/zend-diactoros": "^1.4"
     },
     "autoload": {

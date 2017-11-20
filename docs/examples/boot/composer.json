@@ -1,9 +1,14 @@
 {
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "preferred-install": "dist"
+    },
     "require": {
-        "kuiper/boot": "^0.2.5",
+        "kuiper/boot": "^0.3",
         "twig/twig": "^2.3",
         "symfony/console": "^3.2",
-        "kuiper/annotations": "^0.2.3",
+        "kuiper/annotations": "^0.3",
         "monolog/monolog": "^1.22"
     },
     "autoload": {
