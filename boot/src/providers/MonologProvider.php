@@ -4,19 +4,38 @@ namespace kuiper\boot\providers;
 
 use kuiper\boot\Provider;
 use kuiper\di;
+use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 
+/**
+ * 日志配置项：
+ * - name
+ * - level
+ * - file
+ * - error_file
+ * - allow_inline_line_breaks
+ * - processors.
+ *
+ * Class MonologProvider
+ */
 class MonologProvider extends Provider
 {
     private static $LOGGERS = [];
 
     public function register()
     {
-        $this->services->addDefinitions([
-            LoggerInterface::class => di\factory([$this, 'provideLogger']),
-        ]);
+        $loggers[LoggerInterface::class] = di\factory([$this, 'provideLogger']);
+        if ($this->settings['logging']) {
+            foreach ($this->settings['logging.logger'] as $loggerName => $config) {
+                if ($loggerName == 'default') {
+                    continue;
+                }
+                $loggers['logger.'.$loggerName] = di\factory([$this, 'createLogger'], $config);
+            }
+        }
+        $this->services->addDefinitions($loggers);
     }
 
     public static function pushLogger(Logger $logger)
@@ -39,22 +58,38 @@ class MonologProvider extends Provider
     {
         $settings = $this->app->getSettings();
 
-        $logger = new Logger($settings['logger.name'] ?: $settings['app.name'] ?: 'unnamed');
-        $logLevel = constant(Logger::class.'::'.strtoupper($settings['logger.level'] ?: 'debug'));
-        if (isset($settings['logger.file'])) {
-            $logFile = $settings['logger.file'];
-        } else {
-            $logFile = 'php://stderr';
+        $config = [];
+        foreach (['logger', 'logging.'.LoggerInterface::class, 'logging.logger.default'] as $item) {
+            if (isset($settings[$item])) {
+                $config = $settings[$item];
+            }
         }
+
+        return $this->createLogger($config);
+    }
+
+    /**
+     * @param $settings
+     *
+     * @return LoggerInterface
+     */
+    public function createLogger(array $settings)
+    {
+        $logger = new Logger($settings['name'] ?? 'unnamed');
+        $logLevel = constant(Logger::class.'::'.strtoupper($settings['level'] ?? 'debug'));
+        $logFile = $settings['file'] ?? 'php://stderr';
         $logger->pushHandler(new StreamHandler($logFile, $logLevel));
-        if (isset($settings['logger.error_file'])) {
-            $logger->pushHandler(new StreamHandler($settings['logger.error_file'], Logger::ERROR));
+        if (isset($settings['error_file'])) {
+            $logger->pushHandler(new StreamHandler($settings['error_file'], Logger::ERROR));
         }
-        $processors = $settings['logger.processors'];
-        if (is_array($processors)) {
-            $container = $this->app->getContainer();
-            foreach ($processors as $processor) {
-                $logger->pushProcessor($container->get($processor));
+        if (!empty($settings['allow_inline_line_breaks'])) {
+            foreach ($logger->getHandlers() as $handler) {
+                $handler->setFormatter(new LineFormatter(null, null, true));
+            }
+        }
+        if (isset($settings['processors']) && is_array($settings['processors'])) {
+            foreach ($settings['processors'] as $processor) {
+                $logger->pushProcessor($this->app->get($processor));
             }
         }
 
