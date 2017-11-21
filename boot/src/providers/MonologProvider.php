@@ -28,8 +28,8 @@ class MonologProvider extends Provider
     {
         $loggers[LoggerInterface::class] = di\factory([$this, 'provideLogger']);
         if ($this->settings['logging']) {
-            foreach ($this->settings['logging.logger'] as $loggerName => $config) {
-                if ($loggerName == 'default') {
+            foreach ($this->settings['logging'] as $loggerName => $config) {
+                if (in_array($loggerName, ['default', LoggerInterface::class])) {
                     continue;
                 }
                 $loggers['logger.'.$loggerName] = di\factory([$this, 'createLogger'], $config);
@@ -59,7 +59,7 @@ class MonologProvider extends Provider
         $settings = $this->app->getSettings();
 
         $config = [];
-        foreach (['logger', 'logging.'.LoggerInterface::class, 'logging.logger.default'] as $item) {
+        foreach (['logger', 'logging.'.LoggerInterface::class, 'logging.default'] as $item) {
             if (isset($settings[$item])) {
                 $config = $settings[$item];
             }

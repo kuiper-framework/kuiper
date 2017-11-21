@@ -37,13 +37,11 @@ class MonoLoggerProviderTest extends TestCase
                 ],
             ],
             'logging' => [
-                'logger' => [
-                    'default' => [
-                        'file' => '/dev/null',
-                    ],
-                    'AccessLogger' => [
-                        'file' => 'access.log',
-                    ],
+                'default' => [
+                    'file' => '/dev/null',
+                ],
+                'AccessLogger' => [
+                    'file' => 'access.log',
                 ],
             ],
         ]);
