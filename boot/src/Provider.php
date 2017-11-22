@@ -2,8 +2,6 @@
 
 namespace kuiper\boot;
 
-use kuiper\di\CompositeContainerBuilder;
-
 /**
  * @property \kuiper\di\ContainerBuilderInterface services
  * @property \ArrayAccess settings
@@ -65,13 +63,7 @@ abstract class Provider implements ProviderInterface
         if ($name === 'settings') {
             return $this->app->getSettings();
         } elseif ($name === 'services') {
-            $services = $this->app->getServices();
-            $namespace = $this->getModule()->getNamespace();
-            if ($namespace && $services instanceof CompositeContainerBuilder) {
-                return $services->withNamespace($namespace);
-            } else {
-                return $services;
-            }
+            return $this->app->getServices();
         } else {
             throw new \LogicException("Property '$name' is undefined");
         }

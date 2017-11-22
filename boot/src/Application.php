@@ -5,7 +5,7 @@ namespace kuiper\boot;
 use Composer\Autoload\ClassLoader;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\ReaderInterface;
-use kuiper\di\CompositeContainerBuilder;
+use kuiper\di\ContainerBuilder;
 use kuiper\di\ContainerBuilderInterface;
 use kuiper\di\source\DotArraySource;
 use kuiper\helper\DotArray;
@@ -142,7 +142,7 @@ class Application implements ApplicationInterface
     public function getContainerBuilder()
     {
         if ($this->containerBuilder === null) {
-            $this->setContainerBuilder(new CompositeContainerBuilder());
+            $this->setContainerBuilder(new ContainerBuilder());
         }
 
         return $this->containerBuilder;
@@ -297,12 +297,18 @@ class Application implements ApplicationInterface
                 }
             }
         }
+        $definitions = [];
         foreach ($this->providers as $provider) {
             $provider->setApplication($this);
             $this->registerModule($provider);
+            $definitions[get_class($provider)] = $provider;
+        }
+        foreach ($this->modules as $module) {
+            $definitions['kuiper.module.'.$module->getName()] = $module;
         }
         $this->expandSettings($settings);
         $this->getContainerBuilder()->addSource(new DotArraySource($settings));
+        $this->getContainerBuilder()->addDefinitions($definitions);
         foreach ($this->providers as $provider) {
             $provider->register();
         }
@@ -334,13 +340,6 @@ class Application implements ApplicationInterface
             if (!isset($this->settings[$module->getName().'.base_path'])) {
                 $this->settings[$module->getName().'.base_path'] = $module->getBasePath();
             }
-        }
-        $namespace = $module->getNamespace();
-        $containerBuilder = $this->getServices();
-        if ($namespace && $containerBuilder instanceof CompositeContainerBuilder) {
-            $containerBuilder->withNamespace($namespace)->addDefinitions([
-                Module::class => $module,
-            ]);
         }
         $this->modules[$module->getName()] = $module;
     }

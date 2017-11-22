@@ -85,20 +85,20 @@ class ComponentSource implements SourceInterface, LoggerAwareInterface
         $seen = [];
         $components = [];
         foreach ($namespaces as $namespace) {
-            $reflNs = $this->reflectionNamespaceFactory->create($namespace);
-            foreach ($reflNs->getClasses() as $className) {
+            $reflectionNamespace = $this->reflectionNamespaceFactory->create($namespace);
+            foreach ($reflectionNamespace->getClasses() as $className) {
                 if (isset($seen[$className])) {
                     continue;
                 }
                 $seen[$className] = true;
                 $class = new ReflectionClass($className);
-                $annot = $this->annotationReader->getClassAnnotation($class, Component::class);
-                if ($annot === null) {
+                $annotation = $this->annotationReader->getClassAnnotation($class, Component::class);
+                if ($annotation === null) {
                     continue;
                 }
                 $definition = new AliasDefinition($className);
-                if ($annot->name) {
-                    $components[] = ['name' => $annot->name, 'definition' => $definition];
+                if ($annotation->name) {
+                    $components[] = ['name' => $annotation->name, 'definition' => $definition];
                 } else {
                     $interfaces = $class->getInterfaceNames();
                     if (!empty($interfaces)) {

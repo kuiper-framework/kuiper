@@ -64,5 +64,7 @@ class DotArraySource implements SourceInterface
         if (isset($value)) {
             return new DefinitionEntry($this->prefix.$name, new ValueDefinition($value));
         }
+
+        return null;
     }
 }

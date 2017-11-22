@@ -42,5 +42,7 @@ class EnvSource implements SourceInterface
         if ($value !== false) {
             return new DefinitionEntry($name, new ValueDefinition($value));
         }
+
+        return null;
     }
 }

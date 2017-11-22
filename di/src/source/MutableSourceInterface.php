@@ -11,7 +11,7 @@ interface MutableSourceInterface extends SourceInterface
 {
     /**
      * @param string              $name
-     * @param DefinitionInterface $defintion
+     * @param DefinitionInterface $definition
      */
-    public function set($name, DefinitionInterface $defintion);
+    public function set($name, DefinitionInterface $definition);
 }

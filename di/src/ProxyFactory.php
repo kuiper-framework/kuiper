@@ -22,8 +22,8 @@ class ProxyFactory
      * Creates a new lazy proxy instance of the given class with
      * the given initializer.
      *
-     * @param string  $className   name of the class to be proxied
-     * @param Closure $initializer initializer to be passed to the proxy
+     * @param string  $className name of the class to be proxied
+     * @param Closure $creator
      *
      * @return \ProxyManager\Proxy\LazyLoadingInterface
      */

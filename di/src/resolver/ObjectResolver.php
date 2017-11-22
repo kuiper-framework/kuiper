@@ -57,8 +57,9 @@ class ObjectResolver implements ResolverInterface
         }
     }
 
-    private function createInstance($container, $entry, $parameters, $deferInit = false)
+    private function createInstance(ContainerInterface $container, DefinitionEntry $entry, $parameters, $deferInit = false)
     {
+        /** @var ObjectDefinition $definition */
         $definition = $entry->getDefinition();
         if (empty($parameters)) {
             $parameters = $this->resolveParams(
@@ -94,7 +95,7 @@ class ObjectResolver implements ResolverInterface
         }
     }
 
-    private function initializer($container, $instance, $definition)
+    private function initializer(ContainerInterface $container, $instance, ObjectDefinition $definition)
     {
         $class = new ReflectionClass($instance);
         $properties = $definition->getProperties();

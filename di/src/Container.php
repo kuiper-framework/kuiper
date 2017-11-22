@@ -276,6 +276,10 @@ class Container implements ContainerInterface, ResolverInterface
 
     /**
      * Removes '\' at the beginning.
+     *
+     * @param string $name
+     *
+     * @return string
      */
     protected function normalize($name)
     {
@@ -318,6 +322,8 @@ class Container implements ContainerInterface, ResolverInterface
             return $this->singletonEntries[$name];
         } elseif (array_key_exists($name, $this->requestEntries)) {
             return $this->requestEntries[$name];
+        } else {
+            return null;
         }
     }
 

@@ -83,9 +83,12 @@ class SourceChain implements MutableSourceInterface
                     $event->setDefinition($entry);
                     $this->eventDispatcher->dispatch(Events::AFTER_GET_DEFINITION, $event);
                 }
+
                 return $entry;
             }
         }
+
+        return null;
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace kuiper\di\resolver;
 
-use InvalidArgumentException;
 use kuiper\di\ContainerInterface;
 use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\DefinitionInterface;
@@ -36,7 +35,7 @@ class FactoryResolver implements ResolverInterface
     {
         $definition = $entry->getDefinition();
         if (!$definition instanceof FactoryDefinition) {
-            throw new InvalidArgumentException(sprintf(
+            throw new \InvalidArgumentException(sprintf(
                 'definition expects a %s, got %s',
                 FactoryDefinition::class,
                 is_object($definition) ? get_class($definition) : gettype($definition)
@@ -56,8 +55,9 @@ class FactoryResolver implements ResolverInterface
         }
     }
 
-    private function createInstance($container, $entry, $parameters)
+    private function createInstance(ContainerInterface $container, DefinitionEntry $entry, $parameters)
     {
+        /** @var FactoryDefinition $definition */
         $definition = $entry->getDefinition();
         $factory = $definition->getFactory();
         if (is_array($factory) && $factory[0] instanceof DefinitionInterface) {

@@ -179,6 +179,8 @@ class CompositeContainer implements ContainerInterface
                 return $this->containers[$namespace];
             }
         }
+
+        return null;
     }
 
     /**

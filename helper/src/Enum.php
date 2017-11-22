@@ -7,6 +7,9 @@ use ReflectionClass;
 
 /**
  * enum class.
+ *
+ * @property string name
+ * @property mixed value
  */
 abstract class Enum implements \JsonSerializable
 {

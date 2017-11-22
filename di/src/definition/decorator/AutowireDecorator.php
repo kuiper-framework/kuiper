@@ -60,12 +60,12 @@ class AutowireDecorator extends DefinitionDecorator
     {
         $autowired = false;
         $classAnnotations = $this->annotationReader->getClassAnnotations($class);
-        foreach ($classAnnotations as $annot) {
-            if ($annot instanceof Autowired) {
+        foreach ($classAnnotations as $annotation) {
+            if ($annotation instanceof Autowired) {
                 $autowired = true;
-            } elseif ($annot instanceof Injectable) {
-                $definition->scope($annot->scope);
-                if ($annot->lazy) {
+            } elseif ($annotation instanceof Injectable) {
+                $definition->scope($annotation->scope);
+                if ($annotation->lazy) {
                     $definition->lazy();
                 }
             }
@@ -135,12 +135,12 @@ class AutowireDecorator extends DefinitionDecorator
             if ($method->isStatic() || array_key_exists($method->getName(), $exists)) {
                 continue;
             }
-            $injectAnnot = $this->annotationReader->getMethodAnnotation($method, Inject::class);
-            if ($injectAnnot === null) {
+            $injectAnnotation = $this->annotationReader->getMethodAnnotation($method, Inject::class);
+            if ($injectAnnotation === null) {
                 continue;
             }
             $params = [];
-            $injectParams = $injectAnnot->getParameters();
+            $injectParams = $injectAnnotation->getParameters();
             $docParams = [];
             if (empty($injectParams)) {
                 $docParams = $this->getParameterClasses($method);
@@ -173,7 +173,7 @@ class AutowireDecorator extends DefinitionDecorator
         return $definitions;
     }
 
-    protected function autowire($class, &$properties, &$methods)
+    protected function autowire(\ReflectionClass $class, &$properties, &$methods)
     {
         $lowerProperties = array_map('strtolower', array_keys($properties));
         $lowerMethods = array_map('strtolower', array_keys($methods));
@@ -248,11 +248,17 @@ class AutowireDecorator extends DefinitionDecorator
         return $paramTypes;
     }
 
-    public function getReader()
+    /**
+     * @return ReaderInterface
+     */
+    public function getAnnotationReader()
     {
-        return $this->reader;
+        return $this->annotationReader;
     }
 
+    /**
+     * @return DocReaderInterface
+     */
     public function getDocReader()
     {
         return $this->docReader;

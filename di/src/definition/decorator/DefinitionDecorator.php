@@ -38,9 +38,14 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
 
     /**
      * reflection closure parameters.
+     *
+     * @param DefinitionEntry $entry
+     *
+     * @return DefinitionEntry
      */
     protected function resolveFactoryParams(DefinitionEntry $entry)
     {
+        /** @var FactoryDefinition $definition */
         $definition = $entry->getDefinition();
         $args = $definition->getArguments();
         if (!empty($args)) {
@@ -75,14 +80,20 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
                 $params[] = new AliasDefinition($class->getName());
             }
         }
+
         return new DefinitionEntry($entry->getName(), $definition->withArguments($params));
     }
 
     /**
      * reflection constructor or use annotation.
+     *
+     * @param DefinitionEntry $entry
+     *
+     * @return DefinitionEntry
      */
     protected function resolveObjectConstructorParams(DefinitionEntry $entry)
     {
+        /** @var ObjectDefinition $definition */
         $definition = $entry->getDefinition();
         $params = $definition->getConstructorParameters();
         if (empty($params) || $params instanceof NamedParameters) {
