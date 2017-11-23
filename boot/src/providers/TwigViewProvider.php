@@ -2,9 +2,9 @@
 
 namespace kuiper\boot\providers;
 
-use kuiper\boot\exception\ViewException;
 use kuiper\boot\Provider;
 use kuiper\di;
+use kuiper\web\exception\ViewException;
 use kuiper\web\TwigView;
 use kuiper\web\ViewInterface;
 

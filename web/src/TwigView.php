@@ -2,20 +2,23 @@
 
 namespace kuiper\web;
 
-use Twig_Environment;
+use kuiper\web\exception\ViewException;
 
 class TwigView implements ViewInterface
 {
     /**
-     * @var Twig_Environment
+     * @var \Twig_Environment
      */
     private $twig;
 
-    public function __construct(Twig_Environment $twig)
+    public function __construct(\Twig_Environment $twig)
     {
         $this->twig = $twig;
     }
 
+    /**
+     * @return \Twig_Environment
+     */
     public function getTwig()
     {
         return $this->twig;
@@ -23,6 +26,10 @@ class TwigView implements ViewInterface
 
     public function render($name, array $context = [])
     {
-        return $this->twig->render($name, $context);
+        try {
+            return $this->twig->render($name, $context);
+        } catch (\Twig_Error $exception) {
+            throw new ViewException($exception->getMessage(), $exception->getCode(), $exception);
+        }
     }
 }
