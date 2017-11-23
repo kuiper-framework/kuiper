@@ -10,6 +10,7 @@ use kuiper\di\ContainerBuilderInterface;
 use kuiper\di\source\DotArraySource;
 use kuiper\helper\DotArray;
 use kuiper\reflection\ReflectionNamespaceFactory;
+use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -130,6 +131,7 @@ class Application implements ApplicationInterface
         $this->containerBuilder = $builder;
         $this->containerBuilder->addDefinitions([
             ApplicationInterface::class => $this,
+            ReflectionNamespaceFactoryInterface::class => ReflectionNamespaceFactory::createInstance(),
         ]);
         $this->containerBuilder->setEventDispatcher($this->getEventDispatcher());
 
