@@ -14,7 +14,7 @@ interface ResponseInterface extends MessageInterface
     /**
      * Returns an instance with the rpc results.
      *
-     * @param $result
+     * @param mixed $result
      *
      * @return static
      */

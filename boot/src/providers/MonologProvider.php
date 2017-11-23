@@ -69,7 +69,7 @@ class MonologProvider extends Provider
     }
 
     /**
-     * @param $settings
+     * @param array $settings
      *
      * @return LoggerInterface
      */

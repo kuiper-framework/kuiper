@@ -91,7 +91,7 @@ class WebApplicationProvider extends Provider
     }
 
     /**
-     * @param $app
+     * @param RouteRegistrarInterface $app
      */
     private function addRoutes(RouteRegistrarInterface $app)
     {

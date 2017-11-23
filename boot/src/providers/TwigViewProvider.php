@@ -2,6 +2,7 @@
 
 namespace kuiper\boot\providers;
 
+use kuiper\boot\exception\ViewException;
 use kuiper\boot\Provider;
 use kuiper\di;
 use kuiper\web\TwigView;
@@ -20,12 +21,16 @@ class TwigViewProvider extends Provider
     public function provideTwig()
     {
         $settings = $this->settings;
-        $loader = new \Twig_Loader_Filesystem($settings['app.views_path']);
+        try {
+            $loader = new \Twig_Loader_Filesystem($settings['app.views_path']);
+        } catch (\Twig_Error $e) {
+            throw new ViewException($e->getMessage(), $e->getCode(), $e);
+        }
         $options = [];
         if (!$settings['app.dev_mode'] && $settings['app.runtime_path']) {
             $cacheDir = $settings['app.runtime_path'].'/views_cache';
             if (!is_dir($cacheDir) && !mkdir($cacheDir, 0777, true)) {
-                throw new \RuntimeException("Cannot create twig cache dir '$cacheDir'");
+                throw new ViewException("Cannot create twig cache dir '$cacheDir'");
             }
             $options['cache'] = $cacheDir;
         }

@@ -176,7 +176,7 @@ class DocReader implements DocReaderInterface
     }
 
     /**
-     * @param $annotationTag
+     * @param string $annotationTag
      *
      * @return string
      */

@@ -30,7 +30,7 @@ interface FlashInterface
     /**
      * Shows a HTML success message.
      *
-     * @param $message
+     * @param string $message
      */
     public function success(string $message);
 

@@ -264,7 +264,7 @@ class Application implements ApplicationInterface
     }
 
     /**
-     * @param $exception
+     * @param \Error $exception
      *
      * @return ResponseInterface
      */
