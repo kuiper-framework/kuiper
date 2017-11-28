@@ -21,13 +21,13 @@ class DateTimeNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function denormalize($exception, $className)
+    public function denormalize($data, $className)
     {
-        if (is_string($exception)) {
-            return new \DateTime($exception);
-        } elseif (is_array($exception) && isset($exception['date']) && isset($exception['timezone'])) {
+        if (is_string($data)) {
+            return new \DateTime($data);
+        } elseif (is_array($data) && isset($data['date']) && isset($data['timezone'])) {
             // \DateTime array
-            return new \DateTime($exception['date'], new \DateTimeZone($exception['timezone']));
+            return new \DateTime($data['date'], new \DateTimeZone($data['timezone']));
         }
     }
 }

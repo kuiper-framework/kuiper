@@ -22,12 +22,12 @@ class EnumNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function denormalize($exception, $className)
+    public function denormalize($data, $className)
     {
-        if (!is_string($exception)) {
-            throw new \InvalidArgumentException('Expected string, got '.gettype($exception));
+        if (!is_string($data)) {
+            throw new \InvalidArgumentException('Expected string, got '.gettype($data));
         }
 
-        return call_user_func([$className, 'fromName'], $exception);
+        return call_user_func([$className, 'fromName'], $data);
     }
 }

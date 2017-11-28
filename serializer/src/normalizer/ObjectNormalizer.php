@@ -46,10 +46,10 @@ class ObjectNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function denormalize($exception, $className)
+    public function denormalize($data, $className)
     {
-        if (!is_array($exception)) {
-            throw new \InvalidArgumentException('Expected array, got '.gettype($exception));
+        if (!is_array($data)) {
+            throw new \InvalidArgumentException('Expected array, got '.gettype($data));
         }
         if (!is_string($className)) {
             throw new \InvalidArgumentException('Expected class name, got '.gettype($className));
@@ -58,10 +58,10 @@ class ObjectNormalizer implements NormalizerInterface
         $class = new \ReflectionClass($className);
         $object = $class->newInstanceWithoutConstructor();
         foreach ($metadata->getSetters() as $setter) {
-            if (!isset($exception[$setter->getSerializeName()])) {
+            if (!isset($data[$setter->getSerializeName()])) {
                 continue;
             }
-            $setter->setValue($object, $this->serializer->denormalize($exception[$setter->getSerializeName()], $setter->getType()));
+            $setter->setValue($object, $this->serializer->denormalize($data[$setter->getSerializeName()], $setter->getType()));
         }
 
         return $object;

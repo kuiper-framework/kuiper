@@ -79,12 +79,12 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     /**
      * {@inheritdoc}
      */
-    public function denormalize($exception, $className)
+    public function denormalize($data, $className)
     {
         if ($className instanceof ReflectionTypeInterface) {
-            return $this->toType($exception, $className);
+            return $this->toType($data, $className);
         } elseif (is_string($className)) {
-            return $this->toType($exception, TypeUtils::parse($className));
+            return $this->toType($data, TypeUtils::parse($className));
         } else {
             throw new \InvalidArgumentException('Parameter type expects class name or object, got '.gettype($className));
         }
