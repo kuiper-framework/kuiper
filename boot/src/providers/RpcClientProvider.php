@@ -44,10 +44,7 @@ class RpcClientProvider extends Provider
             $handler = new TcpHandler([$server]);
         } else {
             $options = Arrays::fetch($config, 'http_client', $this->settings['app.http_client']);
-            $options = array_merge($options ?: [], [
-                'base_uri' => $server,
-            ]);
-            $handler = new HttpHandler(new HttpClient($options));
+            $handler = new HttpHandler(new HttpClient($options), $server);
         }
 
         $client = new RpcClient($handler);
