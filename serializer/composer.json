@@ -15,8 +15,8 @@
         "ext-json": "*",
         "psr/log": "^1.0",
         "psr/cache": "^1.0",
-        "kuiper/helper": "~0.2",
-        "kuiper/annotations": "~0.2"
+        "kuiper/helper": "^0.2",
+        "kuiper/annotations": "^0.2"
     },
     "suggests": {
         "kuiper/cache": "For cache metadata"

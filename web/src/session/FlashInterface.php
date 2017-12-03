@@ -33,4 +33,11 @@ interface FlashInterface
      * Outputs a message.
      */
     public function message($type, $message);
+
+    /**
+     * Gets all messages.
+     *
+     * @return array
+     */
+    public function getMessages();
 }

@@ -423,11 +423,7 @@ class DocParser
             $resolver = new FqcnResolver($this->reflectionFile);
             $fullClassName = $resolver->resolve($className, $this->namespace);
             if (class_exists($fullClassName) || interface_exists($fullClassName)) {
-                $className = $fullClassName;
-                $found = true;
-            }
-            if ($found) {
-                $identifier = $className.'::'.$const;
+                $identifier = $fullClassName.'::'.$const;
             }
         }
 
