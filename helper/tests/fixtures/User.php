@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\helper\fixtures;
 
 class User
@@ -9,13 +10,13 @@ class User
 
     private $gender;
 
-    private $isFemale;
+    private $female;
 
     public function __construct($name)
     {
         $this->name = $name;
     }
-    
+
     public function getName()
     {
         return $this->name;
@@ -29,11 +30,19 @@ class User
     public function setAge($age)
     {
         $this->age = $age;
+
         return $this;
     }
 
     public function isFemale()
     {
-        return $this->isFemale;
+        return $this->female;
+    }
+
+    public function setFemale($female)
+    {
+        $this->female = $female;
+
+        return $this;
     }
 }

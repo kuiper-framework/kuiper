@@ -48,4 +48,11 @@ interface FlashInterface
      * @param string $message
      */
     public function message(string $type, string $message);
+
+    /**
+     * Gets all messages.
+     *
+     * @return array
+     */
+    public function getMessages();
 }

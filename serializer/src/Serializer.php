@@ -166,7 +166,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     private function denormalizeObject($data, $className)
     {
         foreach ($this->normalizers as $typeClass => $normalizer) {
-            if ($className == $typeClass || is_subclass_of($className, $typeClass, true)) {
+            if (is_a($className, $typeClass, true)) {
                 return $normalizer->denormalize($data, $className);
             }
         }
