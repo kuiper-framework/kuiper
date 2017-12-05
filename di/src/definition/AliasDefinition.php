@@ -11,7 +11,7 @@ class AliasDefinition extends AbstractDefinition
 
     public function __construct($alias)
     {
-        $this->alias = $alias;
+        $this->alias = ltrim($alias, '\\');
     }
 
     public function getAlias()

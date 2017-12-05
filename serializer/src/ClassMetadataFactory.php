@@ -85,7 +85,7 @@ class ClassMetadataFactory
     protected function parseSetter(\ReflectionMethod $method, ClassMetadata $metadata)
     {
         $name = $method->getName();
-        if (strpos($name, 'set') == 0
+        if (strpos($name, 'set') === 0
             && $method->getNumberOfParameters() === 1
             && !$this->isIgnore($method)) {
             $types = array_values($this->docReader->getParameterTypes($method));
@@ -110,7 +110,7 @@ class ClassMetadataFactory
     protected function parseGetter(\ReflectionMethod $method, ClassMetadata $metadata)
     {
         $name = $method->getName();
-        if (preg_match('/^(get|is)(.+)/', $name, $matches)
+        if (preg_match('/^(get|is|has)(.+)/', $name, $matches)
             && $method->getNumberOfParameters() === 0
             && !$this->isIgnore($method)) {
             $type = $this->docReader->getReturnType($method);
@@ -121,7 +121,7 @@ class ClassMetadataFactory
                     $method->getName()
                 ));
             }
-            $field = new Field($metadata->getClassName(), lcfirst(substr($name, strlen($matches[1]))));
+            $field = new Field($metadata->getClassName(), lcfirst($matches[2]));
             $field->setType($type);
             $field->setGetter($name);
             $serializeName = $this->getSerializeName($method);
