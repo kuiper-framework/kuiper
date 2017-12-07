@@ -221,4 +221,14 @@ class ContainerGetTest extends TestCase
         $ret = $container->make('bar');
         $this->assertSame($container, $ret);
     }
+
+    public function testImportNamespace()
+    {
+        $container = $this->createContainer([
+        ], true);
+        $foo = $container->get(\kuiper\di\fixtures\ns\Foo::class);
+        $this->assertInstanceOf(fixtures\DummyClass::class, $this->readAttribute($foo, 'property1'));
+        $this->assertInstanceOf(fixtures\DummyClass::class, $this->readAttribute($foo, 'property2'));
+        // print_r($foo);
+    }
 }

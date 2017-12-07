@@ -48,4 +48,13 @@ class FqcnResolverTest extends TestCase
             $file->resolve('ClassC', '')
         );
     }
+
+    public function testResolveClassNameImportNamespace()
+    {
+        $file = $this->createResolver(__DIR__.'/fixtures/ns/ImportNs.php');
+        $this->assertEquals(
+            'kuiper\reflection\fixtures\DummyClass',
+            $file->resolve('fixtures\DummyClass', 'kuiper\reflection\fixtures\ns')
+        );
+    }
 }

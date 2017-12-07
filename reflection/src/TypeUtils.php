@@ -134,6 +134,26 @@ abstract class TypeUtils
     /**
      * @param ReflectionTypeInterface $type
      *
+     * @return bool return true if the type can be null
+     */
+    public static function isNullable(ReflectionTypeInterface $type): bool
+    {
+        if (self::isComposite($type)) {
+            foreach ($type->getTypes() as $subType) {
+                if (self::isNull($subType)) {
+                    return true;
+                }
+            }
+
+            return false;
+        } else {
+            return self::isNull($type);
+        }
+    }
+
+    /**
+     * @param ReflectionTypeInterface $type
+     *
      * @return bool return true if the type is resource type
      */
     public static function isResource(ReflectionTypeInterface $type): bool

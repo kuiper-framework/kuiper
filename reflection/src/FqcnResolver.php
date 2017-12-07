@@ -47,7 +47,7 @@ class FqcnResolver
         $parts = explode(self::NAMESPACE_SEPARATOR, $name);
         $alias = array_shift($parts);
         if (isset($imports[$alias])) {
-            $className = $imports[$alias].(empty($parts) ? '' : implode(self::NAMESPACE_SEPARATOR, $parts));
+            $className = $imports[$alias].(empty($parts) ? '' : self::NAMESPACE_SEPARATOR.implode(self::NAMESPACE_SEPARATOR, $parts));
         } else {
             $className = $namespace.self::NAMESPACE_SEPARATOR.$name;
         }
