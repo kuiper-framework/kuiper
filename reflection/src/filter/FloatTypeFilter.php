@@ -27,6 +27,6 @@ class FloatTypeFilter implements TypeFilterInterface
      */
     public function sanitize($value)
     {
-        return filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT);
+        return filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
     }
 }
