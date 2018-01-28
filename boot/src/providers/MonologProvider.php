@@ -10,7 +10,18 @@ use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 
 /**
- * 日志配置项：
+ * Provides Psr\Log\LoggerInterface use monolog.
+ *
+ * Add config/logging.php config file. Each key will create an entry with prefix "logger." in container,
+ * for example:
+ *
+ * [
+ *     "AccessLogger" => [...],
+ * ]
+ *
+ * You can get the logger with ``$container->get("logger.AccessLogger")``
+ *
+ * Each logger may has following configuration item：
  * - name
  * - level
  * - file

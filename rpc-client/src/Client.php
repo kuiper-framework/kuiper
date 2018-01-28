@@ -61,4 +61,12 @@ class Client implements ClientInterface, MiddlewareInterface
     {
         return $this->handler->handle($request, $response);
     }
+
+    /**
+     * @return HandlerInterface
+     */
+    public function getHandler()
+    {
+        return $this->handler;
+    }
 }

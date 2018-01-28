@@ -29,6 +29,19 @@ use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\EventDispatcher\GenericEvent as Event;
 use Zend\Diactoros\ServerRequestFactory;
 
+/**
+ * Provides kuiper\web\ApplicationInterface.
+ *
+ * add entry in config/app.php :
+ *  'base_path' => <base_path>,
+ *  'base_uri' => <base_uri>,
+ *  'session' => [
+ *  ],
+ *  'routes' => [
+ *  ]
+ *
+ * Class WebApplicationProvider
+ */
 class WebApplicationProvider extends Provider
 {
     public function register()

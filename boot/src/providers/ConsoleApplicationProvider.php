@@ -8,6 +8,17 @@ use kuiper\di;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\EventDispatcher\GenericEvent as Event;
 
+/**
+ * Provides \Symfony\Component\Console\Application and commands.
+ *
+ * Add entry "commands" to config/app.php which is a list of command class:
+ *
+ *  "commands" => [
+ *      Foo\BarCommand::class
+ *  ]
+ *
+ * Class ConsoleApplicationProvider
+ */
 class ConsoleApplicationProvider extends Provider
 {
     public function register()

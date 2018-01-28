@@ -18,6 +18,11 @@ use kuiper\serializer\NormalizerInterface;
 use kuiper\serializer\Serializer;
 use Symfony\Component\EventDispatcher\GenericEvent as Event;
 
+/**
+ * Provides rpc server.
+ *
+ * Class RpcServerProvider
+ */
 class RpcServerProvider extends Provider
 {
     public function register()
