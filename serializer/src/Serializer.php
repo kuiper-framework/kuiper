@@ -79,14 +79,14 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $className)
+    public function denormalize($data, $type = null)
     {
-        if ($className instanceof ReflectionTypeInterface) {
-            return $this->toType($data, $className);
-        } elseif (is_string($className)) {
-            return $this->toType($data, TypeUtils::parse($className));
+        if ($type instanceof ReflectionTypeInterface) {
+            return $this->toType($data, $type);
+        } elseif (is_string($type)) {
+            return $this->toType($data, TypeUtils::parse($type));
         } else {
-            throw new \InvalidArgumentException('Parameter type expects class name or object, got '.gettype($className));
+            throw new \InvalidArgumentException('Parameter type expects class name or object, got '.gettype($type));
         }
     }
 
@@ -111,6 +111,8 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
             }
 
             return $this->denormalizeObject($value, $className);
+        } elseif (TypeUtils::isObject($type)) {
+            return $this->denormalizeObject($value, null);
         } elseif (TypeUtils::isComposite($type)) {
             /** @var CompositeType $type */
             foreach ($type->getTypes() as $subtype) {
@@ -151,9 +153,6 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
 
     private function normalizeObject($object)
     {
-        if ($object instanceof \JsonSerializable) {
-            return $object->jsonSerialize();
-        }
         foreach ($this->normalizers as $className => $normalizer) {
             if ($object instanceof $className) {
                 return $normalizer->normalize($object);
@@ -165,6 +164,9 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
 
     private function denormalizeObject($data, $className)
     {
+        if (empty($className)) {
+            return $this->objectNormalizer->denormalize($data);
+        }
         foreach ($this->normalizers as $typeClass => $normalizer) {
             if (is_a($className, $typeClass, true)) {
                 return $normalizer->denormalize($data, $className);

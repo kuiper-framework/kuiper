@@ -21,7 +21,7 @@ interface NormalizerInterface
      * Turn data back into an object of the given class.
      *
      * @param string|array                   $data
-     * @param string|ReflectionTypeInterface $className
+     * @param string|ReflectionTypeInterface $type
      *
      * @return mixed
      *
@@ -29,5 +29,5 @@ interface NormalizerInterface
      * @throws exception\SerializeException
      * @throws exception\UnexpectedValueException
      */
-    public function denormalize($data, $className);
+    public function denormalize($data, $type = null);
 }

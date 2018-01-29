@@ -27,7 +27,7 @@ class ExceptionNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $className)
+    public function denormalize($data, $type = null)
     {
         $exception = unserialize(base64_decode($data));
         if ($exception === false) {
@@ -37,8 +37,8 @@ class ExceptionNormalizer implements NormalizerInterface
             return $exception;
         }
         if (is_array($exception) && isset($exception['class'], $exception['message'], $exception['code'])) {
-            $className = $exception['class'];
-            $class = new \ReflectionClass($className);
+            $type = $exception['class'];
+            $class = new \ReflectionClass($type);
             $constructor = $class->getConstructor();
             if ($class->isSubClassOf(\Exception::class) && $constructor !== null) {
                 $params = $constructor->getParameters();
@@ -50,7 +50,7 @@ class ExceptionNormalizer implements NormalizerInterface
                         }
                     }
                     if ($requiredParams <= 2) {
-                        return new $className($exception['message'], $exception['code']);
+                        return new $type($exception['message'], $exception['code']);
                     }
                 }
             }

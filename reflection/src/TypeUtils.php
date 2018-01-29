@@ -174,6 +174,16 @@ abstract class TypeUtils
     /**
      * @param ReflectionTypeInterface $type
      *
+     * @return bool return true if type is object type
+     */
+    public static function isObject(ReflectionTypeInterface $type): bool
+    {
+        return $type instanceof ObjectType;
+    }
+
+    /**
+     * @param ReflectionTypeInterface $type
+     *
      * @return bool return true if type is composited type
      */
     public static function isComposite(ReflectionTypeInterface $type): bool

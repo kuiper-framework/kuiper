@@ -21,7 +21,7 @@ class DateTimeNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $className)
+    public function denormalize($data, $type = null)
     {
         if (is_string($data)) {
             return new \DateTime($data);

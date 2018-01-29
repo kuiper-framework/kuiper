@@ -18,6 +18,11 @@ class ObjectNormalizer implements NormalizerInterface
     private $serializer;
 
     /**
+     * @var string
+     */
+    private $classNameKey = '@class';
+
+    /**
      * ObjectNormalizer constructor.
      *
      * @param ClassMetadataFactory $classMetadataFactory
@@ -34,11 +39,17 @@ class ObjectNormalizer implements NormalizerInterface
      */
     public function normalize($object)
     {
-        $metadata = $this->classMetadataFactory->create(get_class($object));
-        $data = [];
-        foreach ($metadata->getGetters() as $getter) {
-            $data[$getter->getSerializeName()] = $this->serializer->normalize($getter->getValue($object));
+        if ($object instanceof \JsonSerializable) {
+            $data = $object->jsonSerialize();
+        } else {
+            $metadata = $this->classMetadataFactory->create(get_class($object));
+            $data = [];
+            foreach ($metadata->getGetters() as $getter) {
+                $data[$getter->getSerializeName()] = $this->serializer->normalize($getter->getValue($object));
+            }
         }
+
+        $data[$this->classNameKey] = get_class($object);
 
         return $data;
     }
@@ -46,10 +57,13 @@ class ObjectNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $className)
+    public function denormalize($data, $className = null)
     {
         if (!is_array($data)) {
             throw new \InvalidArgumentException('Expected array, got '.gettype($data));
+        }
+        if (isset($data[$this->classNameKey])) {
+            $className = $data[$this->classNameKey];
         }
         if (!is_string($className)) {
             throw new \InvalidArgumentException('Expected class name, got '.gettype($className));
