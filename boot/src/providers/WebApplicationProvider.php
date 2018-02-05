@@ -49,7 +49,7 @@ class WebApplicationProvider extends Provider
         $settings = $this->settings;
         $this->services->addDefinitions([
             ApplicationInterface::class => di\factory([$this, 'provideWebApplication']),
-            RouteRegistrarInterface::class => di\get(RouteRegistrar::class),
+            RouteRegistrarInterface::class => di\factory([$this, 'provideRouteRegistrar']),
             UrlResolverInterface::class => di\object(FastRouteUrlResolver::class)
             ->constructor(di\params([
                 'baseUri' => $settings['app.base_uri'],
@@ -83,11 +83,22 @@ class WebApplicationProvider extends Provider
         return $session;
     }
 
+    public function provideRouteRegistrar()
+    {
+        $routeRegistrar = new RouteRegistrar();
+        $routeConfig = $this->settings['app.routes'];
+        if ($routeConfig) {
+            $this->addRoutesByAnnotation($routeRegistrar, $routeConfig);
+        } else {
+            $this->addRoutesByFile($routeRegistrar);
+        }
+
+        return $routeRegistrar;
+    }
+
     public function provideWebApplication()
     {
         $app = new MicroApplication($this->app->getContainer());
-
-        $this->addRoutes($app);
 
         // auto add SessionMiddleware
         $conf = $this->settings['app.session'];
@@ -101,19 +112,6 @@ class WebApplicationProvider extends Provider
         $this->app->getEventDispatcher()->dispatch(Events::BOOT_WEB_APPLICATION, new Event($app));
 
         return $app;
-    }
-
-    /**
-     * @param RouteRegistrarInterface $app
-     */
-    private function addRoutes(RouteRegistrarInterface $app)
-    {
-        $routeConfig = $this->settings['app.routes'];
-        if ($routeConfig) {
-            $this->addRoutesByAnnotation($app, $routeConfig);
-        } else {
-            $this->addRoutesByFile($app);
-        }
     }
 
     /**
