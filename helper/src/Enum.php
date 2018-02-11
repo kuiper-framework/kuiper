@@ -225,6 +225,8 @@ abstract class Enum implements \JsonSerializable
      * @param static $default
      *
      * @return static
+     *
+     * @throws \InvalidArgumentException
      */
     public static function fromName($name, $default = null)
     {
@@ -246,6 +248,8 @@ abstract class Enum implements \JsonSerializable
      * @param static $default
      *
      * @return static
+     *
+     * @throws \InvalidArgumentException
      */
     public static function fromValue($value, $default = null)
     {
@@ -267,6 +271,8 @@ abstract class Enum implements \JsonSerializable
      * @param static $default
      *
      * @return static
+     *
+     * @throws \InvalidArgumentException
      */
     public static function fromIntval($intval, $default = null)
     {
@@ -292,6 +298,8 @@ abstract class Enum implements \JsonSerializable
      * @param static $default
      *
      * @return static
+     *
+     * @throws \InvalidArgumentException
      */
     public static function fromInt($intval, $default = null)
     {
