@@ -98,6 +98,11 @@ class MonologProvider extends Provider
                 $handler->setFormatter(new LineFormatter(null, null, true));
             }
         }
+        if (isset($settings['format'])) {
+            foreach ($logger->getHandlers() as $handler) {
+                $handler->setFormatter(new LineFormatter($settings['format'], null, !empty($settings['allow_inline_line_breaks'])));
+            }
+        }
         if (isset($settings['processors']) && is_array($settings['processors'])) {
             foreach ($settings['processors'] as $processor) {
                 $logger->pushProcessor($this->app->get($processor));
