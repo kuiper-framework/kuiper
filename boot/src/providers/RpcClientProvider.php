@@ -91,7 +91,7 @@ class RpcClientProvider extends Provider
             $handler = new TcpHandler([$options['server']]);
         } else {
             $httpOptions = array_merge(
-                ['timeout' => 5, 'connect_timeout' => 1],
+                ['timeout' => 10, 'connect_timeout' => 3],
                 Arrays::select($this->settings['app.rpc.defaults'] ?: [], ['timeout', 'connect_timeout']),
                 Arrays::select($options, ['timeout', 'connect_timeout'])
             );
@@ -101,8 +101,8 @@ class RpcClientProvider extends Provider
         $client = new RpcClient($handler);
         $client->add($this->app->get(Normalize::class), 'before:start', 'normalize');
         $client->add(new JsonRpc(Arrays::fetch($options, 'aliases', [])), 'before:call', 'jsonrpc');
-        if (!empty($config['middlewares'])) {
-            foreach ($config['middlewares'] as $middleware) {
+        if (!empty($this->settings['app.rpc.middlewares'])) {
+            foreach ($this->settings['app.rpc.middlewares'] as $middleware) {
                 $middleware = (array) $middleware;
                 $client->add(
                     $this->app->get($middleware[0]),
