@@ -11,7 +11,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class SourceChain implements MutableSourceInterface
 {
     /**
-     * @var array<SourceInterface>
+     * @var SourceInterface[]
      */
     private $sources;
 
@@ -31,7 +31,7 @@ class SourceChain implements MutableSourceInterface
     private $eventDispatcher;
 
     /**
-     * @var array<\kuiper\di\DefinitionEntry>
+     * @var \kuiper\di\DefinitionEntry[]
      */
     private $resolvedEntries = [];
 

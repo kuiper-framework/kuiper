@@ -15,7 +15,7 @@ class Acl
     private $checker;
 
     /**
-     * @var array<string>
+     * @var string[]
      */
     private $resources;
 

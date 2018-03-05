@@ -62,7 +62,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $eventDispatcher;
 
     /**
-     * @var array<SourceInterface>
+     * @var SourceInterface[]
      */
     private $sources = [];
 

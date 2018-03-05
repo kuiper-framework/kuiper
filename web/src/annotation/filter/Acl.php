@@ -16,7 +16,7 @@ class Acl extends AbstractFilter
      * @Default
      * @Required
      *
-     * @var array<string>|string
+     * @var string[]|string
      */
     public $resources;
 
