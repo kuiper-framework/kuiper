@@ -90,6 +90,13 @@ class FlashSession implements FlashInterface
         return $this->messages;
     }
 
+    public function reset()
+    {
+        $this->messages = null;
+
+        return $this;
+    }
+
     protected function setMessages(array $messages)
     {
         $this->messages = $messages;

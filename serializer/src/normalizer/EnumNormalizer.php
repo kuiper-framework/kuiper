@@ -24,6 +24,9 @@ class EnumNormalizer implements NormalizerInterface
      */
     public function denormalize($data, $type = null)
     {
+        if (is_array($data) && isset($data['name'])) {
+            $data = $data['name'];
+        }
         if (!is_string($data)) {
             throw new \InvalidArgumentException('Expected string, got '.gettype($data));
         }
