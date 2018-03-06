@@ -354,7 +354,10 @@ abstract class Enum implements \JsonSerializable
 
     public function jsonSerialize()
     {
-        return $this->name;
+        return [
+            'name' => $this->name,
+            'value' => $this->value,
+        ];
     }
 
     /**
