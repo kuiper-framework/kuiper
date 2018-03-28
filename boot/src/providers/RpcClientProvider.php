@@ -3,6 +3,7 @@
 namespace kuiper\boot\providers;
 
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\ClientInterface;
 use kuiper\boot\Events;
 use kuiper\boot\Provider;
 use kuiper\di;
@@ -90,12 +91,7 @@ class RpcClientProvider extends Provider
         if (parse_url($options['server'], PHP_URL_SCHEME) == 'tcp') {
             $handler = new TcpHandler([$options['server']]);
         } else {
-            $httpOptions = array_merge(
-                ['timeout' => 10, 'connect_timeout' => 3],
-                Arrays::select($this->settings['app.rpc.defaults'] ?: [], ['timeout', 'connect_timeout']),
-                Arrays::select($options, ['timeout', 'connect_timeout'])
-            );
-            $handler = new HttpHandler(new HttpClient($httpOptions), $this->prepareEndpoint($options['server']));
+            $handler = new HttpHandler($this->createHttpClient($options), $this->prepareEndpoint($options['server']));
         }
 
         $client = new RpcClient($handler);
@@ -146,5 +142,25 @@ class RpcClientProvider extends Provider
             'source' => $this->settings['app.rpc.source'],
             'host' => gethostname(),
         ]));
+    }
+
+    /**
+     * @param array $options
+     *
+     * @return ClientInterface
+     */
+    protected function createHttpClient(array $options)
+    {
+        $httpOptions = array_merge(
+            ['timeout' => 10, 'connect_timeout' => 3],
+            Arrays::select($this->settings['app.rpc.defaults'] ?: [], ['timeout', 'connect_timeout']),
+            Arrays::select($options, ['timeout', 'connect_timeout'])
+        );
+        $container = $this->app->getContainer();
+        if ($container->has('rpc.HttpClientHandler')) {
+            $httpOptions['handler'] = $container->get('rpc.HttpClientHandler');
+        }
+
+        return new HttpClient($httpOptions);
     }
 }
