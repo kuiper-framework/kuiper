@@ -122,6 +122,7 @@ class WebApplicationProvider extends Provider
     {
         /** @var RouteCollector $collector */
         $collector = $this->app->get(RouteCollector::class);
+        $collector->setRouteRegistrar($app);
         foreach ($routeConfig as $namespace => $matcher) {
             if ($matcher) {
                 $app->group($matcher, function () use ($collector, $namespace) {

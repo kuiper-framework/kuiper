@@ -36,10 +36,14 @@ class RouteCollector
      * @param ReaderInterface                     $annotationReader
      * @param RouteRegistrarInterface             $routeRegistrar
      */
-    public function __construct(ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory, ReaderInterface $annotationReader, RouteRegistrarInterface $routeRegistrar)
+    public function __construct(ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory, ReaderInterface $annotationReader)
     {
         $this->reflectionNamespaceFactory = $reflectionNamespaceFactory;
         $this->annotationReader = $annotationReader;
+    }
+
+    public function setRouteRegistrar(RouteRegistrarInterface $routeRegistrar)
+    {
         $this->routeRegistrar = $routeRegistrar;
     }
 
