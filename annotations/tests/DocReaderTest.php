@@ -84,6 +84,10 @@ class DocReaderTest extends TestCase
         // print_r($types);
         $this->assertEquals((string) $types['i'], 'int');
 
+        $type = $reader->getReturnType($this->getMethod('foo'));
+        $this->assertEquals((string) $type, 'kuiper\\annotations\\fixtures\\annotation\\DummyColumn');
+        // var_export($type);
+
         $type = $reader->getReturnType($this->getMethod('bar'));
         $this->assertEquals((string) $type, 'int');
     }

@@ -70,8 +70,8 @@ class DocReader implements DocReaderInterface
                 }
             }
             $doc = $this->getMethodDocComment($method);
-            if ($doc && preg_match_all(self::METHOD_PARAM_REGEX, $doc, $matches)) {
-                $declaringClass = $method->getDeclaringClass();
+            if ($doc->docBlock && preg_match_all(self::METHOD_PARAM_REGEX, $doc->docBlock, $matches)) {
+                $declaringClass = $doc->declaringClass;
                 foreach ($matches[2] as $index => $name) {
                     if (!isset($parameters[$name])) {
                         continue;
@@ -115,8 +115,8 @@ class DocReader implements DocReaderInterface
                 }
             }
             $doc = $this->getMethodDocComment($method);
-            if ($doc && preg_match(self::getDocTagRegexp('return'), $doc)) {
-                return $this->parseTypeFromDocBlock($doc, $method->getDeclaringClass(), 'return');
+            if ($doc->docBlock && preg_match(self::getDocTagRegexp('return'), $doc->docBlock)) {
+                return $this->parseTypeFromDocBlock($doc->docBlock, $doc->declaringClass, 'return');
             } else {
                 return isset($type) ? $type : ReflectionType::forName('mixed');
             }
@@ -264,12 +264,20 @@ class DocReader implements DocReaderInterface
             }
             foreach ($class->getInterfaces() as $interface) {
                 if ($interface->hasMethod($name)) {
-                    return $interface->getMethod($name)->getDocComment();
+                    $method = $interface->getMethod($name);
+
+                    return (object) [
+                        'docBlock' => $method->getDocComment(),
+                        'declaringClass' => $method->getDeclaringClass(),
+                    ];
                 }
             }
         }
 
-        return $doc;
+        return (object) [
+            'docBlock' => $doc,
+            'declaringClass' => $method->getDeclaringClass(),
+        ];
     }
 
     /**
