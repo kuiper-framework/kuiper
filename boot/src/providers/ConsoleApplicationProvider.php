@@ -31,6 +31,8 @@ class ConsoleApplicationProvider extends Provider
     public function provideConsoleApplication()
     {
         $app = new ConsoleApplication();
+        $this->app->getEventDispatcher()->dispatch(Events::BOOT_CONSOLE_APPLICATION, new Event($app));
+
         $container = $this->app->getContainer();
         $commands = $this->settings['app.commands'];
         if ($commands) {
@@ -38,7 +40,6 @@ class ConsoleApplicationProvider extends Provider
                 $app->add($container->get($command));
             }
         }
-        $this->app->getEventDispatcher()->dispatch(Events::BOOT_CONSOLE_APPLICATION, new Event($app));
 
         return $app;
     }
