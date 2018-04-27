@@ -17,6 +17,7 @@ use kuiper\serializer\NormalizerInterface;
 use kuiper\serializer\Serializer;
 use ProxyManager\Configuration;
 use ProxyManager\Factory\RemoteObjectFactory;
+use ProxyManager\GeneratorStrategy\EvaluatingGeneratorStrategy;
 use Symfony\Component\EventDispatcher\GenericEvent as Event;
 
 /**
@@ -109,10 +110,7 @@ class RpcClientProvider extends Provider
         }
         $this->app->getEventDispatcher()->dispatch(Events::BOOT_RPC_CLIENT, new Event($client));
 
-        $proxyConfig = new Configuration();
-        $proxyConfig->setProxiesTargetDir($this->settings['app.runtime_path']);
-
-        $factory = new RemoteObjectFactory($client, $proxyConfig);
+        $factory = new RemoteObjectFactory($client, $this->getProxyConfiguration());
 
         return $factory->createProxy($serviceName);
     }
@@ -123,7 +121,7 @@ class RpcClientProvider extends Provider
      *
      * @return string
      */
-    private function getServer($serviceName, $group)
+    protected function getServer($serviceName, $group)
     {
         $config = $this->settings['app.rpc.servers'];
         if (isset($config[$serviceName])) {
@@ -136,12 +134,20 @@ class RpcClientProvider extends Provider
         return $config['default'];
     }
 
-    private function prepareEndpoint($uri)
+    protected function prepareEndpoint($uri)
     {
         return $uri.(strpos($uri, '?') === false ? '?' : '&').http_build_query(array_filter([
             'source' => $this->settings['app.rpc.source'],
             'host' => gethostname(),
         ]));
+    }
+
+    protected function getProxyConfiguration()
+    {
+        $proxyConfig = new Configuration();
+        $proxyConfig->setGeneratorStrategy(new EvaluatingGeneratorStrategy());
+
+        return $proxyConfig;
     }
 
     /**
