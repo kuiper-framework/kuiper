@@ -37,25 +37,39 @@ class ExceptionNormalizer implements NormalizerInterface
             return $exception;
         }
         if (is_array($exception) && isset($exception['class'], $exception['message'], $exception['code'])) {
-            $type = $exception['class'];
-            $class = new \ReflectionClass($type);
-            $constructor = $class->getConstructor();
-            if ($class->isSubClassOf(\Exception::class) && $constructor !== null) {
-                $params = $constructor->getParameters();
-                if (count($params) > 2) {
-                    $requiredParams = 0;
-                    foreach ($params as $param) {
-                        if (!$param->isOptional()) {
-                            ++$requiredParams;
-                        }
-                    }
-                    if ($requiredParams <= 2) {
-                        return new $type($exception['message'], $exception['code']);
-                    }
+            try {
+                $e = $this->toException($exception);
+                if ($e) {
+                    return $e;
                 }
+            } catch (\ReflectionException $e) {
+                return new \RuntimeException(sprintf(
+                    'Bad exception %s: %s', $exception['class'], $exception['message']
+                ), $exception['code']);
+            } catch (\TypeError $e) {
+                return new \RuntimeException(sprintf(
+                    'Uncaught exception %s: %s', $exception['class'], $exception['message']
+                ), $exception['code']);
             }
         }
 
         return new \RuntimeException('Bad exception data: '.json_encode($exception));
+    }
+
+    /**
+     * @param array $exception
+     *
+     * @return \Exception|null
+     *
+     * @throws \ReflectionException
+     */
+    private function toException(array $exception)
+    {
+        $type = $exception['class'];
+        $class = new \ReflectionClass($type);
+        $constructor = $class->getConstructor();
+        if ($class->isSubClassOf(\Exception::class) && $constructor !== null) {
+            return new $type($exception['message'], $exception['code']);
+        }
     }
 }

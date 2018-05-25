@@ -14,18 +14,19 @@ use kuiper\serializer\fixtures\Store;
 use kuiper\serializer\fixtures\User;
 use kuiper\serializer\normalizer\DateTimeNormalizer;
 use kuiper\serializer\normalizer\EnumNormalizer;
+use kuiper\serializer\normalizer\ExceptionNormalizer;
 
 /**
  * TestCase for Serializer.
  */
 class SerializerTest extends \PHPUnit_Framework_TestCase
 {
-    public function createSerializer()
+    public function createSerializer($normalizers = [])
     {
-        return new Serializer(new AnnotationReader(), new DocReader(), [
+        return new Serializer(new AnnotationReader(), new DocReader(), array_merge($normalizers, [
             \DateTime::class => new DateTimeNormalizer(),
             Enum::class => new EnumNormalizer(),
-        ]);
+        ]));
     }
 
     public function testDeserializeType()
@@ -144,7 +145,7 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
         // echo $str;
         /** @var fixtures\User $obj */
         $obj = $serializer->fromJson($str, fixtures\User::class);
-         // print_r($obj);
+        // print_r($obj);
         $this->assertInstanceOf(\DateTime::class, $obj->getBirthday());
         $this->assertEquals(Gender::MALE(), $obj->getGender());
     }
@@ -191,5 +192,16 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(Collection::class, $obj);
         $this->assertTrue(is_array($obj->getItems()));
         $this->assertInstanceOf(User::class, $obj->getItems()[0]);
+    }
+
+    public function testException()
+    {
+        $serializer = $this->createSerializer([
+            \Exception::class => new ExceptionNormalizer(),
+        ]);
+        $data = $serializer->normalize(new \RuntimeException('hello', 42));
+        $e = $serializer->denormalize($data, \Exception::class);
+        $this->assertInstanceOf(\Exception::class, $e);
+        $this->assertEquals('hello', $e->getMessage());
     }
 }
