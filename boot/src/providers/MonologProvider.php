@@ -108,6 +108,22 @@ class MonologProvider extends Provider
                 $logger->pushProcessor($this->app->get($processor));
             }
         }
+        if (isset($settings['handlers'])) {
+            foreach ($settings['handlers'] as $handlerConfig) {
+                if (!isset($handlerConfig['file'])) {
+                    continue;
+                }
+                $handlerLogLevel = constant(Logger::class.'::'.strtoupper($handlerConfig['level'] ?? $logLevel));
+                $handler = new StreamHandler($handlerConfig['file'], $handlerLogLevel);
+                if (!empty($handlerConfig['allow_inline_line_breaks'])) {
+                    $handler->setFormatter(new LineFormatter(null, null, true));
+                }
+                if (isset($handlerConfig['format'])) {
+                    $handler->setFormatter(new LineFormatter($handlerConfig['format'], null, !empty($settings['allow_inline_line_breaks'])));
+                }
+                $logger->pushHandler($handler);
+            }
+        }
 
         self::pushLogger($logger);
 
