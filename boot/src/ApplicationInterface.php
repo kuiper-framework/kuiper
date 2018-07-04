@@ -12,6 +12,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 interface ApplicationInterface
 {
+    const VERSION = '0.3.10';
+
     /**
      * @param string $configPath
      *

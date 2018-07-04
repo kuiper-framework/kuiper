@@ -4,6 +4,7 @@ namespace kuiper\web\middlewares;
 
 use kuiper\annotations\ReaderInterface;
 use kuiper\web\annotation\filter\FilterInterface;
+use kuiper\web\exception\WrappedException;
 use LogicException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -27,6 +28,16 @@ class Filter
      */
     private $cache;
 
+    /**
+     * @var ServerRequestInterface
+     */
+    private $request;
+
+    /**
+     * @var ResponseInterface
+     */
+    private $response;
+
     public function __construct(ReaderInterface $annotationReader, ContainerInterface $container)
     {
         $this->annotationReader = $annotationReader;
@@ -43,7 +54,11 @@ class Filter
         if (is_array($callback)) {
             $filters = $this->getFilters($callback[0], $callback[1]);
 
-            return $this->callFilters($request, $response, $filters, $next);
+            try {
+                return $this->callFilters($request, $response, $filters, $next);
+            } catch (\Exception $e) {
+                throw new WrappedException($this->request, $this->response, $e);
+            }
         } else {
             return $next($request, $response);
         }
@@ -82,6 +97,8 @@ class Filter
 
     private function callFilters($request, $response, $filters, $final, $index = 0)
     {
+        $this->request = $request;
+        $this->response = $response;
         if ($index < count($filters)) {
             return $filters[$index]($request, $response, function ($request, $response) use ($filters, $final, $index) {
                 return $this->callFilters($request, $response, $filters, $final, $index + 1);

@@ -12,6 +12,8 @@ use kuiper\web\middlewares\Session as SessionMiddleware;
 use kuiper\web\RouteCollector;
 use kuiper\web\RouteRegistrar;
 use kuiper\web\RouteRegistrarInterface;
+use kuiper\web\security\Acl;
+use kuiper\web\security\AclInterface;
 use kuiper\web\security\Auth;
 use kuiper\web\security\AuthInterface;
 use kuiper\web\security\PermissionChecker;
@@ -65,6 +67,7 @@ class WebApplicationProvider extends Provider
                 AuthInterface::class => di\object(Auth::class),
                 SessionInterface::class => di\factory([$this, 'provideSession']),
                 PermissionCheckerInterface::class => di\object(PermissionChecker::class),
+                AclInterface::class => di\factory([$this, 'provideAcl']),
             ]);
         }
     }
@@ -73,10 +76,10 @@ class WebApplicationProvider extends Provider
     {
         $conf = $this->settings['app.session'];
         if (isset($conf['built-in']) && $conf['built-in'] === false) {
-            $session = new ManagedSession($this->get(\SessionHandlerInterface::class), $conf);
+            $session = new ManagedSession($this->app->get(\SessionHandlerInterface::class), $conf);
         } else {
             if (!isset($conf['handler']) || $conf['handler'] != 'file') {
-                session_set_save_handler($this->get(\SessionHandlerInterface::class), true);
+                session_set_save_handler($this->app->get(\SessionHandlerInterface::class), true);
             }
 
             $session = new Session();
@@ -111,10 +114,27 @@ class WebApplicationProvider extends Provider
                 $app->add(new SessionMiddleware($session), 'before:start', 'session');
             }
         }
+        $this->addMiddlewares($app);
 
         $this->app->getEventDispatcher()->dispatch(Events::BOOT_WEB_APPLICATION, new Event($app));
 
         return $app;
+    }
+
+    private function addMiddlewares(ApplicationInterface $app)
+    {
+        $middlewares = $this->settings['app.middlewares'];
+        if (is_array($middlewares) && !empty($middlewares)) {
+            $container = $this->app->getContainer();
+            foreach ($middlewares as $middleware) {
+                $middleware = (array) $middleware;
+                $app->add(
+                    $container->get($middleware[0]),
+                    $position = isset($middleware[1]) ? $middleware[1] : ApplicationInterface::ROUTE,
+                    $id = isset($middleware[2]) ? $middleware[2] : null
+                );
+            }
+        }
     }
 
     /**
@@ -164,5 +184,21 @@ class WebApplicationProvider extends Provider
             /** @noinspection PhpIncludeInspection */
             require_once $file;
         }
+    }
+
+    public function provideAcl()
+    {
+        $acl = new Acl();
+        foreach ($this->settings['app.acl'] as $role => $resources) {
+            foreach ($resources as $resource) {
+                if (strpos($resource, ':') === false) {
+                    throw new \InvalidArgumentException("Resource '$resource' for role '$role' is invalid, must be 'category:action'");
+                }
+                list($category, $action) = explode(':', $resource);
+                $acl->allow($role, $category, $action);
+            }
+        }
+
+        return $acl;
     }
 }

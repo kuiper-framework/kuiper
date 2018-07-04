@@ -4,6 +4,7 @@ namespace kuiper\web;
 
 use kuiper\web\exception\HttpException;
 use kuiper\web\exception\MethodNotAllowedException;
+use kuiper\web\exception\WrappedException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -278,6 +279,10 @@ class Application implements ApplicationInterface
             }
 
             $handler->setResponse($exception->getResponse());
+        } elseif ($exception instanceof WrappedException) {
+            $handler->setRequest($exception->getRequest());
+            $handler->setResponse($exception->getResponse());
+            $exception = $exception->getPrevious();
         } else {
             $handler->setResponse($this->response->withStatus(500));
         }
