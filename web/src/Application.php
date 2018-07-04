@@ -281,8 +281,16 @@ class Application implements ApplicationInterface
             $handler->setResponse($exception->getResponse());
         } elseif ($exception instanceof WrappedException) {
             $handler->setRequest($exception->getRequest());
-            $handler->setResponse($exception->getResponse());
-            $exception = $exception->getPrevious();
+            $prev = $exception->getPrevious();
+            if ($prev instanceof HttpException) {
+                if (!$prev->getResponse()) {
+                    $prev->setResponse($exception->getResponse());
+                }
+                $handler->setResponse($prev->getResponse());
+            } else {
+                $handler->setResponse($exception->getResponse());
+            }
+            $exception = $prev;
         } else {
             $handler->setResponse($this->response->withStatus(500));
         }
