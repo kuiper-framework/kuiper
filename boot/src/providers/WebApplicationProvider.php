@@ -24,7 +24,6 @@ use kuiper\web\session\ManagedSessionInterface;
 use kuiper\web\session\Session;
 use kuiper\web\session\SessionInterface;
 use kuiper\web\UrlResolverInterface;
-use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\EventDispatcher\GenericEvent as Event;
 use Zend\Diactoros\ServerRequestFactory;
@@ -58,6 +57,10 @@ class WebApplicationProvider extends Provider
         ]);
         if ($settings['app.session']) {
             $this->services->addDefinitions([
+                \SessionHandlerInterface::class => di\object(CacheSessionHandler::class)
+                ->constructor(di\params([
+                    'options' => $settings['app.session'],
+                ])),
                 FlashInterface::class => di\object(FlashSession::class),
                 AuthInterface::class => di\object(Auth::class),
                 SessionInterface::class => di\factory([$this, 'provideSession']),
@@ -69,12 +72,12 @@ class WebApplicationProvider extends Provider
     public function provideSession()
     {
         $conf = $this->settings['app.session'];
-        $cache = $this->app->get(CacheItemPoolInterface::class);
-        $handler = new CacheSessionHandler($cache, $conf);
         if (isset($conf['built-in']) && $conf['built-in'] === false) {
-            $session = new ManagedSession($handler, $conf);
+            $session = new ManagedSession($this->get(\SessionHandlerInterface::class), $conf);
         } else {
-            session_set_save_handler($handler, true);
+            if (!isset($conf['handler']) || $conf['handler'] != 'file') {
+                session_set_save_handler($this->get(\SessionHandlerInterface::class), true);
+            }
 
             $session = new Session();
             $session->start();
