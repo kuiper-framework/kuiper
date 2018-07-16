@@ -379,7 +379,7 @@ class Application implements ApplicationInterface
 
     protected function getUrlResolver()
     {
-        if ($this->container->has(UrlResolverInterface::class)) {
+        if (!$this->container->has(UrlResolverInterface::class)) {
             throw new \RuntimeException(UrlResolverInterface::class.' is not defined in container');
         }
 
@@ -388,7 +388,7 @@ class Application implements ApplicationInterface
 
     protected function getRouter()
     {
-        if ($this->container->has(RouteInterface::class)) {
+        if (!$this->container->has(RouteInterface::class)) {
             throw new \RuntimeException(RouterInterface::class.' is not defined in container');
         }
 
@@ -411,7 +411,7 @@ class Application implements ApplicationInterface
 
     protected function getRequest()
     {
-        if ($this->container->has(ServerRequestInterface::class)) {
+        if (!$this->container->has(ServerRequestInterface::class)) {
             throw new \RuntimeException(ServerRequestInterface::class.' is not defined in container');
         }
 
@@ -420,7 +420,7 @@ class Application implements ApplicationInterface
 
     protected function getResponse()
     {
-        if ($this->container->has(ResponseInterface::class)) {
+        if (!$this->container->has(ResponseInterface::class)) {
             throw new \RuntimeException(ResponseInterface::class.' is not defined in container');
         }
 
