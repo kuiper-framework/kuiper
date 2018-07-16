@@ -8,6 +8,8 @@ use kuiper\web\exception\RouteNotFoundException;
 
 class FastRouteUrlResolver implements UrlResolverInterface
 {
+    use RequestAwareTrait;
+
     /**
      * @var RouteRegistrarInterface
      */
@@ -42,11 +44,6 @@ class FastRouteUrlResolver implements UrlResolverInterface
         $this->routeParser = $parser ?: new StdParser();
     }
 
-    public function getBaseUri()
-    {
-        return $this->baseUri;
-    }
-
     public function setBaseUri($baseUri)
     {
         $this->baseUri = $baseUri;
@@ -72,12 +69,11 @@ class FastRouteUrlResolver implements UrlResolverInterface
         if (!empty($data)) {
             $url .= '?'.http_build_query($data);
         }
+        if (isset($route)) {
+            $url = $this->buildUrlFromRoute($route, $url);
+        }
         if ($absolute) {
-            if (isset($route)) {
-                return $this->buildUrlFromRoute($route, $url);
-            } else {
-                return $this->baseUri.$url;
-            }
+            return $this->getBaseUri().$url;
         } else {
             return $url;
         }
@@ -158,12 +154,23 @@ class FastRouteUrlResolver implements UrlResolverInterface
     private function buildUrlFromRoute($route, $url)
     {
         $attributes = $route->getAttributes();
-        if (isset($attributes['host'])) {
-            $scheme = isset($attributes['scheme']) ? $attributes['scheme'] : 'http';
+        if (isset($attributes['prefix'])) {
+            return $attributes['prefix'].$url;
+        } else {
+            return $url;
+        }
+    }
 
-            return sprintf('%s://%s%s', $scheme, $attributes['host'], $url);
+    public function getBaseUri()
+    {
+        if (isset($this->request)) {
+            $uri = $this->request->getUri();
+            $port = $uri->getPort();
+
+            return sprintf('%s://%s', $uri->getScheme(), $uri->getHost())
+                .(isset($port) && $port != 80 ? ':'.$port : '');
         }
 
-        return $this->baseUri.$url;
+        return $this->baseUri;
     }
 }

@@ -116,6 +116,7 @@ class Application implements ApplicationInterface
             $this->buildMiddlewareStack();
         }
         $request = $request ?: $this->getRequest();
+        $this->getUrlResolver()->setRequest($request);
         $eventDispatcher = $this->getEventDispatcher();
         if ($eventDispatcher) {
             $eventDispatcher->dispatch(Events::BEGIN_REQUEST, $event = new GenericEvent($request));
@@ -374,6 +375,15 @@ class Application implements ApplicationInterface
     protected function getContainer()
     {
         return $this->container;
+    }
+
+    protected function getUrlResolver()
+    {
+        if ($this->container->has(UrlResolverInterface::class)) {
+            throw new \RuntimeException(UrlResolverInterface::class.' is not defined in container');
+        }
+
+        return $this->container->get(UrlResolverInterface::class);
     }
 
     protected function getRouter()

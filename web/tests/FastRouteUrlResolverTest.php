@@ -13,10 +13,28 @@ class FastRouteUrlResolverTest extends RouterTestCase
         return new FastRouteUrlResolver($app, $baseUri);
     }
 
+    public function createUrlResolverWithPrefix($baseUri = '')
+    {
+        $app = new RouteRegistrar();
+        $app->group(['prefix' => '/user'], function ($app) {
+            $app->get('[/]', 'IndexController:home')->name('home');
+            $app->get('/{action}', 'UserController:')->name('users');
+        });
+
+        return new FastRouteUrlResolver($app, $baseUri);
+    }
+
     public function testResolver()
     {
         $resolver = $this->createUrlResolver();
         $this->assertEquals('/', $resolver->get('home'));
+        $this->assertEquals('/user/create', $resolver->get('users', ['action' => 'create']));
+    }
+
+    public function testResolverWithPrefix()
+    {
+        $resolver = $this->createUrlResolverWithPrefix();
+        $this->assertEquals('/user/', $resolver->get('home'));
         $this->assertEquals('/user/create', $resolver->get('users', ['action' => 'create']));
     }
 
