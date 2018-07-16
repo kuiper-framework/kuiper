@@ -42,6 +42,8 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
      * @param DefinitionEntry $entry
      *
      * @return DefinitionEntry
+     *
+     * @throws ReflectionException
      */
     protected function resolveFactoryParams(DefinitionEntry $entry)
     {
@@ -111,9 +113,9 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
         $paramTypes = [];
         if (($constructor = $class->getConstructor()) !== null) {
             foreach ($constructor->getParameters() as $i => $parameter) {
-                if (isset($namedParams[$parameter->getName()])) {
+                if (array_key_exists($parameter->getName(), $namedParams)) {
                     $paramTypes[$i] = $namedParams[$parameter->getName()];
-                } elseif (isset($namedParams[$i])) {
+                } elseif (array_key_exists($i, $namedParams)) {
                     $paramTypes[$i] = $namedParams[$i];
                 } else {
                     if ($parameter->isOptional()) {
