@@ -89,4 +89,16 @@ interface ApplicationInterface
      * @return mixed
      */
     public function get($id);
+
+    /**
+     * @return ApplicationInterface
+     */
+    public static function getInstance();
+
+    /**
+     * @param ApplicationInterface $app
+     *
+     * @return ApplicationInterface
+     */
+    public static function setInstance(ApplicationInterface $app);
 }

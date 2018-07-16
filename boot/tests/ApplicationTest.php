@@ -22,5 +22,7 @@ class ApplicationTest extends TestCase
             $app->get('app1.name'),
             $app->get('app2.name'),
         ], ['app1', 'app2']);
+
+        $this->assertEquals($app, Application::getInstance());
     }
 }

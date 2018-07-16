@@ -73,6 +73,35 @@ class Application implements ApplicationInterface
     private $configPaths;
 
     /**
+     * @var static
+     */
+    private static $INSTANCE;
+
+    /**
+     * Application constructor.
+     */
+    public function __construct()
+    {
+        if (!self::$INSTANCE) {
+            self::$INSTANCE = $this;
+        }
+    }
+
+    public static function getInstance()
+    {
+        if (!self::$INSTANCE) {
+            throw new \RuntimeException('Please create Application instance first');
+        }
+
+        return self::$INSTANCE;
+    }
+
+    public static function setInstance(ApplicationInterface $app)
+    {
+        self::$INSTANCE = $app;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function loadConfig($configPath)
