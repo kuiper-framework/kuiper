@@ -63,7 +63,7 @@ class FactoryResolver implements ResolverInterface
         if (is_array($factory) && $factory[0] instanceof DefinitionInterface) {
             $factory[0] = $this->resolver->resolve(
                 $container,
-                new DefinitionEntry($entry->getName().'.factory', $factory[0])
+                new DefinitionEntry($entry->getUniqueId().'.factory', $factory[0])
             );
         }
         if (empty($parameters)) {
@@ -71,7 +71,7 @@ class FactoryResolver implements ResolverInterface
             if (!empty($args)) {
                 $parameters = $this->resolver->resolve(
                     $container,
-                    new DefinitionEntry($entry->getName().'.arguments', new ArrayDefinition($args))
+                    new DefinitionEntry($entry->getUniqueId().'.arguments', new ArrayDefinition($args))
                 );
             }
         }

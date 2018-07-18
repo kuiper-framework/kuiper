@@ -64,7 +64,7 @@ class ObjectResolver implements ResolverInterface
         if (empty($parameters)) {
             $parameters = $this->resolveParams(
                 $container,
-                $entry->getName().'.constructor',
+                $entry->getUniqueId().'.constructor',
                 $definition->getConstructorParameters()
             );
         }
@@ -83,24 +83,26 @@ class ObjectResolver implements ResolverInterface
             $methods = $definition->getMethods();
         }
         if (!$deferInit) {
-            return $this->initializer($container, $instance, $definition);
+            return $this->initializer($container, $instance, $entry);
         }
         $properties = $definition->getProperties();
         if (empty($properties) && empty($methods)) {
             return $instance;
         } else {
-            return new DeferredObject($instance, function ($instance) use ($container, $definition) {
-                return $this->initializer($container, $instance, $definition);
+            return new DeferredObject($instance, function ($instance) use ($container, $entry) {
+                return $this->initializer($container, $instance, $entry);
             });
         }
     }
 
-    private function initializer(ContainerInterface $container, $instance, ObjectDefinition $definition)
+    private function initializer(ContainerInterface $container, $instance, DefinitionEntry $entry)
     {
         $class = new ReflectionClass($instance);
+        /** @var ObjectDefinition $definition */
+        $definition = $entry->getDefinition();
         $properties = $definition->getProperties();
         if (!empty($properties)) {
-            $values = $this->resolveParams($container, $class->getName().'.properties', $properties);
+            $values = $this->resolveParams($container, $entry->getUniqueId().'.properties', $properties);
             foreach ($values as $name => $value) {
                 $property = $class->getProperty($name);
                 if ($property->isPublic()) {
@@ -113,7 +115,7 @@ class ObjectResolver implements ResolverInterface
         }
         $methods = $definition->getMethods();
         if (!empty($methods)) {
-            $values = $this->resolveParams($container, $class->getName().'.methods', $methods);
+            $values = $this->resolveParams($container, $entry->getUniqueId().'.methods', $methods);
             foreach ($values as $method => $calls) {
                 foreach ($calls as $args) {
                     call_user_func_array([$instance, $method], $args);

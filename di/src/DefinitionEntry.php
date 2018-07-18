@@ -17,6 +17,16 @@ class DefinitionEntry
     private $definition;
 
     /**
+     * @var int
+     */
+    private $id;
+
+    /**
+     * @var int
+     */
+    private static $ID = 0;
+
+    /**
      * DefinitionEntry constructor.
      *
      * @param string              $name
@@ -26,6 +36,7 @@ class DefinitionEntry
     {
         $this->name = $name;
         $this->definition = $definition;
+        $this->id = self::$ID++;
     }
 
     /**
@@ -50,5 +61,10 @@ class DefinitionEntry
     public function getScope()
     {
         return $this->definition->getScope();
+    }
+
+    public function getUniqueId()
+    {
+        return $this->name.'_'.$this->id;
     }
 }
