@@ -171,18 +171,18 @@ class WebApplicationProvider extends Provider
                             'namespace' => $namespace.'\\controllers',
                         ], function () use ($app, $file) {
                             /** @noinspection PhpIncludeInspection */
-                            require_once $file;
+                            require $file;
                         });
                     } else {
                         /** @noinspection PhpIncludeInspection */
-                        require_once $file;
+                        require $file;
                     }
                 }
             }
         }
         if ($this->settings['app.base_path'] && file_exists($file = $this->settings['app.base_path'].'/routes/web.php')) {
             /** @noinspection PhpIncludeInspection */
-            require_once $file;
+            require $file;
         }
     }
 
