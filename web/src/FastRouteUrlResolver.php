@@ -37,7 +37,7 @@ class FastRouteUrlResolver implements UrlResolverInterface
      * @param string                  $baseUri
      * @param RouteParser             $parser
      */
-    public function __construct(RouteRegistrarInterface $routeRegistrar, $baseUri, RouteParser $parser = null)
+    public function __construct(RouteRegistrarInterface $routeRegistrar, $baseUri = null, RouteParser $parser = null)
     {
         $this->routeRegistrar = $routeRegistrar;
         $this->setBaseUri($baseUri);
@@ -49,6 +49,14 @@ class FastRouteUrlResolver implements UrlResolverInterface
         $this->baseUri = $baseUri;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBaseUri()
+    {
+        return $this->baseUri;
     }
 
     /**
@@ -73,7 +81,7 @@ class FastRouteUrlResolver implements UrlResolverInterface
             $url = $this->buildUrlFromRoute($route, $url);
         }
         if ($absolute) {
-            return $this->getBaseUri().$url;
+            return ($this->getBaseUri() ?: $this->getBaseUriFromRequest()).$url;
         } else {
             return $url;
         }
@@ -161,16 +169,12 @@ class FastRouteUrlResolver implements UrlResolverInterface
         }
     }
 
-    public function getBaseUri()
+    private function getBaseUriFromRequest()
     {
-        if (isset($this->request)) {
-            $uri = $this->request->getUri();
-            $port = $uri->getPort();
+        $uri = $this->request->getUri();
+        $port = $uri->getPort();
 
-            return sprintf('%s://%s', $uri->getScheme(), $uri->getHost())
-                .(isset($port) && $port != 80 ? ':'.$port : '');
-        }
-
-        return $this->baseUri;
+        return sprintf('%s://%s', $uri->getScheme(), $uri->getHost())
+            .(isset($port) && $port != 80 ? ':'.$port : '');
     }
 }
