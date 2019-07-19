@@ -13,7 +13,9 @@ class TwigViewProvider extends Provider
     public function register()
     {
         $this->services->addDefinitions([
-            ViewInterface::class => di\object(TwigView::class),
+            ViewInterface::class => di\object(TwigView::class)
+               ->constructor(di\get(\Twig_Environment::class)),
+            \Twig\Environment::class => di\get(\Twig_Environment::class),
             \Twig_Environment::class => di\factory([$this, 'provideTwig']),
         ]);
     }
