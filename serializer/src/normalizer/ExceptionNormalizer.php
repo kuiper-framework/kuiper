@@ -29,8 +29,21 @@ class ExceptionNormalizer implements NormalizerInterface
      */
     public function denormalize($data, $type = null)
     {
+        if (isset($data['class'], $data['attributes'])) {
+            // 支持 hyperf 异常序列化格式
+            if (is_string($data['attributes'])) {
+                $exception = unserialize($data['attributes']);
+            } else {
+                $exception = array_merge($data['attributes'], ['class' => $data['class']]);
+            }
+        } else {
+            $exception = unserialize(base64_decode($data));
+            if (false === $exception) {
+                return new \RuntimeException('Bad exception data: '.json_encode($data));
+            }
+        }
         $exception = unserialize(base64_decode($data));
-        if ($exception === false) {
+        if (false === $exception) {
             return new \RuntimeException('Bad exception data: '.json_encode($data));
         }
         if ($exception instanceof \Exception) {
@@ -68,7 +81,7 @@ class ExceptionNormalizer implements NormalizerInterface
         $type = $exception['class'];
         $class = new \ReflectionClass($type);
         $constructor = $class->getConstructor();
-        if ($class->isSubClassOf(\Exception::class) && $constructor !== null) {
+        if ($class->isSubClassOf(\Exception::class) && null !== $constructor) {
             return new $type($exception['message'], $exception['code']);
         }
     }
