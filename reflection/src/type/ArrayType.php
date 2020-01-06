@@ -17,23 +17,18 @@ class ArrayType extends ReflectionType
      */
     private $dimension;
 
-    public function __construct(ReflectionTypeInterface $valueType, int $dimension = 1)
+    public function __construct(ReflectionTypeInterface $valueType, int $dimension = 1, $allowsNull = false)
     {
+        parent::__construct($allowsNull);
         $this->valueType = $valueType;
         $this->dimension = $dimension;
     }
 
-    /**
-     * @return ReflectionTypeInterface
-     */
     public function getValueType(): ReflectionTypeInterface
     {
         return $this->valueType;
     }
 
-    /**
-     * @return int
-     */
     public function getDimension(): int
     {
         return $this->dimension;
@@ -44,8 +39,28 @@ class ArrayType extends ReflectionType
         return $this->valueType->getName().str_repeat('[]', $this->dimension);
     }
 
-    public function __toString(): string
+    protected function getDisplayString(): string
     {
         return 1 == $this->dimension && $this->valueType instanceof MixedType ? 'array' : $this->getName();
+    }
+
+    public function isArray(): bool
+    {
+        return true;
+    }
+
+    public function isCompound(): bool
+    {
+        return $this->isUnknown();
+    }
+
+    public function isUnknown(): bool
+    {
+        return $this->valueType instanceof MixedType;
+    }
+
+    public function isPrimitive(): bool
+    {
+        return $this->isCompound();
     }
 }

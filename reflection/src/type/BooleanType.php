@@ -13,4 +13,14 @@ class BooleanType extends ReflectionType
     {
         return 'bool';
     }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
+
+    public function isScalar(): bool
+    {
+        return true;
+    }
 }

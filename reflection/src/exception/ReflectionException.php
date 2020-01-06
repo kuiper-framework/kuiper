@@ -2,6 +2,6 @@
 
 namespace kuiper\reflection\exception;
 
-class ReflectionException extends \RuntimeException
+class ReflectionException extends \Exception
 {
 }

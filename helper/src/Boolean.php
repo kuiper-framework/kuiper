@@ -4,24 +4,24 @@ namespace kuiper\helper;
 
 class Boolean extends Enum
 {
-    const TRUE = true;
-    const FALSE = false;
+    public const TRUE = true;
+    public const FALSE = false;
 
     protected static $PROPERTIES = [
         'description' => [
-            0 => 'No',
-            1 => 'Yes',
+            self::FALSE => 'False',
+            self::TRUE => 'True',
         ],
     ];
 
     /**
-     * @param string $value
+     * @param string|bool $value
      *
      * @return string "true", "1", 1, true = TRUE
      *                "false", "0", 0, false = FALSE
      *                other value = null
      */
-    public static function valueOf($value)
+    public static function valueOf($value): ?bool
     {
         if (is_bool($value)) {
             return $value;
@@ -29,10 +29,12 @@ class Boolean extends Enum
         $name = strtoupper($value);
         if (self::hasName($name)) {
             return parent::valueOf($name);
-        } elseif (in_array($name, ['0', '1'])) {
-            return (bool) $value;
-        } else {
-            return null;
         }
+
+        if (in_array($name, ['0', '1'], true)) {
+            return (bool) $value;
+        }
+
+        return null;
     }
 }

@@ -1,9 +1,8 @@
 <?php
 
-namespace kuiper\helper;
+declare(strict_types=1);
 
-use InvalidArgumentException;
-use ReflectionClass;
+namespace kuiper\helper;
 
 /**
  * enum class.
@@ -33,12 +32,12 @@ abstract class Enum implements \JsonSerializable
     /**
      * @var string name of enum
      */
-    protected $name;
+    private $name;
 
     /**
      * @var mixed value of enum
      */
-    protected $value;
+    private $value;
 
     /**
      * Constructor.
@@ -46,7 +45,7 @@ abstract class Enum implements \JsonSerializable
      * @param string $name
      * @param mixed  $value
      */
-    protected function __construct($name, $value)
+    private function __construct($name, $value)
     {
         $this->name = $name;
         $this->value = $value;
@@ -54,10 +53,8 @@ abstract class Enum implements \JsonSerializable
 
     /**
      * Gets name of enum instance.
-     *
-     * @return string
      */
-    public function name()
+    public function name(): string
     {
         return $this->name;
     }
@@ -92,12 +89,14 @@ abstract class Enum implements \JsonSerializable
     public function __get($name)
     {
         if (isset(static::$PROPERTIES[$name])) {
-            return isset(static::$PROPERTIES[$name][$this->value]) ? static::$PROPERTIES[$name][$this->value] : null;
-        } elseif (property_exists($this, $name)) {
-            return $this->$name;
-        } else {
-            throw new \InvalidArgumentException('Undefined property: '.get_class($this).'::$'.$name);
+            return static::$PROPERTIES[$name][$this->value] ?? null;
         }
+
+        if (property_exists($this, $name)) {
+            return $this->$name;
+        }
+
+        throw new \InvalidArgumentException('Undefined property: '.get_class($this).'::$'.$name);
     }
 
     public function __isset($name)
@@ -108,10 +107,8 @@ abstract class Enum implements \JsonSerializable
 
     /**
      * Gets all enum values.
-     *
-     * @return array
      */
-    public static function values()
+    public static function values(): array
     {
         return array_keys(static::getValues());
     }
@@ -119,41 +116,11 @@ abstract class Enum implements \JsonSerializable
     /**
      * Gets all enum names.
      *
-     * @return array
+     * @return string[]
      */
-    public static function names()
+    public static function names(): array
     {
         return array_keys(static::getNames());
-    }
-
-    /**
-     * Gets all enum intval.
-     *
-     * @return array
-     */
-    public static function intvals()
-    {
-        if (empty(static::$PROPERTIES['intval'])) {
-            throw new \RuntimeException("property 'intval' is not defined, please set value for ".get_called_class().'::$PROPERTIES["intval"]');
-        }
-
-        return array_values(static::$PROPERTIES['intval']);
-    }
-
-    /**
-     * Gets all enum ordinals.
-     *
-     * @return array
-     *
-     * @deprecated use intvals instead
-     */
-    public static function ordinals()
-    {
-        if (empty(static::$PROPERTIES['ordinal'])) {
-            throw new \RuntimeException("property 'ordinal' is not defined, please set value for ".get_called_class().'::$PROPERTIES["ordinal"]');
-        }
-
-        return array_values(static::$PROPERTIES['ordinal']);
     }
 
     /**
@@ -161,7 +128,7 @@ abstract class Enum implements \JsonSerializable
      *
      * @return static[]
      */
-    public static function instances()
+    public static function instances(): array
     {
         return array_values(self::getValues());
     }
@@ -170,10 +137,8 @@ abstract class Enum implements \JsonSerializable
      * Checks whether the enum value exists.
      *
      * @param mixed $value
-     *
-     * @return bool
      */
-    public static function hasValue($value)
+    public static function hasValue($value): bool
     {
         return array_key_exists($value, static::getValues());
     }
@@ -182,10 +147,8 @@ abstract class Enum implements \JsonSerializable
      * Gets the name for the enum value.
      *
      * @param mixed $value
-     *
-     * @return string
      */
-    public static function nameOf($value)
+    public static function nameOf($value): string
     {
         $values = static::getValues();
 
@@ -194,12 +157,8 @@ abstract class Enum implements \JsonSerializable
 
     /**
      * Checks whether the name of enum value exists.
-     *
-     * @param string $name
-     *
-     * @return bool
      */
-    public static function hasName($name)
+    public static function hasName(string $name): bool
     {
         return array_key_exists($name, static::getNames());
     }
@@ -207,35 +166,32 @@ abstract class Enum implements \JsonSerializable
     /**
      * Gets the enum value for the name.
      *
-     * @param string $name
-     *
      * @return mixed value of
      */
-    public static function valueOf($name)
+    public static function valueOf(string $name)
     {
         $names = static::getNames();
 
-        return isset($names[$name]) ? $names[$name] : null;
+        return $names[$name] ?? null;
     }
 
     /**
      * Gets the enum instance for the name.
      *
-     * @param string $name
      * @param static $default
      *
      * @return static
      *
      * @throws \InvalidArgumentException
      */
-    public static function fromName($name, $default = null)
+    public static function fromName(string $name, $default = null)
     {
         $names = static::getNames();
         if (array_key_exists($name, $names)) {
             return self::fromValue($names[$name]);
         }
         if (null === $default) {
-            throw new InvalidArgumentException("No enum constant '$name' in class ".get_called_class());
+            throw new \InvalidArgumentException("No enum constant '$name' in class ".static::class);
         }
 
         return $default;
@@ -258,79 +214,10 @@ abstract class Enum implements \JsonSerializable
             return $values[$value];
         }
         if (null === $default) {
-            throw new InvalidArgumentException("No enum constant value '$value' class ".get_called_class());
+            throw new \InvalidArgumentException("No enum constant value '$value' class ".static::class);
         }
 
         return $default;
-    }
-
-    /**
-     * Gets the enum instance match properties intval.
-     *
-     * @param int    $intval
-     * @param static $default
-     *
-     * @return static
-     *
-     * @throws \InvalidArgumentException
-     */
-    public static function fromIntval($intval, $default = null)
-    {
-        if (empty(static::$PROPERTIES['intval'])) {
-            throw new \RuntimeException("property 'intval' is not defined, please set value for ".get_called_class().'::$PROPERTIES["intval"]');
-        }
-        $value = array_search($intval, static::$PROPERTIES['intval']);
-        if (false !== $value) {
-            return self::fromValue($value);
-        } else {
-            if (null === $default) {
-                throw new InvalidArgumentException("No enum intval for '$intval' class ".get_called_class());
-            }
-
-            return $default;
-        }
-    }
-
-    /**
-     * Gets the enum instance match properties intval.
-     *
-     * @param int    $intval
-     * @param static $default
-     *
-     * @return static
-     *
-     * @throws \InvalidArgumentException
-     */
-    public static function fromInt($intval, $default = null)
-    {
-        return self::fromIntval($intval, $default);
-    }
-
-    /**
-     * Gets the enum instance match properties ordinal.
-     *
-     * @param int    $ordinal
-     * @param static $default
-     *
-     * @return static
-     *
-     * @deprecated use fromIntval
-     */
-    public static function fromOrdinal($ordinal, $default = null)
-    {
-        if (empty(static::$PROPERTIES['ordinal'])) {
-            throw new \RuntimeException("property 'ordinal' is not defined, please set value for ".get_called_class().'::$PROPERTIES["ordinal"]');
-        }
-        $value = array_search($ordinal, static::$PROPERTIES['ordinal']);
-        if (false !== $value) {
-            return self::fromValue($value);
-        } else {
-            if (null === $default) {
-                throw new InvalidArgumentException("No enum ordinal for '$ordinal' class ".get_called_class());
-            }
-
-            return $default;
-        }
     }
 
     /**
@@ -341,33 +228,34 @@ abstract class Enum implements \JsonSerializable
      *
      * @return static
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function __callStatic($name, $arguments)
     {
         if (static::hasName($name)) {
             return static::fromName($name);
-        } else {
-            throw new \BadMethodCallException("unknown method '$name'");
         }
+
+        throw new \BadMethodCallException("unknown method '$name'");
     }
 
     public function jsonSerialize()
     {
-        return [
-            'name' => $this->name,
-            'value' => $this->value,
-        ];
+        return $this->name;
     }
 
     /**
      * @return static[]
      */
-    protected static function getValues()
+    protected static function getValues(): array
     {
-        $class = get_called_class();
+        $class = static::class;
         if (!array_key_exists($class, self::$VALUES)) {
-            $reflect = new ReflectionClass($class);
+            try {
+                $reflect = new \ReflectionClass($class);
+            } catch (\ReflectionException $e) {
+                throw new \RuntimeException('unexpected reflection exception', $e);
+            }
             $constants = $reflect->getConstants();
             self::$NAMES[$class] = $constants;
             $flip = [];
@@ -382,9 +270,9 @@ abstract class Enum implements \JsonSerializable
         return self::$VALUES[$class];
     }
 
-    protected static function getNames()
+    protected static function getNames(): array
     {
-        $class = get_called_class();
+        $class = static::class;
         if (!isset(self::$NAMES[$class])) {
             static::getValues();
         }

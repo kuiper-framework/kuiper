@@ -10,10 +10,8 @@ class IntegerTypeFilter implements TypeFilterInterface
      * checks whether the value is valid.
      *
      * @param mixed $value
-     *
-     * @return bool
      */
-    public function validate($value)
+    public function isValid($value): bool
     {
         return false !== filter_var($value, FILTER_VALIDATE_INT);
     }

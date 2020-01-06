@@ -7,8 +7,6 @@ namespace kuiper\reflection;
  */
 class FqcnResolver
 {
-    const NAMESPACE_SEPARATOR = '\\';
-
     /**
      * @var ReflectionFileInterface
      */
@@ -27,36 +25,37 @@ class FqcnResolver
      *
      * @return string
      *
-     * @throws \InvalidArgumentException
+     * @throws \InvalidArgumentException if $name is not valid class name, or namespace not in the file
      * @throws exception\FileNotFoundException
      * @throws exception\SyntaxErrorException
      */
     public function resolve(string $name, string $namespace): string
     {
         if ($this->isFqcn($name)) {
-            return ltrim($name, self::NAMESPACE_SEPARATOR);
+            return ltrim($name, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR);
         }
         if (!preg_match(ReflectionType::CLASS_NAME_REGEX, $name)) {
             throw new \InvalidArgumentException("Invalid class name '{$name}'");
         }
         $namespaces = $this->reflectionFile->getNamespaces();
-        if (!in_array($namespace, $namespaces)) {
+        if (!in_array($namespace, $namespaces, true)) {
             throw new \InvalidArgumentException(sprintf("namespace '%s' not defined in '%s'", $namespace, $this->reflectionFile->getFile()));
         }
         $imports = $this->reflectionFile->getImportedClasses($namespace);
-        $parts = explode(self::NAMESPACE_SEPARATOR, $name);
+        $parts = explode(ReflectionNamespaceInterface::NAMESPACE_SEPARATOR, $name);
         $alias = array_shift($parts);
         if (isset($imports[$alias])) {
-            $className = $imports[$alias].(empty($parts) ? '' : self::NAMESPACE_SEPARATOR.implode(self::NAMESPACE_SEPARATOR, $parts));
+            $className = $imports[$alias] . (empty($parts) ? '' : ReflectionNamespaceInterface::NAMESPACE_SEPARATOR
+                    . implode(ReflectionNamespaceInterface::NAMESPACE_SEPARATOR, $parts));
         } else {
-            $className = $namespace.self::NAMESPACE_SEPARATOR.$name;
+            $className = $namespace . ReflectionNamespaceInterface::NAMESPACE_SEPARATOR . $name;
         }
 
-        return ltrim($className, self::NAMESPACE_SEPARATOR);
+        return ltrim($className, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR);
     }
 
-    private function isFqcn($name)
+    private function isFqcn($name): bool
     {
-        return self::NAMESPACE_SEPARATOR === $name[0];
+        return ReflectionNamespaceInterface::NAMESPACE_SEPARATOR === $name[0];
     }
 }

@@ -10,4 +10,19 @@ class ObjectType extends ReflectionType
     {
         return 'object';
     }
+
+    public function isCompound(): bool
+    {
+        return true;
+    }
+
+    public function isObject(): bool
+    {
+        return true;
+    }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
 }

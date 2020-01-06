@@ -2,6 +2,6 @@
 
 namespace kuiper\reflection\exception;
 
-class InvalidTokenException extends \RuntimeException
+class InvalidTokenException extends ReflectionException
 {
 }

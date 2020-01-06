@@ -1,8 +1,0 @@
-{
-    "name": "kuiper/boot-test-app1",
-    "autoload": {
-        "psr-4": {
-            "kuiper\\boot\\fixtures\\app1\\": "."
-        }
-    }
-}

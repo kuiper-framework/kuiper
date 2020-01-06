@@ -2,9 +2,7 @@
 
 namespace kuiper\reflection;
 
-use kuiper\reflection\exception\SyntaxErrorException;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
+use kuiper\reflection\exception\ReflectionException;
 
 class ReflectionNamespace implements ReflectionNamespaceInterface
 {
@@ -35,7 +33,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
 
     public function __construct($namespace, array $dirs, array $extensions, ReflectionFileFactoryInterface $reflectionFileFactory)
     {
-        $this->namespace = $namespace;
+        $this->namespace = trim($namespace, self::NAMESPACE_SEPARATOR);
         $this->dirs = $dirs;
         $this->extensions = $extensions;
         $this->reflectionFileFactory = $reflectionFileFactory;
@@ -44,15 +42,15 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
     /**
      * {@inheritdoc}
      */
-    public function getNamespace()
+    public function getNamespace(): string
     {
-        return rtrim($this->namespace, '\\');
+        return $this->namespace;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getClasses()
+    public function getClasses(): array
     {
         if (isset($this->classes)) {
             return $this->classes;
@@ -68,13 +66,13 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
                 continue;
             }
             $seen[$dir] = true;
-            $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
             foreach ($it as $file => $fileInfo) {
                 $name = $fileInfo->getFilename();
-                if ('.' == $name[0]) {
+                if ('.' === $name[0]) {
                     continue;
                 }
-                if (!in_array($fileInfo->getExtension(), $this->extensions)) {
+                if (!in_array($fileInfo->getExtension(), $this->extensions, true)) {
                     continue;
                 }
                 $reflectionFile = $this->reflectionFileFactory->create($file);
@@ -84,8 +82,8 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
                             $classes[] = $class;
                         }
                     }
-                } catch (SyntaxErrorException $e) {
-                    trigger_error($e->getMessage());
+                } catch (ReflectionException $e) {
+                    throw new ReflectionException("fail to parse file '$file'".$e->getMessage());
                 }
             }
         }

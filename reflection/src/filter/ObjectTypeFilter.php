@@ -10,10 +10,8 @@ class ObjectTypeFilter implements TypeFilterInterface
      * checks whether the value is valid.
      *
      * @param mixed $value
-     *
-     * @return bool
      */
-    public function validate($value)
+    public function isValid($value): bool
     {
         return is_object($value);
     }

@@ -2,7 +2,7 @@
 
 namespace kuiper\reflection\filter;
 
-class BooleanTypeFilterTest extends \PHPUnit_Framework_TestCase
+class BooleanTypeFilterTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @dataProvider valuesForValidate
@@ -10,7 +10,7 @@ class BooleanTypeFilterTest extends \PHPUnit_Framework_TestCase
     public function testValidate($value, $valid)
     {
         $filter = new BooleanTypeFilter();
-        $this->assertEquals($valid, $filter->validate($value));
+        $this->assertEquals($valid, $filter->isValid($value));
     }
 
     public function valuesForValidate()

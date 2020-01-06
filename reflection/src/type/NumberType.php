@@ -10,4 +10,14 @@ class NumberType extends ReflectionType
     {
         return 'number';
     }
+
+    public function isPseudo(): bool
+    {
+        return true;
+    }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
 }

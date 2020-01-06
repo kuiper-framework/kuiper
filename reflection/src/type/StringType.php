@@ -10,4 +10,14 @@ class StringType extends ReflectionType
     {
         return 'string';
     }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
+
+    public function isScalar(): bool
+    {
+        return true;
+    }
 }

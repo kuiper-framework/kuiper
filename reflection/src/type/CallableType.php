@@ -10,4 +10,14 @@ class CallableType extends ReflectionType
     {
         return 'callable';
     }
+
+    public function isCompound(): bool
+    {
+        return true;
+    }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
 }

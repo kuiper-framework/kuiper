@@ -14,6 +14,7 @@ class CompositeType extends ReflectionType
 
     public function __construct(array $types)
     {
+        parent::__construct(false);
         $this->types = $types;
     }
 
@@ -29,8 +30,24 @@ class CompositeType extends ReflectionType
         }, $this->types));
     }
 
+    public function allowsNull(): bool
+    {
+        foreach ($this->types as $type) {
+            if ($type->allowsNull()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function __toString(): string
     {
         return implode('|', $this->types);
+    }
+
+    public function isComposite(): bool
+    {
+        return true;
     }
 }

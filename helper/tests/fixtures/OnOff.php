@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\helper\fixtures;
 
 use kuiper\helper\Enum;

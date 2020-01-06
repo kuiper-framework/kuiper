@@ -5,7 +5,6 @@ namespace kuiper\reflection\filter;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\reflection\type\ArrayType;
 use kuiper\reflection\TypeFilterInterface;
-use kuiper\reflection\TypeUtils;
 
 class ArrayTypeFilter implements TypeFilterInterface
 {
@@ -16,8 +15,6 @@ class ArrayTypeFilter implements TypeFilterInterface
 
     /**
      * ArrayTypeFilter constructor.
-     *
-     * @param ArrayType $type
      */
     public function __construct(ArrayType $type)
     {
@@ -28,10 +25,8 @@ class ArrayTypeFilter implements TypeFilterInterface
      * checks whether the value is valid.
      *
      * @param mixed $value
-     *
-     * @return bool
      */
-    public function validate($value)
+    public function isValid($value): bool
     {
         return $this->validateArray($value, $this->type->getValueType(), $this->type->getDimension());
     }
@@ -48,14 +43,14 @@ class ArrayTypeFilter implements TypeFilterInterface
         return $this->sanitizeArray($value, $this->type->getValueType(), $this->type->getDimension());
     }
 
-    private function validateArray($value, ReflectionTypeInterface $valueType, $dimension)
+    private function validateArray($value, ReflectionTypeInterface $valueType, $dimension): bool
     {
         if (!is_array($value)) {
             return false;
         }
-        if (1 == $dimension) {
+        if (1 === $dimension) {
             foreach ($value as $item) {
-                if (!TypeUtils::validate($valueType, $item)) {
+                if (!$valueType->isValid($item)) {
                     return false;
                 }
             }
@@ -70,13 +65,13 @@ class ArrayTypeFilter implements TypeFilterInterface
         return true;
     }
 
-    private function sanitizeArray($value, ReflectionTypeInterface $valueType, $dimension)
+    private function sanitizeArray($value, ReflectionTypeInterface $valueType, $dimension): array
     {
         $result = [];
         $value = (array) $value;
-        if (1 == $dimension) {
+        if (1 === $dimension) {
             foreach ($value as $key => $item) {
-                $result[$key] = TypeUtils::sanitize($valueType, $item);
+                $result[$key] = $valueType->sanitize($item);
             }
         } else {
             foreach ($value as $key => $item) {

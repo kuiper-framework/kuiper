@@ -2,61 +2,34 @@
 
 namespace kuiper\helper;
 
-use ArrayAccess;
-use InvalidArgumentException;
-use ReflectionClass;
-
 class Arrays
 {
-    /**
-     * Gets object field value by getter method.
-     */
-    const GETTER = 'getter';
-
-    /**
-     * Gets object field value by property.
-     */
-    const OBJ = 'obj';
-
-    /**
-     * Gets value from array by key.
-     *
-     * @param ArrayAccess|array $arr
-     * @param string            $key
-     * @param mixed             $default
-     *
-     * @return mixed
-     */
-    public static function fetch($arr, $key, $default = null)
-    {
-        return isset($arr[$key]) ? $arr[$key] : $default;
-    }
-
     /**
      * Collects value from array.
      *
      * @param array|\Iterator $arr
      * @param string          $name
-     * @param string          $type
-     *
-     * @return array
      */
-    public static function pull($arr, $name, $type = null)
+    public static function pull($arr, $name): array
     {
         $ret = [];
-        if (self::GETTER == $type) {
-            $method = 'get'.$name;
-            foreach ($arr as $elem) {
+        foreach ($arr as $elem) {
+            if (is_object($elem)) {
+                $method = 'get'.$name;
                 $ret[] = $elem->$method();
-            }
-        } elseif (self::OBJ == $type) {
-            foreach ($arr as $elem) {
-                $ret[] = $elem->$name;
-            }
-        } else {
-            foreach ($arr as $elem) {
+            } else {
                 $ret[] = $elem[$name];
             }
+        }
+
+        return $ret;
+    }
+
+    public static function pullField($arr, $name): array
+    {
+        $ret = [];
+        foreach ($arr as $elem) {
+            $ret[] = $elem->$name;
         }
 
         return $ret;
@@ -67,27 +40,15 @@ class Arrays
      *
      * @param array|\Iterator $arr
      * @param string          $name
-     * @param string          $type
-     *
-     * @return array
      */
-    public static function assoc($arr, $name, $type = null)
+    public static function assoc($arr, $name): array
     {
         $ret = [];
-        if (empty($arr)) {
-            return $ret;
-        }
-        if (self::GETTER == $type) {
-            $method = 'get'.$name;
-            foreach ($arr as $elem) {
+        foreach ($arr as $elem) {
+            if (is_object($elem)) {
+                $method = 'get'.$name;
                 $ret[$elem->$method()] = $elem;
-            }
-        } elseif (self::OBJ == $type) {
-            foreach ($arr as $elem) {
-                $ret[$elem->$name] = $elem;
-            }
-        } else {
-            foreach ($arr as $elem) {
+            } else {
                 $ret[$elem[$name]] = $elem;
             }
         }
@@ -95,28 +56,28 @@ class Arrays
         return $ret;
     }
 
+    public static function assocByField($arr, $name): array
+    {
+        $ret = [];
+        foreach ($arr as $elem) {
+            $ret[$elem->$name] = $elem;
+        }
+
+        return $ret;
+    }
+
     /**
      * Excludes key in given keys.
-     *
-     * @param array $arr
-     * @param array $excludedKeys
-     *
-     * @return array
      */
-    public static function exclude(array $arr, array $excludedKeys)
+    public static function exclude(array $arr, array $excludedKeys): array
     {
         return array_diff_key($arr, array_flip($excludedKeys));
     }
 
     /**
      * Changes key name.
-     *
-     * @param array $arr
-     * @param array $columnMap
-     *
-     * @return array
      */
-    public static function rename(array $arr, array $columnMap)
+    public static function rename(array $arr, array $columnMap): array
     {
         $ret = $arr;
         foreach ($columnMap as $key => $newKey) {
@@ -132,41 +93,41 @@ class Arrays
     /**
      * Create array with given keys.
      *
-     * @param array  $arr
-     * @param array  $includedKeys
-     * @param string $type
-     *
-     * @return array
+     * @param array|object $arr
      */
-    public static function select($arr, array $includedKeys, $type = null)
+    public static function select($arr, array $includedKeys): array
     {
         $ret = [];
-        if (self::GETTER == $type) {
+        if (is_object($arr)) {
             foreach ($includedKeys as $name) {
                 $method = 'get'.$name;
                 if (method_exists($arr, $method)) {
                     $ret[$name] = $arr->$method();
                 }
             }
-        } elseif (self::OBJ == $type) {
-            foreach ($includedKeys as $name) {
-                if (isset($arr->$name)) {
-                    $ret[$name] = $arr->$name;
+        } elseif ($arr instanceof \ArrayAccess) {
+            foreach ($includedKeys as $key) {
+                if ($arr->offsetExists($key)) {
+                    $ret[$key] = $arr[$key];
                 }
             }
         } else {
-            if ($arr instanceof ArrayAccess) {
-                foreach ($includedKeys as $key) {
-                    if ($arr->offsetExists($key)) {
-                        $ret[$key] = $arr[$key];
-                    }
+            foreach ($includedKeys as $key) {
+                if (array_key_exists($key, $arr)) {
+                    $ret[$key] = $arr[$key];
                 }
-            } else {
-                foreach ($includedKeys as $key) {
-                    if (array_key_exists($key, $arr)) {
-                        $ret[$key] = $arr[$key];
-                    }
-                }
+            }
+        }
+
+        return $ret;
+    }
+
+    public static function selectField($arr, array $includedKeys): array
+    {
+        $ret = [];
+        foreach ($includedKeys as $name) {
+            if (isset($arr->$name)) {
+                $ret[$name] = $arr->$name;
             }
         }
 
@@ -175,14 +136,10 @@ class Arrays
 
     /**
      * Filter null value.
-     *
-     * @param array $arr
-     *
-     * @return array
      */
-    public static function filter(array $arr)
+    public static function filter(array $arr): array
     {
-        return array_filter($arr, function ($elem) {
+        return array_filter($arr, static function ($elem) {
             return isset($elem);
         });
     }
@@ -197,9 +154,9 @@ class Arrays
     public static function assign($bean, $attributes, $onlyPublic = true)
     {
         if (null === $bean || !is_object($bean)) {
-            throw new InvalidArgumentException("Parameter 'bean' need be an object, got ".gettype($bean));
+            throw new \InvalidArgumentException("Parameter 'bean' need be an object, got ".gettype($bean));
         }
-        if ($bean instanceof ArrayAccess) {
+        if ($bean instanceof \ArrayAccess) {
             foreach ($attributes as $name => $val) {
                 $bean[$name] = $val;
             }
@@ -208,23 +165,27 @@ class Arrays
             foreach ($attributes as $name => $val) {
                 if (array_key_exists($name, $properties)) {
                     $bean->{$name} = $val;
-                } elseif (method_exists($bean, $method = 'set'.Text::camelize($name))) {
+                } elseif (method_exists($bean, $method = 'set'.Text::camelCase($name))) {
                     $bean->$method($val);
                 } elseif (!$onlyPublic) {
                     $failed[$name] = $val;
                 }
             }
             if (!$onlyPublic && !empty($failed)) {
-                $class = new ReflectionClass($bean);
-                foreach ($failed as $name => $val) {
-                    if (!$class->hasProperty($name)) {
-                        continue;
+                try {
+                    $class = new \ReflectionClass($bean);
+                    foreach ($failed as $name => $val) {
+                        if (!$class->hasProperty($name)) {
+                            continue;
+                        }
+                        $property = $class->getProperty($name);
+                        if ($property) {
+                            $property->setAccessible(true);
+                            $property->setValue($bean, $val);
+                        }
                     }
-                    $property = $class->getProperty($name);
-                    if ($property) {
-                        $property->setAccessible(true);
-                        $property->setValue($bean, $val);
-                    }
+                } catch (\ReflectionException $e) {
+                    trigger_error('Cannot assign attributes to bean: '.$e->getMessage());
                 }
             }
         }
@@ -237,25 +198,27 @@ class Arrays
      * @param bool   $includeGetters
      * @param bool   $uncamelizeKey
      * @param bool   $recursive
-     *
-     * @return array
      */
-    public static function toArray($bean, $includeGetters = true, $uncamelizeKey = false, $recursive = false)
+    public static function toArray($bean, $includeGetters = true, $uncamelizeKey = false, $recursive = false): array
     {
         if (null === $bean || !is_object($bean)) {
             throw new \InvalidArgumentException("Parameter 'bean' need be an object, got ".gettype($bean));
         }
         $properties = get_object_vars($bean);
         if ($includeGetters) {
-            $class = new \ReflectionClass($bean);
-            foreach ($class->getMethods() as $method) {
-                if ($method->isStatic() || !$method->isPublic()) {
-                    continue;
+            try {
+                $class = new \ReflectionClass($bean);
+                foreach ($class->getMethods() as $method) {
+                    if ($method->isStatic() || !$method->isPublic()) {
+                        continue;
+                    }
+                    if (preg_match('/^(get|is|has)(.+)/', $method->getName(), $matches)
+                        && 0 === $method->getNumberOfParameters()) {
+                        $properties[lcfirst($matches[2])] = $method->invoke($bean);
+                    }
                 }
-                if (preg_match('/^(get|is|has)(.+)/', $method->getName(), $matches)
-                    && 0 === $method->getNumberOfParameters()) {
-                    $properties[lcfirst($matches[2])] = $method->invoke($bean);
-                }
+            } catch (\ReflectionException $e) {
+                trigger_error('Cannot convert bean to array: '.$e->getMessage());
             }
         }
         if ($uncamelizeKey) {
@@ -268,7 +231,7 @@ class Arrays
         return $properties;
     }
 
-    private static function recursiveToArray(array $values, $includeGetters, $uncamelizeKey)
+    private static function recursiveToArray(array $values, $includeGetters, $uncamelizeKey): array
     {
         foreach ($values as $key => $val) {
             if (is_object($val)) {
@@ -296,7 +259,7 @@ class Arrays
      *
      * @return array the merged array (the original arrays are not changed.)
      */
-    public static function merge(...$args)
+    public static function merge(...$args): array
     {
         $res = array_shift($args);
         while (!empty($args)) {
@@ -320,52 +283,9 @@ class Arrays
     }
 
     /**
-     * create sorter.
-     *
-     * @param string   $name field name
-     * @param callable $func comparator
-     * @param string   $type
-     *
-     * @return callable
-     */
-    public static function sorter($name, $func = null, $type = null)
-    {
-        if (!isset($func)) {
-            $func = function ($a, $b) {
-                if ($a == $b) {
-                    return 0;
-                }
-
-                return $a < $b ? -1 : 1;
-            };
-        }
-
-        if (self::GETTER == $type) {
-            $method = 'get'.$name;
-
-            return function ($a, $b) use ($method, $func) {
-                return call_user_func($func, $a->$method(), $b->$method());
-            };
-        } elseif (self::OBJ == $type) {
-            return function ($a, $b) use ($name, $func) {
-                return call_user_func($func, $a->$name, $b->$name);
-            };
-        } else {
-            return function ($a, $b) use ($name, $func) {
-                return call_user_func($func, $a[$name], $b[$name]);
-            };
-        }
-    }
-
-    /**
      * Applies the callback to the keys of given array.
-     *
-     * @param array    $arr
-     * @param callable $callback
-     *
-     * @return array
      */
-    public static function mapKeys(array $arr, callable $callback)
+    public static function mapKeys(array $arr, callable $callback): array
     {
         $result = [];
         array_walk($arr, function (&$value, $key) use (&$result, $callback) {
@@ -375,7 +295,10 @@ class Arrays
         return $result;
     }
 
-    public static function uncamelizeKeys(array $arr)
+    /**
+     * Uncamelize array keys.
+     */
+    public static function uncamelizeKeys(array $arr): array
     {
         return self::mapKeys($arr, [Text::class, 'uncamelize']);
     }

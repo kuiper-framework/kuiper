@@ -29,7 +29,7 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function create($filePath)
+    public function create($filePath): ReflectionFileInterface
     {
         $file = realpath($filePath);
         if (false === $file) {
@@ -37,15 +37,15 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
         }
         if (isset($this->files[$file])) {
             return $this->files[$file];
-        } else {
-            return $this->files[$file] = new ReflectionFile($file);
         }
+
+        return $this->files[$file] = new ReflectionFile($file);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function clearCache($filePath = null)
+    public function clearCache($filePath = null): bool
     {
         if (isset($filePath)) {
             $file = realpath($filePath);
@@ -53,12 +53,10 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
                 return false;
             }
             unset($this->files[$file]);
-
-            return true;
-        } else {
-            $this->files = [];
-
             return true;
         }
+
+        $this->files = [];
+        return true;
     }
 }

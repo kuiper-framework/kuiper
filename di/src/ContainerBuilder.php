@@ -1,21 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\di;
 
+use Composer\Autoload\ClassLoader;
+use DI\CompiledContainer;
+use DI\Compiler\Compiler;
+use DI\Container;
+use DI\Definition\Source\AnnotationBasedAutowiring;
+use DI\Definition\Source\Autowiring;
+use DI\Definition\Source\DefinitionArray;
+use DI\Definition\Source\DefinitionFile;
+use DI\Definition\Source\DefinitionSource;
+use DI\Definition\Source\MutableDefinitionSource;
+use DI\Definition\Source\NoAutowiring;
+use DI\Definition\Source\ReflectionBasedAutowiring;
+use DI\Definition\Source\SourceCache;
+use DI\Definition\Source\SourceChain;
+use DI\Proxy\ProxyFactory;
+use InvalidArgumentException;
 use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\DocReader;
-use kuiper\annotations\DocReaderInterface;
-use kuiper\annotations\ReaderInterface;
-use kuiper\di\definition\decorator\AutowireDecorator;
-use kuiper\di\definition\decorator\DefinitionDecorator;
-use kuiper\di\definition\decorator\DummyDecorator;
-use kuiper\di\source\ArraySource;
-use kuiper\di\source\MutableSourceInterface;
-use kuiper\di\source\ObjectSource;
-use kuiper\di\source\SourceChain;
-use kuiper\di\source\SourceInterface;
-use Psr\Container\ContainerInterface as PsrContainer;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\reflection\ReflectionFileFactory;
+use kuiper\reflection\ReflectionNamespaceFactory;
+use kuiper\reflection\ReflectionNamespaceFactoryInterface;
+use Psr\Container\ContainerInterface;
 
 class ContainerBuilder implements ContainerBuilderInterface
 {
@@ -27,9 +37,18 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $containerClass;
 
     /**
-     * @var PsrContainer
+     * Name of the container parent class, used on compiled container.
+     *
+     * @var string
      */
-    private $parentContainer;
+    private $containerParentClass;
+
+    /**
+     * If PHP-DI is wrapped in another container, this references the wrapper.
+     *
+     * @var ContainerInterface
+     */
+    private $wrapperContainer;
 
     /**
      * @var bool
@@ -42,128 +61,168 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $useAnnotations = false;
 
     /**
-     * @var ArraySource
+     * @var bool
      */
-    private $definitions;
+    private $sourceCache = false;
 
     /**
-     * @var ReaderInterface
+     * @var string
+     */
+    protected $sourceCacheNamespace;
+
+    /**
+     * @var bool
+     */
+    private $ignorePhpDocErrors = false;
+
+    /**
+     * If true, write the proxies to disk to improve performances.
+     *
+     * @var bool
+     */
+    private $writeProxiesToFile = false;
+
+    /**
+     * Directory where to write the proxies (if $writeProxiesToFile is enabled).
+     *
+     * @var string|null
+     */
+    private $proxyDirectory;
+
+    /**
+     * @var string|null
+     */
+    private $compileToDirectory;
+
+    /**
+     * @var DefinitionSource[]|string[]|array[]
+     */
+    private $definitionSources = [];
+
+    /**
+     * @var AwareAutowiring
+     */
+    private $awareAutowiring;
+    /**
+     * Whether the container has already been built.
+     *
+     * @var bool
+     */
+    private $locked = false;
+
+    /**
+     * @var ComponentScannerInterface
+     */
+    private $componentScanner;
+
+    /**
+     * @var ClassLoader
+     */
+    private $classLoader;
+
+    /**
+     * @var ReflectionNamespaceFactoryInterface
+     */
+    private $reflectionNamespaceFactory;
+
+    /**
+     * @var ConfigurationDefinition
+     */
+    private $configurationDefinition;
+
+    /**
+     * @var AnnotationReaderInterface
      */
     private $annotationReader;
 
     /**
-     * @var DocReaderInterface
+     * Build a container configured for the dev environment.
      */
-    private $docReader;
+    public static function buildDevContainer(): Container
+    {
+        return new Container();
+    }
 
     /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
-
-    /**
-     * @var SourceInterface[]
-     */
-    private $sources = [];
-
-    /**
-     * @var ProxyFactory
-     */
-    private $proxyFactory;
-
-    /**
-     * Constructs the builder.
-     *
      * @param string $containerClass name of the container class, used to create the container
      */
-    public function __construct($containerClass = Container::class)
+    public function __construct(string $containerClass = Container::class)
     {
         $this->containerClass = $containerClass;
     }
 
     /**
-     * Build empty container with default configuration.
-     *
-     * @return Container
-     */
-    public static function buildDevContainer()
-    {
-        $builder = new self();
-
-        return $builder->build();
-    }
-
-    /**
      * Build and return a container.
-     *
-     * @return Container
      */
-    public function build()
+    public function build(): ContainerInterface
     {
-        $sources = $this->sources;
-        array_unshift($sources, $definitions = $this->getDefinitions());
-        $sources[] = new ObjectSource();
-        if ($this->useAnnotations) {
-            $definitions->addDefinitions([
-                ReaderInterface::class => $this->getAnnotationReader(),
-                DocReaderInterface::class => $this->getDocReader(),
-            ]);
-            $decorator = new AutowireDecorator($this->getAnnotationReader(), $this->getDocReader());
-        } elseif ($this->useAutowiring) {
-            $decorator = new DefinitionDecorator();
-        } else {
-            $decorator = new DummyDecorator();
-        }
-        $source = new SourceChain($sources, $definitions, $decorator, $this->getEventDispatcher());
-
+        $source = $this->createDefinitionSource();
+        $proxyFactory = new ProxyFactory($this->writeProxiesToFile, $this->proxyDirectory);
+        $this->locked = true;
         $containerClass = $this->containerClass;
-        $container = new $containerClass($definitions, $source, $this->getProxyFactory(), $this->getParentContainer(), $this->getEventDispatcher());
-        $definitions->addDefinitions([
-            ContainerInterface::class => $container,
-            PsrContainer::class => $container,
-            Container::class => $container,
-        ]);
-        if ($this->getEventDispatcher()) {
-            $definitions->addDefinitions([
-                EventDispatcherInterface::class => $this->getEventDispatcher(),
-            ]);
+        if ($this->compileToDirectory) {
+            $compiler = new Compiler($proxyFactory);
+            $compiledContainerFile = $compiler->compile(
+                $source,
+                $this->compileToDirectory,
+                $containerClass,
+                $this->containerParentClass,
+                $this->useAutowiring || $this->useAnnotations
+            );
+            // Only load the file if it hasn't been already loaded
+            // (the container can be created multiple times in the same process)
+            if (!class_exists($containerClass, false)) {
+                require $compiledContainerFile;
+            }
         }
 
-        return $container;
+        return new $containerClass($source, $proxyFactory, $this->wrapperContainer);
     }
 
     /**
-     * @param array $definitions
-     * @param bool  $mergeDeeply
+     * Compile the container for optimum performances.
      *
-     * @return self
+     * Be aware that the container is compiled once and never updated!
+     *
+     * Therefore:
+     *
+     * - in production you should clear that directory every time you deploy
+     * - in development you should not compile the container
+     *
+     * @see http://php-di.org/doc/performances.html
+     *
+     * @param string $directory            directory in which to put the compiled container
+     * @param string $containerClass       Name of the compiled class. Customize only if necessary.
+     * @param string $containerParentClass Name of the compiled container parent class. Customize only if necessary.
+     *
+     * @return static
      */
-    public function addDefinitions(array $definitions, $mergeDeeply = false)
-    {
-        $this->getDefinitions()->addDefinitions($definitions, $mergeDeeply);
+    public function enableCompilation(
+        string $directory,
+        string $containerClass = 'CompiledContainer',
+        string $containerParentClass = CompiledContainer::class
+    ): self {
+        $this->ensureNotLocked();
+
+        $this->compileToDirectory = $directory;
+        $this->containerClass = $containerClass;
+        $this->containerParentClass = $containerParentClass;
 
         return $this;
     }
 
-    /**
-     * @return PsrContainer
-     */
-    public function getParentContainer()
+    public function getAwareAutowiring(): AwareAutowiring
     {
-        return $this->parentContainer;
+        if (!$this->awareAutowiring) {
+            $this->awareAutowiring = new AwareAutowiring();
+        }
+
+        return $this->awareAutowiring;
     }
 
-    /**
-     * Sets the parent container associated to that container. This container will call
-     * the parent container to fetch dependencies.
-     *
-     * @param PsrContainer $parentContainer
-     *
-     * @return self
-     */
-    public function setParentContainer(PsrContainer $parentContainer)
+    public function addAwareInjection(AwareInjection $awareInjection): self
     {
-        $this->parentContainer = $parentContainer;
+        $this->getAwareAutowiring()->add($awareInjection);
 
         return $this;
     }
@@ -173,13 +232,13 @@ class ContainerBuilder implements ContainerBuilderInterface
      *
      * Enabled by default.
      *
-     * @param bool $autowiring
-     *
-     * @return self
+     * @return static
      */
-    public function useAutowiring($autowiring = true)
+    public function useAutowiring(bool $bool): self
     {
-        $this->useAutowiring = $autowiring;
+        $this->ensureNotLocked();
+
+        $this->useAutowiring = $bool;
 
         return $this;
     }
@@ -189,121 +248,301 @@ class ContainerBuilder implements ContainerBuilderInterface
      *
      * Disabled by default.
      *
-     * @param bool $annotations
-     *
-     * @return self
+     * @return static
      */
-    public function useAnnotations($annotations = true)
+    public function useAnnotations(bool $bool): self
     {
-        $this->useAnnotations = $annotations;
+        $this->ensureNotLocked();
+
+        $this->useAnnotations = $bool;
 
         return $this;
     }
 
     /**
-     * @param SourceInterface $source
+     * Enable or disable ignoring phpdoc errors (non-existent classes in `@param` or `@var`).
      *
-     * @return self
+     * @return $this
      */
-    public function addSource(SourceInterface $source)
+    public function ignorePhpDocErrors(bool $bool): self
     {
-        $this->sources[] = $source;
+        $this->ensureNotLocked();
+
+        $this->ignorePhpDocErrors = $bool;
 
         return $this;
     }
 
     /**
-     * @param ReaderInterface $reader
+     * Configure the proxy generation.
      *
-     * @return self
+     * For dev environment, use `writeProxiesToFile(false)` (default configuration)
+     * For production environment, use `writeProxiesToFile(true, 'tmp/proxies')`
+     *
+     * @see http://php-di.org/doc/lazy-injection.html
+     *
+     * @param bool        $writeToFile    If true, write the proxies to disk to improve performances
+     * @param string|null $proxyDirectory Directory where to write the proxies
+     *
+     * @throws InvalidArgumentException when writeToFile is set to true and the proxy directory is null
+     *
+     * @return $this
      */
-    public function setAnnotationReader(ReaderInterface $reader)
+    public function writeProxiesToFile(bool $writeToFile, string $proxyDirectory = null): self
     {
-        $this->annotationReader = $reader;
+        $this->ensureNotLocked();
+
+        $this->writeProxiesToFile = $writeToFile;
+
+        if ($writeToFile && null === $proxyDirectory) {
+            throw new InvalidArgumentException('The proxy directory must be specified if you want to write proxies on disk');
+        }
+        $this->proxyDirectory = $proxyDirectory;
 
         return $this;
     }
 
     /**
-     * @return ReaderInterface annotation reader
+     * If PHP-DI's container is wrapped by another container, we can
+     * set this so that PHP-DI will use the wrapper rather than itself for building objects.
+     *
+     * @return $this
      */
-    public function getAnnotationReader()
+    public function wrapContainer(ContainerInterface $otherContainer): self
     {
-        if (null === $this->annotationReader) {
-            $this->setAnnotationReader(new AnnotationReader());
+        $this->ensureNotLocked();
+
+        $this->wrapperContainer = $otherContainer;
+
+        return $this;
+    }
+
+    /**
+     * Add definitions to the container.
+     *
+     * @param string|array|DefinitionSource ...$definitions Can be an array of definitions, the
+     *                                                      name of a file containing definitions
+     *                                                      or a DefinitionSource object.
+     *
+     * @return static
+     */
+    public function addDefinitions(...$definitions)
+    {
+        $this->ensureNotLocked();
+
+        foreach ($definitions as $definition) {
+            if (!is_string($definition) && !is_array($definition) && !($definition instanceof DefinitionSource)) {
+                throw new InvalidArgumentException(sprintf('%s parameter must be a string, an array or a DefinitionSource object, %s given', 'ContainerBuilder::addDefinitions()', is_object($definition) ? get_class($definition) : gettype($definition)));
+            }
+
+            $this->definitionSources[] = $definition;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Enables the use of APCu to cache definitions.
+     *
+     * You must have APCu enabled to use it.
+     *
+     * Before using this feature, you should try these steps first:
+     * - enable compilation if not already done (see `enableCompilation()`)
+     * - if you use autowiring or annotations, add all the classes you are using into your configuration so that
+     *   PHP-DI knows about them and compiles them
+     * Once this is done, you can try to optimize performances further with APCu. It can also be useful if you use
+     * `Container::make()` instead of `get()` (`make()` calls cannot be compiled so they are not optimized).
+     *
+     * Remember to clear APCu on each deploy else your application will have a stale cache. Do not enable the cache
+     * in development environment: any change you will make to the code will be ignored because of the cache.
+     *
+     * @see http://php-di.org/doc/performances.html
+     *
+     * @param string $cacheNamespace use unique namespace per container when sharing a single APC memory pool to prevent cache collisions
+     *
+     * @return $this
+     */
+    public function enableDefinitionCache(string $cacheNamespace = ''): self
+    {
+        $this->ensureNotLocked();
+
+        $this->sourceCache = true;
+        $this->sourceCacheNamespace = $cacheNamespace;
+
+        return $this;
+    }
+
+    /**
+     * Are we building a compiled container?
+     */
+    public function isCompilationEnabled(): bool
+    {
+        return (bool) $this->compileToDirectory;
+    }
+
+    private function ensureNotLocked(): void
+    {
+        if ($this->locked) {
+            throw new \LogicException('The ContainerBuilder cannot be modified after the container has been built');
+        }
+    }
+
+    public function addConfiguration($configuration): self
+    {
+        if ($configuration instanceof ContainerBuilderAwareInterface) {
+            $configuration->setContainerBuilder($this);
+        }
+        $this->addDefinitions($this->getConfigurationDefinition()->getDefinitions($configuration));
+
+        return $this;
+    }
+
+    public function getAnnotationReader(): AnnotationReaderInterface
+    {
+        if (!$this->annotationReader) {
+            $this->annotationReader = AnnotationReader::getInstance();
         }
 
         return $this->annotationReader;
     }
 
-    /**
-     * @return DocReaderInterface
-     */
-    public function getDocReader()
+    public function setAnnotationReader(AnnotationReaderInterface $annotationReader): self
     {
-        if (null === $this->docReader) {
-            $this->setDocReader(new DocReader());
+        $this->annotationReader = $annotationReader;
+
+        return $this;
+    }
+
+    public function getConfigurationDefinition(): ConfigurationDefinition
+    {
+        if (!$this->configurationDefinition) {
+            $this->configurationDefinition = new ConfigurationDefinition($this->getAnnotationReader());
         }
 
-        return $this->docReader;
+        return $this->configurationDefinition;
+    }
+
+    public function setConfigurationDefinition(ConfigurationDefinition $configurationDefinition): self
+    {
+        $this->configurationDefinition = $configurationDefinition;
+
+        return $this;
+    }
+
+    public function getClassLoader(): ClassLoader
+    {
+        if (!$this->classLoader) {
+            throw new \InvalidArgumentException('class loader is not set yet');
+        }
+
+        return $this->classLoader;
+    }
+
+    public function setClassLoader(ClassLoader $classLoader): self
+    {
+        $this->classLoader = $classLoader;
+
+        return $this;
+    }
+
+    public function getReflectionNamespaceFactory(): ReflectionNamespaceFactoryInterface
+    {
+        if (!$this->reflectionNamespaceFactory) {
+            $this->reflectionNamespaceFactory = ReflectionNamespaceFactory::createInstance(ReflectionFileFactory::createInstance())
+                ->registerLoader($this->getClassLoader());
+        }
+
+        return $this->reflectionNamespaceFactory;
     }
 
     /**
-     * @param DocReaderInterface $docReader
-     *
-     * @return self
+     * @return static
      */
-    public function setDocReader(DocReaderInterface $docReader)
+    public function setReflectionNamespaceFactory(ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory): self
     {
-        $this->docReader = $docReader;
+        $this->reflectionNamespaceFactory = $reflectionNamespaceFactory;
 
         return $this;
     }
 
-    /**
-     * @return ProxyFactory
-     */
-    public function getProxyFactory()
+    public function getComponentScanner(): ComponentScannerInterface
     {
-        if (null === $this->proxyFactory) {
-            $this->proxyFactory = new ProxyFactory();
+        if (!$this->componentScanner) {
+            $this->componentScanner = new ComponentScanner($this, $this->getAnnotationReader(), $this->getReflectionNamespaceFactory());
         }
 
-        return $this->proxyFactory;
+        return $this->componentScanner;
     }
 
-    public function setProxyFactory(ProxyFactory $proxyFactory)
+    public function setComponentScanner(ComponentScannerInterface $componentScanner): self
     {
-        $this->proxyFactory = $proxyFactory;
+        $this->componentScanner = $componentScanner;
 
         return $this;
     }
 
-    public function getDefinitions()
+    public function componentScan(array $namespaces): self
     {
-        if (null === $this->definitions) {
-            $this->definitions = new ArraySource();
+        $this->getComponentScanner()->scan($namespaces);
+
+        return $this;
+    }
+
+    private function getAutowiring(): Autowiring
+    {
+        if ($this->useAnnotations) {
+            $autowiring = new AnnotationBasedAutowiring($this->ignorePhpDocErrors);
+        } elseif ($this->useAutowiring) {
+            $autowiring = new ReflectionBasedAutowiring();
+        } else {
+            $autowiring = new NoAutowiring();
+        }
+        if ($autowiring instanceof DefinitionSource && $this->getAwareAutowiring()->hasInjections()) {
+            $this->getAwareAutowiring()->setAutowiring($autowiring);
+
+            return $this->getAwareAutowiring();
         }
 
-        return $this->definitions;
+        return $autowiring;
     }
 
-    public function setDefinitions(MutableSourceInterface $definitions)
+    private function createDefinitionSource(): MutableDefinitionSource
     {
-        $this->definitions = $definitions;
+        $sources = array_reverse($this->definitionSources);
 
-        return $this;
-    }
+        $autowiring = $this->getAutowiring();
+        if ($autowiring instanceof DefinitionSource) {
+            $sources[] = $autowiring;
+        }
+        $sources = array_map(static function ($definitions) use ($autowiring) {
+            if (is_string($definitions)) {
+                // File
+                return new DefinitionFile($definitions, $autowiring);
+            }
 
-    public function getEventDispatcher()
-    {
-        return $this->eventDispatcher;
-    }
+            if (is_array($definitions)) {
+                return new DefinitionArray($definitions, $autowiring);
+            }
 
-    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher)
-    {
-        $this->eventDispatcher = $eventDispatcher;
+            if ($definitions instanceof AutowiringAwareInterface) {
+                $definitions->setAutowiring($autowiring);
+            }
 
-        return $this;
+            return $definitions;
+        }, $sources);
+        $source = new SourceChain($sources);
+
+        // Mutable definition source
+        $source->setMutableDefinitionSource(new DefinitionArray([], $autowiring));
+
+        if ($this->sourceCache) {
+            if (!SourceCache::isSupported()) {
+                throw new \Exception('APCu is not enabled, PHP-DI cannot use it as a cache');
+            }
+            // Wrap the source with the cache decorator
+            $source = new SourceCache($source, $this->sourceCacheNamespace);
+        }
+
+        return $source;
     }
 }

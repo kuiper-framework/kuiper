@@ -8,10 +8,8 @@ interface TypeFilterInterface
      * checks whether the value is valid.
      *
      * @param mixed $value
-     *
-     * @return bool
      */
-    public function validate($value);
+    public function isValid($value): bool;
 
     /**
      * Sanitizes input value.

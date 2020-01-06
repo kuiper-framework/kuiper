@@ -11,5 +11,5 @@ interface ReflectionNamespaceFactoryInterface
      *
      * @return ReflectionNamespaceInterface
      */
-    public function create($namespace);
+    public function create($namespace): ReflectionNamespaceInterface;
 }

@@ -10,4 +10,19 @@ class MixedType extends ReflectionType
     {
         return 'mixed';
     }
+
+    public function isPseudo(): bool
+    {
+        return true;
+    }
+
+    public function isUnknown(): bool
+    {
+        return true;
+    }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
 }

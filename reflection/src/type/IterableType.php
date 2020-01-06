@@ -10,4 +10,14 @@ class IterableType extends ReflectionType
     {
         return 'iterable';
     }
+
+    public function isCompound(): bool
+    {
+        return true;
+    }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
 }

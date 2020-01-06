@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\helper;
 
 class TextTest extends TestCase
@@ -8,7 +9,7 @@ class TextTest extends TestCase
      */
     public function testCamelize($str, $delimiter, $expect)
     {
-        $this->assertEquals($expect, Text::camelize($str, $delimiter));
+        $this->assertEquals($expect, Text::camelCase($str, $delimiter));
     }
 
     public function camelizeCase()
@@ -16,7 +17,7 @@ class TextTest extends TestCase
         return [
             ['coco_bongo', null, 'CocoBongo'],
             ['co_co-bon_go', '-', 'Co_coBon_go'],
-            ['co_co-bon_go', '-_', 'CoCoBonGo']
+            ['co_co-bon_go', '-_', 'CoCoBonGo'],
         ];
     }
 
@@ -25,7 +26,7 @@ class TextTest extends TestCase
      */
     public function testUncamelize($str, $delimiter, $expect)
     {
-        $this->assertEquals($expect, Text::uncamelize($str, $delimiter));
+        $this->assertEquals($expect, Text::snakeCase($str, $delimiter));
     }
 
     public function uncamelizeCase()
@@ -47,9 +48,9 @@ class TextTest extends TestCase
     public function startsWithCase()
     {
         return [
-            ["Hello", "He", true, true],
-            ["Hello", "he", false, false],
-            ["Hello", "he", true, true]
+            ['Hello', 'He', true, true],
+            ['Hello', 'he', false, false],
+            ['Hello', 'he', true, true],
         ];
     }
 
@@ -64,9 +65,9 @@ class TextTest extends TestCase
     public function endsWithCase()
     {
         return [
-            ["Hello", "llo", true, true],
-            ["Hello", "LLO", false, false],
-            ["Hello", "LLO", true, true]
+            ['Hello', 'llo', true, true],
+            ['Hello', 'LLO', false, false],
+            ['Hello', 'LLO', true, true],
         ];
     }
 

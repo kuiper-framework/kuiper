@@ -2,14 +2,13 @@
 
 namespace kuiper\reflection;
 
-use Iterator;
 use kuiper\reflection\exception\InvalidTokenException;
 use kuiper\reflection\exception\TokenStoppedException;
 
 class TokenStream
 {
     /**
-     * @var Iterator
+     * @var \Iterator
      */
     private $tokens;
 
@@ -37,12 +36,14 @@ class TokenStream
      * Gets next token.
      *
      * @return array|string
+     *
+     * @throws TokenStoppedException
      */
     public function next()
     {
         if ($this->end || !$this->tokens->valid()) {
             $this->end = true;
-            throw new TokenStoppedException();
+            throw new TokenStoppedException('no more token');
         }
         if (isset($this->current)) {
             $this->tokens->next();
@@ -69,9 +70,6 @@ class TokenStream
         return $this->current;
     }
 
-    /**
-     * @return int
-     */
     public function getLine(): int
     {
         return $this->line;
@@ -79,8 +77,11 @@ class TokenStream
 
     /**
      * Skips whitespace or comment.
+     *
+     * @throws InvalidTokenException
+     * @throws TokenStoppedException
      */
-    public function skipWhitespaceAndCommentMaybe()
+    public function skipWhitespaceAndCommentMaybe(): void
     {
         $this->skipWhitespaceAndComment(false);
     }
@@ -89,13 +90,14 @@ class TokenStream
      * Skips whitespace and comment.
      * Stops when first token that is not whitespace or comment.
      *
-     * @param bool $required
+     * @throws InvalidTokenException
+     * @throws TokenStoppedException
      */
-    public function skipWhitespaceAndComment(bool $required = true)
+    public function skipWhitespaceAndComment(bool $required = true): void
     {
         $whitespace = '';
         while (true) {
-            if (is_array($this->current) && in_array($this->current[0], [T_WHITESPACE, T_COMMENT])) {
+            if (is_array($this->current) && in_array($this->current[0], [T_WHITESPACE, T_COMMENT], true)) {
                 $whitespace .= $this->current[1];
                 $this->next();
             } else {
@@ -111,15 +113,14 @@ class TokenStream
      * Reads the identifiers at current position.
      * Stops when first token that not belong to identifier (not string or ns_separator).
      *
-     * @return string
-     *
      * @throws InvalidTokenException if there not identifier at current position
+     * @throws TokenStoppedException
      */
     public function matchIdentifier(): string
     {
         $identifier = '';
         while (true) {
-            if (is_array($this->current) && in_array($this->current[0], [T_STRING, T_NS_SEPARATOR])) {
+            if (is_array($this->current) && in_array($this->current[0], [T_STRING, T_NS_SEPARATOR], true)) {
                 $identifier .= $this->current[1];
                 $this->next();
             } else {
@@ -139,16 +140,19 @@ class TokenStream
      *
      * @return array the import type is the first element: T_FUNCTION, T_CONST, T_STRING (class),
      *               the import list is the second element
+     *
+     * @throws InvalidTokenException
+     * @throws TokenStoppedException
      */
-    public function matchUseStatement()
+    public function matchUseStatement(): array
     {
         $this->next();
         $this->skipWhitespaceAndComment();
-        if (!is_array($this->current) || !in_array($this->current[0], [T_FUNCTION, T_CONST, T_STRING])) {
+        if (!is_array($this->current) || !in_array($this->current[0], [T_FUNCTION, T_CONST, T_STRING], true)) {
             throw new InvalidTokenException("expected class name or the keyword 'function' or 'const'");
         }
         $importType = $this->current[0];
-        if (in_array($importType, [T_FUNCTION, T_CONST])) {
+        if (in_array($importType, [T_FUNCTION, T_CONST], true)) {
             $this->next();
             $this->skipWhitespaceAndComment();
         }
@@ -157,16 +161,19 @@ class TokenStream
         return [$importType, $imports];
     }
 
-    private function matchImportList(string $stopToken, $hasSubList = true)
+    /**
+     * @param bool $hasSubList
+     *
+     * @throws InvalidTokenException
+     * @throws TokenStoppedException
+     */
+    private function matchImportList(string $stopToken, $hasSubList = true): array
     {
         $imports = [];
         do {
             foreach ($this->matchUseList($hasSubList) as $alias => $name) {
                 if (isset($imports[$alias])) {
-                    throw new InvalidTokenException(sprintf(
-                        "Duplicated import alias '%s' for '%s', previous '%s'",
-                        $name, $alias, $imports[$alias]
-                    ));
+                    throw new InvalidTokenException(sprintf("Duplicated import alias '%s' for '%s', previous '%s'", $name, $alias, $imports[$alias]));
                 }
                 $imports[$alias] = $name;
             }
@@ -185,7 +192,11 @@ class TokenStream
         return $imports;
     }
 
-    private function matchUseList(bool $hasSubList)
+    /**
+     * @throws InvalidTokenException
+     * @throws TokenStoppedException
+     */
+    private function matchUseList(bool $hasSubList): array
     {
         $imports = [];
         $name = $this->matchIdentifier();
@@ -205,7 +216,7 @@ class TokenStream
                 $this->next();
                 $this->skipWhitespaceAndComment();
                 $alias = $this->matchIdentifier();
-                if (false !== strpos($alias, ReflectionFile::NAMESPACE_SEPARATOR)) {
+                if (false !== strpos($alias, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR)) {
                     throw new InvalidTokenException("import alias '{$alias}' cannot contain namespace separator");
                 }
             } else {
@@ -219,13 +230,16 @@ class TokenStream
 
     /**
      * match begin and end of parentheses.
+     *
+     * @throws TokenStoppedException
+     * @throws InvalidTokenException
      */
-    public function matchParentheses()
+    public function matchParentheses(): void
     {
         $stack = [];
         while (true) {
             $this->next();
-            if (is_array($this->current) && T_CURLY_OPEN == $this->current[0]) {
+            if (is_array($this->current) && T_CURLY_OPEN === $this->current[0]) {
                 $stack[] = '{';
             } elseif ('{' === $this->current) {
                 $stack[] = '{';
@@ -243,7 +257,7 @@ class TokenStream
 
     private function getSimpleName($name)
     {
-        $parts = explode(ReflectionFile::NAMESPACE_SEPARATOR, $name);
+        $parts = explode(ReflectionNamespaceInterface::NAMESPACE_SEPARATOR, $name);
 
         return end($parts);
     }
@@ -252,15 +266,13 @@ class TokenStream
      * describes the token value.
      *
      * @param array|string $token
-     *
-     * @return string
      */
-    public function describe($token)
+    public function describe($token): string
     {
         if (is_array($token)) {
             return '['.implode(', ', [token_name($token[0]), json_encode($token[1]), $token[2]]).']';
-        } else {
-            return json_encode($token);
         }
+
+        return json_encode($token);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\helper\fixtures;
 
 use kuiper\helper\Enum;
@@ -12,14 +13,14 @@ class Gender extends Enum
     protected static $PROPERTIES = [
         'description' => [
             self::MALE => '男',
-            self::FEMALE => '女'
+            self::FEMALE => '女',
         ],
         'ordinal' => [
             self::MALE => 1,
-            self::FEMALE => 2
+            self::FEMALE => 2,
         ],
         'enName' => [
-            self::MALE => 'male'
+            self::MALE => 'male',
         ],
     ];
 }

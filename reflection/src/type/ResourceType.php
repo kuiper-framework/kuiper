@@ -10,4 +10,14 @@ class ResourceType extends ReflectionType
     {
         return 'resource';
     }
+
+    public function isResource(): bool
+    {
+        return true;
+    }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
 }

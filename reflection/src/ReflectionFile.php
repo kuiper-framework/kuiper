@@ -9,8 +9,6 @@ use kuiper\reflection\exception\TokenStoppedException;
 
 class ReflectionFile implements ReflectionFileInterface
 {
-    const NAMESPACE_SEPARATOR = '\\';
-
     /**
      * @var string
      */
@@ -44,7 +42,7 @@ class ReflectionFile implements ReflectionFileInterface
     /**
      * @var bool
      */
-    private $multipleClasses;
+    private $hasMultipleClasses;
 
     /**
      * @param string $file
@@ -83,11 +81,7 @@ class ReflectionFile implements ReflectionFileInterface
     }
 
     /**
-     * Gets all traits defined in the file.
-     *
-     * @return string[]
-     *
-     * @throws exception\SyntaxErrorException
+     * {@inheritdoc}
      */
     public function getTraits(): array
     {
@@ -126,7 +120,11 @@ class ReflectionFile implements ReflectionFileInterface
         return $this->getImported($namespace, T_CONST);
     }
 
-    private function parse()
+    /**
+     * @throws FileNotFoundException
+     * @throws SyntaxErrorException
+     */
+    private function parse(): void
     {
         if (isset($this->namespaces)) {
             return;
@@ -138,8 +136,11 @@ class ReflectionFile implements ReflectionFileInterface
         $tokens = new TokenStream(token_get_all($code));
 
         $this->namespaces = [];
+        $this->classes = [];
+        $this->traits = [];
+        $this->imports = [];
         $this->currentNamespace = '';
-        $this->multipleClasses = $this->detectMultipleClasses($code);
+        $this->hasMultipleClasses = $this->detectMultipleClasses($code);
 
         try {
             while (true) {
@@ -150,7 +151,7 @@ class ReflectionFile implements ReflectionFileInterface
                 switch ($token[0]) {
                     case T_NAMESPACE:
                         $this->currentNamespace = $this->matchNamespace($tokens);
-                        if (!in_array($this->currentNamespace, $this->namespaces)) {
+                        if (!in_array($this->currentNamespace, $this->namespaces, true)) {
                             $this->namespaces[] = $this->currentNamespace;
                         }
                         break;
@@ -160,14 +161,14 @@ class ReflectionFile implements ReflectionFileInterface
                     case T_CLASS:
                     case T_INTERFACE:
                         $this->classes[] = $this->matchClass($tokens);
-                        if (!$this->multipleClasses) {
-                            throw new TokenStoppedException();
+                        if (!$this->hasMultipleClasses) {
+                            throw new TokenStoppedException("no more token");
                         }
                         break;
                     case T_TRAIT:
                         $this->traits[] = $this->matchClass($tokens);
-                        if (!$this->multipleClasses) {
-                            throw new TokenStoppedException();
+                        if (!$this->hasMultipleClasses) {
+                            throw new TokenStoppedException("no more token");
                         }
                         break;
                     case T_DOUBLE_COLON:
@@ -185,33 +186,55 @@ class ReflectionFile implements ReflectionFileInterface
         }
     }
 
+    /**
+     * @param TokenStream $tokens
+     *
+     * @return string
+     *
+     * @throws InvalidTokenException
+     * @throws TokenStoppedException
+     */
     private function matchNamespace(TokenStream $tokens)
     {
         $tokens->next();
         $tokens->skipWhitespaceAndCommentMaybe();
         $token = $tokens->current();
-        if ('{' == $token) {
+        if ('{' === $token) {
             return '';
-        } else {
-            return $tokens->matchIdentifier();
         }
+
+        return $tokens->matchIdentifier();
     }
 
-    private function matchClass(TokenStream $tokens)
+    /**
+     * @param TokenStream $tokens
+     *
+     * @return string
+     *
+     * @throws InvalidTokenException
+     * @throws TokenStoppedException
+     */
+    private function matchClass(TokenStream $tokens): string
     {
         $tokens->next();
         $tokens->skipWhitespaceAndComment();
         $class = $tokens->matchIdentifier();
-        if ($this->multipleClasses) {
+        if ($this->hasMultipleClasses) {
             $tokens->matchParentheses();
         }
 
-        return $this->currentNamespace ? $this->currentNamespace.self::NAMESPACE_SEPARATOR.$class : $class;
+        return $this->currentNamespace ? $this->currentNamespace . ReflectionNamespaceInterface::NAMESPACE_SEPARATOR . $class : $class;
     }
 
-    private function matchUse(TokenStream $tokens)
+    /**
+     * @param TokenStream $tokens
+     *
+     * @throws InvalidTokenException
+     * @throws TokenStoppedException
+     */
+    private function matchUse(TokenStream $tokens): void
     {
-        list($type, $stmtImports) = $tokens->matchUseStatement();
+        [$type, $stmtImports] = $tokens->matchUseStatement();
         if (!isset($this->imports[$this->currentNamespace])) {
             $this->imports[$this->currentNamespace] = [];
         }
@@ -235,7 +258,7 @@ class ReflectionFile implements ReflectionFileInterface
 
     /**
      * @param string $namespace
-     * @param int    $type
+     * @param int $type
      *
      * @return array
      */
@@ -243,17 +266,16 @@ class ReflectionFile implements ReflectionFileInterface
     {
         if (isset($this->imports[$namespace][$type])) {
             return $this->imports[$namespace][$type];
-        } else {
-            return [];
         }
+
+        return [];
     }
 
     /**
      * @param string $code
-     *
-     * @return int
+     * @return bool
      */
-    private function detectMultipleClasses($code)
+    private function detectMultipleClasses($code): bool
     {
         return preg_match_all('/^\s*((abstract|final)+ )?(class|interface|trait)\s+/sm', $code) > 1;
     }

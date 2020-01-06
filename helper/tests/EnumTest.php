@@ -1,11 +1,12 @@
 <?php
+
 namespace kuiper\helper;
 
 use kuiper\helper\fixtures\Gender;
 use kuiper\helper\fixtures\OnOff;
 
 /**
- * TestCase for Enum
+ * TestCase for Enum.
  */
 class EnumTest extends TestCase
 {
@@ -16,7 +17,7 @@ class EnumTest extends TestCase
         // var_export([$on, $onObj]);
         $this->assertTrue($on === $onObj);
     }
-    
+
     public function testName()
     {
         $this->assertEquals(Gender::MALE()->name(), 'MALE');
@@ -52,7 +53,7 @@ class EnumTest extends TestCase
     public function testInstances()
     {
         $this->assertEquals(Gender::instances(), [
-            Gender::MALE(), Gender::FEMALE()
+            Gender::MALE(), Gender::FEMALE(),
         ]);
     }
 
@@ -88,18 +89,8 @@ class EnumTest extends TestCase
 
     public function testJsonSerialize()
     {
-        $this->assertEquals('["MALE","MALE"]', json_encode([Gender::fromValue('m'), Gender::MALE()]));
-    }
-
-    public function testOrdinal()
-    {
-        $gender = Gender::fromOrdinal(1);
-        $this->assertEquals(Gender::MALE, $gender->value);
-    }
-
-    public function testOrdinals()
-    {
-        $this->assertEquals([1,2], Gender::ordinals());
+        $this->assertEquals('["MALE","MALE"]',
+                            json_encode([Gender::fromValue('m'), Gender::MALE()]));
     }
 
     /**

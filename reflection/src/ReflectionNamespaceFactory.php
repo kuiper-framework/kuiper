@@ -51,39 +51,37 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function create($namespace)
+    public function create($namespace): ReflectionNamespaceInterface
     {
         $namespace = $this->normalizeNamespace($namespace);
         if (isset($this->namespaces[$namespace])) {
             return $this->namespaces[$namespace];
-        } else {
-            $dirs = [];
-            foreach ($this->namespaceDirs as $prefix => $prefixDirs) {
-                if (empty($prefix) || 0 === strpos($namespace, $prefix)) {
-                    foreach (array_keys($prefixDirs) as $dir) {
-                        $dir .= '/'.str_replace('\\', '/', substr($namespace, strlen($prefix)));
-                        $dirs[] = $dir;
-                    }
+        }
+
+        $dirs = [];
+        foreach ($this->namespaceDirs as $prefix => $prefixDirs) {
+            if (empty($prefix) || 0 === strpos($namespace, $prefix)) {
+                foreach (array_keys($prefixDirs) as $dir) {
+                    $dir .= '/' . str_replace('\\', '/', substr($namespace, strlen($prefix)));
+                    $dirs[] = $dir;
                 }
             }
-
-            return $this->namespaces[$namespace]
-                = new ReflectionNamespace($namespace, $dirs, $this->extensions, $this->reflectionFileFactory);
         }
+
+        return $this->namespaces[$namespace]
+            = new ReflectionNamespace($namespace, $dirs, $this->extensions, $this->reflectionFileFactory);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function clearCache($namespace = null)
+    public function clearCache($namespace = null): void
     {
         if (isset($namespace)) {
             unset($this->namespaces[$this->normalizeNamespace($namespace)]);
         } else {
             $this->namespaces = [];
         }
-
-        return $this;
     }
 
     /**
@@ -92,9 +90,9 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      * @param string $namespace
      * @param string $dir
      *
-     * @return static
+     * @return self
      */
-    public function register($namespace, $dir)
+    public function register($namespace, $dir): self
     {
         $namespace = $this->normalizeNamespace($namespace);
         $this->namespaceDirs[$namespace][$dir] = true;
@@ -108,9 +106,9 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      *
      * @param ClassLoader $loader
      *
-     * @return static
+     * @return self
      */
-    public function registerLoader(ClassLoader $loader)
+    public function registerLoader(ClassLoader $loader): self
     {
         foreach ($loader->getPrefixesPsr4() as $namespace => $dirs) {
             foreach ($dirs as $dir) {
@@ -128,9 +126,11 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      *
      * @return self
      */
-    public function addExtension($ext)
+    public function addExtension(string $ext): self
     {
-        $this->extensions[] = $ext;
+        if (!in_array($ext, $this->extensions, true)) {
+            $this->extensions[] = $ext;
+        }
 
         return $this;
     }
@@ -142,15 +142,15 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      *
      * @return self
      */
-    public function setExtensions(array $extensions)
+    public function setExtensions(array $extensions): self
     {
-        $this->extensions = $extensions;
+        $this->extensions = array_unique($extensions);
 
         return $this;
     }
 
-    private function normalizeNamespace($namespace)
+    private function normalizeNamespace(string $namespace): string
     {
-        return trim($namespace, '\\').'\\';
+        return trim($namespace, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR) . ReflectionNamespaceInterface::NAMESPACE_SEPARATOR;
     }
 }

@@ -10,4 +10,14 @@ class VoidType extends ReflectionType
     {
         return 'void';
     }
+
+    public function isPseudo(): bool
+    {
+        return true;
+    }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
 }

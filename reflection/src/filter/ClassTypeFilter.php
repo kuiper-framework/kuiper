@@ -14,8 +14,6 @@ class ClassTypeFilter implements TypeFilterInterface
 
     /**
      * ClassTypeFilter constructor.
-     *
-     * @param ClassType $type
      */
     public function __construct(ClassType $type)
     {
@@ -26,10 +24,8 @@ class ClassTypeFilter implements TypeFilterInterface
      * checks whether the value is valid.
      *
      * @param mixed $value
-     *
-     * @return bool
      */
-    public function validate($value)
+    public function isValid($value): bool
     {
         $className = $this->type->getName();
 

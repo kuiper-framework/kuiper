@@ -10,4 +10,14 @@ class NullType extends ReflectionType
     {
         return 'null';
     }
+
+    public function isNull(): bool
+    {
+        return true;
+    }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
 }

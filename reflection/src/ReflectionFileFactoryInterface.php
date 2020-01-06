@@ -11,5 +11,5 @@ interface ReflectionFileFactoryInterface
      *
      * @return ReflectionFileInterface
      */
-    public function create($file);
+    public function create($file): ReflectionFileInterface;
 }

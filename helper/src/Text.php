@@ -5,49 +5,43 @@ namespace kuiper\helper;
 final class Text
 {
     /**
-     * Converts strings to camelize style.
+     * Converts strings to camel case style.
      *
      * <code>
-     *    echo Text::camelize('coco_bongo'); // CocoBongo
-     *    echo Text::camelize('co_co-bon_go', '-'); // Co_coBon_go
-     *    echo Text::camelize('co_co-bon_go', '_-'); // CoCoBonGo
+     *    echo CaseFormat::camelCase('coco_bongo'); // CocoBongo
+     *    echo CaseFormat::camelCase('co_co-bon_go', '-'); // Co_coBon_go
+     *    echo CaseFormat::camelCase('co_co-bon_go', '_-'); // CoCoBonGo
      * </code>
      *
-     * @param string $str
      * @param string $delimiter
-     *
-     * @return string
      */
-    public static function camelize($str, $delimiter = null)
+    public static function camelCase(string $str, string $delimiter = null): string
     {
         $sep = "\x00";
-        $delimiter = null === $delimiter ? ['_'] : str_split($delimiter);
+        $replace = null === $delimiter ? ['_'] : str_split($delimiter);
 
-        return implode('', array_map('ucfirst', explode($sep, str_replace($delimiter, $sep, $str))));
+        return implode('', array_map('ucfirst', explode($sep, str_replace($replace, $sep, $str))));
     }
 
     /**
-     * Uncamelize strings which are camelized.
+     * snake case strings which are camel case.
      *
      * <code>
      *    echo Text::uncamelize('CocoBongo'); // coco_bongo
      *    echo Text::uncamelize('CocoBongo', '-'); // coco-bongo
      * </code>
      *
-     * @param string $str
      * @param string $delimiter
-     *
-     * @return string
      */
-    public static function uncamelize($str, $delimiter = null)
+    public static function snakeCase(string $str, string $delimiter = null): string
     {
-        preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $str, $matches);
+        preg_match_all('/([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)/', $str, $matches);
         $ret = $matches[0];
         foreach ($ret as &$match) {
-            $match = $match == strtoupper($match) ? strtolower($match) : lcfirst($match);
+            $match = $match === strtoupper($match) ? strtolower($match) : lcfirst($match);
         }
 
-        return implode(null === $delimiter ? '_' : $delimiter, $ret);
+        return implode($delimiter ?? '_', $ret);
     }
 
     /**
@@ -59,22 +53,16 @@ final class Text
      *    echo Text::startsWith("Hello", "he"); // true
      * </code>
      *
-     * @param string $haystack
-     * @param string $needle
-     * @param bool   $ignoreCase
-     *
-     * @return bool
+     * @param bool $ignoreCase
      */
-    public static function startsWith($haystack, $needle, $ignoreCase = true)
+    public static function startsWith(string $haystack, string $needle, $ignoreCase = true): bool
     {
         if ('' === $needle) {
             return true;
         }
-        if ($ignoreCase) {
-            return 0 === strncasecmp($haystack, $needle, strlen($needle));
-        } else {
-            return 0 === strncmp($haystack, $needle, strlen($needle));
-        }
+
+        return $ignoreCase ? 0 === strncasecmp($haystack, $needle, strlen($needle))
+            : 0 === strncmp($haystack, $needle, strlen($needle));
     }
 
     /**
@@ -86,13 +74,9 @@ final class Text
      *    echo Text::endsWith("Hello", "LLO"); // true
      * </code>
      *
-     * @param string $haystack
-     * @param string $needle
-     * @param bool   $ignoreCase
-     *
-     * @return bool
+     * @param bool $ignoreCase
      */
-    public static function endsWith($haystack, $needle, $ignoreCase = true)
+    public static function endsWith(string $haystack, string $needle, $ignoreCase = true): bool
     {
         if ('' === $needle) {
             return true;
@@ -101,11 +85,9 @@ final class Text
         if ($temp < 0) {
             return false;
         }
-        if ($ignoreCase) {
-            return false !== stripos($haystack, $needle, $temp);
-        } else {
-            return false !== strpos($haystack, $needle, $temp);
-        }
+
+        return $ignoreCase ? false !== stripos($haystack, $needle, $temp)
+            : false !== strpos($haystack, $needle, $temp);
     }
 
     /**

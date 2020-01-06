@@ -10,4 +10,14 @@ class IntegerType extends ReflectionType
     {
         return 'int';
     }
+
+    public function isPrimitive(): bool
+    {
+        return true;
+    }
+
+    public function isScalar(): bool
+    {
+        return true;
+    }
 }

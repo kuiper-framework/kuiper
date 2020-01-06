@@ -9,14 +9,6 @@ use kuiper\helper\fixtures\User;
  */
 class ArraysTest extends TestCase
 {
-    public function testFetch()
-    {
-        $arr = ['foo' => 1];
-        $this->assertEquals(Arrays::fetch($arr, 'foo'), 1, 'key exists');
-        $this->assertEquals(Arrays::fetch($arr, 'bar'), null, 'key does not exists');
-        $this->assertEquals(Arrays::fetch($arr, 'bar', 10), 10, 'key does not exists and with default value');
-    }
-
     public function testPull()
     {
         $arr = [['name' => 'john'], ['name' => 'jim']];
@@ -25,12 +17,12 @@ class ArraysTest extends TestCase
         $objs = array_map(function ($a) {
             return (object) $a;
         }, $arr);
-        $this->assertEquals(Arrays::pull($objs, 'name', Arrays::OBJ), ['john', 'jim']);
+        $this->assertEquals(Arrays::pullField($objs, 'name'), ['john', 'jim']);
 
         $users = array_map(function ($a) {
             return new User($a['name']);
         }, $arr);
-        $this->assertEquals(Arrays::pull($users, 'name', Arrays::GETTER), ['john', 'jim']);
+        $this->assertEquals(Arrays::pull($users, 'name'), ['john', 'jim']);
 
         $arr = ['john' => [1, 2], 'jim' => [3, 4]];
         $this->assertEquals([2, 4], Arrays::pull($arr, 1));
@@ -47,7 +39,7 @@ class ArraysTest extends TestCase
         $objs = array_map(function ($a) {
             return (object) $a;
         }, $arr);
-        $this->assertEquals(Arrays::assoc($objs, 'name', Arrays::OBJ), [
+        $this->assertEquals(Arrays::assocByField($objs, 'name'), [
             'john' => $objs[0],
             'jim' => $objs[1],
         ]);
@@ -55,7 +47,7 @@ class ArraysTest extends TestCase
         $users = array_map(function ($a) {
             return new User($a['name']);
         }, $arr);
-        $this->assertEquals(Arrays::assoc($users, 'name', Arrays::GETTER), [
+        $this->assertEquals(Arrays::assoc($users, 'name'), [
             'john' => $users[0],
             'jim' => $users[1],
         ]);
@@ -82,13 +74,13 @@ class ArraysTest extends TestCase
     public function testSelectObject()
     {
         $arr = (object) ['foo' => 1, 'bar' => 2];
-        $this->assertEquals(Arrays::select($arr, ['foo'], Arrays::OBJ), ['foo' => 1]);
+        $this->assertEquals(Arrays::selectField($arr, ['foo']), ['foo' => 1]);
     }
 
     public function testSelectGetter()
     {
         $user = new User('john');
-        $this->assertEquals(Arrays::select($user, ['name'], Arrays::GETTER), ['name' => 'john']);
+        $this->assertEquals(Arrays::select($user, ['name']), ['name' => 'john']);
     }
 
     public function testFilter()
@@ -97,17 +89,6 @@ class ArraysTest extends TestCase
         $this->assertEquals(Arrays::filter($arr), [
              'foo' => 0, 'bar' => '', 'baz' => 1,
         ]);
-    }
-
-    public function testSorter()
-    {
-        $arr = [['name' => 'john'], ['name' => 'jim']];
-        $users = array_map(function ($a) {
-            return new User($a['name']);
-        }, $arr);
-
-        usort($users, Arrays::sorter('name', 'strcmp', Arrays::GETTER));
-        $this->assertEquals($users[0]->name, 'jim');
     }
 
     public function testAssignPublic()
@@ -160,7 +141,7 @@ class ArraysTest extends TestCase
 
     public function testMapKeys()
     {
-        $arr = Arrays::mapKeys(['fooId' => 1], [Text::class, 'uncamelize']);
+        $arr = Arrays::mapKeys(['fooId' => 1], [Text::class, 'snakeCase']);
         $this->assertEquals(['foo_id' => 1], $arr);
 
         $ret = Arrays::mapKeys($arr, function ($key) {

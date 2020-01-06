@@ -1,15 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\di;
 
-use Psr\Container\ContainerInterface as PsrContainer;
+use Psr\Container\ContainerInterface;
 
 interface ContainerAwareInterface
 {
-    /**
-     * Sets the container.
-     *
-     * @param PsrContainer $container
-     */
-    public function setContainer(PsrContainer $container);
+    public function setContainer(ContainerInterface $container): void;
 }

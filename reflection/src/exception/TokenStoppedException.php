@@ -2,6 +2,6 @@
 
 namespace kuiper\reflection\exception;
 
-class TokenStoppedException extends \RuntimeException
+class TokenStoppedException extends ReflectionException
 {
 }

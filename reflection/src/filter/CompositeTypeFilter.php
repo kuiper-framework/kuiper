@@ -4,7 +4,6 @@ namespace kuiper\reflection\filter;
 
 use kuiper\reflection\type\CompositeType;
 use kuiper\reflection\TypeFilterInterface;
-use kuiper\reflection\TypeUtils;
 
 class CompositeTypeFilter implements TypeFilterInterface
 {
@@ -15,8 +14,6 @@ class CompositeTypeFilter implements TypeFilterInterface
 
     /**
      * CompositeTypeFilter constructor.
-     *
-     * @param CompositeType $type
      */
     public function __construct(CompositeType $type)
     {
@@ -27,13 +24,11 @@ class CompositeTypeFilter implements TypeFilterInterface
      * checks whether the value is valid.
      *
      * @param mixed $value
-     *
-     * @return bool
      */
-    public function validate($value)
+    public function isValid($value): bool
     {
         foreach ($this->type->getTypes() as $type) {
-            if (TypeUtils::validate($type, $value)) {
+            if ($type->isValid($value)) {
                 return true;
             }
         }
