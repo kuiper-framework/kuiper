@@ -4,15 +4,13 @@ namespace kuiper\rpc\server;
 
 use Closure;
 use kuiper\rpc\MiddlewareInterface;
-use kuiper\rpc\MiddlewareStackTrait;
+use kuiper\rpc\MiddlewareStack;
 use kuiper\rpc\RequestInterface;
 use kuiper\rpc\ResponseInterface;
 use Psr\Container\ContainerInterface;
 
 class Server implements ServerInterface, MiddlewareInterface
 {
-    use MiddlewareStackTrait;
-
     /**
      * @var ContainerInterface
      */
@@ -24,16 +22,17 @@ class Server implements ServerInterface, MiddlewareInterface
     private $resolver;
 
     /**
-     * @var array
+     * @var MiddlewareStack
      */
-    private $stages = [
-        self::START => 'START',
-        self::CALL => 'CALL',
-    ];
+    private $middlewares;
 
     public function __construct(ServiceResolverInterface $resolver)
     {
         $this->resolver = $resolver;
+        $this->middlewares = new MiddlewareStack([
+            self::START => 'START',
+            self::CALL => 'CALL',
+        ]);
     }
 
     /**
@@ -44,7 +43,7 @@ class Server implements ServerInterface, MiddlewareInterface
         if ($this->container && $middleware instanceof Closure) {
             $middleware->bindTo($this->container);
         }
-        $this->addMiddleware($middleware, $position, $id);
+        $this->middlewares->addMiddleware($middleware, $position, $id);
 
         return $this;
     }
@@ -54,12 +53,12 @@ class Server implements ServerInterface, MiddlewareInterface
      */
     public function serve(RequestInterface $request, ResponseInterface $response)
     {
-        if ($this->middlewareStack === null) {
-            $this->addMiddleware($this, self::CALL);
-            $this->buildMiddlewareStack();
+        if (!$this->middlewares->isInitialized()) {
+            $this->middlewares->addMiddleware($this, self::CALL);
+            $this->middlewares->initialize();
         }
 
-        return $this->callMiddlewareStack($request, $response);
+        return $this->middlewares->callMiddlewareStack($request, $response);
     }
 
     /**

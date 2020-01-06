@@ -54,7 +54,7 @@ class CompositeContainer implements ContainerInterface
         if (in_array($id, self::$CONTAINER_IDS)) {
             return $this;
         }
-        if (strpos($id, '\\') !== false) {
+        if (false !== strpos($id, '\\')) {
             $container = $this->getContainer($id);
             if ($container) {
                 return $container->get($id);
@@ -92,7 +92,7 @@ class CompositeContainer implements ContainerInterface
     public function make($id, $parameters = [])
     {
         $id = $this->normalize($id);
-        if (strpos($id, '\\') !== false) {
+        if (false !== strpos($id, '\\')) {
             $container = $this->getContainer($id);
             if ($container) {
                 return $container->make($id, $parameters);
@@ -179,10 +179,16 @@ class CompositeContainer implements ContainerInterface
                 return $this->containers[$namespace];
             }
         }
+
+        return null;
     }
 
     /**
      * Removes '\' at the beginning.
+     *
+     * @param string $name
+     *
+     * @return string
      */
     protected function normalize($name)
     {

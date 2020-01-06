@@ -25,6 +25,22 @@ class HttpHandler implements HandlerInterface
     }
 
     /**
+     * @return HttpClient
+     */
+    public function getHttpClient()
+    {
+        return $this->httpClient;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUri()
+    {
+        return $this->uri;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function handle(RequestInterface $request, ResponseInterface $response)

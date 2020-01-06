@@ -22,7 +22,7 @@ class AutowireDecorator extends DefinitionDecorator
     /**
      * @var ReaderInterface
      */
-    private $reader;
+    private $annotationReader;
 
     /**
      * @var DocReaderInterface
@@ -60,12 +60,12 @@ class AutowireDecorator extends DefinitionDecorator
     {
         $autowired = false;
         $classAnnotations = $this->annotationReader->getClassAnnotations($class);
-        foreach ($classAnnotations as $annot) {
-            if ($annot instanceof Autowired) {
+        foreach ($classAnnotations as $annotation) {
+            if ($annotation instanceof Autowired) {
                 $autowired = true;
-            } elseif ($annot instanceof Injectable) {
-                $definition->scope($annot->scope);
-                if ($annot->lazy) {
+            } elseif ($annotation instanceof Injectable) {
+                $definition->scope($annotation->scope);
+                if ($annotation->lazy) {
                     $definition->lazy();
                 }
             }
@@ -109,12 +109,12 @@ class AutowireDecorator extends DefinitionDecorator
             }
 
             $injectAnnot = $this->annotationReader->getPropertyAnnotation($property, Inject::class);
-            if ($injectAnnot === null) {
+            if (null === $injectAnnot) {
                 continue;
             }
-            if (($entryName = $injectAnnot->getName()) === null) {
+            if (null === ($entryName = $injectAnnot->getName())) {
                 $entryName = $this->docReader->getPropertyClass($property);
-                if ($entryName === null) {
+                if (null === $entryName) {
                     throw new AnnotationException(sprintf(
                         '@Inject found on property %s->%s but unable to guess what to inject, use a @var annotation',
                         $class->getName(),
@@ -135,12 +135,12 @@ class AutowireDecorator extends DefinitionDecorator
             if ($method->isStatic() || array_key_exists($method->getName(), $exists)) {
                 continue;
             }
-            $injectAnnot = $this->annotationReader->getMethodAnnotation($method, Inject::class);
-            if ($injectAnnot === null) {
+            $injectAnnotation = $this->annotationReader->getMethodAnnotation($method, Inject::class);
+            if (null === $injectAnnotation) {
                 continue;
             }
             $params = [];
-            $injectParams = $injectAnnot->getParameters();
+            $injectParams = $injectAnnotation->getParameters();
             $docParams = [];
             if (empty($injectParams)) {
                 $docParams = $this->getParameterClasses($method);
@@ -163,7 +163,7 @@ class AutowireDecorator extends DefinitionDecorator
                         $name
                     ));
                 }
-                if ($type !== null) {
+                if (null !== $type) {
                     $params[$index] = new AliasDefinition($type);
                 }
             }
@@ -173,9 +173,8 @@ class AutowireDecorator extends DefinitionDecorator
         return $definitions;
     }
 
-    protected function autowire($class, &$properties, &$methods)
+    protected function autowire(\ReflectionClass $class, &$properties, &$methods)
     {
-        $definitions = [];
         $lowerProperties = array_map('strtolower', array_keys($properties));
         $lowerMethods = array_map('strtolower', array_keys($methods));
         foreach ($class->getMethods() as $method) {
@@ -187,7 +186,7 @@ class AutowireDecorator extends DefinitionDecorator
                 continue;
             }
             // autowire setter
-            if (strpos($name, 'set') !== 0) {
+            if (0 !== strpos($name, 'set')) {
                 continue;
             }
             $property = substr($name, 3);
@@ -196,7 +195,7 @@ class AutowireDecorator extends DefinitionDecorator
                 continue;
             }
             $paramTypes = $this->getParameterClasses($method);
-            if ($paramTypes === null) {
+            if (null === $paramTypes) {
                 // cannot resolve some parameter type
                 $this->logger && $this->logger->warning(sprintf(
                     "Cannot resolve method '%s::%s' parameters",
@@ -222,7 +221,7 @@ class AutowireDecorator extends DefinitionDecorator
                 continue;
             }
             $type = $this->docReader->getPropertyClass($property);
-            if ($type !== null) {
+            if (null !== $type) {
                 $properties[$property->getName()] = new AliasDefinition($type);
             }
         }
@@ -236,7 +235,7 @@ class AutowireDecorator extends DefinitionDecorator
             if ($parameter->isOptional()) {
                 continue;
             }
-            if (($class = $parameter->getClass()) !== null) {
+            if (null !== ($class = $parameter->getClass())) {
                 $type = $class->getName();
             } elseif (isset($docParams[$parameter->getName()])) {
                 $type = $docParams[$parameter->getName()];
@@ -249,11 +248,17 @@ class AutowireDecorator extends DefinitionDecorator
         return $paramTypes;
     }
 
-    public function getReader()
+    /**
+     * @return ReaderInterface
+     */
+    public function getAnnotationReader()
     {
-        return $this->reader;
+        return $this->annotationReader;
     }
 
+    /**
+     * @return DocReaderInterface
+     */
     public function getDocReader()
     {
         return $this->docReader;

@@ -58,9 +58,9 @@ class Redis extends RedisDriver implements DriverInterface
 
     public function getConnection()
     {
-        if ($this->connection === null) {
+        if (null === $this->connection) {
             $this->connect();
-        } elseif ($this->connection === false) {
+        } elseif (false === $this->connection) {
             throw new RuntimeException('Redis connection has been disconnected');
         }
 
@@ -83,7 +83,7 @@ class Redis extends RedisDriver implements DriverInterface
     {
         $servers = $this->parseServers();
         $options = $this->options;
-        if (count($servers) === 1) {
+        if (1 === count($servers)) {
             $server = $servers[0];
             $redis = new RedisClient();
             $redis->connect($server['host'], $server['port']);
@@ -108,7 +108,7 @@ class Redis extends RedisDriver implements DriverInterface
             $serializer = $options['serializer'];
         }
         $value = constant(RedisClient::class.'::SERIALIZER_'.strtoupper($serializer));
-        if ($value === null) {
+        if (null === $value) {
             throw new InvalidArgumentException("Unknown redis serializer '{$serializer}'");
         }
         $redis->setOption(RedisClient::OPT_SERIALIZER, $value);
@@ -123,6 +123,7 @@ class Redis extends RedisDriver implements DriverInterface
         if (isset($this->options['servers'])) {
             $servers = [];
             foreach ($this->options['servers'] as $server) {
+                $host = 'localhost';
                 $port = 6379;
                 if (is_string($server)) {
                     $host = $server;

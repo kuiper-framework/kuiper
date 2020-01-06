@@ -2,16 +2,14 @@
 
 namespace kuiper\annotations;
 
-use ReflectionClass;
-
 interface ParserInterface
 {
     /**
      * Parses annotations from class.
      *
-     * @param ReflectionClass $class
+     * @param \ReflectionClass $class
      *
-     * @return array
+     * @return AnnotationSink
      */
-    public function parse(ReflectionClass $class);
+    public function parse(\ReflectionClass $class);
 }

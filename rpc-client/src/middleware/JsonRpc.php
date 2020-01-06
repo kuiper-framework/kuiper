@@ -3,9 +3,12 @@
 namespace kuiper\rpc\client\middleware;
 
 use kuiper\rpc\client\exception\RpcException;
+use kuiper\rpc\client\Request;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RequestInterface;
 use kuiper\rpc\ResponseInterface;
+use kuiper\serializer\normalizer\ExceptionNormalizer;
+use kuiper\serializer\NormalizerInterface;
 
 class JsonRpc implements MiddlewareInterface
 {
@@ -15,13 +18,19 @@ class JsonRpc implements MiddlewareInterface
     private $map;
 
     /**
+     * @var NormalizerInterface
+     */
+    private $exceptionNormalizer;
+
+    /**
      * @var int
      */
     private $id = 1;
 
-    public function __construct(array $map = [])
+    public function __construct(array $map = [], NormalizerInterface $exceptionNormalizer = null)
     {
         $this->map = $map;
+        $this->exceptionNormalizer = $exceptionNormalizer ?: new ExceptionNormalizer();
     }
 
     /**
@@ -29,6 +38,7 @@ class JsonRpc implements MiddlewareInterface
      */
     public function __invoke(RequestInterface $request, ResponseInterface $response, callable $next)
     {
+        /** @var Request $request */
         $serviceName = $request->getClass().'.'.$request->getMethod();
 
         if (isset($this->map[$serviceName])) {
@@ -39,48 +49,22 @@ class JsonRpc implements MiddlewareInterface
             'id' => $this->id++,
             'params' => $request->getParameters(),
         ]));
+        /** @var ResponseInterface $response */
         $response = $next($request, $response);
         $result = json_decode((string) $response->getBody(), true);
         if (isset($result['error'])) {
             $this->handleError($result['error']);
+        } else {
+            return $response->withResult($result['result']);
         }
-
-        return $response->withResult($result['result']);
     }
 
     private function handleError($error)
     {
         if (isset($error['data'])) {
-            $data = unserialize(base64_decode($error['data']));
-            if ($data !== false) {
-                if (is_array($data) && isset($data['class'], $data['message'], $data['code'])) {
-                    $this->tryThrowException($data);
-                } elseif ($data instanceof \Exception) {
-                    throw $data;
-                }
-            }
-        }
-        throw new RpcException($error['message'], $error['code']);
-    }
-
-    private function tryThrowException($data)
-    {
-        $className = $data['class'];
-        $class = new \ReflectionClass($className);
-        $constructor = $class->getConstructor();
-        if ($class->isSubClassOf(\Exception::class) && $constructor !== null) {
-            $params = $constructor->getParameters();
-            if (count($params) > 2) {
-                $requiredParams = 0;
-                foreach ($params as $param) {
-                    if (!$param->isOptional()) {
-                        ++$requiredParams;
-                    }
-                }
-                if ($requiredParams <= 2) {
-                    throw new $className($data['message'], $data['code']);
-                }
-            }
+            throw $this->exceptionNormalizer->denormalize($error['data'], null);
+        } else {
+            throw new RpcException($error['message'], $error['code']);
         }
     }
 }

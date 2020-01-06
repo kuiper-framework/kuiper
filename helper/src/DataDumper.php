@@ -57,6 +57,7 @@ class DataDumper
      *
      * @param mixed  $data
      * @param string $format
+     * @param bool   $pretty
      *
      * @return string
      */
@@ -68,14 +69,18 @@ class DataDumper
     /**
      * @param string $content
      * @param string $format
+     *
+     * @SuppressWarnings("eval")
+     *
+     * @return mixed
      */
     public static function load($content, $format)
     {
-        if ($format === 'json') {
+        if ('json' === $format) {
             return json_decode($content, true);
-        } elseif ($format === 'yaml') {
+        } elseif ('yaml' === $format) {
             return Yaml::parse($content);
-        } elseif ($format === 'php') {
+        } elseif ('php' === $format) {
             return eval('return '.$content.';');
         } else {
             throw new InvalidArgumentException("Invalid format '{$format}'");
@@ -96,7 +101,7 @@ class DataDumper
             throw new InvalidArgumentException("Cannot guess format from file '{$file}'");
         }
 
-        return $format = self::$FORMATS[$ext];
+        return self::$FORMATS[$ext];
     }
 
     /**
@@ -112,11 +117,12 @@ class DataDumper
         if (!isset($format)) {
             $format = self::guessFormat($file);
         }
-        if ($format === 'json') {
+        if ('json' === $format) {
             return json_decode(file_get_contents($file), true);
-        } elseif ($format === 'yaml') {
+        } elseif ('yaml' === $format) {
             return Yaml::parse(file_get_contents($file));
-        } elseif ($format === 'php') {
+        } elseif ('php' === $format) {
+            /* @noinspection PhpIncludeInspection */
             return require $file;
         } else {
             throw new InvalidArgumentException("Invalid format '{$format}'");
@@ -129,6 +135,9 @@ class DataDumper
      * @param string $file
      * @param mixed  $data
      * @param string $format file format. If null, determine from file extension
+     * @param bool   $pretty
+     *
+     * @return bool|int
      */
     public static function dumpFile($file, $data, $format = null, $pretty = true)
     {

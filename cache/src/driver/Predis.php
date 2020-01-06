@@ -10,8 +10,7 @@ use Predis\ClientInterface;
 class Predis extends RedisDriver implements DriverInterface
 {
     /**
-     * @param array $options options contains keys
-     *                       - servers an array each value may contain keys: host, port, index
+     * @param ClientInterface $redis
      */
     public function __construct(ClientInterface $redis)
     {
@@ -25,7 +24,7 @@ class Predis extends RedisDriver implements DriverInterface
     {
         $ret = $this->getConnection()->get($key);
 
-        return $ret === null ? false : unserialize($ret);
+        return null === $ret ? false : unserialize($ret);
     }
 
     /**
@@ -36,7 +35,7 @@ class Predis extends RedisDriver implements DriverInterface
         $values = $this->getConnection()->mget($keys);
         $ret = [];
         foreach ($values as $value) {
-            $ret[] = $value === null ? false : unserialize($value);
+            $ret[] = null === $value ? false : unserialize($value);
         }
 
         return $ret;

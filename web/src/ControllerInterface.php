@@ -19,8 +19,10 @@ interface ControllerInterface extends RequestAwareInterface, ResponseAwareInterf
 
     /**
      * Initialize controller.
+     * if return false, stop execute action
+     * if return ResponseInterface, stop execute action and return the response.
      *
-     * @return bool
+     * @return bool|ResponseInterface
      */
     public function initialize();
 }

@@ -2,18 +2,15 @@
 
 namespace kuiper\annotations;
 
-use InvalidArgumentException;
 use kuiper\annotations\annotation\Target;
 use kuiper\annotations\exception\AnnotationException;
 use kuiper\annotations\exception\ClassNotFoundException;
+use kuiper\reflection\FqcnResolver;
 use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionFileFactoryInterface;
-use kuiper\reflection\ReflectionType;
+use kuiper\reflection\TypeUtils;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use ReflectionClass;
-use ReflectionProperty;
-use RuntimeException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class AnnotationReader extends AbstractReader implements LoggerAwareInterface
@@ -32,11 +29,9 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
     protected $annotations = [];
 
     /**
-     * Cached annotation metadata.
-     *
-     * @var array
+     * @var AnnotationMetadataFactory
      */
-    protected $annotationMetadata = [];
+    protected $annotationMetadataFactory;
 
     /**
      * @var ParserInterface
@@ -61,7 +56,9 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
     /**
      * @var array excluded (value = true) or included (value = false) names
      */
-    protected $ignoredNames = [];
+    protected $ignoredNames = [
+        'SuppressWarnings' => true,
+    ];
 
     /**
      * @var int
@@ -76,14 +73,17 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
         $this->reflectionFileFactory = $reflectionFileFactory ?: ReflectionFileFactory::createInstance();
         $this->parser = $parser ?: new Parser($this->reflectionFileFactory);
         $this->docReader = $docReader ?: new DocReader($this->reflectionFileFactory);
+        $this->annotationMetadataFactory = new AnnotationMetadataFactory($this->parser, $this->docReader);
     }
 
     /**
      * Adds the annotation names.
      *
-     * @param array<string> $names
+     * @param string[] $names
+     *
+     * @return $this
      */
-    public function includeNames($names)
+    public function includeNames(array $names)
     {
         $this->ignoredNames = array_merge(
             $this->ignoredNames,
@@ -96,9 +96,11 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
     /**
      * Ignores these annotation names.
      *
-     * @param array<string> $names
+     * @param string[] $names
+     *
+     * @return $this
      */
-    public function ignoreNames($names)
+    public function ignoreNames(array $names)
     {
         $this->ignoredNames = array_merge(
             $this->ignoredNames,
@@ -110,15 +112,19 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
 
     /**
      * Clears internal cache.
+     *
+     * @param string|null $className
+     *
+     * @return $this
      */
-    public function clearCache($className = null)
+    public function clearCache(string $className = null)
     {
         if (isset($className)) {
             unset($this->annotations[$className]);
-            unset($this->annotationMetadata[$className]);
+            $this->annotationMetadataFactory->clearCache($className);
         } else {
             $this->annotations = [];
-            $this->annotationMetadata = [];
+            $this->annotationMetadataFactory->clearCache();
         }
 
         return $this;
@@ -126,6 +132,8 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
 
     /**
      * @param ParserInterface $parser
+     *
+     * @return $this
      */
     public function setParser(ParserInterface $parser)
     {
@@ -136,6 +144,8 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
 
     /**
      * @param EventDispatcherInterface $eventDispatcher
+     *
+     * @return $this
      */
     public function setEventDispatcher(EventDispatcherInterface $eventDispatcher)
     {
@@ -146,6 +156,8 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
 
     /**
      * @param ReflectionFileFactoryInterface $reflectionFileFactory
+     *
+     * @return $this
      */
     public function setReflectionFileFactory(ReflectionFileFactoryInterface $reflectionFileFactory)
     {
@@ -157,12 +169,14 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
     /**
      * Sets error model.
      *
-     * @param int $model constants
+     * @param int $mode
+     *
+     * @return $this
      */
     public function setErrorMode($mode)
     {
         if (!in_array($mode, [self::ERRMODE_EXCEPTION, self::ERRMODE_SILENT, self::ERRMODE_WARNING])) {
-            throw new InvalidArgumentException("invalid error mode '{$mode}'");
+            throw new \InvalidArgumentException("Invalid error mode '{$mode}'");
         }
         $this->errorMode = $mode;
 
@@ -172,22 +186,18 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    public function getAnnotations(ReflectionClass $class)
+    public function getAnnotations(\ReflectionClass $class)
     {
-        $file = $class->getFileName();
-        if ($file && strpos($file, "eval()'d code") !== false) {
-            return ['class' => [], 'methods' => [], 'properties' => []];
-        }
         $className = $class->getName();
-        if (isset($this->annotations[$className])) {
-            return $this->annotations[$className];
+        if ($this->isCacheHit($className)) {
+            return $this->getCached($className);
         }
         if ($this->eventDispatcher) {
             $event = new AnnotationEvent($class);
             $this->eventDispatcher->dispatch(AnnotationEvents::PRE_PARSE, $event);
             $annotations = $event->getAnnotations();
-            if (is_array($annotations)) {
-                return $this->annotations[$className] = $annotations;
+            if ($annotations) {
+                return $this->save($className, $annotations);
             }
         }
         $annotations = $this->parseAnnotations($class);
@@ -198,129 +208,147 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
             $annotations = $event->getAnnotations();
         }
 
-        return $this->annotations[$className] = $annotations;
-    }
-
-    protected function parseAnnotations(ReflectionClass $class)
-    {
-        $this->logger && $this->logger->debug('[AnnotationReader] parse annotations from '.$class->getName());
-        $context = new AnnotationContext($class, $this->reflectionFileFactory);
-        $sink = ['class' => [], 'methods' => [], 'properties' => []];
-        $annotations = $this->parser->parse($class);
-        if (!empty($annotations['class'])) {
-            foreach ($annotations['class'] as $annotation) {
-                $this->addAnnotation($context->withAnnotation($annotation), $sink);
-            }
-        }
-        if (!empty($annotations['methods'])) {
-            foreach ($annotations['methods'] as $name => $methodAnnotations) {
-                $method = $class->getMethod($name);
-                $methodContext = $context->withMethod($method);
-                foreach ($methodAnnotations as $annotation) {
-                    $this->addAnnotation($methodContext->withAnnotation($annotation), $sink);
-                }
-            }
-        }
-        if (!empty($annotations['properties'])) {
-            foreach ($annotations['properties'] as $name => $propertyAnnotations) {
-                $property = $class->getProperty($name);
-                $propertyContext = $context->withProperty($property);
-                foreach ($propertyAnnotations as $annotation) {
-                    $this->addAnnotation($propertyContext->withAnnotation($annotation), $sink);
-                }
-            }
-        }
-
-        return $sink;
-    }
-
-    protected function addAnnotation(AnnotationContext $context, array &$sink)
-    {
-        $annotationObj = $this->createAnnotation($context, true);
-        if ($annotationObj !== null) {
-            if ($context->getTarget() === Target::TARGET_CLASS) {
-                $sink['class'][] = $annotationObj;
-            } elseif ($context->getTarget() === Target::TARGET_METHOD) {
-                $sink['methods'][$context->getMethod()->getName()][] = $annotationObj;
-            } elseif ($context->getTarget() === Target::TARGET_PROPERTY) {
-                $sink['properties'][$context->getProperty()->getName()][] = $annotationObj;
-            }
-        }
+        return $this->save($className, $annotations);
     }
 
     /**
-     * @param AnnotationContext $context
-     * @param int               $target
-     * @param bool              $ignoredNotFound
+     * @param \ReflectionClass $class
+     *
+     * @return AnnotationSink
      */
-    protected function createAnnotation(AnnotationContext $context, $ignoredNotFound = false)
+    protected function parseAnnotations(\ReflectionClass $class)
     {
-        $annotation = $context->getAnnotation();
-        $annotationName = $annotation->getName();
-        if ($this->shouldIgnore($annotationName)) {
-            return;
+        if (!$this->isClassFileExists($class)) {
+            return AnnotationSink::emptySink();
         }
-        $annotationClass = $context->getAnnotationClassName();
-        if (!class_exists($annotationClass)) {
-            if ($ignoredNotFound) {
-                $this->handleNotFound($context, $annotationClass);
+        $this->debug('parse annotations from '.$class->getName());
+        $annotations = $this->parser->parse($class);
+        $classAnnotations = $this->parseClassAnnotations($class, $annotations);
+        $methodAnnotations = $this->parseMethodAnnotations($class, $annotations);
+        $propertyAnnotations = $this->parsePropertyAnnotations($class, $annotations);
 
-                return;
-            } else {
-                throw new AnnotationException(sprintf(
-                    'Cannot load annotation @%s which resolve to %s. %s',
-                    $annotationName,
-                    $annotationClass,
-                    $this->describeAnnotation($context)
-                ));
+        return new AnnotationSink($classAnnotations, $methodAnnotations, $propertyAnnotations);
+    }
+
+    private function isClassFileExists(\ReflectionClass $class)
+    {
+        $file = $class->getFileName();
+        // If the class is defined in the PHP core or in a PHP extension, FALSE is returned.
+        return $file && false === strpos($file, "eval()'d code");
+    }
+
+    private function parseClassAnnotations(\ReflectionClass $class, AnnotationSink $annotations)
+    {
+        $classAnnotations = [];
+        foreach ($annotations->getClassAnnotations() as $annotation) {
+            /** @var Annotation $annotation */
+            if ($this->shouldIgnore($annotation->getName())) {
+                continue;
+            }
+            try {
+                $classAnnotations[] = $this->createAnnotation($annotation, $class, Target::TARGET_CLASS);
+            } catch (\Exception $e) {
+                $this->handleError($e, $annotation, $class);
             }
         }
-        $metadata = $this->getAnnotationMetadata($annotationClass);
-        if ($metadata['is_annotation'] === false) {
-            throw new AnnotationException(sprintf(
-                "The class '%s' is not annotated with @Annotation. %s",
-                $annotationClass,
-                $this->describeAnnotation($context)
-            ));
+
+        return $classAnnotations;
+    }
+
+    private function parseMethodAnnotations(\ReflectionClass $class, AnnotationSink $annotations)
+    {
+        $methodAnnotations = [];
+        foreach ($class->getMethods() as $method) {
+            foreach ($annotations->getMethodAnnotations($method->getName()) as $annotation) {
+                /** @var Annotation $annotation */
+                if ($this->shouldIgnore($annotation->getName())) {
+                    continue;
+                }
+                try {
+                    $methodAnnotations[$method->getName()][] = $this->createAnnotation($annotation, $method, Target::TARGET_METHOD);
+                } catch (\Exception $e) {
+                    $this->handleError($e, $annotation, $method);
+                }
+            }
         }
-        $target = $context->getTarget();
-        if (0 === ($metadata['targets'] & $target)) {
+
+        return $methodAnnotations;
+    }
+
+    private function parsePropertyAnnotations(\ReflectionClass $class, AnnotationSink $annotations)
+    {
+        $propertyAnnotations = [];
+        $traits = $class->getTraits();
+        foreach ($class->getProperties() as $property) {
+            foreach ($annotations->getPropertyAnnotations($property->getName()) as $annotation) {
+                /** @var Annotation $annotation */
+                if ($this->shouldIgnore($annotation->getName())) {
+                    continue;
+                }
+                try {
+                    foreach ($traits as $trait) {
+                        // 使用 trait 属性代替
+                        if ($trait->hasProperty($property->getName())) {
+                            $property = $trait->getProperty($property->getName());
+                            break;
+                        }
+                    }
+                    $propertyAnnotations[$property->getName()][] = $this->createAnnotation($annotation, $property, Target::TARGET_PROPERTY);
+                } catch (\Exception $e) {
+                    $this->handleError($e, $annotation, $property);
+                }
+            }
+        }
+
+        return $propertyAnnotations;
+    }
+
+    /**
+     * @param Annotation $annotation
+     * @param \Reflector $reflector
+     * @param int        $target
+     *
+     * @return object
+     */
+    protected function createAnnotation(Annotation $annotation, $reflector, $target)
+    {
+        $annotationClass = $this->resolveAnnotationClass($annotation, $reflector);
+        $metadata = $this->getAnnotationMetadata($annotationClass);
+        if (0 === ($metadata->getTargets() & $target)) {
             throw new AnnotationException(sprintf(
                 'Annotation @%s is not allowed here. '.
-                'You may only use this annotation on these code elements: %s. %s',
-                $annotationName,
-                Target::describe($metadata['targets']),
-                $this->describeAnnotation($context, false)
+                'You may only use this annotation on these code elements: %s.',
+                $annotation->getName(), Target::describe($metadata->getTargets())
             ));
         }
-        $values = $this->getArguments($context);
-        if (isset($values['value'])
-            && isset($metadata['default_property'])
-            && $metadata['default_property'] != 'value') {
-            // update default_property value
-            $values[$metadata['default_property']] = $values['value'];
-            unset($values['value']);
-        }
-        if (!empty($metadata['attribute_types'])) {
-            $values = $this->validateArguments($values, $metadata['attribute_types'], $context);
-        }
-        if ($metadata['has_constructor']) {
-            try {
-                $annotationObj = new $annotationClass($values, $context);
-            } catch (InvalidArgumentException $e) {
-                throw new AnnotationException($e->getMessage().$this->describeAnnotation($context));
-            }
+
+        $values = $this->getArguments($annotation, $reflector, $metadata);
+        if ($metadata->hasConstructor()) {
+            return new $annotationClass($values, $reflector);
         } else {
             $annotationObj = new $annotationClass();
-            if (!empty($values)) {
-                $this->setProperties($annotationObj, $values, $metadata['properties'], $context);
+            foreach ($values as $name => $value) {
+                if (!$metadata->hasProperty($name)) {
+                    throw new AnnotationException(sprintf(
+                        "Property '%s' does not exist. Available properties %s.",
+                        $name, json_encode($metadata->getProperties())
+                    ));
+                }
+                $annotationObj->{$name} = $value;
             }
         }
 
         return $annotationObj;
     }
 
-    protected function shouldIgnore($name)
+    /**
+     * Ignore annotation in the ignoredNames or first letter is lower case.
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    protected function shouldIgnore(string $name)
     {
         if (empty($name)) {
             return false;
@@ -332,293 +360,186 @@ class AnnotationReader extends AbstractReader implements LoggerAwareInterface
         return !ctype_upper($name[0]);
     }
 
-    protected function handleNotFound(AnnotationContext $context, $annotationClass)
-    {
-        if ($this->errorMode !== self::ERRMODE_SILENT) {
-            $message = sprintf(
-                "Cannot load annotation class '%s' for %s",
-                $annotationClass,
-                $this->describeAnnotation($context)
-            );
-            if ($this->errorMode === self::ERRMODE_WARNING) {
-                if (isset($this->logger)) {
-                    $this->logger->warning($message);
-                } else {
-                    trigger_error($message);
-                }
-            } elseif ($this->errorMode === self::ERRMODE_EXCEPTION) {
-                throw new AnnotationException($message);
-            } else {
-                throw new RuntimeException("Unknown error mode {$this->errorMode}");
-            }
-        }
-    }
-
     /**
      * @param string $className the annotation class name
      *
-     * @return array
-     *               - is_annotation boolean whether the class is annotation
-     *               - targets int bitmask of targets
-     *               - has_constructor boolean whether should call the class constructor
-     *               - properties array annotation properties
-     *               - default_property string name of default property
-     *               - attribute_types array with key
-     *               * required boolean
-     *               * type ReflectionType
-     *               * enums array
+     * @return AnnotationMetadata
      */
-    protected function getAnnotationMetadata($className)
+    protected function getAnnotationMetadata(string $className)
     {
-        if (isset($this->annotationMetadata[$className])) {
-            return $this->annotationMetadata[$className];
-        }
-        $class = new ReflectionClass($className);
-        $metadata = [
-            'is_annotation' => false,
-            'has_constructor' => false,
-            'targets' => Target::TARGET_ALL,
-        ];
-        $annotations = $this->parser->parse($class);
-        if (!empty($annotations['class'])) {
-            foreach ($annotations['class'] as $annotation) {
-                $name = $annotation->getName();
-                if ($name === 'Annotation') {
-                    $metadata['is_annotation'] = true;
-                } elseif ($name === 'Target') {
-                    $target = new Target($annotation->getArguments());
-                    $metadata['targets'] = $target->targets;
-                }
-            }
-        }
-        if ($metadata['is_annotation']) {
-            $constructor = $class->getConstructor();
-            if ($constructor !== null && $constructor->getNumberOfParameters() > 0) {
-                $metadata['has_constructor'] = true;
-            }
-            $metadata = array_merge($metadata, $this->parsePropertyTypes($class));
-            $this->parseAnnotationAnnotations($class, $annotations, $metadata);
-        }
-
-        return $this->annotationMetadata[$className] = $metadata;
-    }
-
-    protected function parsePropertyTypes(ReflectionClass $class)
-    {
-        $metadata = [];
-        foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-            if ($property->isStatic()) {
-                // ignore static properties
-                continue;
-            }
-            $name = $property->getName();
-            $metadata['properties'][$name] = true;
-            if (!isset($metadata['default_property'])) {
-                // set default_property to the first property
-                $metadata['default_property'] = $name;
-            }
-            try {
-                $metadata['attribute_types'][$name] = [
-                    'required' => false,
-                    'type' => $this->docReader->getPropertyType($property),
-                ];
-            } catch (ClassNotFoundException $e) {
-                throw new AnnotationException(sprintf(
-                    '%s on property %s->%s',
-                    $e->getMessage(),
-                    $class->getName(),
-                    $name
-                ));
-            }
+        $metadata = $this->annotationMetadataFactory->create($className);
+        if (false === $metadata) {
+            throw new AnnotationException("The class '{$className}' is not annotated with @Annotation.");
         }
 
         return $metadata;
     }
 
-    protected function parseAnnotationAnnotations(ReflectionClass $class, $annotations, &$metadata)
-    {
-        if (empty($annotations['properties'])) {
-            return;
-        }
-        foreach ($annotations['properties'] as $property => $propertyAnnotations) {
-            foreach ($propertyAnnotations as $annotation) {
-                $name = $annotation->getName();
-                if ($name === 'Required') {
-                    $metadata['attribute_types'][$property]['required'] = true;
-                } elseif ($name === 'Default') {
-                    $metadata['default_property'] = $property;
-                } elseif ($name === 'Enum') {
-                    $constants = $class->getConstants();
-                    $enums = $annotation->getArguments();
-                    if (empty($enums['value'])) {
-                        $enums = array_keys($constants);
-                    } else {
-                        $enums = $enums['value'];
-                        foreach ($enums as $enum) {
-                            if (!isset($constants[$enum])) {
-                                throw new AnnotationException(sprintf(
-                                    "Unknown enum '%s' on property %s->%s @Enum annotation at '%s'",
-                                    $enum,
-                                    $class->getName(),
-                                    $property,
-                                    $class->getFileName()
-                                ));
-                            }
-                        }
-                    }
-                    $metadata['attribute_types'][$property]['enums'] = $enums;
-                }
-            }
-        }
-    }
-
-    protected function getArguments(AnnotationContext $context)
+    protected function getArguments(Annotation $annotation, $reflector, AnnotationMetadata $metadata)
     {
         $values = [];
-        $arguments = $context->getAnnotation()->getArguments();
-        if (!is_array($arguments)) {
-            return $values;
-        }
-        foreach ($arguments as $name => $value) {
+        foreach ($annotation->getArguments() as $name => $value) {
             if ($value instanceof Annotation) {
-                $obj = $this->createAnnotation($context->withAnnotation($value, Target::TARGET_ANNOTATION));
-                if ($obj === null) {
-                    throw new AnnotationException(sprintf(
-                        "Cannot resolve annotation attribute '%s' @%s. %s",
-                        $name,
-                        $value->getName(),
-                        $this->describeAnnotation($context)
-                    ));
-                }
-                $value = $obj;
+                $value = $this->createAnnotation($value, $reflector, Target::TARGET_ANNOTATION);
             } elseif (is_array($value)) {
-                $arrayValues = [];
                 foreach ($value as $i => $item) {
                     if ($item instanceof Annotation) {
-                        $obj = $this->createAnnotation($context->withAnnotation($item, Target::TARGET_ANNOTATION));
-                        if ($obj === null) {
-                            throw new AnnotationException(sprintf(
-                                "Cannot resolve annotation attribute '%s[%s]' @%s. %s",
-                                $name,
-                                $i,
-                                $item->getName(),
-                                $this->describeAnnotation($context)
-                            ));
-                        }
-                        $item = $obj;
+                        $value[$i] = $this->createAnnotation($item, $reflector, Target::TARGET_ANNOTATION);
                     }
-                    $arrayValues[$i] = $item;
                 }
-                $value = $arrayValues;
             }
             $values[$name] = $value;
+        }
+
+        if (isset($values['value'])
+            && null !== $metadata->getDefaultProperty()
+            && 'value' != $metadata->getDefaultProperty()) {
+            // update default_property value
+            $values[$metadata->getDefaultProperty()] = $values['value'];
+            unset($values['value']);
+        }
+        foreach ($metadata->getProperties() as $name) {
+            if ($metadata->getPropertyAttribute($name, 'required') && !isset($values[$name])) {
+                throw new AnnotationException(sprintf(
+                    "Attribute '%s' of Annotation @%s should not be empty.",
+                    $name, $annotation->getName()
+                ));
+            }
+            if (isset($values[$name])) {
+                $enums = $metadata->getPropertyAttribute($name, 'enums');
+                if (!empty($enums)) {
+                    $values[$name] = $this->getEnumValue($metadata, $name, $values[$name]);
+                } elseif (!TypeUtils::validate($metadata->getPropertyAttribute($name, 'type'), $values[$name])) {
+                    throw new AnnotationException(sprintf(
+                        "Attribute '%s' expects %s, got %s. ",
+                        $name, $metadata->getPropertyAttribute($name, 'type'), gettype($values[$name])
+                    ));
+                }
+            }
         }
 
         return $values;
     }
 
-    protected function validateArguments(&$arguments, $types, AnnotationContext $context)
+    private function resolveAnnotationClass(Annotation $annotation, $reflector)
     {
-        foreach ($types as $property => $type) {
-            if (!isset($arguments[$property])) {
-                if ($type['required']) {
-                    throw new AnnotationException(sprintf(
-                        "Attribute '%s' expects %s, the value should not be empty. %s",
-                        $property,
-                        $type['type'],
-                        $this->describeAnnotation($context)
-                    ));
-                }
-                continue;
-            }
-            $value = $arguments[$property];
-            if (!empty($type['enums'])) {
-                $value = $this->getEnumValue($property, $value, $type['enums'], $context);
-            } elseif (!$type['type']->validate($value)) {
-                throw new AnnotationException(sprintf(
-                    "Attribute '%s' expects %s, got '%s'. %s",
-                    $property,
-                    $type['type'],
-                    ReflectionType::describe($value),
-                    $this->describeAnnotation($context)
-                ));
-            }
-            $arguments[$property] = $value;
+        if ($reflector instanceof \ReflectionProperty) {
+            $file = $reflector->getDeclaringClass()->getFileName();
+            $namespace = $reflector->getDeclaringClass()->getNamespaceName();
+        } elseif ($reflector instanceof \ReflectionMethod) {
+            $file = $reflector->getFileName();
+            $namespace = $reflector->getDeclaringClass()->getNamespaceName();
+        } else {
+            /** @var \ReflectionClass $reflector */
+            $file = $reflector->getFileName();
+            $namespace = $reflector->getNamespaceName();
+        }
+        $resolver = new FqcnResolver($this->reflectionFileFactory->create($file));
+        $annotationClass = $resolver->resolve($annotation->getName(), $namespace);
+        if (!class_exists($annotationClass)) {
+            throw new ClassNotFoundException(sprintf(
+                'Cannot load annotation @%s which resolve to %s.',
+                $annotation->getName(), $annotationClass
+            ));
         }
 
-        return $arguments;
+        return $annotationClass;
     }
 
-    protected function getEnumValue($property, $value, array $enums, AnnotationContext $context)
+    private function getEnumValue(AnnotationMetadata $metadata, string $property, $value)
     {
         if (!is_string($value)) {
             throw new AnnotationException(sprintf(
-                "Attribute '%s' should be string, got '%s'. %s",
-                $property,
-                ReflectionType::describe($value),
-                $this->describeAnnotation($context)
+                "Attribute '%s' should be string, got '%s'.",
+                $property, gettype($value)
             ));
         }
         $value = strtoupper($value);
-        $constName = $context->getAnnotationClassName().'::'.$value;
+        $constName = $metadata->getClassName().'::'.$value;
         if (!defined($constName)) {
             throw new AnnotationException(sprintf(
-                "Constant '%s' is not defined for attribute '%s'. %s",
-                $constName,
-                $property,
-                $this->describeAnnotation($context)
+                "Constant '%s' is not defined for attribute '%s'.",
+                $constName, $property
             ));
         }
-        if (!in_array($value, $enums)) {
+        if (!in_array($value, $enums = $metadata->getPropertyAttribute($property, 'enums'))) {
             throw new AnnotationException(sprintf(
-                "Enum '%s' is invalid for attribute '%s', available: %s. %s",
-                $value,
-                $property,
-                json_encode($enums),
-                $this->describeAnnotation($context)
+                "Enum '%s' is invalid for attribute '%s', available: %s.",
+                $value, $property, json_encode($enums)
             ));
         }
 
         return constant($constName);
     }
 
-    /**
-     * @param object $annotationObj
-     * @param array  $values
-     * @param array  $properties
-     * @param array  $context
-     */
-    protected function setProperties($annotationObj, $values, $properties, AnnotationContext $context)
+    private function isCacheHit(string $className)
     {
-        foreach ($values as $name => $val) {
-            if ($name === 0) {
-                continue;
-            }
-            if (!isset($properties[$name])) {
-                throw new AnnotationException(sprintf(
-                    "Property '%s' does not exist. Available properties %s. %s",
-                    $name,
-                    json_encode(array_keys($properties)),
-                    $this->describeAnnotation($context)
-                ));
-            }
-            $annotationObj->{$name} = $val;
-        }
+        return isset($this->annotations[$className]);
     }
 
-    protected function describeAnnotation($context, $withAnnotation = true)
+    private function getCached(string $className)
     {
-        $desc = ($withAnnotation ? sprintf('annotation @%s on ', $context->getAnnotation()->getName()) : 'on ');
-        $target = $context->getTarget();
-        if ($target === Target::TARGET_CLASS) {
-            $desc .= 'class';
-        } elseif ($target === Target::TARGET_PROPERTY) {
-            $desc .= 'property';
+        return $this->annotations[$className];
+    }
+
+    private function save(string $className, AnnotationSink $annotations)
+    {
+        return $this->annotations[$className] = $annotations;
+    }
+
+    /**
+     * @param string $message
+     */
+    private function debug(string $message)
+    {
+        $this->logger && $this->logger->debug('[AnnotationReader] '.$message);
+    }
+
+    /**
+     * @param \Exception $e
+     * @param Annotation $annotation
+     * @param \Reflector $reflector
+     */
+    private function handleError(\Exception $e, Annotation $annotation, $reflector)
+    {
+        if (self::ERRMODE_SILENT === $this->errorMode) {
+            return;
+        }
+        if ($reflector instanceof \ReflectionProperty) {
+            $reflectorType = 'property';
+            $reflectorName = $reflector->getDeclaringClass()->getName().'->'.$reflector->getName();
+            $file = $reflector->getDeclaringClass()->getFileName();
+            $line = null;
+        } elseif ($reflector instanceof \ReflectionMethod) {
+            $reflectorType = 'method';
+            $reflectorName = $reflector->getDeclaringClass()->getName().'->'.$reflector->getName();
+            $file = $reflector->getFileName();
+            $line = $reflector->getStartLine();
         } else {
-            $desc .= 'class';
+            $reflectorType = 'class';
+            /** @var \ReflectionClass $reflector */
+            $reflectorName = $reflector->getName();
+            $file = $reflector->getFileName();
+            $line = $reflector->getStartLine();
+        }
+        $message = sprintf(
+            '%s Error occur on Annotation @%s on %s %s in %s',
+            $e->getMessage(),
+            $annotation->getName(),
+            $reflectorType, $reflectorName, $file
+        );
+        if ($line) {
+            $message .= " on line $line";
         }
 
-        return sprintf('Error occured at %s %s at %s in line %d',
-                       $desc, $context->getName(), $context->getFile(), $context->getLine());
+        if (self::ERRMODE_WARNING === $this->errorMode) {
+            if (isset($this->logger)) {
+                $this->logger->warning($message);
+            } else {
+                trigger_error($message);
+            }
+        } else {
+            throw new AnnotationException($message, 0, $e);
+        }
     }
 }

@@ -2,6 +2,10 @@
 
 namespace kuiper\boot;
 
+/**
+ * @property \kuiper\di\ContainerBuilderInterface services
+ * @property \ArrayAccess settings
+ */
 abstract class Provider implements ProviderInterface
 {
     /**
@@ -31,7 +35,7 @@ abstract class Provider implements ProviderInterface
 
     public function getModule()
     {
-        if ($this->module === null) {
+        if (null === $this->module) {
             $this->setModule($this->createModule());
         }
 
@@ -56,16 +60,10 @@ abstract class Provider implements ProviderInterface
 
     public function __get($name)
     {
-        if ($name === 'settings') {
+        if ('settings' === $name) {
             return $this->app->getSettings();
-        } elseif ($name === 'services') {
-            $services = $this->app->getServices();
-            $namespace = $this->getModule()->getNamespace();
-            if ($namespace) {
-                return $services->withNamespace($namespace);
-            } else {
-                return $services;
-            }
+        } elseif ('services' === $name) {
+            return $this->app->getServices();
         } else {
             throw new \LogicException("Property '$name' is undefined");
         }

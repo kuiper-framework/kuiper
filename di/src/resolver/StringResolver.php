@@ -3,8 +3,8 @@
 namespace kuiper\di\resolver;
 
 use Exception;
-use kuiper\di\ContainerInterface;
 use InvalidArgumentException;
+use kuiper\di\ContainerInterface;
 use kuiper\di\definition\StringDefinition;
 use kuiper\di\DefinitionEntry;
 use kuiper\di\exception\DependencyException;

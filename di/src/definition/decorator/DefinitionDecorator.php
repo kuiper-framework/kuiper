@@ -38,9 +38,16 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
 
     /**
      * reflection closure parameters.
+     *
+     * @param DefinitionEntry $entry
+     *
+     * @return DefinitionEntry
+     *
+     * @throws ReflectionException
      */
     protected function resolveFactoryParams(DefinitionEntry $entry)
     {
+        /** @var FactoryDefinition $definition */
         $definition = $entry->getDefinition();
         $args = $definition->getArguments();
         if (!empty($args)) {
@@ -68,21 +75,27 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
                     break;
                 }
             } else {
-                if (($class = $param->getClass()) === null) {
+                if (null === ($class = $param->getClass())) {
                     // cannot resolve parameters
                     return $entry;
                 }
                 $params[] = new AliasDefinition($class->getName());
             }
         }
+
         return new DefinitionEntry($entry->getName(), $definition->withArguments($params));
     }
 
     /**
      * reflection constructor or use annotation.
+     *
+     * @param DefinitionEntry $entry
+     *
+     * @return DefinitionEntry
      */
     protected function resolveObjectConstructorParams(DefinitionEntry $entry)
     {
+        /** @var ObjectDefinition $definition */
         $definition = $entry->getDefinition();
         $params = $definition->getConstructorParameters();
         if (empty($params) || $params instanceof NamedParameters) {
@@ -98,17 +111,17 @@ class DefinitionDecorator implements DecoratorInterface, LoggerAwareInterface
         $class = $this->getReflectionClass($className);
         $namedParams = $params instanceof NamedParameters ? $params->getParameters() : $params;
         $paramTypes = [];
-        if (($constructor = $class->getConstructor()) !== null) {
+        if (null !== ($constructor = $class->getConstructor())) {
             foreach ($constructor->getParameters() as $i => $parameter) {
-                if (isset($namedParams[$parameter->getName()])) {
+                if (array_key_exists($parameter->getName(), $namedParams)) {
                     $paramTypes[$i] = $namedParams[$parameter->getName()];
-                } elseif (isset($namedParams[$i])) {
+                } elseif (array_key_exists($i, $namedParams)) {
                     $paramTypes[$i] = $namedParams[$i];
                 } else {
                     if ($parameter->isOptional()) {
                         continue;
                     }
-                    if (($paramClass = $parameter->getClass()) !== null) {
+                    if (null !== ($paramClass = $parameter->getClass())) {
                         $paramTypes[$i] = new AliasDefinition($paramClass->getName());
                     } else {
                         throw new DefinitionException(sprintf(

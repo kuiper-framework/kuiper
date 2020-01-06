@@ -61,7 +61,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
         $seen = [];
         foreach ($this->dirs as $dir) {
             $dir = realpath($dir);
-            if ($dir === false) {
+            if (false === $dir) {
                 continue;
             }
             if (isset($seen[$dir])) {
@@ -71,16 +71,16 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
             $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
             foreach ($it as $file => $fileInfo) {
                 $name = $fileInfo->getFilename();
-                if ($name[0] == '.') {
+                if ('.' == $name[0]) {
                     continue;
                 }
                 if (!in_array($fileInfo->getExtension(), $this->extensions)) {
                     continue;
                 }
-                $reflFile = $this->reflectionFileFactory->create($file);
+                $reflectionFile = $this->reflectionFileFactory->create($file);
                 try {
-                    foreach ($reflFile->getClasses() as $class) {
-                        if (strpos($class, $this->namespace) === 0) {
+                    foreach ($reflectionFile->getClasses() as $class) {
+                        if (0 === strpos($class, $this->namespace)) {
                             $classes[] = $class;
                         }
                     }

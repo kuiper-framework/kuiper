@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\reflection;
 
 class ReflectionFileTest extends TestCase
@@ -7,13 +8,22 @@ class ReflectionFileTest extends TestCase
     {
         return ReflectionFileFactory::createInstance()->create($file);
     }
-    
+
     public function testGetClasses()
     {
         $parser = $this->createReflectionFile(__DIR__.'/fixtures/DummyClass.php');
         $this->assertEquals(
             $parser->getClasses(),
             ['kuiper\\reflection\\fixtures\\DummyClass']
+        );
+    }
+
+    public function testGetInterfaces()
+    {
+        $parser = $this->createReflectionFile(__DIR__.'/fixtures/DummyInterface.php');
+        $this->assertEquals(
+            $parser->getClasses(),
+            ['kuiper\\reflection\\fixtures\\DummyInterface']
         );
     }
 
@@ -38,7 +48,7 @@ class ReflectionFileTest extends TestCase
         $parser = $this->createReflectionFile(__DIR__.'/fixtures/TestUse.php');
         // var_export($parser->getImports());
         $this->assertEquals(
-            $parser->getImportedClasses("foo"),
+            $parser->getImportedClasses('foo'),
             [
                 'Another' => 'My\\Full\\Classname',
                 'NSname' => 'My\\Full\\NSname',
@@ -51,7 +61,7 @@ class ReflectionFileTest extends TestCase
             ]
         );
         $this->assertEquals(
-            $parser->getImportedFunctions("foo"),
+            $parser->getImportedFunctions('foo'),
             [
                 'functionName' => 'My\\Full\\functionName',
                 'func' => 'My\\Full\\functionName',
@@ -61,7 +71,7 @@ class ReflectionFileTest extends TestCase
             ]
         );
         $this->assertEquals(
-            $parser->getImportedConstants("foo"),
+            $parser->getImportedConstants('foo'),
             [
                 'CONSTANT' => 'My\\Full\\CONSTANT',
                 'ConstA' => 'some\\ns\\ConstA',
@@ -98,6 +108,15 @@ class ReflectionFileTest extends TestCase
             [
                 'Classname' => 'My\\Full\\Classname',
             ]
+        );
+    }
+
+    public function testGetTraits()
+    {
+        $parser = $this->createReflectionFile(__DIR__.'/fixtures/DummyTrait.php');
+        $this->assertEquals(
+            $parser->getTraits(),
+            ['kuiper\\reflection\\fixtures\\DummyTrait']
         );
     }
 }

@@ -17,6 +17,8 @@ trait ResponseAwareTrait
      * Sets response.
      *
      * @param ResponseInterface $response
+     *
+     * @return $this
      */
     public function setResponse(ResponseInterface $response)
     {

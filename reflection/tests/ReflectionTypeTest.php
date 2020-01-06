@@ -1,54 +1,49 @@
 <?php
+
 namespace kuiper\reflection;
 
-use kuiper\reflection\fixtures\DummyClass;
+use kuiper\reflection\type\ArrayType;
+use kuiper\reflection\type\IntegerType;
 
 class ReflectionTypeTest extends TestCase
 {
-    public function testPrimitive()
+    /**
+     * @dataProvider scalarTypes
+     */
+    public function testType($typeString, $typeName = null)
     {
-        $type = ReflectionType::parse('int');
-        $this->assertTrue($type->isBuiltin());
-        $this->assertFalse($type->isArray());
-        $this->assertFalse($type->isCompound());
-        $this->assertFalse($type->isObject());
-        $this->assertTrue($type->validate('10'));
-        $this->assertSame($type->sanitize('10'), 10);
-        $this->assertEquals((string)$type, 'int');
+        $type = ReflectionType::forName($typeString);
+        $this->assertEquals((string) $type, $typeName ?: $typeString);
     }
 
-    public function testArray()
+    public function scalarTypes()
     {
-        $type = ReflectionType::parse('int[]');
-        $this->assertFalse($type->isBuiltin());
-        $this->assertTrue($type->isArray());
-        $this->assertFalse($type->isCompound());
-        $this->assertFalse($type->isObject());
-        $this->assertTrue($type->validate(['10']));
-        $this->assertSame($type->sanitize(['10']), [10]);
-        $this->assertEquals((string)$type, 'int[]');
+        return [
+            ['bool'],
+            ['int'],
+            ['string'],
+            ['float'],
+            ['resource'],
+            ['void'],
+            ['object'],
+            ['null'],
+            ['callable'],
+            ['mixed'],
+            ['array'],
+            // alias
+            ['integer', 'int'],
+            ['boolean', 'bool'],
+            ['double', 'float'],
+            ['callback', 'callable'],
+        ];
     }
 
-    public function testObjectType()
+    public function testParseArray()
     {
-        $type = ReflectionType::parse(DummyClass::class);
-        $this->assertFalse($type->isBuiltin());
-        $this->assertFalse($type->isArray());
-        $this->assertFalse($type->isCompound());
-        $this->assertTrue($type->isObject());
-        $this->assertTrue($type->validate(new DummyClass));
-        $this->assertEquals((string)$type, DummyClass::class);
-    }
-
-    public function testCompoundType()
-    {
-        $type = ReflectionType::parse(DummyClass::class.'|null');
-        $this->assertFalse($type->isBuiltin());
-        $this->assertFalse($type->isArray());
-        $this->assertTrue($type->isCompound());
-        $this->assertFalse($type->isObject());
-        $this->assertTrue($type->validate(new DummyClass));
-        $this->assertTrue($type->validate(null));
-        $this->assertEquals((string)$type, DummyClass::class.'|null');
+        /** @var ArrayType $type */
+        $type = ReflectionType::forName('int[][]');
+        $this->assertInstanceOf(ArrayType::class, $type);
+        $this->assertEquals(2, $type->getDimension());
+        $this->assertInstanceOf(IntegerType::class, $type->getValueType());
     }
 }

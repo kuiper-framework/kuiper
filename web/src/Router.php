@@ -2,35 +2,39 @@
 
 namespace kuiper\web;
 
+use FastRoute\RouteCollector;
 use kuiper\web\exception\HttpException;
 use Psr\Http\Message\ServerRequestInterface;
 
 class Router implements RouterInterface
 {
     /**
-     * @var RouteRegistarInterface
+     * @var RouteRegistrarInterface
      */
-    private $routeRegistar;
+    private $routeRegistrar;
 
     /**
      * @var QualifiedRouter[]
      */
-    private $matchers = [];
+    private $qualifiedRouters = [];
 
     /**
      * @var FastRouteRouter
      */
-    private $router;
+    private $defaultRouter;
 
-    public function __construct(RouteRegistarInterface $routeRegistar)
+    public function __construct(RouteRegistrarInterface $routeRegistrar)
     {
-        $this->routeRegistar = $routeRegistar;
+        $this->routeRegistrar = $routeRegistrar;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function dispatch(ServerRequestInterface $request)
     {
         $this->initialize();
-        foreach ($this->matchers as $matcher) {
+        foreach ($this->qualifiedRouters as $matcher) {
             if ($matcher->match($request)) {
                 try {
                     return $matcher->dispatch($request);
@@ -40,23 +44,23 @@ class Router implements RouterInterface
             }
         }
 
-        return $this->router->dispatch($request);
+        return $this->defaultRouter->dispatch($request);
     }
 
-    protected function initialize()
+    private function initialize()
     {
-        if ($this->router) {
+        if ($this->defaultRouter) {
             return;
         }
         $routes = [];
-        foreach ($this->routeRegistar->getRoutes() as $route) {
+        foreach ($this->routeRegistrar->getRoutes() as $route) {
             $attributes = $route->getAttributes();
             if (empty($attributes)) {
                 $routes[] = $route;
                 continue;
             }
             $found = false;
-            foreach ($this->matchers as $matcher) {
+            foreach ($this->qualifiedRouters as $matcher) {
                 if ($matcher->tryAdd($route)) {
                     $found = true;
                     break;
@@ -65,12 +69,13 @@ class Router implements RouterInterface
             if (!$found) {
                 $matcher = new QualifiedRouter($attributes);
                 $matcher->add($route);
-                $this->matchers[] = $matcher;
+                $this->qualifiedRouters[] = $matcher;
             }
         }
-        $this->router = new FastRouteRouter(\FastRoute\simpleDispatcher(function ($r) use ($routes) {
+        $this->defaultRouter = new FastRouteRouter(\FastRoute\simpleDispatcher(function ($collector) use ($routes) {
             foreach ($routes as $route) {
-                $r->addRoute($route->getMethods(), $route->getPattern(), $route);
+                /* @var RouteCollector $collector */
+                $collector->addRoute($route->getMethods(), $route->getPattern(), $route);
             }
         }));
     }

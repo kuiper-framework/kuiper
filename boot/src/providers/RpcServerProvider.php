@@ -18,12 +18,15 @@ use kuiper\serializer\NormalizerInterface;
 use kuiper\serializer\Serializer;
 use Symfony\Component\EventDispatcher\GenericEvent as Event;
 
+/**
+ * Provides rpc server.
+ *
+ * Class RpcServerProvider
+ */
 class RpcServerProvider extends Provider
 {
     public function register()
     {
-        $settings = $this->settings;
-
         $this->services->addDefinitions([
             ServiceResolverInterface::class => di\factory([$this, 'provideServiceResolver']),
             ServerInterface::class => di\factory([$this, 'provideRpcServer']),
@@ -34,14 +37,14 @@ class RpcServerProvider extends Provider
 
     public function provideServiceResolver()
     {
-        $resovler = new ServiceResolver();
-        $resovler->setContainer($this->app->getContainer());
-        $resovler->add(HealthyCheckServiceInterface::class);
+        $resolver = new ServiceResolver();
+        $resolver->setContainer($this->app->getContainer());
+        $resolver->add(HealthyCheckServiceInterface::class);
         foreach ($this->settings['app.rpc_server.services'] as $service) {
-            $resovler->add($service);
+            $resolver->add($service);
         }
 
-        return $resovler;
+        return $resolver;
     }
 
     public function provideRpcServer()

@@ -8,20 +8,36 @@ use Psr\Http\Message\ServerRequestInterface;
 interface RouteInterface
 {
     /**
-     * Constructs the route.
+     * Sets route name.
      *
-     * @param string[]        $methods Numeric array of HTTP method names
-     * @param string          $pattern The route URI pattern
-     * @param callable|string $action  The route callback routine
+     * @param string $name
+     *
+     * @return static
+     *
+     * @throws \InvalidArgumentException if the route name is not a string
      */
-    public function __construct(array $methods, $pattern, $action);
+    public function name(string $name);
+
+    /**
+     * Return an instance with the specified attributes.
+     *
+     * - scheme
+     * - host
+     * - port
+     * - prefix
+     *
+     * @param array $attributes
+     *
+     * @return static
+     */
+    public function match(array $attributes);
 
     /**
      * Gets the request methods.
      *
      * @return string[]
      */
-    public function getMethods();
+    public function getMethods(): array;
 
     /**
      * Return an instance with the specified http request methods.
@@ -37,7 +53,7 @@ interface RouteInterface
      *
      * @return string
      */
-    public function getPattern();
+    public function getPattern(): string;
 
     /**
      * Gets route callback.
@@ -56,43 +72,18 @@ interface RouteInterface
     public function withAction($action);
 
     /**
-     * Sets route name.
-     *
-     * @param string $name
-     *
-     * @return static
-     *
-     * @throws \InvalidArgumentException if the route name is not a string
-     */
-    public function name($name);
-
-    /**
      * Gets route name.
      *
-     * @return null|string
+     * @return string|null
      */
     public function getName();
-
-    /**
-     * Return an instance with the specified attributes.
-     *
-     * - scheme
-     * - host
-     * - port
-     * - prefix
-     *
-     * @param array $condition
-     *
-     * @return self
-     */
-    public function match(array $attributes);
 
     /**
      * Gets the attributes.
      *
      * @return array
      */
-    public function getAttributes();
+    public function getAttributes(): array;
 
     /**
      * Replace route arguments.
@@ -108,7 +99,7 @@ interface RouteInterface
      *
      * @return array
      */
-    public function getArguments();
+    public function getArguments(): array;
 
     /**
      * Run route.
@@ -122,5 +113,5 @@ interface RouteInterface
      *
      * @return ResponseInterface
      */
-    public function run(ServerRequestInterface $request, ResponseInterface $response);
+    public function run(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface;
 }

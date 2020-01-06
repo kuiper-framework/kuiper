@@ -27,13 +27,13 @@ class Filesystem
         $options = array_merge([
             'excludeHiddenFiles' => true,
         ], $options);
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
-        foreach ($it as $file => $fileInfo) {
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+        foreach ($iterator as $file => $fileInfo) {
             $name = $fileInfo->getFilename();
-            if ($name == '.' || $name == '..') {
+            if ('.' == $name || '..' == $name) {
                 continue;
             }
-            if ($options['excludeHiddenFiles'] && $name[0] == '.') {
+            if ($options['excludeHiddenFiles'] && '.' == $name[0]) {
                 continue;
             }
             if (isset($options['extensions']) && !in_array($fileInfo->getExtension(), $options['extensions'])) {
@@ -42,7 +42,7 @@ class Filesystem
             if (isset($options['includes'])) {
                 $ignore = false;
                 foreach ((array) $options['includes'] as $re) {
-                    if (!preg_match($options['includes'], $file)) {
+                    if (!preg_match($re, $file)) {
                         $ignore = true;
                         break;
                     }
@@ -54,7 +54,7 @@ class Filesystem
             if (isset($options['excludes'])) {
                 $ignore = false;
                 foreach ((array) $options['excludes'] as $re) {
-                    if (preg_match($options['excludes'], $file)) {
+                    if (preg_match($re, $file)) {
                         $ignore = true;
                     }
                 }
@@ -93,7 +93,7 @@ class Filesystem
         if (is_dir($path)) {
             $files = scandir($path);
             foreach ($files as $file) {
-                if ($file != '.' && $file != '..') {
+                if ('.' != $file && '..' != $file) {
                     self::recursiveRemove("$path/$file");
                 }
             }
@@ -121,7 +121,7 @@ class Filesystem
             }
             $files = scandir($src);
             foreach ($files as $file) {
-                if ($file != '.' && $file != '..') {
+                if ('.' != $file && '..' != $file) {
                     self::recursiveCopy("$src/$file", "$dst/$file");
                 }
             }
@@ -151,7 +151,7 @@ class Filesystem
     {
         return strspn($file, '/\\', 0, 1)
             || (strlen($file) > 3 && ctype_alpha($file[0])
-                && substr($file, 1, 1) === ':'
+                && ':' === substr($file, 1, 1)
                 && strspn($file, '/\\', 2, 1)
             )
             || null !== parse_url($file, PHP_URL_SCHEME)
@@ -159,38 +159,39 @@ class Filesystem
     }
 
     /**
-     * Canonicalize a path by resolving it relative to some directory (by
+     * Normalize a path by resolving it relative to some directory (by
      * default PWD), following parent symlinks and removing artifacts. If the
      * path is itself a symlink it is left unresolved.
      *
-     * @param  string    path, absolute or relative to PWD
+     * @param string $path       , absolute or relative to PWD
+     * @param string $relativeTo
      *
      * @return string canonical, absolute path
      */
-    public static function absolutePath($path, $relative_to = null)
+    public static function absolutePath($path, $relativeTo = null)
     {
         if (self::isWindows()) {
-            $is_absolute = preg_match('/^[A-Za-z]+:/', $path);
+            $isAbsolute = preg_match('/^[A-Za-z]+:/', $path);
         } else {
-            $is_absolute = !strncmp($path, DIRECTORY_SEPARATOR, 1);
+            $isAbsolute = !strncmp($path, DIRECTORY_SEPARATOR, 1);
         }
 
-        if (!$is_absolute) {
-            if (!$relative_to) {
-                $relative_to = getcwd();
+        if (!$isAbsolute) {
+            if (!$relativeTo) {
+                $relativeTo = getcwd();
             }
-            $path = $relative_to.DIRECTORY_SEPARATOR.$path;
+            $path = $relativeTo.DIRECTORY_SEPARATOR.$path;
         }
 
         if (is_link($path)) {
-            $parent_realpath = realpath(dirname($path));
-            if ($parent_realpath !== false) {
-                return $parent_realpath.DIRECTORY_SEPARATOR.basename($path);
+            $parentRealpath = realpath(dirname($path));
+            if (false !== $parentRealpath) {
+                return $parentRealpath.DIRECTORY_SEPARATOR.basename($path);
             }
         }
 
         $realpath = realpath($path);
-        if ($realpath !== false) {
+        if (false !== $realpath) {
             return $realpath;
         }
 
@@ -198,7 +199,7 @@ class Filesystem
         // or something crazy like that. Try to resolve a parent so we at least
         // cover the nonexistent file case.
         $parts = explode(DIRECTORY_SEPARATOR, trim($path, DIRECTORY_SEPARATOR));
-        while (end($parts) !== false) {
+        while (false !== end($parts)) {
             array_pop($parts);
             if (self::isWindows()) {
                 $attempt = implode(DIRECTORY_SEPARATOR, $parts);
@@ -206,7 +207,7 @@ class Filesystem
                 $attempt = DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, $parts);
             }
             $realpath = realpath($attempt);
-            if ($realpath !== false) {
+            if (false !== $realpath) {
                 $path = $realpath.substr($path, strlen($attempt));
                 break;
             }

@@ -15,7 +15,6 @@ use kuiper\di\source\ObjectSource;
 use kuiper\di\source\SourceChain;
 use kuiper\di\source\SourceInterface;
 use Psr\Container\ContainerInterface as PsrContainer;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ContainerBuilder implements ContainerBuilderInterface
@@ -63,7 +62,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $eventDispatcher;
 
     /**
-     * @var array<SourceInterface>
+     * @var SourceInterface[]
      */
     private $sources = [];
 
@@ -230,7 +229,7 @@ class ContainerBuilder implements ContainerBuilderInterface
      */
     public function getAnnotationReader()
     {
-        if ($this->annotationReader === null) {
+        if (null === $this->annotationReader) {
             $this->setAnnotationReader(new AnnotationReader());
         }
 
@@ -242,7 +241,7 @@ class ContainerBuilder implements ContainerBuilderInterface
      */
     public function getDocReader()
     {
-        if ($this->docReader === null) {
+        if (null === $this->docReader) {
             $this->setDocReader(new DocReader());
         }
 
@@ -266,7 +265,7 @@ class ContainerBuilder implements ContainerBuilderInterface
      */
     public function getProxyFactory()
     {
-        if ($this->proxyFactory === null) {
+        if (null === $this->proxyFactory) {
             $this->proxyFactory = new ProxyFactory();
         }
 
@@ -282,7 +281,7 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getDefinitions()
     {
-        if ($this->definitions === null) {
+        if (null === $this->definitions) {
             $this->definitions = new ArraySource();
         }
 

@@ -30,8 +30,7 @@ trait PathVersionKeyMaker
     }
 
     /**
-     * @param array  $path
-     * @param string $pathKey
+     * @param array $path
      *
      * @return string
      */
@@ -47,10 +46,10 @@ trait PathVersionKeyMaker
     {
         $pathKey = null;
         $key = $this->makeKeyAndPathKey($path, $pathKey);
-         // error_log("del $realKey origin=". json_encode($path));
+        // error_log("del $realKey origin=". json_encode($path));
         $last = end($path);
         $this->delete($key);
-        if ($last === null) {
+        if (null === $last) {
             $this->incr($pathKey);
         }
 
@@ -70,7 +69,7 @@ trait PathVersionKeyMaker
         return $value;
     }
 
-    protected function delete($key)
+    protected function delete(/* @noinspection PhpUnusedParameterInspection */$key)
     {
         throw new \BadMethodCallException('delete method should override');
     }

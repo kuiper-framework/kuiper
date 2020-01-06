@@ -11,12 +11,12 @@
         }
     ],
     "require": {
-        "php": ">= 5.6",
+        "php": "^7.0",
         "ext-json": "*",
         "psr/log": "^1.0",
         "psr/cache": "^1.0",
-        "kuiper/helper": "^0.2",
-        "kuiper/annotations": "^0.2"
+        "kuiper/helper": "^0.3",
+        "kuiper/annotations": "^0.3"
     },
     "suggests": {
         "kuiper/cache": "For cache metadata"
@@ -37,7 +37,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-develop": "0.2-dev"
+            "dev-develop": "0.3-dev"
         }
     }
 }

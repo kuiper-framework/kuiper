@@ -15,6 +15,8 @@ trait RequestAwareTrait
      * Sets request.
      *
      * @param ServerRequestInterface $request
+     *
+     * @return $this
      */
     public function setRequest(ServerRequestInterface $request)
     {

@@ -3,7 +3,7 @@
 namespace kuiper\boot\providers;
 
 use GuzzleHttp\Client as HttpClient;
-use kuiper\annotations\DocReaderInterface;
+use GuzzleHttp\ClientInterface;
 use kuiper\boot\Events;
 use kuiper\boot\Provider;
 use kuiper\di;
@@ -15,16 +15,68 @@ use kuiper\rpc\client\middleware\Normalize;
 use kuiper\rpc\client\TcpHandler;
 use kuiper\serializer\NormalizerInterface;
 use kuiper\serializer\Serializer;
+use ProxyManager\Configuration;
 use ProxyManager\Factory\RemoteObjectFactory;
+use ProxyManager\GeneratorStrategy\EvaluatingGeneratorStrategy;
 use Symfony\Component\EventDispatcher\GenericEvent as Event;
 
+/**
+ * Provides rpc proxy client.
+ *
+ * add entry "rpc" in config/app.php
+ *
+ * "rpc" => [
+ *     "gateway" => <gateway_uri>,
+ *     "source" => <source_name>,
+ *     "defaults" => [
+ *         "timeout" => 5,
+ *     ],
+ *     "providers" => [
+ *         <provider-name> => [
+ *             "timeout" => 5,
+ *             "server" => "{app.rpc.gateway}/<endpoint>",
+ *             "services" => [
+ *             ]
+ *         ]
+ *     ]
+ * ]
+ *
+ * Class RpcClientProvider
+ */
 class RpcClientProvider extends Provider
 {
     public function register()
     {
         $rpcServices = [];
-        foreach ($this->settings['app.rpc.services'] as $service) {
-            $rpcServices[$service] = di\factory([$this, 'createProxy'], $service);
+        $config = $this->settings['app.rpc'];
+        if (isset($config['services'])) {
+            foreach ($config['services'] as $group => $services) {
+                if (is_string($services)) {
+                    $serviceName = $services;
+                    $options = [
+                        'server' => $this->getServer($serviceName, null),
+                    ];
+                    $rpcServices[$serviceName] = di\factory([$this, 'createProxy'], $serviceName, $options);
+                } else {
+                    foreach ($services as $serviceName) {
+                        $options = [
+                            'server' => $this->getServer($serviceName, $group),
+                        ];
+                        $rpcServices[$serviceName] = di\factory([$this, 'createProxy'], $serviceName, $options);
+                    }
+                }
+            }
+        }
+        if (isset($config['providers'])) {
+            foreach ($config['providers'] as $name => $provider) {
+                if (empty($provider['services'])) {
+                    error_log("Rpc provider '$name' missing services");
+                    continue;
+                }
+                foreach ($provider['services'] as $serviceName) {
+                    $rpcServices[$serviceName] = di\factory([$this, 'createProxy'], $serviceName, $provider);
+                }
+            }
         }
 
         $this->services->addDefinitions(array_merge($rpcServices, [
@@ -32,28 +84,24 @@ class RpcClientProvider extends Provider
         ]));
     }
 
-    public function createProxy($serviceName)
+    public function createProxy($serviceName, array $options)
     {
-        $config = $this->settings['app.rpc'];
-        $default = isset($config['servers']['default']) ? $config['servers']['default'] : null;
-        $server = Arrays::fetch($config['servers'], $serviceName, $default);
-        if (empty($server)) {
+        if (empty($options['server'])) {
             throw new \InvalidArgumentException("Server uri for '$serviceName' should not be empty");
         }
-        if (parse_url($server, PHP_URL_SCHEME) == 'tcp') {
-            $handler = new TcpHandler([$server]);
+        if ('tcp' == parse_url($options['server'], PHP_URL_SCHEME)) {
+            $handler = new TcpHandler([$options['server']]);
         } else {
-            $options = Arrays::fetch($config, 'http_client', $this->settings['app.http_client']);
-            $handler = new HttpHandler(new HttpClient($options), $server);
+            $handler = new HttpHandler($this->createHttpClient($options), $this->prepareEndpoint($options['server']));
         }
 
         $client = new RpcClient($handler);
-        $client->add(new Normalize($this->app->get(NormalizerInterface::class), $this->app->get(DocReaderInterface::class)), 'before:start', 'normalize');
-        $client->add(new JsonRpc(Arrays::fetch($config, 'aliases', [])), 'before:call', 'jsonrpc');
-        if (!empty($config['middlewares'])) {
-            foreach ($config['middlewares'] as $middleware) {
+        $client->add($this->app->get(Normalize::class), 'before:start', 'normalize');
+        $client->add(new JsonRpc(Arrays::fetch($options, 'aliases', [])), 'before:call', 'jsonrpc');
+        if (!empty($this->settings['app.rpc.middlewares'])) {
+            foreach ($this->settings['app.rpc.middlewares'] as $middleware) {
                 $middleware = (array) $middleware;
-                $server->add(
+                $client->add(
                     $this->app->get($middleware[0]),
                     $position = isset($middleware[1]) ? $middleware[1] : 'before:call',
                     $id = isset($middleware[2]) ? $middleware[2] : null
@@ -62,11 +110,63 @@ class RpcClientProvider extends Provider
         }
         $this->app->getEventDispatcher()->dispatch(Events::BOOT_RPC_CLIENT, new Event($client));
 
-        $proxyConfig = new \ProxyManager\Configuration();
-        $proxyConfig->setProxiesTargetDir($this->settings['app.runtime_path']);
-
-        $factory = new RemoteObjectFactory($client, $proxyConfig);
+        $factory = new RemoteObjectFactory($client, $this->getProxyConfiguration());
 
         return $factory->createProxy($serviceName);
+    }
+
+    /**
+     * @param string $serviceName
+     * @param string $group
+     *
+     * @return string
+     */
+    protected function getServer($serviceName, $group)
+    {
+        $config = $this->settings['app.rpc.servers'];
+        if (isset($config[$serviceName])) {
+            return $config[$serviceName];
+        }
+        if (isset($group) && isset($config[$group])) {
+            return $config[$group];
+        }
+
+        return $config['default'];
+    }
+
+    protected function prepareEndpoint($uri)
+    {
+        return $uri.(false === strpos($uri, '?') ? '?' : '&').http_build_query(array_filter([
+            'source' => $this->settings['app.rpc.source'],
+            'host' => gethostname(),
+        ]));
+    }
+
+    protected function getProxyConfiguration()
+    {
+        $proxyConfig = new Configuration();
+        $proxyConfig->setGeneratorStrategy(new EvaluatingGeneratorStrategy());
+
+        return $proxyConfig;
+    }
+
+    /**
+     * @param array $options
+     *
+     * @return ClientInterface
+     */
+    protected function createHttpClient(array $options)
+    {
+        $httpOptions = array_merge(
+            ['timeout' => 10, 'connect_timeout' => 3],
+            Arrays::select($this->settings['app.rpc.defaults'] ?: [], ['timeout', 'connect_timeout']),
+            Arrays::select($options, ['timeout', 'connect_timeout'])
+        );
+        $container = $this->app->getContainer();
+        if ($container->has('rpc.HttpClientHandler')) {
+            $httpOptions['handler'] = $container->get('rpc.HttpClientHandler');
+        }
+
+        return new HttpClient($httpOptions);
     }
 }

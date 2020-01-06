@@ -42,7 +42,7 @@ class DotArraySource implements SourceInterface
             // ignore name don't contain '.'
             return false;
         }
-        if (strpos($name, $this->prefix) === 0) {
+        if (0 === strpos($name, $this->prefix)) {
             $name = substr($name, $this->prefixLength);
         }
 
@@ -57,12 +57,14 @@ class DotArraySource implements SourceInterface
         if ($this->dotArray->isLeaf($name)) {
             return null;
         }
-        if (strpos($name, $this->prefix) === 0) {
+        if (0 === strpos($name, $this->prefix)) {
             $name = substr($name, $this->prefixLength);
         }
         $value = $this->dotArray->offsetGet($name);
         if (isset($value)) {
             return new DefinitionEntry($this->prefix.$name, new ValueDefinition($value));
         }
+
+        return null;
     }
 }

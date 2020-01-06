@@ -15,7 +15,7 @@ class Boolean extends Enum
     ];
 
     /**
-     * @param string value
+     * @param string $value
      *
      * @return string "true", "1", 1, true = TRUE
      *                "false", "0", 0, false = FALSE

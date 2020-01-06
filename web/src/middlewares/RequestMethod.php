@@ -21,7 +21,7 @@ class RequestMethod
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next)
     {
         if (!in_array(strtoupper($request->getMethod()), $this->methods)) {
-            throw new MethodNotAllowedException($this->methods, $request, $response);
+            throw new MethodNotAllowedException($this->methods);
         }
 
         return $next($request, $response);

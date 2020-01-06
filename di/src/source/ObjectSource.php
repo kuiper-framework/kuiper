@@ -28,5 +28,7 @@ class ObjectSource implements SourceInterface
         if ($this->has($name)) {
             return new DefinitionEntry($name, new ObjectDefinition($name));
         }
+
+        return null;
     }
 }

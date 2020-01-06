@@ -2,8 +2,8 @@
 
 namespace kuiper\di\resolver;
 
-use kuiper\di\ContainerInterface;
 use InvalidArgumentException;
+use kuiper\di\ContainerInterface;
 use kuiper\di\definition\EnvDefinition;
 use kuiper\di\DefinitionEntry;
 use kuiper\di\source\EnvSource;
@@ -25,6 +25,6 @@ class EnvResolver implements ResolverInterface
         }
         $value = EnvSource::findEnvironmentVariable($definition->getName());
 
-        return $value === false ? $definition->getDefaultValue() : $value;
+        return false === $value ? $definition->getDefaultValue() : $value;
     }
 }

@@ -43,8 +43,9 @@ class JsonRpc implements MiddlewareInterface
                  ->withAttribute('body', $payload)
                  ->withMethod($method)
                  ->withParameters($parameters);
+        /** @var ResponseInterface $response */
         $response = $next($request, $response);
-        if ($response->getBody()->getSize() == 0) {
+        if (0 == $response->getBody()->getSize()) {
             $response->getBody()->write(json_encode([
                 'id' => Arrays::fetch($payload, 'id'),
                 'jsonrpc' => $version,

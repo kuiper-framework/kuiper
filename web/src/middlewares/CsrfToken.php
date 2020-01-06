@@ -10,7 +10,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class CsrfToken
 {
-    private static $ALLOWED_METHODS = ['PUT', 'POST'];
+    private static $ALLOWED_METHODS = ['PUT', 'POST', 'DELETE'];
 
     /**
      * @var bool is repeat request ok?
@@ -22,7 +22,7 @@ class CsrfToken
      */
     private $csrfToken;
 
-    public function __construct(CsrfTokenInterface $csrfToken, $repeatOk = false)
+    public function __construct(CsrfTokenInterface $csrfToken, $repeatOk = true)
     {
         $this->csrfToken = $csrfToken;
         $this->repeatOk = $repeatOk;

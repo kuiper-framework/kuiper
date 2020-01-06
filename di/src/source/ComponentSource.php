@@ -71,9 +71,7 @@ class ComponentSource implements SourceInterface, LoggerAwareInterface
             if (isset($definitions[$name])) {
                 $this->logger && $this->logger->debug(sprintf(
                     "[ContainerBuilder] ignore conflict component '%s' for '%s', previous was %s",
-                    $scope['definition']->getAlias(),
-                    $name,
-                    $definitions[$name]->getAlias()
+                    $scope['definition']->getAlias(), $name, $definitions[$name]->getAlias()
                 ));
             } else {
                 $definitions[$name] = $scope['definition'];
@@ -87,20 +85,20 @@ class ComponentSource implements SourceInterface, LoggerAwareInterface
         $seen = [];
         $components = [];
         foreach ($namespaces as $namespace) {
-            $reflNs = $this->reflectionNamespaceFactory->create($namespace);
-            foreach ($reflNs->getClasses() as $className) {
+            $reflectionNamespace = $this->reflectionNamespaceFactory->create($namespace);
+            foreach ($reflectionNamespace->getClasses() as $className) {
                 if (isset($seen[$className])) {
                     continue;
                 }
                 $seen[$className] = true;
                 $class = new ReflectionClass($className);
-                $annot = $this->annotationReader->getClassAnnotation($class, Component::class);
-                if ($annot === null) {
+                $annotation = $this->annotationReader->getClassAnnotation($class, Component::class);
+                if (null === $annotation) {
                     continue;
                 }
                 $definition = new AliasDefinition($className);
-                if ($annot->name) {
-                    $components[] = ['name' => $annot->name, 'definition' => $definition];
+                if ($annotation->name) {
+                    $components[] = ['name' => $annotation->name, 'definition' => $definition];
                 } else {
                     $interfaces = $class->getInterfaceNames();
                     if (!empty($interfaces)) {

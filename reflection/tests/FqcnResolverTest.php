@@ -2,13 +2,13 @@
 
 namespace kuiper\reflection;
 
-class ClassResolverTest extends TestCase
+class FqcnResolverTest extends TestCase
 {
     public function createResolver($file)
     {
         return new FqcnResolver(ReflectionFileFactory::createInstance()->create($file));
     }
-    
+
     public function testResolveNotImported()
     {
         $file = $this->createResolver(__DIR__.'/fixtures/DummyClass.php');
@@ -46,6 +46,15 @@ class ClassResolverTest extends TestCase
         $this->assertEquals(
             'ClassC',
             $file->resolve('ClassC', '')
+        );
+    }
+
+    public function testResolveClassNameImportNamespace()
+    {
+        $file = $this->createResolver(__DIR__.'/fixtures/ns/ImportNs.php');
+        $this->assertEquals(
+            'kuiper\reflection\fixtures\DummyClass',
+            $file->resolve('fixtures\DummyClass', 'kuiper\reflection\fixtures\ns')
         );
     }
 }

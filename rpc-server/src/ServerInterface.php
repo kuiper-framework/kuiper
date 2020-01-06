@@ -26,7 +26,10 @@ interface ServerInterface
     /**
      * Handles request.
      *
-     * @param RequestInterface $request
+     * @param RequestInterface  $request
+     * @param ResponseInterface $response
+     *
+     * @return
      */
     public function serve(RequestInterface $request, ResponseInterface $response);
 }

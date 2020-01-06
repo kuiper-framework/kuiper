@@ -18,26 +18,11 @@ class ApplicationTest extends TestCase
         ]);
         $app->bootstrap();
 
-        $ret = [
-            $app->get('foo'),
-            $app->getContainer()->withNamespace('kuiper\boot\fixtures\app1')->get('foo'),
-            $app->getContainer()->withNamespace('kuiper\boot\fixtures\app2')->get('foo'),
-            $app->getContainer()->withNamespace('kuiper\boot\fixtures\app1')
-            ->get(\kuiper\boot\fixtures\app1\Foo::class)
-            ->getFoo(),
-            $app->getContainer()->withNamespace('kuiper\boot\fixtures\app2')
-            ->get(\kuiper\boot\fixtures\app2\Foo::class)
-            ->getFoo(),
-        ];
+        $this->assertEquals([
+            $app->get('app1.name'),
+            $app->get('app2.name'),
+        ], ['app1', 'app2']);
 
-        $this->assertEquals($ret, [
-            'app1_foo',
-            'app1_foo',
-            'app2_foo',
-            'app1_foo',
-            'app2_foo',
-        ]);
-
-        // print_r($app->getSettings());
+        $this->assertEquals($app, Application::getInstance());
     }
 }

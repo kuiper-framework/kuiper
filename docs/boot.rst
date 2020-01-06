@@ -22,13 +22,45 @@ kuiper 使用 `Laravel <https://laravel.com/>`_ 的 `服务提供者 <https://la
 .. literalinclude:: examples/boot/index.php
    :language: php
 
-通过调用 `loadConfig($dir)` 加载配置文件，加载的配置按文件名分组存储在 `$app->settings`
-
 配置文件
 ==============================
 
+入口文件中通过调用 `loadConfig($dir)` 加载配置文件，加载的配置按文件名分组存储在 `$app->settings` ，例如 `app.php` 中配置项如下
 
+.. literalinclude:: examples/boot/config/app.php
+   :language: php
 
-Web 应用
+可以通过 `$app->settings['app.base_path']` 获取配置项的值。
+
+Providers
 ==============================
+
+在加载配置后， `bootstrap()` 通过配置项 `app.providers` 加载所有的 Providers。
+provider 必须实现 `kuiper\boot\ProviderInterface` 接口, 其中有两个重要的函数 
+
+.. code-block:: php
+
+   <?php
+
+   namespace kuiper\boot;
+   
+   interface ProviderInterface
+   {
+       /**
+        * Registers services.
+        */
+       public function register();
+   
+       /**
+        * Bootstraps.
+        */
+       public function boot();
+   }
+   
+`register` 函数用于向容器注入配置， `boot` 函数在容器构造完成后运行。
+provider 的实现可继承 `kuiper\boot\Provider` 类，提供三个属性：
+
+* app 即初始化时创建的 `kuiper\boot\Application` 对象
+* settings 加载的配置
+* services `kuiper\di\ContainerBuilderInterface` 对象
 

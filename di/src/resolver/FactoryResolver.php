@@ -3,13 +3,11 @@
 namespace kuiper\di\resolver;
 
 use kuiper\di\ContainerInterface;
-use InvalidArgumentException;
 use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\DefinitionInterface;
 use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\DefinitionEntry;
 use kuiper\di\ProxyFactory;
-use kuiper\di\Scope;
 use LogicException;
 
 class FactoryResolver implements ResolverInterface
@@ -37,7 +35,7 @@ class FactoryResolver implements ResolverInterface
     {
         $definition = $entry->getDefinition();
         if (!$definition instanceof FactoryDefinition) {
-            throw new InvalidArgumentException(sprintf(
+            throw new \InvalidArgumentException(sprintf(
                 'definition expects a %s, got %s',
                 FactoryDefinition::class,
                 is_object($definition) ? get_class($definition) : gettype($definition)
@@ -57,14 +55,15 @@ class FactoryResolver implements ResolverInterface
         }
     }
 
-    private function createInstance($container, $entry, $parameters)
+    private function createInstance(ContainerInterface $container, DefinitionEntry $entry, $parameters)
     {
+        /** @var FactoryDefinition $definition */
         $definition = $entry->getDefinition();
         $factory = $definition->getFactory();
         if (is_array($factory) && $factory[0] instanceof DefinitionInterface) {
             $factory[0] = $this->resolver->resolve(
                 $container,
-                new DefinitionEntry($entry->getName().'.factory', $factory[0])
+                new DefinitionEntry($entry->getUniqueId().'.factory', $factory[0])
             );
         }
         if (empty($parameters)) {
@@ -72,7 +71,7 @@ class FactoryResolver implements ResolverInterface
             if (!empty($args)) {
                 $parameters = $this->resolver->resolve(
                     $container,
-                    new DefinitionEntry($entry->getName().'.arguments', new ArrayDefinition($args))
+                    new DefinitionEntry($entry->getUniqueId().'.arguments', new ArrayDefinition($args))
                 );
             }
         }

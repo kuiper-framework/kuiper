@@ -7,22 +7,23 @@ use Psr\Http\Message\ServerRequestInterface;
 interface CsrfTokenInterface
 {
     /**
-     * Generates a pseudo random token key to be used as input's name in a CSRF check.
-     *
-     * @param int $numberBytes
+     * Gets key to be used as input's name in a CSRF check.
      *
      * @return string
      */
-    public function getTokenKey($numberBytes = null);
+    public function getTokenKey();
 
     /**
-     * Generates a pseudo random token value to be used as input's value in a CSRF check.
-     *
-     * @param int $numberBytes
+     * Gets token value to be used as input's value in a CSRF check.
      *
      * @return string
      */
-    public function getToken($numberBytes = null);
+    public function getToken();
+
+    /**
+     * Regenerate the CSRF token value.
+     */
+    public function regenerateToken();
 
     /**
      * Check if the CSRF token is the same that the current in session.

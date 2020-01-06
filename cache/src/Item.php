@@ -45,6 +45,16 @@ class Item implements ItemInterface
     protected $isHit;
 
     /**
+     * @var string
+     */
+    private $key;
+
+    /**
+     * @var array
+     */
+    private $path;
+
+    /**
      * {@inheritdoc}
      */
     public function __construct(PoolInterface $pool, $key)
@@ -52,16 +62,16 @@ class Item implements ItemInterface
         $this->pool = $pool;
         $this->key = $key;
 
-        $delim = $this->pool->getOption('namespace_separator');
-        $trimed = trim($key, $delim);
-        if (empty($trimed)) {
+        $delimiter = $this->pool->getOption('namespace_separator');
+        $trimmed = trim($key, $delimiter);
+        if (empty($trimmed)) {
             if (empty($key)) {
                 throw new InvalidArgumentException("Cache key '$key' must be non-empty");
             } else {
                 throw new InvalidArgumentException("Invalid cache key '$key'");
             }
         }
-        $path = explode($delim, $trimed);
+        $path = explode($delimiter, $trimmed);
         foreach ($path as $node) {
             if (empty($node)) {
                 throw new InvalidArgumentException("Invalid cache key '$key'");
@@ -131,7 +141,7 @@ class Item implements ItemInterface
      */
     public function isHit()
     {
-        if ($this->isHit === null) {
+        if (null === $this->isHit) {
             $this->isHit = $this->getIsHit();
         }
 

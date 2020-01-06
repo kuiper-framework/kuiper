@@ -34,9 +34,9 @@ class Pool implements PoolInterface
         $this->driver = $driver;
         if (!empty($options)) {
             if (isset($options['namespace_separator'])
-                && strlen($options['namespace_separator']) !== 1) {
+                && 1 !== strlen($options['namespace_separator'])) {
                 throw new InvalidArgumentException(sprintf(
-                    "Option 'namespace_separator' should be a charator, Got '%s'",
+                    "Option 'namespace_separator' should be a character, Got '%s'",
                     $options['namespace_separator']
                 ));
             }
@@ -164,8 +164,8 @@ class Pool implements PoolInterface
     public function deleteItem($key)
     {
         $path = $this->createItem($key)->getKeyPath();
-        $delim = $this->getOption('namespace_separator');
-        if (substr($key, -1) === $delim) {
+        $delimiter = $this->getOption('namespace_separator');
+        if (substr($key, -1) === $delimiter) {
             $path[] = null;
         }
 
@@ -192,6 +192,7 @@ class Pool implements PoolInterface
      */
     public function save(CacheItemInterface $item)
     {
+        /* @noinspection PhpUndefinedMethodInspection */
         return $item->save();
     }
 
@@ -218,7 +219,7 @@ class Pool implements PoolInterface
 
     private function setItemValue(ItemInterface $item, $value)
     {
-        if ($value === false) {
+        if (false === $value) {
             $expires = $this->getOption('lifetime');
             if ($expires > 0) {
                 $item->expiresAfter($expires);

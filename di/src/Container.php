@@ -86,6 +86,11 @@ class Container implements ContainerInterface, ResolverInterface
      */
     private $resolvedValues = [];
 
+    /**
+     * @var string[]
+     */
+    private $resolving;
+
     private static $DEFINITION_RESOLVERS = [
         EnvDefinition::class => [__CLASS__, 'createEnvResolver'],
         StringDefinition::class => [__CLASS__, 'createStringResolver'],
@@ -194,7 +199,10 @@ class Container implements ContainerInterface, ResolverInterface
             return $this->resolvedValues[$name];
         }
         if (isset($this->resolving[$name])) {
-            throw new DependencyException("Circular dependency detected while trying to resolve entry '$name', resolving chain ".json_encode(array_keys($this->resolving)));
+            throw new DependencyException(sprintf(
+                "Circular dependency detected while trying to resolve entry '%s', resolving chain %s",
+                $name, json_encode(array_keys($this->resolving))
+            ));
         }
         $this->resolving[$name] = true;
 
@@ -212,7 +220,7 @@ class Container implements ContainerInterface, ResolverInterface
                 $value = $this->resolve($container, $aliasEntry, $parameters);
             } else {
                 $resolver = $this->getResolver($definition);
-                if ($resolver === null) {
+                if (null === $resolver) {
                     throw new DefinitionException('Cannot resolve definition '.get_class($definition));
                 }
                 $value = $resolver->resolve($container, $entry, $parameters);
@@ -229,9 +237,9 @@ class Container implements ContainerInterface, ResolverInterface
         }
         if ($this->isResolvingShared) {
             $scope = $definition->getScope();
-            if ($scope === Scope::REQUEST || $this->requestStarted) {
+            if (Scope::REQUEST === $scope || $this->requestStarted) {
                 $this->requestEntries[$name] = $value;
-            } elseif ($scope === Scope::SINGLETON) {
+            } elseif (Scope::SINGLETON === $scope) {
                 $this->singletonEntries[$name] = $value;
             }
         }
@@ -268,6 +276,10 @@ class Container implements ContainerInterface, ResolverInterface
 
     /**
      * Removes '\' at the beginning.
+     *
+     * @param string $name
+     *
+     * @return string
      */
     protected function normalize($name)
     {
@@ -284,7 +296,7 @@ class Container implements ContainerInterface, ResolverInterface
             return new DefinitionEntry($name, new ValueDefinition($this->parentContainer->get($name)));
         }
         $definition = $this->source->get($name);
-        if ($definition === null) {
+        if (null === $definition) {
             throw new NotFoundException("Cannot resolve entry '$name'");
         }
 
@@ -310,6 +322,8 @@ class Container implements ContainerInterface, ResolverInterface
             return $this->singletonEntries[$name];
         } elseif (array_key_exists($name, $this->requestEntries)) {
             return $this->requestEntries[$name];
+        } else {
+            return null;
         }
     }
 

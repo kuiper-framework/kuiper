@@ -42,6 +42,7 @@ class File extends AbstractDriver implements DriverInterface
      */
     protected function batchFetch(array $keys)
     {
+        $values = [];
         foreach ($keys as $key) {
             $values[] = $this->fetch($key);
         }
@@ -60,7 +61,7 @@ class File extends AbstractDriver implements DriverInterface
             throw new \RuntimeException("Cannot create directory '$dir'");
         }
 
-        return file_put_contents($file, serialize($data)) !== false;
+        return false !== file_put_contents($file, serialize($data));
     }
 
     /**
@@ -69,11 +70,11 @@ class File extends AbstractDriver implements DriverInterface
     public function del(array $path)
     {
         $last = end($path);
-        if ($last === null) {
+        if (null === $last) {
             array_pop($path);
         }
         $file = $this->getCacheFile($this->makeKey($path));
-        if ($last === null) {
+        if (null === $last) {
             $this->delTree(dirname($file));
         }
         if (file_exists($file)) {
@@ -161,8 +162,7 @@ class File extends AbstractDriver implements DriverInterface
      * A simple recursive delTree method.
      *
      * @param string $dir
-     *
-     * @return bool
+     * @param bool   $delTop
      */
     protected function delTree($dir, $delTop = false)
     {

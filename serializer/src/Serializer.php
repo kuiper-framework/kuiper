@@ -2,482 +2,197 @@
 
 namespace kuiper\serializer;
 
-use Exception;
-use InvalidArgumentException;
 use kuiper\annotations\DocReaderInterface;
 use kuiper\annotations\ReaderInterface;
-use kuiper\reflection\ReflectionType;
-use kuiper\serializer\annotation\SerializeIgnore;
-use kuiper\serializer\annotation\SerializeName;
+use kuiper\reflection\ReflectionTypeInterface;
+use kuiper\reflection\type\ArrayType;
+use kuiper\reflection\type\CompositeType;
+use kuiper\reflection\TypeUtils;
 use kuiper\serializer\exception\MalformedJsonException;
-use kuiper\serializer\exception\NotSerialableException;
-use kuiper\serializer\exception\TypeException;
+use kuiper\serializer\exception\SerializeException;
 use kuiper\serializer\exception\UnexpectedValueException;
+use kuiper\serializer\normalizer\ObjectNormalizer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use ReflectionClass;
-use ReflectionMethod;
-use ReflectionProperty;
 
 class Serializer implements NormalizerInterface, JsonSerializerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
     /**
-     * Cached class metadata.
+     * @var ObjectNormalizer
+     */
+    private $objectNormalizer;
+
+    /**
+     * Note：
+     * 注册的类型必须内处理所有子类的序列化。比如 Enum 的 Normalizer 必须能处理所有 Enum 子类的序列化.
      *
-     * @var array
+     * @var NormalizerInterface[]
      */
-    private static $METADATA;
+    private $normalizers = [];
 
-    /**
-     * @var ReaderInterface
-     */
-    private $annotationReader;
-
-    /**
-     * @var DocReaderInterface
-     */
-    private $docReader;
-
-    public function __construct(ReaderInterface $reader, DocReaderInterface $docReader)
+    public function __construct(ReaderInterface $reader, DocReaderInterface $docReader, array $normalizers = [])
     {
-        $this->annotationReader = $reader;
-        $this->docReader = $docReader;
+        $classMetadataFactory = new ClassMetadataFactory($reader, $docReader);
+        $this->objectNormalizer = new ObjectNormalizer($classMetadataFactory, $this);
+        foreach ($normalizers as $className => $normalizer) {
+            $this->addObjectNormalizer($className, $normalizer);
+        }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function toJson($object, $options = 0)
+    public function toJson($object, $options = 0): string
     {
-        return json_encode($this->toArray($object), $options);
+        return json_encode($this->normalize($object), $options);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function fromJson($jsonString, $type)
+    public function fromJson(string $jsonString, $type)
     {
-        return $this->fromArray(self::decodeJson($jsonString), $type);
+        return $this->denormalize(self::decodeJson($jsonString), $type);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function toArray($data)
+    public function normalize($object)
     {
-        if (is_array($data)) {
+        if (is_array($object)) {
             $ret = [];
-            foreach ($data as $key => $val) {
-                $ret[$key] = $this->toArray($val);
+            foreach ($object as $key => $val) {
+                $ret[$key] = $this->normalize($val);
             }
 
             return $ret;
-        } elseif (is_object($data)) {
-            return $this->objectToArray($data);
+        } elseif (is_object($object)) {
+            return $this->normalizeObject($object);
         } else {
-            return $data;
+            return $object;
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function fromArray(array $data, $type)
+    public function denormalize($data, $type = null)
     {
-        if ($type instanceof ReflectionType) {
+        if ($type instanceof ReflectionTypeInterface) {
             return $this->toType($data, $type);
         } elseif (is_string($type)) {
-            return $this->toType($data, ReflectionType::parse($type));
-        } elseif (is_object($type)) {
-            return $this->arrayToObject($data, get_class($type), $type);
+            return $this->toType($data, TypeUtils::parse($type));
         } else {
-            throw new InvalidArgumentException('Parameter type expects class name or object, got '.gettype($type));
+            throw new \InvalidArgumentException('Parameter type expects class name or object, got '.gettype($type));
         }
-    }
-
-    private function objectToArray($object)
-    {
-        $class = new ReflectionClass(get_class($object));
-        $data = [];
-        foreach ($this->getGetters($class) as $name => $getter) {
-            try {
-                $value = $this->fromType($this->getValue($class, $object, $getter), $getter['type']);
-            } catch (TypeException $e) {
-                throw new TypeException("Cannot convert property '$name' to array: ".$e->getMessage());
-            }
-            if (isset($getter['serialize_name'])) {
-                $name = $getter['serialize_name'];
-            }
-            $data[$name] = $value;
-        }
-
-        return $data;
-    }
-
-    private function arrayToObject(array $data, $className, $object = null)
-    {
-        $class = new ReflectionClass($className);
-        if (!isset($object)) {
-            $object = $class->newInstanceWithoutConstructor();
-        }
-        foreach ($this->getSetters($class) as $name => $setter) {
-            if (isset($setter['serialize_name'])) {
-                $name = $setter['serialize_name'];
-            }
-            if (!isset($data[$name])) {
-                continue;
-            }
-            $value = $this->toType($data[$name], $setter['type']);
-            $this->setValue($class, $object, $setter, $value);
-        }
-
-        return $object;
-    }
-
-    private function getGetters(ReflectionClass $class)
-    {
-        $properties = $this->getClassMetadata($class);
-
-        return $properties['getters'];
-    }
-
-    private function getSetters(ReflectionClass $class)
-    {
-        $properties = $this->getClassMetadata($class);
-
-        return $properties['setters'];
-    }
-
-    /**
-     * gets class properties metadata.
-     */
-    private function getClassMetadata(ReflectionClass $class)
-    {
-        $className = $class->getName();
-        if (isset(self::$METADATA[$className])) {
-            return self::$METADATA[$className];
-        }
-
-        return self::$METADATA[$className] = $this->parseClassMetadata($class);
-    }
-
-    /**
-     * return array with property name as key, the value is an array contains
-     *  - name string name
-     *  - serialize_name string serialize name
-     *  - getter string method to get value
-     *  - setter string method to set value
-     *  - is_public boolean whether property is public
-     *  - type ReflectionType.
-     *
-     * @return array
-     */
-    private function parseClassMetadata(ReflectionClass $class)
-    {
-        $this->logger && $this->logger->debug(
-            '[Serializer] parse class metadata from '.$class->getName()
-        );
-        $isException = $class->isSubclassOf(Exception::class);
-        $getters = [];
-        $setters = [];
-        foreach ($class->getMethods() as $method) {
-            if ($method->isStatic() || !$method->isPublic()) {
-                continue;
-            }
-            // ignore trace and traceAsString for Exception class
-            if ($isException && in_array($method->getName(), ['getTrace', 'getTraceAsString'])) {
-                continue;
-            }
-            $setter = $this->parseSetter($method);
-            if ($setter) {
-                $setters[$setter['name']] = $setter;
-            }
-            $getter = $this->parseGetter($method);
-            if ($getter) {
-                $getters[$getter['name']] = $getter;
-            }
-        }
-        foreach ($class->getProperties() as $property) {
-            if ($property->isStatic()) {
-                continue;
-            }
-            $prop = $this->parseProperty($property);
-            if ($prop === null) {
-                continue;
-            }
-            $name = $prop['name'];
-            if (isset($setters[$name])) {
-                if ($this->isUnknownType($setters[$name]['type'])) {
-                    $setters[$name]['type'] = $prop['type'];
-                }
-            } else {
-                $setters[$name] = $prop;
-            }
-            if (isset($getters[$name])) {
-                if ($this->isUnknownType($getters[$name]['type'])) {
-                    $getters[$name]['type'] = $prop['type'];
-                }
-            } else {
-                $getters[$name] = $prop;
-            }
-        }
-
-        return ['getters' => $getters, 'setters' => $setters];
-    }
-
-    protected function parseSetter(ReflectionMethod $method)
-    {
-        $name = $method->getName();
-        if (strpos($name, 'set') == 0
-            && $method->getNumberOfParameters() === 1) {
-            if ($this->isIgnore($method)) {
-                return;
-            }
-            $types = array_values($this->docReader->getParameterTypes($method));
-            if (!$this->validateType($types[0])) {
-                throw new NotSerialableException(sprintf(
-                    'Cannot serialize class %s for method %s',
-                    $method->getDeclaringClass()->getName(),
-                    $method->getName()
-                ));
-            }
-
-            return [
-                'name' => lcfirst(substr($name, 3)),
-                'setter' => $name,
-                'type' => $types[0],
-                'serialize_name' => $this->getSerializeName($method),
-            ];
-        }
-    }
-
-    protected function parseGetter(ReflectionMethod $method)
-    {
-        $name = $method->getName();
-        if (preg_match('/^(get|is)(.+)/', $name, $matches)
-            && $method->getNumberOfParameters() === 0) {
-            if ($this->isIgnore($method)) {
-                return;
-            }
-            $type = $this->docReader->getReturnType($method);
-            if (!$this->validateType($type)) {
-                throw new NotSerialableException(sprintf(
-                    'Cannot serialize class %s for method %s',
-                    $method->getDeclaringClass()->getName(),
-                    $method->getName()
-                ));
-            }
-
-            return [
-                'name' => lcfirst($matches[2]),
-                'getter' => $name,
-                'type' => $type,
-                'serialize_name' => $this->getSerializeName($method),
-            ];
-        }
-    }
-
-    protected function parseProperty(ReflectionProperty $property)
-    {
-        if ($this->isIgnore($property)) {
-            return;
-        }
-        $type = $this->docReader->getPropertyType($property);
-        if (!$this->validateType($type)) {
-            throw new NotSerialableException(sprintf(
-                'Cannot serialize class %s for property %s',
-                $property->getDeclaringClass()->getName(),
-                $property->getName()
-            ));
-        }
-
-        return [
-            'name' => $property->getName(),
-            'is_public' => $property->isPublic(),
-            'type' => $type,
-            'serialize_name' => $this->getSerializeName($property),
-        ];
-    }
-
-    protected function isIgnore($reflection)
-    {
-        if ($reflection instanceof ReflectionMethod) {
-            $annot = $this->annotationReader->getMethodAnnotation($reflection, SerializeIgnore::class);
-        } else {
-            $annot = $this->annotationReader->getPropertyAnnotation($reflection, SerializeIgnore::class);
-        }
-
-        return $annot !== null;
-    }
-
-    protected function getSerializeName($reflection)
-    {
-        if ($reflection instanceof ReflectionMethod) {
-            $annot = $this->annotationReader->getMethodAnnotation($reflection, SerializeName::class);
-        } else {
-            $annot = $this->annotationReader->getPropertyAnnotation($reflection, SerializeName::class);
-        }
-
-        return $annot !== null ? $annot->value : null;
-    }
-
-    protected function getValue(ReflectionClass $class, $object, $getter)
-    {
-        if (isset($getter['getter'])) {
-            $value = call_user_func([$object, $getter['getter']]);
-        } elseif ($getter['is_public']) {
-            $name = $getter['name'];
-            $value = $object->{$name};
-        } else {
-            $property = $class->getProperty($getter['name']);
-            $property->setAccessible(true);
-            $value = $property->getValue($object);
-        }
-
-        return $value;
-    }
-
-    protected function setValue(ReflectionClass $class, $object, $setter, $value)
-    {
-        if (isset($setter['setter'])) {
-            call_user_func([$object, $setter['setter']], $value);
-        } elseif ($setter['is_public']) {
-            $object->{$setter['name']} = $value;
-        } else {
-            $property = $class->getProperty($setter['name']);
-            $property->setAccessible(true);
-            $property->setValue($object, $value);
-        }
-    }
-
-    private function validateType(ReflectionType $type)
-    {
-        if ($type->isObject() && !$type->getClassName()) {
-            return false;
-        }
-
-        return true;
     }
 
     /**
      * Converts value to the type.
      *
-     * @param mixed          $value
-     * @param ReflectionType $type
+     * @param mixed                   $value
+     * @param ReflectionTypeInterface $type
      *
      * @return mixed
      */
-    protected function toType($value, ReflectionType $type)
+    private function toType($value, ReflectionTypeInterface $type)
     {
         if (!isset($value)) {
             // check type nullable?
-            return;
+            return null;
         }
-        if ($type->isObject()) {
-            $className = $type->getClassName();
-            if (!$className) {
-                throw new InvalidArgumentException("Parameter type expects class name, got '$type'");
-            }
+        if (TypeUtils::isClass($type)) {
+            $className = $type->getName();
             if (!class_exists($className)) {
-                throw new InvalidArgumentException("class '$className' does not exist");
+                throw new SerializeException("Class '$className' does not exist");
             }
 
-            return $this->arrayToObject($value, $className);
-        } elseif ($type->isArray()) {
-            if (!is_array($value)) {
-                throw new UnexpectedValueException('expects array, got '.ReflectionType::describe($value));
-            }
-            $ret = [];
-            $valueType = $type->getArrayValueType();
-            foreach ($value as $key => $item) {
-                $ret[$key] = $this->toType($item, $valueType);
-            }
-
-            return $ret;
-        } elseif ($type->isCompound()) {
-            foreach ($type->getCompoundTypes() as $subtype) {
-                if ($subtype->validate($value)) {
+            return $this->denormalizeObject($value, $className);
+        } elseif (TypeUtils::isObject($type)) {
+            return $this->denormalizeObject($value, null);
+        } elseif (TypeUtils::isComposite($type)) {
+            /** @var CompositeType $type */
+            foreach ($type->getTypes() as $subtype) {
+                if (TypeUtils::validate($subtype, $value)) {
                     return $this->toType($value, $subtype);
                 }
             }
-            throw new UnexpectedValueException("expects '$type', got ".ReflectionType::describe($value));
-        } elseif ($type->validate($value)) {
-            return $type->sanitize($value);
-        } else {
-            throw new UnexpectedValueException("expects '$type', got ".ReflectionType::describe($value));
-        }
-    }
-
-    /**
-     * Extracts values according to the type.
-     *
-     * @param mixed          $value
-     * @param ReflectionType $type
-     *
-     * @return mixed
-     *
-     * @throws TypeException
-     */
-    private function fromType($value, ReflectionType $type)
-    {
-        if (!isset($value)) {
-            // skip null value
-            return;
-        }
-        if ($type->isObject()) {
-            $className = $type->getClassName();
-            if ($value instanceof $className) {
-                return $this->objectToArray($value);
-            } else {
-                throw new TypeException("expects $className, got ", ReflectionType::describe($value));
-            }
-        } elseif ($type->isArray()) {
+            throw new UnexpectedValueException("Expects '$type', got ".TypeUtils::describe($value));
+        } elseif (TypeUtils::isArray($type)) {
+            /* @var ArrayType $type */
             if (!is_array($value)) {
-                throw new TypeException('expects array, got '.ReflectionType::describe($value));
-            }
-            $ret = [];
-            $valueType = $type->getArrayValueType();
-            foreach ($value as $key => $item) {
-                $ret[$key] = $this->fromType($item, $valueType);
+                throw new UnexpectedValueException('Expects array, got '.TypeUtils::describe($value));
             }
 
-            return $ret;
-        } elseif ($type->isCompound()) {
-            foreach ($type->getCompoundTypes() as $subtype) {
-                if ($subtype->validate($value)) {
-                    return $this->fromType($value, $subtype);
-                }
-            }
-            throw new TypeException("expects '$type', got ".ReflectionType::describe($value));
-        } elseif ($type->validate($value)) {
-            return $type->sanitize($value);
+            return $this->toArrayType($value, $type->getValueType(), $type->getDimension());
+        } elseif (TypeUtils::isScalar($type) || TypeUtils::validate($type, $value)) {
+            return TypeUtils::sanitize($type, $value);
         } else {
-            throw new TypeException("expects '$type', got ".ReflectionType::describe($value));
+            throw new UnexpectedValueException("Expects '$type', got ".TypeUtils::describe($value));
         }
     }
 
-    private function isUnknownType($type)
+    private function toArrayType(array $value, ReflectionTypeInterface $valueType, int $dimension)
     {
-        return $type->isMixed() || ($type->isArray() && $type->getArrayValueType()->isMixed());
+        $result = [];
+        if (1 == $dimension) {
+            foreach ($value as $key => $item) {
+                $result[$key] = $this->toType($item, $valueType);
+            }
+        } else {
+            foreach ($value as $key => $item) {
+                $result[$key] = $this->toArrayType($item, $valueType, $dimension - 1);
+            }
+        }
+
+        return $result;
+    }
+
+    private function normalizeObject($object)
+    {
+        foreach ($this->normalizers as $className => $normalizer) {
+            if ($object instanceof $className) {
+                return $normalizer->normalize($object);
+            }
+        }
+
+        return $this->objectNormalizer->normalize($object);
+    }
+
+    private function denormalizeObject($data, $className)
+    {
+        if (empty($className)) {
+            return $this->objectNormalizer->denormalize($data);
+        }
+        foreach ($this->normalizers as $typeClass => $normalizer) {
+            if (is_a($className, $typeClass, true)) {
+                return $normalizer->denormalize($data, $className);
+            }
+        }
+
+        return $this->objectNormalizer->denormalize($data, $className);
     }
 
     public static function decodeJson($json)
     {
         $data = json_decode($json, true);
-        if (!is_array($data)) {
-            if ($data === false) {
-                throw new MalformedJsonException(sprintf(
-                    "%s, json string was '%s'",
-                    json_last_error_msg(),
-                    $json
-                ));
-            } else {
-                throw new InvalidArgumentException('Json data expected an array, got '.ReflectionType::describe($data));
-            }
+        if (false === $data) {
+            throw new MalformedJsonException(sprintf(
+                "%s, json string was '%s'",
+                json_last_error_msg(), $json
+            ));
         }
 
         return $data;
+    }
+
+    public function addObjectNormalizer(string $className, NormalizerInterface $normalizer)
+    {
+        $this->normalizers[$className] = $normalizer;
+
+        return $this;
     }
 }

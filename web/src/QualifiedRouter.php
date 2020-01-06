@@ -2,7 +2,9 @@
 
 namespace kuiper\web;
 
+use FastRoute\RouteCollector;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UriInterface;
 
 class QualifiedRouter implements RouterInterface
 {
@@ -12,7 +14,7 @@ class QualifiedRouter implements RouterInterface
     private $attributes;
 
     /**
-     * @var RouteInterface
+     * @var RouteInterface[]
      */
     private $routes;
 
@@ -91,22 +93,26 @@ class QualifiedRouter implements RouterInterface
         if ($this->router) {
             return;
         }
-        $code = 'true';
-        foreach (['scheme', 'port'] as $property) {
-            if (isset($this->attributes[$property])) {
-                $code .= sprintf(' && "%s" == $uri->get%s()', addslashes($this->attributes[$property]), ucfirst($property));
+        $this->matcher = function (UriInterface $uri) {
+            if (isset($this->attributes['scheme']) && $uri->getScheme() != $this->attributes['scheme']) {
+                return false;
             }
-        }
-        if (isset($this->attributes['host'])) {
-            $code .= sprintf(' && fnmatch("%s", $uri->getHost())', addslashes($this->attributes['host']));
-        }
-        if (!empty($this->attributes['prefix'])) {
-            $code .= sprintf(' && strpos($uri->getPath(), "%s") === 0', addslashes($this->attributes['prefix']));
-        }
-        $this->matcher = create_function('$uri', 'return '.$code.';');
-        $this->router = new FastRouteRouter(\FastRoute\simpleDispatcher(function ($r) {
+            if (isset($this->attributes['port']) && $uri->getPort() != $this->attributes['port']) {
+                return false;
+            }
+            if (isset($this->attributes['host']) && !fnmatch($this->attributes['host'], $uri->getHost())) {
+                return false;
+            }
+            if (!empty($this->attributes['prefix']) && 0 !== strpos($uri->getPath(), $this->attributes['prefix'])) {
+                return false;
+            }
+
+            return true;
+        };
+        $this->router = new FastRouteRouter(\FastRoute\simpleDispatcher(function ($collector) {
             foreach ($this->routes as $route) {
-                $r->addRoute($route->getMethods(), $route->getPattern(), $route);
+                /* @var RouteCollector $collector */
+                $collector->addRoute($route->getMethods(), $route->getPattern(), $route);
             }
         }));
     }

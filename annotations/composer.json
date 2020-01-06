@@ -11,8 +11,8 @@
         }
     ],
     "require": {
-        "php": ">= 5.6",
-        "kuiper/reflection": "^0.2",
+        "php": "^7.0",
+        "kuiper/reflection": "^0.3",
         "doctrine/lexer": "^1.0",
         "psr/log": "^1.0",
         "symfony/event-dispatcher": "^3.1"
@@ -37,7 +37,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-develop": "0.2-dev"
+            "dev-develop": "0.3-dev"
         }
     }
 }

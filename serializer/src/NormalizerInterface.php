@@ -2,30 +2,32 @@
 
 namespace kuiper\serializer;
 
+use kuiper\reflection\ReflectionTypeInterface;
+
 interface NormalizerInterface
 {
     /**
      * Normalizes the object into an array of scalars|arrays.
      *
-     * @param object|array $data
+     * @param object|array $object
      *
-     * @return array
+     * @return array|string
      *
      * @throws exception\SerializeException
      */
-    public function toArray($data);
+    public function normalize($object);
 
     /**
-     * Denormalizes data back into an object of the given class.
+     * Turn data back into an object of the given class.
      *
-     * @param array         $data
-     * @param string|object $type
+     * @param string|array                   $data
+     * @param string|ReflectionTypeInterface $type
      *
-     * @return object|array
+     * @return mixed
      *
      * @throws \InvalidArgumentException
      * @throws exception\SerializeException
      * @throws exception\UnexpectedValueException
      */
-    public function fromArray(array $data, $type);
+    public function denormalize($data, $type = null);
 }

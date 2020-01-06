@@ -12,6 +12,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 interface ApplicationInterface
 {
+    const VERSION = '0.3.10';
+
     /**
      * @param string $configPath
      *
@@ -82,7 +84,21 @@ interface ApplicationInterface
     public function bootstrap();
 
     /**
+     * @param string $id
+     *
      * @return mixed
      */
     public function get($id);
+
+    /**
+     * @return ApplicationInterface
+     */
+    public static function getInstance();
+
+    /**
+     * @param ApplicationInterface $app
+     *
+     * @return ApplicationInterface
+     */
+    public static function setInstance(ApplicationInterface $app);
 }

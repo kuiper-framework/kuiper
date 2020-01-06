@@ -10,7 +10,7 @@ class RouterTest extends RouterTestCase
 
     public function createRouter()
     {
-        $app = new MicroApplication($this->getContainer());
+        $app = new RouteRegistrar();
         $app->setDefaultNamespace($this->namespace);
         $app->get('/', 'IndexController:home');
         $app->post('/', 'IndexController:home');

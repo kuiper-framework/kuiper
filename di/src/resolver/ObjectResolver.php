@@ -2,17 +2,13 @@
 
 namespace kuiper\di\resolver;
 
-use kuiper\di\ContainerInterface;
 use InvalidArgumentException;
-use kuiper\di\ContainerAwareInterface;
+use kuiper\di\ContainerInterface;
 use kuiper\di\DeferredObject;
 use kuiper\di\definition\ArrayDefinition;
 use kuiper\di\definition\ObjectDefinition;
 use kuiper\di\DefinitionEntry;
 use kuiper\di\ProxyFactory;
-use kuiper\di\Scope;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerInterface;
 use ReflectionClass;
 
 class ObjectResolver implements ResolverInterface
@@ -31,11 +27,6 @@ class ObjectResolver implements ResolverInterface
      * @var string[]
      */
     private $awarables = [];
-
-    /**
-     * @var string[]
-     */
-    private static $AWARABLE_IDS = [];
 
     public function __construct(ResolverInterface $resolver, ProxyFactory $proxyFactory)
     {
@@ -66,13 +57,14 @@ class ObjectResolver implements ResolverInterface
         }
     }
 
-    private function createInstance($container, $entry, $parameters, $deferInit = false)
+    private function createInstance(ContainerInterface $container, DefinitionEntry $entry, $parameters, $deferInit = false)
     {
+        /** @var ObjectDefinition $definition */
         $definition = $entry->getDefinition();
         if (empty($parameters)) {
             $parameters = $this->resolveParams(
                 $container,
-                $entry->getName().'.constructor',
+                $entry->getUniqueId().'.constructor',
                 $definition->getConstructorParameters()
             );
         }
@@ -91,24 +83,26 @@ class ObjectResolver implements ResolverInterface
             $methods = $definition->getMethods();
         }
         if (!$deferInit) {
-            return $this->initializer($container, $instance, $definition);
+            return $this->initializer($container, $instance, $entry);
         }
         $properties = $definition->getProperties();
         if (empty($properties) && empty($methods)) {
             return $instance;
         } else {
-            return new DeferredObject($instance, function ($instance) use ($container, $definition) {
-                return $this->initializer($container, $instance, $definition);
+            return new DeferredObject($instance, function ($instance) use ($container, $entry) {
+                return $this->initializer($container, $instance, $entry);
             });
         }
     }
 
-    private function initializer($container, $instance, $definition)
+    private function initializer(ContainerInterface $container, $instance, DefinitionEntry $entry)
     {
         $class = new ReflectionClass($instance);
+        /** @var ObjectDefinition $definition */
+        $definition = $entry->getDefinition();
         $properties = $definition->getProperties();
         if (!empty($properties)) {
-            $values = $this->resolveParams($container, $class->getName().'.properties', $properties);
+            $values = $this->resolveParams($container, $entry->getUniqueId().'.properties', $properties);
             foreach ($values as $name => $value) {
                 $property = $class->getProperty($name);
                 if ($property->isPublic()) {
@@ -121,7 +115,7 @@ class ObjectResolver implements ResolverInterface
         }
         $methods = $definition->getMethods();
         if (!empty($methods)) {
-            $values = $this->resolveParams($container, $class->getName().'.methods', $methods);
+            $values = $this->resolveParams($container, $entry->getUniqueId().'.methods', $methods);
             foreach ($values as $method => $calls) {
                 foreach ($calls as $args) {
                     call_user_func_array([$instance, $method], $args);
@@ -140,13 +134,13 @@ class ObjectResolver implements ResolverInterface
     protected function newInstance($className, $parameters)
     {
         $argc = count($parameters);
-        if ($argc === 0) {
+        if (0 === $argc) {
             return new $className();
-        } elseif ($argc === 1) {
+        } elseif (1 === $argc) {
             return new $className($parameters[0]);
-        } elseif ($argc === 2) {
+        } elseif (2 === $argc) {
             return new $className($parameters[0], $parameters[1]);
-        } elseif ($argc === 3) {
+        } elseif (3 === $argc) {
             return new $className($parameters[0], $parameters[1], $parameters[2]);
         } else {
             $class = new ReflectionClass($className);

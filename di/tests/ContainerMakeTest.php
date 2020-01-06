@@ -2,6 +2,7 @@
 
 namespace kuiper\di;
 
+use kuiper\annotations\AnnotationReader;
 use kuiper\di\definition\AliasDefinition;
 use kuiper\di\fixtures\Class1CircularDependencies;
 use kuiper\di\fixtures\InvalidScope;
@@ -21,6 +22,9 @@ class ContainerMakeTest extends TestCase
         $builder->addDefinitions($definitions);
         if ($useAnnotations) {
             $builder->useAnnotations(true);
+            $annotationReader = new AnnotationReader();
+            $annotationReader->setErrorMode(AnnotationReader::ERRMODE_EXCEPTION);
+            $builder->setAnnotationReader($annotationReader);
         }
 
         return $builder->build();

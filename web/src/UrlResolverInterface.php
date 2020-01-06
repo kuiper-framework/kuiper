@@ -2,7 +2,7 @@
 
 namespace kuiper\web;
 
-interface UrlResolverInterface
+interface UrlResolverInterface extends RequestAwareInterface
 {
     /**
      * generates url.

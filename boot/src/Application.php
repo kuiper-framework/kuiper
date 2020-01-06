@@ -5,11 +5,12 @@ namespace kuiper\boot;
 use Composer\Autoload\ClassLoader;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\ReaderInterface;
-use kuiper\di\CompositeContainerBuilder;
+use kuiper\di\ContainerBuilder;
 use kuiper\di\ContainerBuilderInterface;
 use kuiper\di\source\DotArraySource;
 use kuiper\helper\DotArray;
 use kuiper\reflection\ReflectionNamespaceFactory;
+use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -72,6 +73,35 @@ class Application implements ApplicationInterface
     private $configPaths;
 
     /**
+     * @var static
+     */
+    private static $INSTANCE;
+
+    /**
+     * Application constructor.
+     */
+    public function __construct()
+    {
+        if (!self::$INSTANCE) {
+            self::$INSTANCE = $this;
+        }
+    }
+
+    public static function getInstance()
+    {
+        if (!self::$INSTANCE) {
+            throw new \RuntimeException('Please create Application instance first');
+        }
+
+        return self::$INSTANCE;
+    }
+
+    public static function setInstance(ApplicationInterface $app)
+    {
+        self::$INSTANCE = $app;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function loadConfig($configPath)
@@ -89,6 +119,7 @@ class Application implements ApplicationInterface
         $config = [];
         foreach (glob($configPath.'/*.php') as $file) {
             $prefix = basename($file, '.php');
+            /* @noinspection PhpIncludeInspection */
             $config[$prefix] = require $file;
         }
 
@@ -100,7 +131,7 @@ class Application implements ApplicationInterface
      */
     public function getSettings()
     {
-        if ($this->settings === null) {
+        if (null === $this->settings) {
             $this->settings = new DotArray();
         }
 
@@ -129,16 +160,20 @@ class Application implements ApplicationInterface
         $this->containerBuilder = $builder;
         $this->containerBuilder->addDefinitions([
             ApplicationInterface::class => $this,
+            ReflectionNamespaceFactoryInterface::class => ReflectionNamespaceFactory::createInstance(),
         ]);
         $this->containerBuilder->setEventDispatcher($this->getEventDispatcher());
 
         return $this;
     }
 
+    /**
+     * @return ContainerBuilderInterface
+     */
     public function getContainerBuilder()
     {
-        if ($this->containerBuilder === null) {
-            $this->setContainerBuilder(new CompositeContainerBuilder());
+        if (null === $this->containerBuilder) {
+            $this->setContainerBuilder(new ContainerBuilder());
         }
 
         return $this->containerBuilder;
@@ -195,7 +230,7 @@ class Application implements ApplicationInterface
     public function getContainer()
     {
         if (!$this->bootstrap) {
-            throw new \RuntimeException('Application does not bootstap');
+            throw new \RuntimeException('Application does not bootstrap');
         }
 
         return $this->container;
@@ -221,7 +256,7 @@ class Application implements ApplicationInterface
 
     public function getAnnotationReader()
     {
-        if ($this->annotationReader === null) {
+        if (null === $this->annotationReader) {
             $this->setAnnotationReader(new AnnotationReader());
         }
 
@@ -238,7 +273,7 @@ class Application implements ApplicationInterface
 
     public function getEventDispatcher()
     {
-        if ($this->eventDispatcher === null) {
+        if (null === $this->eventDispatcher) {
             $this->setEventDispatcher(new EventDispatcher());
         }
 
@@ -293,18 +328,27 @@ class Application implements ApplicationInterface
                 }
             }
         }
+        $definitions = [];
         foreach ($this->providers as $provider) {
             $provider->setApplication($this);
             $this->registerModule($provider);
+            $definitions[get_class($provider)] = $provider;
+        }
+        foreach ($this->modules as $module) {
+            $definitions['kuiper.module.'.$module->getName()] = $module;
         }
         $this->expandSettings($settings);
         $this->getContainerBuilder()->addSource(new DotArraySource($settings));
+        $this->getContainerBuilder()->addDefinitions($definitions);
         foreach ($this->providers as $provider) {
             $provider->register();
         }
     }
 
-    protected function registerModule($provider)
+    /**
+     * @param ProviderInterface $provider
+     */
+    protected function registerModule(ProviderInterface $provider)
     {
         $module = $provider->getModule();
         if ($module === Module::dummy()) {
@@ -328,21 +372,22 @@ class Application implements ApplicationInterface
                 $this->settings[$module->getName().'.base_path'] = $module->getBasePath();
             }
         }
-        $namespace = $module->getNamespace();
-        if ($namespace) {
-            $this->getServices()->withNamespace($namespace)->addDefinitions([
-                Module::class => $module,
-            ]);
-        }
         $this->modules[$module->getName()] = $module;
     }
 
-    protected function createModuleFromAnnotation($provider)
+    /**
+     * 根据 Module 注解和 composer.json 文件信息构造 Module 对象
+     *
+     * @param ProviderInterface $provider
+     *
+     * @return Module
+     */
+    protected function createModuleFromAnnotation(ProviderInterface $provider)
     {
         $class = new \ReflectionClass($provider);
         $annotation = $this->getAnnotationReader()->getClassAnnotation($class, annotation\Module::class);
         if (!$annotation) {
-            return;
+            return null;
         }
         try {
             $info = $this->readComposerInfo(dirname($class->getFilename()));
@@ -362,6 +407,16 @@ class Application implements ApplicationInterface
         return $module;
     }
 
+    /**
+     * 从 composer.json 文件中读取模块信息:
+     *  - basePath composer.json 文件所在目录
+     *  - name composer package 名字全替换为 _ 格式，如 foo/bar-baz 模块名为 foo_bar_baz
+     *  - namespace autoload 中 psr-4 第一个名字空间.
+     *
+     * @param string $path
+     *
+     * @return array
+     */
     protected function readComposerInfo($path)
     {
         if (!file_exists($path.'/composer.json')) {
@@ -387,7 +442,7 @@ class Application implements ApplicationInterface
         return $info;
     }
 
-    protected function loadModuleConfig($module)
+    protected function loadModuleConfig(Module $module)
     {
         $configDir = $module->getBasePath().'/config';
         if (!is_dir($configDir)) {

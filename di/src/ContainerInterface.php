@@ -2,13 +2,12 @@
 
 namespace kuiper\di;
 
-use Psr\Container\ContainerInterface as BaseContainer;
 use kuiper\di\exception\DependencyException;
 use kuiper\di\exception\NotFoundException;
+use Psr\Container\ContainerInterface as BaseContainer;
 
 interface ContainerInterface extends BaseContainer
 {
-
     /**
      * Returns true if the container can return an entry for the given identifier.
      * Returns false otherwise.
@@ -16,8 +15,8 @@ interface ContainerInterface extends BaseContainer
      * `has($id)` returning true does not mean that `get($id)` will not throw an exception.
      * It does however mean that `get($id)` will not throw a `NotFoundExceptionInterface`.
      *
-     * @param string $id Identifier of the entry to look for.
-     * @param boolean $onlyDefined
+     * @param string $id          identifier of the entry to look for
+     * @param bool   $onlyDefined
      *
      * @return bool
      */

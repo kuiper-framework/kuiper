@@ -1,11 +1,11 @@
 <?php
+
 namespace kuiper\helper;
 
 use kuiper\helper\fixtures\User;
-use kuiper\helper\Text;
 
 /**
- * TestCase for Arrays
+ * TestCase for Arrays.
  */
 class ArraysTest extends TestCase
 {
@@ -20,17 +20,17 @@ class ArraysTest extends TestCase
     public function testPull()
     {
         $arr = [['name' => 'john'], ['name' => 'jim']];
-        $this->assertEquals(Arrays::pull($arr, 'name'), ['john','jim']);
+        $this->assertEquals(Arrays::pull($arr, 'name'), ['john', 'jim']);
 
         $objs = array_map(function ($a) {
             return (object) $a;
         }, $arr);
-        $this->assertEquals(Arrays::pull($objs, 'name', Arrays::OBJ), ['john','jim']);
+        $this->assertEquals(Arrays::pull($objs, 'name', Arrays::OBJ), ['john', 'jim']);
 
         $users = array_map(function ($a) {
             return new User($a['name']);
         }, $arr);
-        $this->assertEquals(Arrays::pull($users, 'name', Arrays::GETTER), ['john','jim']);
+        $this->assertEquals(Arrays::pull($users, 'name', Arrays::GETTER), ['john', 'jim']);
 
         $arr = ['john' => [1, 2], 'jim' => [3, 4]];
         $this->assertEquals([2, 4], Arrays::pull($arr, 1));
@@ -41,15 +41,15 @@ class ArraysTest extends TestCase
         $arr = [['name' => 'john'], ['name' => 'jim']];
         $this->assertEquals(Arrays::assoc($arr, 'name'), [
             'john' => ['name' => 'john'],
-            'jim' => ['name' => 'jim']
+            'jim' => ['name' => 'jim'],
         ]);
-        
+
         $objs = array_map(function ($a) {
             return (object) $a;
         }, $arr);
         $this->assertEquals(Arrays::assoc($objs, 'name', Arrays::OBJ), [
             'john' => $objs[0],
-            'jim' => $objs[1]
+            'jim' => $objs[1],
         ]);
 
         $users = array_map(function ($a) {
@@ -57,7 +57,7 @@ class ArraysTest extends TestCase
         }, $arr);
         $this->assertEquals(Arrays::assoc($users, 'name', Arrays::GETTER), [
             'john' => $users[0],
-            'jim' => $users[1]
+            'jim' => $users[1],
         ]);
     }
 
@@ -81,7 +81,7 @@ class ArraysTest extends TestCase
 
     public function testSelectObject()
     {
-        $arr = (object)['foo' => 1, 'bar' => 2];
+        $arr = (object) ['foo' => 1, 'bar' => 2];
         $this->assertEquals(Arrays::select($arr, ['foo'], Arrays::OBJ), ['foo' => 1]);
     }
 
@@ -95,7 +95,7 @@ class ArraysTest extends TestCase
     {
         $arr = ['foo' => 0, 'bar' => '', 'baz' => 1, 'bzz' => null];
         $this->assertEquals(Arrays::filter($arr), [
-             'foo' => 0, 'bar' => '', 'baz' => 1
+             'foo' => 0, 'bar' => '', 'baz' => 1,
         ]);
     }
 
@@ -136,36 +136,37 @@ class ArraysTest extends TestCase
     public function testToArray()
     {
         $user = new User('john');
-        $this->assertEquals(Arrays::toArray($user), ['name' => 'john', 'age' => null, 'isFemale' => null]);
+        $user->setFemale(false);
+        $this->assertEquals(Arrays::toArray($user), ['name' => 'john', 'age' => null, 'female' => false]);
         $this->assertEquals(Arrays::toArray($user, false), ['name' => 'john']);
     }
 
     public function testRecursiveToArray()
     {
         $user = new User('john');
-        $company = new \stdClass;
+        $company = new \stdClass();
         $company->employees = [$user];
-        
+
         $this->assertEquals([
             'employees' => [
                 [
                     'name' => 'john',
                     'age' => null,
-                    'isFemale' => null,
-                ]
-            ]
+                    'female' => null,
+                ],
+            ],
         ], $ret = Arrays::toArray($company, true, false, true));
     }
 
     public function testMapKeys()
     {
         $arr = Arrays::mapKeys(['fooId' => 1], [Text::class, 'uncamelize']);
-        $this->assertEquals(["foo_id" => 1], $arr);
+        $this->assertEquals(['foo_id' => 1], $arr);
 
         $ret = Arrays::mapKeys($arr, function ($key) {
-            return 'prefixed_' . $key;
+            return 'prefixed_'.$key;
         });
-        $this->assertEquals(["foo_id" => 1], $arr);
-        $this->assertEquals(["prefixed_foo_id" => 1], $ret);
+        $this->assertEquals(['foo_id' => 1], $arr);
+        $this->assertEquals(['prefixed_foo_id' => 1], $ret);
     }
 }

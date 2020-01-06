@@ -1,4 +1,5 @@
 <?php
+
 namespace kuiper\annotations\fixtures\annotation;
 
 /**
@@ -7,14 +8,13 @@ namespace kuiper\annotations\fixtures\annotation;
  */
 final class AnnotationWithVarType
 {
-
     /**
      * @var mixed
      */
     public $mixed;
 
     /**
-     * @var boolean
+     * @var bool
      */
     public $boolean;
 
@@ -34,7 +34,7 @@ final class AnnotationWithVarType
     public $string;
 
     /**
-     * @var integer
+     * @var int
      */
     public $integer;
 
@@ -49,7 +49,7 @@ final class AnnotationWithVarType
     public $annotation;
 
     /**
-     * @var array<integer>
+     * @var int[]
      */
     public $arrayOfIntegers;
 
@@ -59,7 +59,7 @@ final class AnnotationWithVarType
     public $arrayOfStrings;
 
     /**
-     * @var array<AnnotationTargetAll>
+     * @var AnnotationTargetAll[]
      */
     public $arrayOfAnnotations;
 }

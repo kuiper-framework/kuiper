@@ -39,10 +39,11 @@ class Composite implements DriverInterface
         $failedDrivers = [];
         foreach ($this->drivers as $driver) {
             $value = $driver->get($key);
-            if ($value === false) {
+            if (false === $value) {
                 $failedDrivers[] = $driver;
             } else {
                 foreach (array_reverse($failedDrivers) as $failedDriver) {
+                    /* @var DriverInterface $failedDriver */
                     $failedDriver->set($key, $value['data'], $value['expiration']);
                 }
 
@@ -69,7 +70,7 @@ class Composite implements DriverInterface
             foreach ($restValues as $i => $value) {
                 $index = $indexes[$i];
                 $key = $restKeys[$i];
-                if ($value === false) {
+                if (false === $value) {
                     $failedDrivers[$index][] = $driver;
                     $nextIndexes[] = $index;
                     $nextKeys[] = $key;
@@ -77,6 +78,7 @@ class Composite implements DriverInterface
                     $values[$index] = $value;
                     if (isset($failedDrivers[$index])) {
                         foreach (array_reverse($failedDrivers[$index]) as $failedDriver) {
+                            /* @var DriverInterface $failedDriver */
                             $failedDriver->set($key, $value['data'], $value['expiration']);
                         }
                     }
@@ -97,7 +99,7 @@ class Composite implements DriverInterface
      */
     public function set(array $key, $data, $expiration)
     {
-        return $this->executeOnAll(function ($driver) use ($key, $data, $expiration) {
+        return $this->executeOnAll(function (DriverInterface $driver) use ($key, $data, $expiration) {
             return $driver->set($key, $data, $expiration);
         });
     }
@@ -107,7 +109,7 @@ class Composite implements DriverInterface
      */
     public function del(array $key)
     {
-        return $this->executeOnAll(function ($driver) use ($key) {
+        return $this->executeOnAll(function (DriverInterface $driver) use ($key) {
             return $driver->del($key);
         });
     }
@@ -117,7 +119,7 @@ class Composite implements DriverInterface
      */
     public function clear()
     {
-        return $this->executeOnAll(function ($driver) use ($prefix) {
+        return $this->executeOnAll(function (DriverInterface $driver) {
             return $driver->clear();
         });
     }

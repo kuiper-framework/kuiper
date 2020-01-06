@@ -9,7 +9,7 @@ interface ReflectionFileInterface
      *
      * @return string
      */
-    public function getFile();
+    public function getFile(): string;
 
     /**
      * Gets all namespaces defined in the file.
@@ -17,8 +17,9 @@ interface ReflectionFileInterface
      * @return string[]
      *
      * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
-    public function getNamespaces();
+    public function getNamespaces(): array;
 
     /**
      * Gets all classes defined in the file.
@@ -26,36 +27,56 @@ interface ReflectionFileInterface
      * @return string[]
      *
      * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
-    public function getClasses();
+    public function getClasses(): array;
+
+    /**
+     * Gets all traits defined in the file.
+     *
+     * @return string[]
+     *
+     * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
+     */
+    public function getTraits(): array;
 
     /**
      * Gets all imported classes in the namespace
      * return array key is alias, value is the Full Qualified Class Name.
      *
-     * @return string[]
+     * @param string $namespace
+     *
+     * @return array
      *
      * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
-    public function getImportedClasses($namespace);
+    public function getImportedClasses(string $namespace): array;
 
     /**
      * Gets all imported functions in the namespace
      * return array key is alias, value is the Full Qualified Function Name.
      *
-     * @return string[]
+     * @param string $namespace
+     *
+     * @return array
      *
      * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
-    public function getImportedFunctions($namespace);
+    public function getImportedFunctions(string $namespace): array;
 
     /**
      * Gets all imported constants in the namespace
      * return array key is alias, value is the Full Qualified Constant Name.
      *
-     * @return string[]
+     * @param string $namespace
+     *
+     * @return array
      *
      * @throws exception\SyntaxErrorException
+     * @throws exception\FileNotFoundException
      */
-    public function getImportedConstants($namespace);
+    public function getImportedConstants(string $namespace): array;
 }

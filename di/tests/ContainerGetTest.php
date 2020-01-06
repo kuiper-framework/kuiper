@@ -2,7 +2,7 @@
 
 namespace kuiper\di;
 
-use Psr\Container\ContainerInterface;
+use kuiper\annotations\AnnotationReader;
 use kuiper\di\definition\AliasDefinition;
 use kuiper\di\definition\FactoryDefinition;
 use kuiper\di\definition\NamedParameters;
@@ -12,6 +12,7 @@ use kuiper\di\fixtures\InvalidScope;
 use kuiper\di\fixtures\PassByReferenceDependency;
 use kuiper\di\fixtures\Prototype;
 use kuiper\di\fixtures\Singleton;
+use Psr\Container\ContainerInterface;
 use stdClass;
 
 /**
@@ -25,6 +26,9 @@ class ContainerGetTest extends TestCase
         $builder->addDefinitions($definitions);
         if ($useAnnotations) {
             $builder->useAnnotations(true);
+            $annotationReader = new AnnotationReader();
+            $annotationReader->setErrorMode(AnnotationReader::ERRMODE_EXCEPTION);
+            $builder->setAnnotationReader($annotationReader);
         }
 
         return $builder->build();
@@ -216,5 +220,15 @@ class ContainerGetTest extends TestCase
 
         $ret = $container->make('bar');
         $this->assertSame($container, $ret);
+    }
+
+    public function testImportNamespace()
+    {
+        $container = $this->createContainer([
+        ], true);
+        $foo = $container->get(\kuiper\di\fixtures\ns\Foo::class);
+        $this->assertInstanceOf(fixtures\DummyClass::class, $this->readAttribute($foo, 'property1'));
+        $this->assertInstanceOf(fixtures\DummyClass::class, $this->readAttribute($foo, 'property2'));
+        // print_r($foo);
     }
 }

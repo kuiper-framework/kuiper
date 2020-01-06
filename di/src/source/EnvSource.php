@@ -30,7 +30,7 @@ class EnvSource implements SourceInterface
      */
     public function has($name)
     {
-        return self::findEnvironmentVariable($name) !== false;
+        return false !== self::findEnvironmentVariable($name);
     }
 
     /**
@@ -39,8 +39,10 @@ class EnvSource implements SourceInterface
     public function get($name)
     {
         $value = self::findEnvironmentVariable($name);
-        if ($value !== false) {
+        if (false !== $value) {
             return new DefinitionEntry($name, new ValueDefinition($value));
         }
+
+        return null;
     }
 }

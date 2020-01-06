@@ -1,16 +1,16 @@
 <?php
+
 namespace kuiper\annotations\fixtures;
 
 final class PhpDocVarType extends TestPhpDocReaderParent implements TestPhpDocReaderInterface
 {
-
     /**
      * @var mixed
      */
     public $mixed;
 
     /**
-     * @var boolean
+     * @var bool
      */
     public $boolean;
 
@@ -30,7 +30,7 @@ final class PhpDocVarType extends TestPhpDocReaderParent implements TestPhpDocRe
     public $string;
 
     /**
-     * @var integer
+     * @var int
      */
     public $integer;
 
@@ -45,7 +45,7 @@ final class PhpDocVarType extends TestPhpDocReaderParent implements TestPhpDocRe
     public $annotation;
 
     /**
-     * @var array<integer>
+     * @var int[]
      */
     public $arrayOfIntegers;
 
@@ -55,7 +55,7 @@ final class PhpDocVarType extends TestPhpDocReaderParent implements TestPhpDocRe
     public $arrayOfStrings;
 
     /**
-     * @var array<DummyClass>
+     * @var DummyClass[]
      */
     public $arrayOfAnnotations;
 
@@ -67,8 +67,9 @@ final class PhpDocVarType extends TestPhpDocReaderParent implements TestPhpDocRe
     /**
      * Gets the value of field1.
      *
-     * @param integer $integer
-     * @return integer
+     * @param int $integer
+     *
+     * @return int
      */
     public function integerMethod($integer)
     {
@@ -78,14 +79,14 @@ final class PhpDocVarType extends TestPhpDocReaderParent implements TestPhpDocRe
      * Gets the value of field1.
      *
      * @param DummyClass $annot
-     * @param bool $bool
+     * @param bool       $bool
      */
     public function annotMethod($annot, $bool)
     {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function foo($i)
     {
