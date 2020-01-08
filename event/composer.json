@@ -1,0 +1,30 @@
+{
+    "name": "kuiper/event",
+    "type": "library",
+    "description": "event helper",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2"
+        "psr/event-dispatcher": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\event\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\event\\": "tests/"
+        }
+    },
+    "extra": {
+        "source" : "git@git.cuntutu.com:kuiper/event.git"
+    }
+}

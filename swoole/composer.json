@@ -1,0 +1,36 @@
+{
+    "name": "kuiper/swoole",
+    "type": "library",
+    "description": "Swoole server util",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2",
+        "ext-swoole": "*",
+        "kuiper/helper": "^0.5",
+        "kuiper/event": "^0.5",
+        "kuiper/annotations": "^0.5",
+        "psr/container": "^1.0",
+        "psr/http-server-handler": "^1.0",
+        "symfony/console": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\swoole\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\swoole\\": "tests/"
+        }
+    },
+    "extra": {
+        "source" : "git@git.cuntutu.com:kuiper/swoole.git"
+    }
+}

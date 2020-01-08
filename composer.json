@@ -13,23 +13,26 @@
     "require": {
         "php": "^7.2",
         "ext-json": "*",
-        "psr/container": "^1.0",
         "psr/cache": "^1.0",
+        "psr/container": "^1.0",
+        "psr/event-dispatcher": "^1.0",
         "psr/http-message": "^1.0",
+        "psr/http-server-handler": "^1.0",
         "psr/log": "^1.0",
-        "symfony/event-dispatcher": "^3.1"
+        "symfony/event-dispatcher": "^5.0"
     },
     "require-dev": {
         "dflydev/fig-cookies": "^1.0",
-        "php-di/php-di": "^6.0",
         "doctrine/lexer": "^1.0",
         "guzzlehttp/guzzle": "^6.2",
+        "mockery/mockery": "^0.9.9",
         "monolog/monolog": "^1.22",
         "nikic/fast-route": "^1.0",
         "ocramius/proxy-manager": "^1.0",
+        "php-di/php-di": "^6.0",
         "phpunit/phpunit": "^8.0",
-        "mockery/mockery": "^0.9.9",
         "predis/predis": "^1.1",
+        "swoft/swoole-ide-helper": "^4.4",
         "twig/twig": "^1.7",
         "vlucas/phpdotenv": "^2.4",
         "winwin/composer-phpcs-plugin": "^0.1",
@@ -47,22 +50,19 @@
     "autoload": {
         "psr-4": {
             "kuiper\\annotations\\": "annotations/src/",
-            "kuiper\\boot\\": "boot/src/",
-            "kuiper\\cache\\": "cache/src/",
             "kuiper\\di\\": "di/src/",
             "kuiper\\helper\\": "helper/src/",
             "kuiper\\reflection\\": "reflection/src/",
-            "kuiper\\rpc\\": "rpc/src/",
-            "kuiper\\rpc\\client\\": "rpc-client/src/",
-            "kuiper\\rpc\\server\\": "rpc-server/src/",
-            "kuiper\\serializer\\": "serializer/src/",
+            "kuiper\\swoole\\": "swoole/src/",
+            "kuiper\\event\\": "event/src/",
+            "kuiper\\cache\\": "cache/src/",
             "kuiper\\web\\": "web/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
             "kuiper\\annotations\\": "annotations/tests/",
-            "kuiper\\boot\\": "boot/tests/",
+            "kuiper\\swoole\\": "swoole/tests/",
             "kuiper\\cache\\": "cache/tests/",
             "kuiper\\di\\": "di/tests/",
             "kuiper\\helper\\": "helper/tests/",
