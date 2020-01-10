@@ -15,8 +15,8 @@ class WorkerStartEventListener implements EventListenerInterface
     public function __invoke($event): void
     {
         $serverName = $event->getServer()->getServerConfig()->getServerName();
-        @cli_set_process_title(sprintf('%s: %s%s process', $serverName,
-            ($event->getSwooleServer()->taskworker ? 'task ' : ''), SwooleServer::WORKER_PROCESS_NAME));
+        @cli_set_process_title(sprintf('%s: %s%s %d process', $serverName,
+            ($event->getSwooleServer()->taskworker ? 'task ' : ''), SwooleServer::WORKER_PROCESS_NAME, $event->getWorkerId()));
     }
 
     public function getSubscribedEvent(): string
