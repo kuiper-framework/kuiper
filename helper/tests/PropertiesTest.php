@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\helper;
 
 class PropertiesTest extends TestCase
@@ -69,5 +71,40 @@ class PropertiesTest extends TestCase
     {
         $array = $this->createDotArray();
         $this->assertEquals('v1', $array->get('array2[0].k1'));
+    }
+
+    public function testWhenMergeNotArrayKey_thenReplaceOriginal()
+    {
+        $p = Properties::fromArray(['app' => ['foo' => '']]);
+        $p->merge(['app' => ['foo' => ['one' => 1]], 'one' => 1]);
+        $this->assertEquals($p->toArray(), ['app' => ['foo' => ['one' => 1]], 'one' => 1]);
+    }
+
+    public function testWhenMergeArrayKey_thenReplaceOriginal()
+    {
+        $p = Properties::fromArray(['app' => ['foo' => '']]);
+        $p->merge(['app' => ['foo' => 'one']]);
+        $this->assertEquals($p->toArray(), ['app' => ['foo' => 'one']]);
+    }
+
+    public function testWhenMergeIndexBasedArrayAndNotArray_thenReplace()
+    {
+        $p = Properties::fromArray(['app' => ['foo' => '']]);
+        $p->merge(['app' => ['foo' => ['one']]]);
+        $this->assertEquals($p->toArray(), ['app' => ['foo' => ['one']]]);
+    }
+
+    public function testWhenMergeIndexBasedArrayAndExist_thenAppend()
+    {
+        $p = Properties::fromArray(['app' => ['foo' => ['one']]]);
+        $p->merge(['app' => ['foo' => ['two']]]);
+        $this->assertEquals($p->toArray(), ['app' => ['foo' => ['one', 'two']]]);
+    }
+
+    public function testWhenMergeIndexBasedArrayAndNoAppend_thenReplaceExist()
+    {
+        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p->merge(['app' => ['foo' => ['three']]], false);
+        $this->assertEquals($p->toArray(), ['app' => ['foo' => ['three']]]);
     }
 }

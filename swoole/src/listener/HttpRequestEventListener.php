@@ -11,7 +11,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 
-class HttpRequestHandler implements EventListenerInterface, LoggerAwareInterface
+class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 

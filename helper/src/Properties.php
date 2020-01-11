@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\helper;
 
 /**
@@ -66,7 +68,7 @@ class Properties extends \ArrayIterator
                 return $this[$current];
             }
 
-            if ($this[$current] instanceof  self) {
+            if ($this[$current] instanceof self) {
                 return $this[$current]->get($rest, $default);
             }
         }
@@ -74,14 +76,26 @@ class Properties extends \ArrayIterator
         return $default;
     }
 
-    public function merge(array $configArray): void
+    public function merge(array $configArray, $append = true): void
     {
         foreach ($configArray as $key => $value) {
-            if (isset($this[$key]) && is_array($value) && $this[$key] instanceof self) {
-                $this[$key]->merge($value);
+            if (!isset($value)) {
+                unset($this[$key]);
                 continue;
             }
-            $this[$key] = is_array($value) ? static::fromArray($value) : $value;
+            if (!is_array($value) || !isset($this[$key]) || !$this[$key] instanceof self) {
+                $this[$key] = $this->createItem($value);
+            } elseif (isset($value[0])) {
+                if ($append) {
+                    foreach ($value as $item) {
+                        $this[$key]->append($this->createItem($item));
+                    }
+                } else {
+                    $this[$key] = $this->createItem($value);
+                }
+            } else {
+                $this[$key]->merge($value, $append);
+            }
         }
     }
 
@@ -111,5 +125,15 @@ class Properties extends \ArrayIterator
         }
 
         return $config;
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @return static|array
+     */
+    private function createItem($value)
+    {
+        return is_array($value) ? static::fromArray($value) : $value;
     }
 }
