@@ -9,7 +9,7 @@ use kuiper\di\annotation\ComponentInterface;
 use kuiper\di\annotation\ComponentScan;
 use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 
-class ComponentScanner
+class ComponentScanner implements ComponentScannerInterface
 {
     /**
      * @var array

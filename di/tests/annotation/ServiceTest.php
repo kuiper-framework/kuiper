@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace wenbinye\tars\di\annotation;
+namespace kuiper\di\annotation;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
+use kuiper\di\ContainerBuilder;
 use PHPUnit\Framework\TestCase;
-use wenbinye\tars\di\ContainerBuilder;
 
 class ServiceTest extends TestCase
 {
@@ -19,9 +19,9 @@ class ServiceTest extends TestCase
         $reader = new AnnotationReader();
         /** @var Service $service */
         $service = $reader->getClassAnnotation($reflectionClass, Service::class);
-        $service->setClass($reflectionClass);
+        $service->setTarget($reflectionClass);
         $service->setContainerBuilder($containerBuilder);
-        $service->process();
+        $service->handle();
         $container = $containerBuilder->build();
         $this->assertTrue($container->has(FooInterface::class));
         $foo = $container->get(FooInterface::class);

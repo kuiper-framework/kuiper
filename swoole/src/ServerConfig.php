@@ -61,6 +61,11 @@ class ServerConfig
         return $this->ports;
     }
 
+    public function getPort(): ServerPort
+    {
+        return $this->ports[0];
+    }
+
     public function getTaskWorkerNum()
     {
         return $this->settings[SwooleSetting::TASK_WORKER_NUM] ?? 0;
@@ -76,7 +81,7 @@ class ServerConfig
         return $this->getTaskWorkerNum() + $this->getWorkerNum();
     }
 
-    public function getMasterPidFile(): string
+    public function getMasterPidFile(): ?string
     {
         return $this->masterPidFile;
     }
@@ -91,7 +96,7 @@ class ServerConfig
         return $this;
     }
 
-    public function getManagerPidFile(): string
+    public function getManagerPidFile(): ?string
     {
         return $this->managerPidFile;
     }

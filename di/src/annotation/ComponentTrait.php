@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\di\annotation;
 
+use kuiper\di\ComponentCollection;
+
 trait ComponentTrait
 {
     /**
@@ -13,6 +15,12 @@ trait ComponentTrait
 
     public function setTarget($class): void
     {
+        /* @var \ReflectionClass $class */
+        ComponentCollection::register($class, $this);
         $this->class = $class;
+    }
+
+    public function handle(): void
+    {
     }
 }

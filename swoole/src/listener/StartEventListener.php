@@ -21,12 +21,15 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
         $serverConfig = $event->getServer()->getServerConfig();
         @cli_set_process_title(sprintf('%s: %s process', $serverConfig->getServerName(), SwooleServer::MASTER_PROCESS_NAME));
 
+        $server = $event->getSwooleServer();
         try {
-            $this->writePidFile($serverConfig->getMasterPidFile(), $event->getSwooleServer()->master_pid);
-            $this->writePidFile($serverConfig->getManagerPidFile(), $event->getSwooleServer()->manager_pid);
+            $this->writePidFile($serverConfig->getMasterPidFile(), $server->master_pid);
+            $this->writePidFile($serverConfig->getManagerPidFile(), $server->manager_pid);
+            $port = $serverConfig->getPort();
+            $this->logger->info(sprintf('[StartEventListener] Listening on %s://%s:%s', $port->getServerType()->value, $port->getHost(), $port->getPort()));
         } catch (\RuntimeException $e) {
             $this->logger->error('Cannot write master and manager pid file: '.$e->getMessage());
-            $event->getSwooleServer()->stop();
+            $server->stop();
         }
     }
 
@@ -37,7 +40,7 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
         }
         $dir = dirname($pidFile);
         if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-            $this->logger->error("Cannot create pid file directory $dir");
+            $this->logger->error("[StartEventListener] Cannot create pid file directory $dir");
             throw new \RuntimeException("Cannot create pid file directory $dir");
         }
         $ret = file_put_contents($pidFile, $pid);

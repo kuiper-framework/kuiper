@@ -114,8 +114,10 @@ class SwooleServer implements ServerInterface, LoggerAwareInterface
 
     private function getPidListByType(string $processType): array
     {
-        exec(sprintf("ps aux | grep %s | grep %s | grep -v grep | awk '{print $2}'",
-            $this->serverConfig->getServerName(), $processType), $pids);
+        $cmd = sprintf("ps -ewo pid,cmd | grep %s | grep %s | grep -v grep | awk '{print $1}'",
+            $this->serverConfig->getServerName(), $processType);
+        exec($cmd, $pids);
+        $this->logger->debug("[SwooleServer] get $processType pid list by '$cmd'", ['pid' => $pids]);
 
         return array_map('intval', $pids);
     }
@@ -125,10 +127,10 @@ class SwooleServer implements ServerInterface, LoggerAwareInterface
         return function () use ($eventName) {
             $event = $this->swooleServerEventFactory->create($eventName, func_get_args());
             if ($event) {
-                $this->logger->debug("create $eventName event ".get_class($event));
+                $this->logger->debug("[SwooleServer] create $eventName event ".get_class($event));
                 $this->eventDispatcher->dispatch($event);
             } else {
-                $this->logger->debug("no event handler for $eventName");
+                $this->logger->debug("[SwooleServer] no event handler for $eventName");
             }
         };
     }
@@ -144,13 +146,13 @@ class SwooleServer implements ServerInterface, LoggerAwareInterface
             if (in_array($event, SwooleEvent::requestEvents(), true)) {
                 continue;
             }
-            $this->logger->debug("attach $event to server");
+            $this->logger->debug("[SwooleServer] attach $event to server");
 
             $this->swooleServer->on($event, $this->swooleEventHandler($event));
         }
 
         foreach ($serverType->events as $event) {
-            $this->logger->debug("attach $event to server");
+            $this->logger->debug("[SwooleServer] attach $event to server");
             $this->swooleServer->on($event, $this->swooleEventHandler($event));
         }
     }
@@ -163,7 +165,7 @@ class SwooleServer implements ServerInterface, LoggerAwareInterface
         $swoolePort->set($serverType->settings);
 
         foreach ($serverType->events as $event) {
-            $this->logger->debug("attach $event to port ".$port->getPort());
+            $this->logger->debug("[SwooleServer] attach $event to port ".$port->getPort());
             $swoolePort->on($event, $this->swooleEventHandler($event));
         }
     }

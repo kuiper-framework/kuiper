@@ -41,11 +41,11 @@ class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInt
     public function __invoke($event): void
     {
         try {
-            $this->logger->info('on request');
+            $this->logger->debug('[HttpRequestEventListener] on request');
             $response = $this->requestHandler->handle($this->serverRequestFactory->createServerRequest($event->getRequest()));
             $this->responseSender->send($response, $event->getResponse());
         } catch (\Exception $e) {
-            $this->logger->error('Uncaught exception: '.get_class($e).': '.$e->getMessage()."\n".$e->getTraceAsString());
+            $this->logger->error('[HttpRequestEventListener] Uncaught exception: '.get_class($e).': '.$e->getMessage()."\n".$e->getTraceAsString());
         }
     }
 

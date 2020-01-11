@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\helper;
 
 final class Text
@@ -27,8 +29,8 @@ final class Text
      * snake case strings which are camel case.
      *
      * <code>
-     *    echo Text::uncamelize('CocoBongo'); // coco_bongo
-     *    echo Text::uncamelize('CocoBongo', '-'); // coco-bongo
+     *    echo Text::snakeCase('CocoBongo'); // coco_bongo
+     *    echo Text::snakeCase('CocoBongo', '-'); // coco-bongo
      * </code>
      *
      * @param string $delimiter
@@ -99,10 +101,8 @@ final class Text
      *
      * @param string $str
      * @param string $encoding
-     *
-     * @return string
      */
-    public static function lower($str, $encoding = 'UTF-8')
+    public static function lower($str, $encoding = 'UTF-8'): string
     {
         /*
          * 'lower' checks for the mbstring extension to make a correct lowercase transformation
@@ -147,10 +147,8 @@ final class Text
      * </code>
      *
      * @param string $text
-     *
-     * @return string
      */
-    public static function underscore($text)
+    public static function underscore($text): string
     {
         return preg_replace("#\s+#", '_', trim($text));
     }
@@ -164,10 +162,8 @@ final class Text
      * </code>
      *
      * @param string $text
-     *
-     * @return string
      */
-    public static function humanize($text)
+    public static function humanize($text): string
     {
         return preg_replace('#[_-]+#', ' ', trim($text));
     }
