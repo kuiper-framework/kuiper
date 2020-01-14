@@ -7,6 +7,8 @@ namespace kuiper\di\annotation;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use kuiper\di\ContainerBuilder;
+use kuiper\di\fixtures\FooService;
+use kuiper\di\fixtures\FooServiceInterface;
 use PHPUnit\Framework\TestCase;
 
 class ServiceTest extends TestCase
@@ -15,7 +17,7 @@ class ServiceTest extends TestCase
     {
         AnnotationRegistry::registerLoader('class_exists');
         $containerBuilder = new ContainerBuilder();
-        $reflectionClass = new \ReflectionClass(Foo::class);
+        $reflectionClass = new \ReflectionClass(FooService::class);
         $reader = new AnnotationReader();
         /** @var Service $service */
         $service = $reader->getClassAnnotation($reflectionClass, Service::class);
@@ -23,20 +25,8 @@ class ServiceTest extends TestCase
         $service->setContainerBuilder($containerBuilder);
         $service->handle();
         $container = $containerBuilder->build();
-        $this->assertTrue($container->has(FooInterface::class));
-        $foo = $container->get(FooInterface::class);
-        $this->assertInstanceOf(Foo::class, $foo);
+        $this->assertTrue($container->has(FooServiceInterface::class));
+        $foo = $container->get(FooServiceInterface::class);
+        $this->assertInstanceOf(FooService::class, $foo);
     }
-}
-
-interface FooInterface
-{
-}
-
-/**
- * @Service()
- * Class Foo
- */
-class Foo implements FooInterface
-{
 }

@@ -8,8 +8,10 @@ use DI\Annotation\Inject;
 use DI\Definition\FactoryDefinition;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
+use kuiper\di\annotation\Conditional;
+use Psr\Container\ContainerInterface;
 
-class ConfigurationDefinition
+class ConfigurationDefinitionSource
 {
     /**
      * @var AnnotationReaderInterface
@@ -25,17 +27,34 @@ class ConfigurationDefinition
     {
         $definitions = [];
         $reflectionClass = new \ReflectionClass($configuration);
+        /** @var Conditional $configurationCondition */
+        $configurationCondition = AllCondition::create($this->annotationReader, $reflectionClass);
         foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
             /** @var Bean $beanAnnotation */
             $beanAnnotation = $this->annotationReader->getMethodAnnotation($method, Bean::class);
             if ($beanAnnotation) {
-                $factoryDefinition = $this->createDefinition($beanAnnotation, $configuration, $method);
-                $definitions[$factoryDefinition->getName()] = $factoryDefinition;
+                $definition = $this->createDefinition($beanAnnotation, $configuration, $method);
+                /** @var AllCondition $condition */
+                $condition = AllCondition::create($this->annotationReader, $method);
+
+                if ($condition) {
+                    if ($configurationCondition) {
+                        $condition->addCondition($configurationCondition);
+                    }
+                    $definition = new ConditionalDefinition($definition, $condition);
+                } elseif ($configurationCondition) {
+                    $definition = new ConditionalDefinition($definition, $configurationCondition);
+                }
+                $definitions[$definition->getName()] = $definition;
             }
         }
         if ($configuration instanceof DefinitionConfiguration) {
             foreach ($configuration->getDefinitions() as $name => $definition) {
-                $definitions[$name] = $definition;
+                if ($configurationCondition) {
+                    $definitions[$name] = new ConditionalDefinition($definition, $configurationCondition);
+                } else {
+                    $definitions[$name] = $definition;
+                }
             }
         }
 

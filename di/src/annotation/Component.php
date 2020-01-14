@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\di\annotation;
 
 use DI\Definition\Reference;
+use kuiper\di\ComponentDefinition;
 use kuiper\di\ContainerBuilderAwareInterface;
 use kuiper\di\ContainerBuilderAwareTrait;
 
@@ -31,7 +32,7 @@ class Component implements ComponentInterface, ContainerBuilderAwareInterface
         }
         $definitions = [];
         foreach ($names as $name) {
-            $definitions[$name] = new Reference($this->class->getName());
+            $definitions[$name] = new ComponentDefinition(new Reference($this->class->getName()), $this);
         }
         $this->containerBuilder->addDefinitions($definitions);
     }

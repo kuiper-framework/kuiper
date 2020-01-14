@@ -52,7 +52,6 @@
             "kuiper\\reflection\\": "reflection/src/",
             "kuiper\\swoole\\": "swoole/src/",
             "kuiper\\event\\": "event/src/",
-            "kuiper\\cache\\": "cache/src/",
             "kuiper\\web\\": "web/src/"
         }
     },
@@ -64,9 +63,6 @@
             "kuiper\\di\\": "di/tests/",
             "kuiper\\helper\\": "helper/tests/",
             "kuiper\\reflection\\": "reflection/tests/",
-            "kuiper\\rpc\\client\\": "rpc-client/tests/",
-            "kuiper\\rpc\\server\\": "rpc-server/tests/",
-            "kuiper\\serializer\\": "serializer/tests/",
             "kuiper\\web\\": "web/tests/"
         }
     },

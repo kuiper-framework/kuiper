@@ -8,6 +8,7 @@ use Composer\Autoload\ClassLoader;
 use DI\CompiledContainer;
 use DI\Compiler\Compiler;
 use DI\Container;
+use DI\Definition\Definition;
 use DI\Definition\Source\AnnotationBasedAutowiring;
 use DI\Definition\Source\Autowiring;
 use DI\Definition\Source\DefinitionArray;
@@ -22,6 +23,7 @@ use DI\Proxy\ProxyFactory;
 use InvalidArgumentException;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\di\annotation\Conditional;
 use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\reflection\ReflectionNamespaceFactoryInterface;
@@ -126,14 +128,29 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $reflectionNamespaceFactory;
 
     /**
-     * @var ConfigurationDefinition
+     * @var ConfigurationDefinitionSource
      */
     private $configurationDefinition;
+
+    /**
+     * @var ConditionalDefinitionSource
+     */
+    private $conditionalDefinitionSource;
 
     /**
      * @var AnnotationReaderInterface
      */
     private $annotationReader;
+
+    /**
+     * @var Definition[]
+     */
+    private $definitions = [];
+
+    /**
+     * @var ConditionalDefinition[]
+     */
+    private $conditionalDefinitions = [];
 
     /**
      * Build a container configured for the dev environment.
@@ -176,7 +193,12 @@ class ContainerBuilder implements ContainerBuilderInterface
             }
         }
 
-        return new $containerClass($source, $proxyFactory, $this->wrapperContainer);
+        $container = new $containerClass($source, $proxyFactory, $this->wrapperContainer);
+        if ($this->conditionalDefinitionSource) {
+            $this->conditionalDefinitionSource->setContainer($container);
+        }
+
+        return $container;
     }
 
     /**
@@ -334,8 +356,26 @@ class ContainerBuilder implements ContainerBuilderInterface
             if (!is_string($definition) && !is_array($definition) && !($definition instanceof DefinitionSource)) {
                 throw new InvalidArgumentException(sprintf('%s parameter must be a string, an array or a DefinitionSource object, %s given', 'ContainerBuilder::addDefinitions()', is_object($definition) ? get_class($definition) : gettype($definition)));
             }
-
-            $this->definitionSources[] = $definition;
+            if (is_array($definition)) {
+                foreach ($definition as $key => $def) {
+                    if ($def instanceof ComponentDefinition) {
+                        /** @var Conditional $condition */
+                        $condition = AllCondition::create($this->getAnnotationReader(), $def->getComponent()->getTarget());
+                        if ($condition) {
+                            $def = new ConditionalDefinition($def->getDefinition(), $condition);
+                        } else {
+                            $def = $def->getDefinition();
+                        }
+                    }
+                    if ($def instanceof ConditionalDefinition) {
+                        $this->conditionalDefinitions[$key] = $def;
+                    } else {
+                        $this->definitions[$key] = $def;
+                    }
+                }
+            } else {
+                $this->definitionSources[] = $definition;
+            }
         }
 
         return $this;
@@ -413,16 +453,16 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $this;
     }
 
-    public function getConfigurationDefinition(): ConfigurationDefinition
+    public function getConfigurationDefinition(): ConfigurationDefinitionSource
     {
         if (!$this->configurationDefinition) {
-            $this->configurationDefinition = new ConfigurationDefinition($this->getAnnotationReader());
+            $this->configurationDefinition = new ConfigurationDefinitionSource($this->getAnnotationReader());
         }
 
         return $this->configurationDefinition;
     }
 
-    public function setConfigurationDefinition(ConfigurationDefinition $configurationDefinition): self
+    public function setConfigurationDefinition(ConfigurationDefinitionSource $configurationDefinition): self
     {
         $this->configurationDefinition = $configurationDefinition;
 
@@ -511,17 +551,16 @@ class ContainerBuilder implements ContainerBuilderInterface
         $sources = array_reverse($this->definitionSources);
 
         $autowiring = $this->getAutowiring();
-        if ($autowiring instanceof DefinitionSource) {
-            $sources[] = $autowiring;
+        if (!empty($this->definitions)) {
+            $sources[] = new DefinitionArray($this->definitions, $autowiring);
+        }
+        if (!empty($this->conditionalDefinitions)) {
+            $sources[] = $this->conditionalDefinitionSource = new ConditionalDefinitionSource($this->conditionalDefinitions, $autowiring);
         }
         $sources = array_map(static function ($definitions) use ($autowiring) {
             if (is_string($definitions)) {
                 // File
                 return new DefinitionFile($definitions, $autowiring);
-            }
-
-            if (is_array($definitions)) {
-                return new DefinitionArray($definitions, $autowiring);
             }
 
             if ($definitions instanceof AutowiringAwareInterface) {
@@ -530,6 +569,9 @@ class ContainerBuilder implements ContainerBuilderInterface
 
             return $definitions;
         }, $sources);
+        if ($autowiring instanceof DefinitionSource) {
+            $sources[] = $autowiring;
+        }
         $source = new SourceChain($sources);
 
         // Mutable definition source

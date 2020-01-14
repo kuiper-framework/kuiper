@@ -6,26 +6,19 @@ namespace kuiper\di;
 
 use DI\Definition\Source\DefinitionSource;
 use DI\Definition\ValueDefinition;
-use kuiper\helper\Properties;
 
 class PropertiesDefinitionSource implements DefinitionSource
 {
     /**
-     * @var Properties
+     * @var PropertyResolverInterface
      */
     private $properties;
 
     /**
      * PropertiesDefinitionSource constructor.
      */
-    public function __construct($properties)
+    public function __construct(PropertyResolverInterface $properties)
     {
-        if (is_array($properties)) {
-            $properties = Properties::fromArray($properties);
-        }
-        if (!$properties instanceof Properties) {
-            throw new \InvalidArgumentException('expected array, got '.gettype($properties));
-        }
         $this->properties = $properties;
     }
 

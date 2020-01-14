@@ -20,6 +20,11 @@ trait ComponentTrait
         $this->class = $class;
     }
 
+    public function getTarget()
+    {
+        return $this->class;
+    }
+
     public function handle(): void
     {
     }

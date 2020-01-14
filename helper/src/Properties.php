@@ -14,7 +14,7 @@ namespace kuiper\helper;
  *     ]);
  *     echo $array->get('redis.host');   // 'localhost'
  */
-class Properties extends \ArrayIterator
+class Properties extends \ArrayIterator implements PropertyResolverInterface
 {
     public function __get($name)
     {
@@ -31,11 +31,17 @@ class Properties extends \ArrayIterator
         return isset($this[$name]);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function has(string $key): bool
     {
         return null !== $this->get($key);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function get(string $key, $default = null)
     {
         $pos = strpos($key, '.');
