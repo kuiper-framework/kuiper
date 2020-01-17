@@ -10,10 +10,7 @@ use Psr\Container\ContainerInterface;
 
 class ConditionalDefinition implements Definition, Conditional
 {
-    /**
-     * @var Definition
-     */
-    private $definition;
+    use DelegateDefinitionTrait;
     /**
      * @var callable
      */
@@ -23,43 +20,6 @@ class ConditionalDefinition implements Definition, Conditional
     {
         $this->definition = $definition;
         $this->condition = $condition;
-    }
-
-    public function getDefinition(): Definition
-    {
-        return $this->definition;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName(): string
-    {
-        return $this->definition->getName();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setName(string $name)
-    {
-        return $this->definition->setName($name);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function replaceNestedDefinitions(callable $replacer)
-    {
-        return $this->definition->replaceNestedDefinitions($replacer);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __toString()
-    {
-        return (string) $this->definition;
     }
 
     public function match(ContainerInterface $container): bool

@@ -6,6 +6,7 @@ namespace kuiper\di;
 
 use DI\Definition\Source\DefinitionSource;
 use DI\Definition\ValueDefinition;
+use kuiper\helper\PropertyResolverInterface;
 
 class PropertiesDefinitionSource implements DefinitionSource
 {

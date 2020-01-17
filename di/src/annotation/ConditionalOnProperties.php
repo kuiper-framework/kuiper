@@ -40,8 +40,8 @@ class ConditionalOnProperties implements Conditional
             }
 
             return true;
-        } else {
-            return $this->matchIfMissing;
         }
+
+        return $this->matchIfMissing;
     }
 }

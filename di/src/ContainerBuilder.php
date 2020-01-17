@@ -368,7 +368,7 @@ class ContainerBuilder implements ContainerBuilderInterface
                         }
                     }
                     if ($def instanceof ConditionalDefinition) {
-                        $this->conditionalDefinitions[$key] = $def;
+                        $this->conditionalDefinitions[$def->getName()][] = $def;
                     } else {
                         $this->definitions[$key] = $def;
                     }

@@ -49,19 +49,21 @@ class ConditionalDefinitionSource implements DefinitionSource, ContainerAwareInt
             throw new DependencyException("Circular dependency detected while trying to resolve entry '$name'");
         }
         $this->resolving[$name] = true;
-        $definition = $this->definitions[$name];
-        if (!$definition instanceof ConditionalDefinition) {
-            throw new \InvalidArgumentException("Definition '$name' is not ConditionalDefinition");
-        }
-        if (!$definition->match($this->container)) {
-            unset($this->definitions[$name], $this->resolving[$name]);
+        $conditionDefs = $this->definitions[$name];
+        foreach ($conditionDefs as $definition) {
+            if (!$definition instanceof ConditionalDefinition) {
+                throw new \InvalidArgumentException("Definition '$name' is not ConditionalDefinition");
+            }
+            if (!$definition->match($this->container)) {
+                continue;
+            }
+            unset($this->resolving[$name]);
+            $this->source->addDefinition($definition->getDefinition());
 
-            return null;
+            return $definition->getDefinition();
         }
-        $this->source->addDefinition($definition->getDefinition());
-        unset($this->resolving[$name]);
 
-        return $definition->getDefinition();
+        return null;
     }
 
     /**

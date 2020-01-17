@@ -9,10 +9,8 @@ use kuiper\di\annotation\ComponentInterface;
 
 class ComponentDefinition implements Definition
 {
-    /**
-     * @var Definition
-     */
-    private $definition;
+    use DelegateDefinitionTrait;
+
     /**
      * @var ComponentInterface
      */
@@ -27,45 +25,8 @@ class ComponentDefinition implements Definition
         $this->component = $component;
     }
 
-    public function getDefinition(): Definition
-    {
-        return $this->definition;
-    }
-
     public function getComponent(): ComponentInterface
     {
         return $this->component;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName(): string
-    {
-        return $this->definition->getName();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setName(string $name)
-    {
-        return $this->definition->setName($name);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function replaceNestedDefinitions(callable $replacer)
-    {
-        return $this->definition->replaceNestedDefinitions($replacer);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __toString(): string
-    {
-        return (string) $this->definition;
     }
 }
