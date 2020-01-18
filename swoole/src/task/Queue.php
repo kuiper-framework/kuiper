@@ -9,10 +9,13 @@ use kuiper\annotations\AnnotationReaderAwareTrait;
 use kuiper\swoole\annotation\TaskProcessor;
 use kuiper\swoole\ServerInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
-class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwareInterface
+class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwareInterface, LoggerAwareInterface
 {
     use AnnotationReaderAwareTrait;
+    use LoggerAwareTrait;
 
     /**
      * @var ServerInterface
@@ -61,9 +64,17 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
      */
     public function dispatch($task): void
     {
-        $result = $this->getProcessor($task)->process($task);
-        if (isset($result)) {
-            $this->server->getSwooleServer()->finish($result);
+        try {
+            $result = $this->getProcessor($task)->process($task);
+            if (isset($result)) {
+                $this->server->getSwooleServer()->finish($result);
+            }
+        } catch (\Exception $e) {
+            $this->logger && $this->logger->error('[TaskQueue] dispatch error', [
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
     }
 
