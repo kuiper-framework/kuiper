@@ -6,11 +6,11 @@ namespace kuiper\swoole\http;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Swoole\Http\Request;
-use function Zend\Diactoros\normalizeUploadedFiles;
-use Zend\Diactoros\ServerRequestFactory;
-use Zend\Diactoros\Stream;
+use Laminas\Diactoros\ServerRequestFactory;
+use Laminas\Diactoros\Stream;
+use function Laminas\Diactoros\normalizeUploadedFiles;
 
-class ZendDiactorosServerRequestFactory implements ServerRequestFactoryInterface
+class DiactorosServerRequestFactory implements ServerRequestFactoryInterface
 {
     /**
      * {@inheritdoc}

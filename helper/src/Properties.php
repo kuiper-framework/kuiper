@@ -7,7 +7,7 @@ namespace kuiper\helper;
 /**
  * Access array use key separated by dot(.) :.
  *
- *     $array = new Properties([
+ *     $array = Properties::fromArray([
  *          'redis' => [
  *              'host' => 'localhost'
  *          ]

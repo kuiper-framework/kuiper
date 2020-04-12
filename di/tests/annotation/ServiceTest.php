@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\di\annotation;
 
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\AnnotationRegistry;
+use kuiper\annotations\AnnotationReader;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\fixtures\FooService;
 use kuiper\di\fixtures\FooServiceInterface;
@@ -15,10 +14,9 @@ class ServiceTest extends TestCase
 {
     public function testAnnotation()
     {
-        AnnotationRegistry::registerLoader('class_exists');
         $containerBuilder = new ContainerBuilder();
         $reflectionClass = new \ReflectionClass(FooService::class);
-        $reader = new AnnotationReader();
+        $reader = AnnotationReader::getInstance();
         /** @var Service $service */
         $service = $reader->getClassAnnotation($reflectionClass, Service::class);
         $service->setTarget($reflectionClass);

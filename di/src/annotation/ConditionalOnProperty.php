@@ -11,7 +11,7 @@ use Psr\Container\ContainerInterface;
  * @Annotation
  * @Target({"CLASS", "METHOD"})
  */
-class ConditionalOnProperties implements Conditional
+class ConditionalOnProperty implements Conditional
 {
     /**
      * @var string

@@ -1,0 +1,7 @@
+site_name: Kuiper Framework
+
+theme: material
+
+markdown_extensions:
+  - codehilite
+  - mdx_include

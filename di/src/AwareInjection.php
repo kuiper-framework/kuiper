@@ -29,9 +29,6 @@ class AwareInjection
         $this->setter = new MethodInjection($setter, [new Reference($beanName)]);
     }
 
-    /**
-     * @return string
-     */
     public function getInterfaceName(): string
     {
         return $this->awareInterfaceName;
@@ -41,6 +38,7 @@ class AwareInjection
     {
         /** @var Reference $param */
         $param = $this->setter->getParameters()[0];
+
         return $param->getTargetEntryName();
     }
 
@@ -51,6 +49,11 @@ class AwareInjection
 
     public function inject(ObjectDefinition $definition): void
     {
+        foreach ($definition->getMethodInjections() as $injection) {
+            if ($injection->getMethodName() === $this->setter->getMethodName()) {
+                return;
+            }
+        }
         $definition->addMethodInjection($this->setter);
     }
 

@@ -10,8 +10,4 @@ namespace kuiper\di\annotation;
  */
 class Service extends Component
 {
-    protected function getBeanNames(): array
-    {
-        return $this->class->getInterfaceNames() ?: parent::getBeanNames();
-    }
 }

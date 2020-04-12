@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\http;
 
-use Zend\Diactoros\Stream;
+use Laminas\Diactoros\Stream;
 
 class FileStream implements FileStreamInterface
 {

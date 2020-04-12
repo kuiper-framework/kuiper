@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace kuiper\di\fixtures;
 
 use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnProperties;
+use kuiper\di\annotation\ConditionalOnProperty;
 
 class TwoConditionConfiguration
 {
     /**
-     * @ConditionalOnProperties("foo")
+     * @ConditionalOnProperty("foo")
      * @Bean()
      */
     public function foo(): Foo
@@ -19,7 +19,7 @@ class TwoConditionConfiguration
     }
 
     /**
-     * @ConditionalOnProperties("bar")
+     * @ConditionalOnProperty("bar")
      * @Bean()
      */
     public function bar(): Foo

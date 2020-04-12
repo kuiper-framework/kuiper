@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use Webmozart\Assert\Assert;
+
 class ServerConfig
 {
     /**
@@ -40,6 +42,7 @@ class ServerConfig
     {
         $this->serverName = $serverName;
         $this->settings = $settings;
+        Assert::notEmpty($ports, 'at least one server port should be set');
         $this->ports = $ports;
     }
 
@@ -66,17 +69,17 @@ class ServerConfig
         return $this->ports[0];
     }
 
-    public function getTaskWorkerNum()
+    public function getTaskWorkerNum(): int
     {
         return $this->settings[SwooleSetting::TASK_WORKER_NUM] ?? 0;
     }
 
-    public function getWorkerNum()
+    public function getWorkerNum(): int
     {
         return $this->settings[SwooleSetting::WORKER_NUM] ?? 0;
     }
 
-    public function getTotalWorkerNum()
+    public function getTotalWorkerNum(): int
     {
         return $this->getTaskWorkerNum() + $this->getWorkerNum();
     }
@@ -86,9 +89,6 @@ class ServerConfig
         return $this->masterPidFile;
     }
 
-    /**
-     * @return ServerConfig
-     */
     public function setMasterPidFile(string $masterPidFile): self
     {
         $this->masterPidFile = $masterPidFile;
@@ -101,9 +101,6 @@ class ServerConfig
         return $this->managerPidFile;
     }
 
-    /**
-     * @return ServerConfig
-     */
     public function setManagerPidFile(string $managerPidFile): self
     {
         $this->managerPidFile = $managerPidFile;

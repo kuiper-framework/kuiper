@@ -26,9 +26,6 @@ class ServerPort
      */
     private $socketType;
 
-    /**
-     * ServerPort constructor.
-     */
     public function __construct(string $host, int $port, ServerType $serverType)
     {
         $this->host = $host;

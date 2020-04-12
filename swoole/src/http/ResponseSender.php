@@ -13,11 +13,15 @@ class ResponseSender implements ResponseSenderInterface
 {
     /**
      * swoole default buffer_output_size.
+     *
+     * @var int
      */
     private $bufferOutputSize;
 
     /**
      * Delay milliseconds to delete template response body file.
+     *
+     * @var int
      */
     private $tempFileDelay;
 

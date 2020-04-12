@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\di\annotation;
 
 use kuiper\di\ContainerBuilder;
-use kuiper\di\fixtures\ConditionalOnPropertiesConfiguration;
+use kuiper\di\fixtures\ConditionalOnPropertyConfiguration;
 use kuiper\di\fixtures\Foo;
 use kuiper\helper\Properties;
 use kuiper\helper\PropertyResolverInterface;
@@ -16,7 +16,7 @@ class ConditionalOnPropertiesTest extends TestCase
     public function testMatch()
     {
         $builder = new ContainerBuilder();
-        $builder->addConfiguration(new ConditionalOnPropertiesConfiguration());
+        $builder->addConfiguration(new ConditionalOnPropertyConfiguration());
         $builder->addDefinitions([
             PropertyResolverInterface::class => Properties::fromArray([
                 'foo' => 1,

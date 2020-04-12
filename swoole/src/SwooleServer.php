@@ -39,9 +39,6 @@ class SwooleServer implements ServerInterface, LoggerAwareInterface
      */
     private $swooleServerEventFactory;
 
-    /**
-     * SwooleServer public constructor.
-     */
     public function __construct(ServerConfig $serverConfig, EventDispatcherInterface $eventDispatcher)
     {
         $this->serverConfig = $serverConfig;

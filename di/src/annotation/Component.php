@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\di\annotation;
 
+use DI\Definition\ObjectDefinition;
 use DI\Definition\Reference;
 use kuiper\di\ComponentDefinition;
 use kuiper\di\ContainerBuilderAwareInterface;
@@ -31,14 +32,20 @@ class Component implements ComponentInterface, ContainerBuilderAwareInterface
             $names = $this->getBeanNames();
         }
         $definitions = [];
+        $className = $this->class->getName();
         foreach ($names as $name) {
-            $definitions[$name] = new ComponentDefinition(new Reference($this->class->getName()), $this);
+            if ($name === $className) {
+                $definition = new ObjectDefinition($className);
+            } else {
+                $definition = new Reference($className);
+            }
+            $definitions[$name] = new ComponentDefinition($definition, $this);
         }
         $this->containerBuilder->addDefinitions($definitions);
     }
 
     protected function getBeanNames(): array
     {
-        return [$this->class->getName()];
+        return array_merge($this->class->getInterfaceNames() ?: [], [$this->class->getName()]);
     }
 }

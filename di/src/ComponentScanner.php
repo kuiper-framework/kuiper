@@ -30,9 +30,6 @@ class ComponentScanner implements ComponentScannerInterface
      */
     private $annotationReader;
 
-    /**
-     * ComponentScanner constructor.
-     */
     public function __construct(ContainerBuilderInterface $containerBuilder, AnnotationReaderInterface $annotationReader, ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory)
     {
         $this->containerBuilder = $containerBuilder;
