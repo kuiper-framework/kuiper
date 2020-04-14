@@ -101,6 +101,15 @@ DI 容器支持按名字空间扫描名字空间下所有类，识别出所有�
 
 扫描过程中如果类使用 `@\kuiper\di\annotation\ComponentScan` 注解，可用于新增新的扫描名字空间。
 
+名字空间扫描是基于 composer PSR-4 规则，使用时必须先注册 Composer Class Loader:
+
+```php
+<?php
+$loader = require __DIR__ . '/vendor/autoload.php';
+
+$builder->setClassLoader($loader);
+```
+
 ## Conditional 注解
 
 通过 `@Bean`, `@Component` 等注解注册的定义，可以使用条件注解控制定义生效的条件。目前支持的条件注解包括：

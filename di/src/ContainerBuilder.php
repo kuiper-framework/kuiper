@@ -8,7 +8,9 @@ use Composer\Autoload\ClassLoader;
 use DI\CompiledContainer;
 use DI\Compiler\Compiler;
 use DI\Container;
+use DI\Definition\DecoratorDefinition;
 use DI\Definition\Definition;
+use DI\Definition\Helper\FactoryDefinitionHelper;
 use DI\Definition\Source\AnnotationBasedAutowiring;
 use DI\Definition\Source\Autowiring;
 use DI\Definition\Source\DefinitionArray;
@@ -151,6 +153,11 @@ class ContainerBuilder implements ContainerBuilderInterface
      * @var ConditionalDefinition[]
      */
     private $conditionalDefinitions = [];
+
+    /**
+     * @var DecoratorDefinition[]
+     */
+    private $decorateDefinitions = [];
 
     /**
      * Build a container configured for the dev environment.
@@ -369,6 +376,13 @@ class ContainerBuilder implements ContainerBuilderInterface
                     }
                     if ($def instanceof ConditionalDefinition) {
                         $this->conditionalDefinitions[$def->getName()][] = $def;
+                    } elseif ($def instanceof FactoryDefinitionHelper) {
+                        $def = $def->getDefinition($key);
+                        if ($def instanceof DecoratorDefinition) {
+                            $this->decorateDefinitions[$key] = $def;
+                        } else {
+                            $this->definitions[$key] = $def;
+                        }
                     } else {
                         $this->definitions[$key] = $def;
                     }
@@ -551,6 +565,9 @@ class ContainerBuilder implements ContainerBuilderInterface
         $sources = array_reverse($this->definitionSources);
 
         $autowiring = $this->getAutowiring();
+        if (!empty($this->decorateDefinitions)) {
+            $sources[] = new DefinitionArray($this->decorateDefinitions, $autowiring);
+        }
         if (!empty($this->definitions)) {
             $sources[] = new DefinitionArray($this->definitions, $autowiring);
         }

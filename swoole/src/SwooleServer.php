@@ -41,9 +41,20 @@ class SwooleServer implements ServerInterface, LoggerAwareInterface
 
     public function __construct(ServerConfig $serverConfig, EventDispatcherInterface $eventDispatcher)
     {
+        self::check();
         $this->serverConfig = $serverConfig;
         $this->eventDispatcher = $eventDispatcher;
         $this->swooleServerEventFactory = new SwooleServerEventFactory($this);
+    }
+
+    public static function check(): void
+    {
+        if (!extension_loaded('swoole')) {
+            throw new \RuntimeException('extension swoole should be enabled');
+        }
+        if (!class_exists(Server::class)) {
+            throw new \RuntimeException('swoole.use_namespace should be enabled');
+        }
     }
 
     /**
