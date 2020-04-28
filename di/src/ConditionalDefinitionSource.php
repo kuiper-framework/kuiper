@@ -22,6 +22,7 @@ class ConditionalDefinitionSource implements DefinitionSource, ContainerAwareInt
      * @var DefinitionArray
      */
     private $source;
+
     /**
      * @var array
      */

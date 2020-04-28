@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
-use DI\Annotation\Inject;
-use kuiper\di\annotation\Bean;
+use kuiper\di\fixtures\Bar;
+use kuiper\di\fixtures\BeanConfiguration;
 use PHPUnit\Framework\TestCase;
 
 class ConfigurationTest extends TestCase
@@ -13,7 +13,7 @@ class ConfigurationTest extends TestCase
     public function testBeanConfiguration()
     {
         $builder = new ContainerBuilder();
-        $builder->addConfiguration(new BeanProvider());
+        $builder->addConfiguration(new BeanConfiguration());
         $container = $builder->build();
         $bar = $container->get(Bar::class);
         // var_export($bar);
@@ -25,54 +25,11 @@ class ConfigurationTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->useAnnotations(true);
-        $builder->addConfiguration(new BeanProvider());
+        $builder->addConfiguration(new BeanConfiguration());
         $container = $builder->build();
         $bar = $container->get('foo');
         // var_export($bar);
         $this->assertInstanceOf(Bar::class, $bar);
         $this->assertEquals('other', $bar->name);
-    }
-}
-
-class Bar
-{
-    public $name;
-
-    /**
-     * Bar constructor.
-     *
-     * @param $name
-     */
-    public function __construct($name)
-    {
-        $this->name = $name;
-    }
-}
-
-class BeanProvider
-{
-    /**
-     * @Bean()
-     */
-    public function bar(): Bar
-    {
-        return new Bar('bar');
-    }
-
-    /**
-     * @Bean(name="otherBar")
-     */
-    public function otherBar(): Bar
-    {
-        return new Bar('other');
-    }
-
-    /**
-     * @Bean("foo")
-     * @Inject({"bar"="otherBar"})
-     */
-    public function foo(Bar $bar): Bar
-    {
-        return $bar;
     }
 }

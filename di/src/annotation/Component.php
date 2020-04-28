@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\di\annotation;
 
-use DI\Definition\ObjectDefinition;
+use DI\Definition\AutowireDefinition;
 use DI\Definition\Reference;
 use kuiper\di\ComponentDefinition;
 use kuiper\di\ContainerBuilderAwareInterface;
@@ -35,7 +35,7 @@ class Component implements ComponentInterface, ContainerBuilderAwareInterface
         $className = $this->class->getName();
         foreach ($names as $name) {
             if ($name === $className) {
-                $definition = new ObjectDefinition($className);
+                $definition = new AutowireDefinition($className);
             } else {
                 $definition = new Reference($className);
             }

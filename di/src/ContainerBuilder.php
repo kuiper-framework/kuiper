@@ -62,7 +62,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     /**
      * @var bool
      */
-    private $useAnnotations = false;
+    private $useAnnotations = true;
 
     /**
      * @var bool

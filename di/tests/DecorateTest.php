@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class DecorateTest extends TestCase
 {
-    public function testName()
+    public function testKuiperDecorate()
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->addDefinitions([
@@ -26,7 +26,7 @@ class DecorateTest extends TestCase
         $this->assertEquals(84, $container->get('foo'));
     }
 
-    public function testDecorate()
+    public function testDIDecorate()
     {
         $containerBuilder = new \DI\ContainerBuilder();
         $containerBuilder->addDefinitions([
