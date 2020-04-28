@@ -36,7 +36,7 @@ class Properties extends \ArrayIterator implements PropertyResolverInterface
      */
     public function has(string $key): bool
     {
-        return null !== $this->get($key);
+        return null !== $this->getValue($key);
     }
 
     /**
@@ -44,10 +44,20 @@ class Properties extends \ArrayIterator implements PropertyResolverInterface
      */
     public function get(string $key, $default = null)
     {
+        $value = $this->getValue($key);
+        if ($value instanceof self) {
+            return $value->toArray();
+        }
+
+        return $value ?? $default;
+    }
+
+    private function getValue(string $key)
+    {
         $pos = strpos($key, '.');
         $posBracket = strpos($key, '[');
         if (false === $pos && false === $posBracket) {
-            return $this[$key] ?? $default;
+            return $this[$key];
         }
         if (false === $pos || (false !== $posBracket && $posBracket < $pos)) {
             if (0 === $posBracket) {
@@ -75,11 +85,11 @@ class Properties extends \ArrayIterator implements PropertyResolverInterface
             }
 
             if ($this[$current] instanceof self) {
-                return $this[$current]->get($rest, $default);
+                return $this[$current]->getValue($rest);
             }
         }
 
-        return $default;
+        return null;
     }
 
     public function merge(array $configArray, $append = true): void

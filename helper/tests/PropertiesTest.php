@@ -107,4 +107,10 @@ class PropertiesTest extends TestCase
         $p->merge(['app' => ['foo' => ['three']]], false);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => ['three']]]);
     }
+
+    public function testWhenGetKeyIsArray_thenReturnArray()
+    {
+        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $this->assertEquals($p->get('app'), ['foo' => ['one', 'two']]);
+    }
 }
