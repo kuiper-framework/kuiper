@@ -14,11 +14,17 @@ class Channel implements ChannelInterface
     private $channel;
 
     /**
+     * @var float
+     */
+    private $timeout;
+
+    /**
      * Channel constructor.
      */
-    public function __construct(int $size)
+    public function __construct(int $size, float $timeout = 0)
     {
         $this->channel = new SwooleChannel($size);
+        $this->timeout = $timeout;
     }
 
     /**
@@ -26,7 +32,7 @@ class Channel implements ChannelInterface
      */
     public function push($data, float $timeout = null): bool
     {
-        return $this->channel->push($data, $timeout);
+        return $this->channel->push($data, $timeout ?? $this->timeout);
     }
 
     /**
@@ -34,7 +40,7 @@ class Channel implements ChannelInterface
      */
     public function pop(float $timeout = null)
     {
-        return $this->channel->pop($timeout);
+        return $this->channel->pop($timeout ?? $this->timeout);
     }
 
     public function size(): int

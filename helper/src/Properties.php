@@ -57,7 +57,7 @@ class Properties extends \ArrayIterator implements PropertyResolverInterface
         $pos = strpos($key, '.');
         $posBracket = strpos($key, '[');
         if (false === $pos && false === $posBracket) {
-            return $this[$key];
+            return $this[$key] ?? null;
         }
         if (false === $pos || (false !== $posBracket && $posBracket < $pos)) {
             if (0 === $posBracket) {
@@ -81,7 +81,7 @@ class Properties extends \ArrayIterator implements PropertyResolverInterface
         // var_export([$pos, $posBracket, $current, $key, $rest]);
         if (isset($this[$current])) {
             if (empty($rest)) {
-                return $this[$current];
+                return $this[$current] ?? null;
             }
 
             if ($this[$current] instanceof self) {
