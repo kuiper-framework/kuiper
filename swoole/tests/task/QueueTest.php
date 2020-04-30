@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\task;
 
-use kuiper\swoole\event\BeforeStartEvent;
+use kuiper\swoole\event\BootstrapEvent;
 use kuiper\swoole\event\StartEvent;
 use kuiper\swoole\event\TaskEvent;
 use kuiper\swoole\event\WorkerStartEvent;
+use kuiper\swoole\fixtures\FooTask;
 use kuiper\swoole\ServerInterface;
 use kuiper\swoole\SwooleServerTestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Swoole\Timer;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -26,7 +25,7 @@ class QueueTest extends SwooleServerTestCase
 
         /** @var EventDispatcher $eventDispatcher */
         $eventDispatcher = $container->get(EventDispatcherInterface::class);
-        $eventDispatcher->addListener(BeforeStartEvent::class, function () use ($container, $logger, $eventDispatcher) {
+        $eventDispatcher->addListener(BootstrapEvent::class, function () use ($container, $logger, $eventDispatcher) {
             $queue = $container->get(QueueInterface::class);
             $eventDispatcher->addListener(WorkerStartEvent::class, function (WorkerStartEvent $event) use ($logger, $queue) {
                 if (0 === $event->getWorkerId()) {
@@ -51,63 +50,5 @@ class QueueTest extends SwooleServerTestCase
         $logger->info('start server');
         $server->start();
         $this->assertTrue(true, 'ok');
-    }
-}
-
-class FooTask implements \JsonSerializable
-{
-    private $arg;
-
-    private $times;
-
-    /**
-     * FooTask constructor.
-     *
-     * @param $arg
-     */
-    public function __construct($arg)
-    {
-        $this->arg = $arg;
-        $this->times = 1;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getArg()
-    {
-        return $this->arg;
-    }
-
-    public function getTimes(): int
-    {
-        return $this->times;
-    }
-
-    public function incr()
-    {
-        ++$this->times;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function jsonSerialize()
-    {
-        return get_object_vars($this);
-    }
-}
-
-class FooTaskHandler implements ProcessorInterface, LoggerAwareInterface
-{
-    use LoggerAwareTrait;
-
-    /**
-     * @param FooTask $task
-     */
-    public function process($task)
-    {
-        $this->logger->info('handle task', ['task' => $task]);
-        $task->incr();
     }
 }

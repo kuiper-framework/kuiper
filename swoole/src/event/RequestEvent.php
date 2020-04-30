@@ -7,7 +7,7 @@ namespace kuiper\swoole\event;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 
-class RequestEvent extends SwooleServerEvent
+class RequestEvent extends AbstractServerEvent
 {
     /**
      * @var Request

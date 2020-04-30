@@ -9,7 +9,7 @@ use kuiper\helper\Enum;
 /**
  * @property string $type
  */
-class SwooleSetting extends Enum
+class ServerSetting extends Enum
 {
     public const REACTOR_NUM = 'reactor_num';
     public const WORKER_NUM = 'worker_num';

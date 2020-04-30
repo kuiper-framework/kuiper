@@ -11,6 +11,8 @@ namespace kuiper\swoole\annotation;
 final class TaskProcessor
 {
     /**
+     * class name of the task processor (use as the id that looked up in container).
+     *
      * @var string
      *
      * @Required()

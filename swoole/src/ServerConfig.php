@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use kuiper\helper\Properties;
 use Webmozart\Assert\Assert;
 
 class ServerConfig
@@ -41,7 +42,7 @@ class ServerConfig
     public function __construct(string $serverName, array $settings, array $ports)
     {
         $this->serverName = $serverName;
-        $this->settings = $settings;
+        $this->settings = new Properties($settings);
         Assert::notEmpty($ports, 'at least one server port should be set');
         $this->ports = $ports;
     }
@@ -51,7 +52,7 @@ class ServerConfig
         return $this->serverName;
     }
 
-    public function getSettings(): array
+    public function getSettings(): Properties
     {
         return $this->settings;
     }
@@ -71,12 +72,12 @@ class ServerConfig
 
     public function getTaskWorkerNum(): int
     {
-        return $this->settings[SwooleSetting::TASK_WORKER_NUM] ?? 0;
+        return $this->settings[ServerSetting::TASK_WORKER_NUM] ?? 0;
     }
 
     public function getWorkerNum(): int
     {
-        return $this->settings[SwooleSetting::WORKER_NUM] ?? 0;
+        return $this->settings[ServerSetting::WORKER_NUM] ?? 0;
     }
 
     public function getTotalWorkerNum(): int

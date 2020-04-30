@@ -10,7 +10,7 @@ class SwooleSettingTest extends TestCase
 {
     public function testEverySettingHasType()
     {
-        foreach (SwooleSetting::instances() as $setting) {
+        foreach (ServerSetting::instances() as $setting) {
             $this->assertNotNull($setting->type);
         }
     }

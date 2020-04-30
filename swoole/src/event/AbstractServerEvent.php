@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
-use kuiper\swoole\ServerInterface;
+use kuiper\swoole\server\ServerInterface;
 use Psr\EventDispatcher\StoppableEventInterface;
 
-abstract class SwooleServerEvent implements StoppableEventInterface
+abstract class AbstractServerEvent implements StoppableEventInterface
 {
     private $propagationStopped = false;
 
@@ -15,11 +15,6 @@ abstract class SwooleServerEvent implements StoppableEventInterface
      * @var ServerInterface
      */
     private $server;
-
-    /**
-     * @var \Swoole\Server
-     */
-    private $swooleServer;
 
     public function getServer(): ServerInterface
     {
@@ -29,16 +24,6 @@ abstract class SwooleServerEvent implements StoppableEventInterface
     public function setServer(ServerInterface $server): void
     {
         $this->server = $server;
-    }
-
-    public function setSwooleServer(\Swoole\Server $swooleServer): void
-    {
-        $this->swooleServer = $swooleServer;
-    }
-
-    public function getSwooleServer(): \Swoole\Server
-    {
-        return $this->swooleServer;
     }
 
     /**

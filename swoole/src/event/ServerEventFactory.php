@@ -4,35 +4,17 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
-use kuiper\swoole\ServerInterface;
-use Swoole\Server;
 use Swoole\WebSocket\Frame;
 
-class SwooleServerEventFactory
+class ServerEventFactory
 {
-    /**
-     * @var ServerInterface
-     */
-    private $server;
-
-    /**
-     * SwooleServerEventFactory constructor.
-     */
-    public function __construct(ServerInterface $server)
-    {
-        $this->server = $server;
-    }
-
-    public function create(string $eventName, array $args): ?SwooleServerEvent
+    public function create(string $eventName, array $args): ?AbstractServerEvent
     {
         $method = sprintf('create%sEvent', $eventName);
         if (method_exists($this, $method)) {
-            /** @var SwooleServerEvent $event */
+            /** @var AbstractServerEvent $event */
             $event = $this->$method(...$args);
-            $event->setServer($this->server);
-            if (!empty($args) && $args[0] instanceof Server) {
-                $event->setSwooleServer($args[0]);
-            }
+            $event->setServer($args[0]);
 
             return $event;
         }
@@ -40,9 +22,9 @@ class SwooleServerEventFactory
         return null;
     }
 
-    public function createBeforeStartEvent(): BeforeStartEvent
+    public function createBootstrapEvent(): BootstrapEvent
     {
-        return new BeforeStartEvent();
+        return new BootstrapEvent();
     }
 
     public function createStartEvent(): StartEvent

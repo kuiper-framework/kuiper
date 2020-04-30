@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
-use kuiper\swoole\event\SwooleServerEventFactory;
+use kuiper\swoole\event\ServerEventFactory;
 use kuiper\swoole\exception\ServerStateException;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -35,7 +35,7 @@ class SwooleServer implements ServerInterface, LoggerAwareInterface
     private $swooleServer;
 
     /**
-     * @var SwooleServerEventFactory
+     * @var ServerEventFactory
      */
     private $swooleServerEventFactory;
 
@@ -44,7 +44,7 @@ class SwooleServer implements ServerInterface, LoggerAwareInterface
         self::check();
         $this->serverConfig = $serverConfig;
         $this->eventDispatcher = $eventDispatcher;
-        $this->swooleServerEventFactory = new SwooleServerEventFactory($this);
+        $this->swooleServerEventFactory = new ServerEventFactory($this);
     }
 
     public static function check(): void
@@ -148,10 +148,10 @@ class SwooleServer implements ServerInterface, LoggerAwareInterface
         $serverType = $port->getServerType();
         $swooleServerClass = $serverType->server;
         $this->swooleServer = new $swooleServerClass($port->getHost(), $port->getPort(), SWOOLE_PROCESS, $port->getSockType());
-        $this->swooleServer->set(array_merge($this->serverConfig->getSettings(), $serverType->settings));
+        $this->swooleServer->set(array_merge($this->serverConfig->getSettings()->toArray(), $serverType->settings));
 
-        foreach (SwooleEvent::values() as $event) {
-            if (in_array($event, SwooleEvent::requestEvents(), true)) {
+        foreach (Event::values() as $event) {
+            if (in_array($event, Event::requestEvents(), true)) {
                 continue;
             }
             $this->logger->debug("[SwooleServer] attach $event to server");

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace kuiper\swoole;
 
 use kuiper\helper\Enum;
-use Swoole\Http\Server;
+use Swoole\Http\Server as HttpServer;
+use Swoole\Server;
 
 /**
  * Class SwooleServerType.
@@ -24,40 +25,40 @@ class ServerType extends Enum
 
     protected static $PROPERTIES = [
         'server' => [
-            self::HTTP => Server::class,
-            self::HTTP2 => Server::class,
-            self::WEBSOCKET => Server::class,
-            self::TCP => \Swoole\Server::class,
-            self::UDP => \Swoole\Server::class,
+            self::HTTP => HttpServer::class,
+            self::HTTP2 => HttpServer::class,
+            self::WEBSOCKET => HttpServer::class,
+            self::TCP => Server::class,
+            self::UDP => Server::class,
         ],
         'settings' => [
             self::HTTP => [
-                SwooleSetting::OPEN_HTTP_PROTOCOL => true,
-                SwooleSetting::OPEN_HTTP2_PROTOCOL => false,
+                ServerSetting::OPEN_HTTP_PROTOCOL => true,
+                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
             ],
             self::HTTP2 => [
-                SwooleSetting::OPEN_HTTP_PROTOCOL => false,
-                SwooleSetting::OPEN_HTTP2_PROTOCOL => true,
+                ServerSetting::OPEN_HTTP_PROTOCOL => false,
+                ServerSetting::OPEN_HTTP2_PROTOCOL => true,
             ],
             self::WEBSOCKET => [
-                SwooleSetting::OPEN_WEBSOCKET_PROTOCOL => true,
-                SwooleSetting::OPEN_HTTP2_PROTOCOL => false,
+                ServerSetting::OPEN_WEBSOCKET_PROTOCOL => true,
+                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
             ],
             self::TCP => [
-                SwooleSetting::OPEN_HTTP_PROTOCOL => false,
-                SwooleSetting::OPEN_HTTP2_PROTOCOL => false,
+                ServerSetting::OPEN_HTTP_PROTOCOL => false,
+                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
             ],
             self::UDP => [
-                SwooleSetting::OPEN_HTTP_PROTOCOL => false,
-                SwooleSetting::OPEN_HTTP2_PROTOCOL => false,
+                ServerSetting::OPEN_HTTP_PROTOCOL => false,
+                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
             ],
         ],
         'events' => [
-            self::HTTP => [SwooleEvent::REQUEST],
-            self::HTTP2 => [SwooleEvent::REQUEST],
-            self::WEBSOCKET => [SwooleEvent::REQUEST, SwooleEvent::MESSAGE, SwooleEvent::OPEN, SwooleEvent::HAND_SHAKE],
-            self::TCP => [SwooleEvent::RECEIVE],
-            self::UDP => [SwooleEvent::PACKET],
+            self::HTTP => [Event::REQUEST],
+            self::HTTP2 => [Event::REQUEST],
+            self::WEBSOCKET => [Event::REQUEST, Event::MESSAGE, Event::OPEN, Event::HAND_SHAKE],
+            self::TCP => [Event::RECEIVE],
+            self::UDP => [Event::PACKET],
         ],
     ];
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
-class FinishEvent extends SwooleServerEvent
+class FinishEvent extends AbstractServerEvent
 {
     /**
      * @var int

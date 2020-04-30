@@ -52,6 +52,26 @@ class Properties extends \ArrayIterator implements PropertyResolverInterface
         return $value ?? $default;
     }
 
+    public function getInt(string $key, $default = 0): int
+    {
+        return (int) $this->get($key, $default);
+    }
+
+    public function getBool(string $key, $default = false): bool
+    {
+        return (bool) $this->get($key, $default);
+    }
+
+    public function getString(string $key, $default = ''): string
+    {
+        return (string) $this->get($key, $default);
+    }
+
+    public function getNumber(string $key, $default = 0): float
+    {
+        return (float) $this->get($key, $default);
+    }
+
     private function getValue(string $key)
     {
         $pos = strpos($key, '.');

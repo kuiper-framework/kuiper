@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
-class ConnectEvent extends SwooleServerEvent
+class ConnectEvent extends AbstractServerEvent
 {
     /**
      * @var int
      */
     private $fd;
+
     /**
      * @var int
      */

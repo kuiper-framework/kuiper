@@ -10,6 +10,6 @@ namespace kuiper\swoole\event;
  *
  * Class BeforeStartEvent
  */
-class BeforeStartEvent extends SwooleServerEvent
+class BootstrapEvent extends AbstractServerEvent
 {
 }

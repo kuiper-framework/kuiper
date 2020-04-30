@@ -6,7 +6,7 @@ namespace kuiper\swoole\event;
 
 use Swoole\WebSocket\Frame;
 
-class MessageEvent extends SwooleServerEvent
+class MessageEvent extends AbstractServerEvent
 {
     /**
      * @var Frame

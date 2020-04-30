@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
-use kuiper\swoole\SwooleEvent;
+use kuiper\swoole\Event;
 use kuiper\swoole\SwooleServer;
 use PHPUnit\Framework\TestCase;
 
@@ -15,19 +15,19 @@ class SwooleServerEventFactoryTest extends TestCase
      */
     private $server;
     /**
-     * @var SwooleServerEventFactory
+     * @var ServerEventFactory
      */
     private $factory;
 
     protected function setUp(): void
     {
         $this->server = \Mockery::mock(SwooleServer::class);
-        $this->factory = new SwooleServerEventFactory($this->server);
+        $this->factory = new ServerEventFactory($this->server);
     }
 
     public function testCreate()
     {
-        $event = $this->factory->create(SwooleEvent::START, []);
+        $event = $this->factory->create(Event::START, []);
         $this->assertInstanceOf(StartEvent::class, $event);
         $this->assertEquals($this->server, $event->getServer());
     }

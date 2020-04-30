@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
-class PacketEvent extends SwooleServerEvent
+class PacketEvent extends AbstractServerEvent
 {
     /**
      * @var string

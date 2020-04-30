@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
-class PipeMessageEvent extends SwooleServerEvent
+class PipeMessageEvent extends AbstractServerEvent
 {
     /**
      * @var int

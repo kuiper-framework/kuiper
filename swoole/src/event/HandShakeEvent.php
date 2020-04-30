@@ -7,7 +7,7 @@ namespace kuiper\swoole\event;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 
-class HandShakeEvent extends SwooleServerEvent
+class HandShakeEvent extends AbstractServerEvent
 {
     /**
      * @var Request
