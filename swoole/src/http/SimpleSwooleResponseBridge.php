@@ -24,8 +24,15 @@ class SimpleSwooleResponseBridge implements SwooleResponseBridgeInterface
         $contentLength = $body->getSize();
         $swooleResponse->header('content-length', (string) $contentLength);
 
+        if ($body instanceof FileStreamInterface) {
+            $swooleResponse->sendfile($body->getFileName());
+
+            return;
+        }
+
         if ($contentLength > 0) {
             $swooleResponse->write((string) $body);
         }
+        $swooleResponse->end();
     }
 }

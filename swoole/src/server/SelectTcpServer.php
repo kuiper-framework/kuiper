@@ -30,7 +30,7 @@ class SelectTcpServer extends AbstractServer
      */
     public function start(): void
     {
-        $this->getSettings()->merge([
+        $this->getSettings()->mergeIfNotExists([
             ServerSetting::BUFFER_OUTPUT_SIZE => 2097152,
             ServerSetting::SOCKET_BUFFER_SIZE => 8192,
             ServerSetting::MAX_CONN => 1000,

@@ -36,13 +36,11 @@ class ResponseBuilder implements LoggerAwareInterface
 
     public function build(ServerRequestInterface $request, ResponseInterface $response): string
     {
-        //过期命中
         if ($this->options->getBool(HttpServerSetting::EXPIRE) && 304 === $response->getStatusCode()) {
             return $this->output($response, '');
         }
         $body = (string) $response->getBody();
 
-        //压缩
         if ($this->options->getBool(HttpServerSetting::GZIP)) {
             $encoding = $request->getHeaderLine(HttpHeaderName::ACCEPT_ENCODING);
             if (!empty($encoding)) {

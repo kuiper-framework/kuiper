@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\http;
 
+use kuiper\swoole\constants\HttpHeaderName;
 use kuiper\swoole\task\DeleteFileTask;
 use kuiper\swoole\task\QueueInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -50,7 +51,7 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
         }
         $body = $response->getBody();
         $contentLength = $body->getSize();
-        $swooleResponse->header('content-length', (string) $contentLength);
+        $swooleResponse->header(HttpHeaderName::CONTENT_LENGTH, (string) $contentLength);
 
         if ($body instanceof FileStreamInterface) {
             $swooleResponse->sendfile($body->getFileName());

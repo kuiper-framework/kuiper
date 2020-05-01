@@ -135,6 +135,17 @@ class Properties extends \ArrayIterator implements PropertyResolverInterface
         }
     }
 
+    public function mergeIfNotExists(array $configArray): void
+    {
+        foreach ($configArray as $key => $value) {
+            if (is_array($value) && $this[$key] instanceof self) {
+                $this[$key]->mergeIfNotExists($value);
+            } elseif (!isset($this[$key])) {
+                $this[$key] = $this->createItem($value);
+            }
+        }
+    }
+
     public function toArray(): array
     {
         $result = [];

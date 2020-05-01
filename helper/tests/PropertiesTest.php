@@ -49,16 +49,16 @@ class PropertiesTest extends TestCase
         // echo $array->get("map.k1");
         // return;
         foreach ([
-            'int' => 1,
-            'array[0]' => 1,
-            'array[1]' => 2,
-            'array[2][0]' => 3,
-            'array[2][1]' => 4,
-            'map.k1' => 'v1',
-            'map.k2' => 'v2',
-            'map2.k1[0]' => 'v1',
-            'array2[0].k1' => 'v1',
-        ] as $key => $val) {
+                     'int' => 1,
+                     'array[0]' => 1,
+                     'array[1]' => 2,
+                     'array[2][0]' => 3,
+                     'array[2][1]' => 4,
+                     'map.k1' => 'v1',
+                     'map.k2' => 'v2',
+                     'map2.k1[0]' => 'v1',
+                     'array2[0].k1' => 'v1',
+                 ] as $key => $val) {
             $this->assertSame($val, $array->get($key), $key.' not equal');
         }
         $this->assertEquals([
@@ -112,5 +112,15 @@ class PropertiesTest extends TestCase
     {
         $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two']]);
+    }
+
+    public function testMergeIfNotExists()
+    {
+        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p->mergeIfNotExists(['app' => [
+            'foo' => 'foo_value',
+            'bar' => 'bar_value',
+        ]]);
+        $this->assertEquals($p->get('app'), ['foo' => ['one', 'two'], 'bar' => 'bar_value']);
     }
 }
