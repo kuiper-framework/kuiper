@@ -5,34 +5,27 @@ declare(strict_types=1);
 namespace kuiper\swoole\listener;
 
 use kuiper\swoole\event\RequestEvent;
-use kuiper\swoole\http\ResponseSenderInterface;
-use kuiper\swoole\http\ServerRequestFactoryInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    /**
-     * @var ServerRequestFactoryInterface
-     */
-    private $serverRequestFactory;
+    private const TAG = '['.__CLASS__.'] ';
+
     /**
      * @var RequestHandlerInterface
      */
     private $requestHandler;
-    /**
-     * @var ResponseSenderInterface
-     */
-    private $responseSender;
 
-    public function __construct(ServerRequestFactoryInterface $serverRequestFactory, RequestHandlerInterface $handler, ResponseSenderInterface $responseSender)
+    public function __construct(RequestHandlerInterface $handler, ?LoggerInterface $logger)
     {
-        $this->serverRequestFactory = $serverRequestFactory;
         $this->requestHandler = $handler;
-        $this->responseSender = $responseSender;
+        $this->setLogger($logger ?? new NullLogger());
     }
 
     /**
@@ -41,11 +34,11 @@ class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInt
     public function __invoke($event): void
     {
         try {
-            $this->logger->debug('[HttpRequestEventListener] on request');
-            $response = $this->requestHandler->handle($this->serverRequestFactory->createServerRequest($event->getRequest()));
-            $this->responseSender->send($response, $event->getResponse());
+            $this->logger->debug(self::TAG.'receive request');
+            $event->setResponse($this->requestHandler->handle($event->getRequest()));
         } catch (\Exception $e) {
-            $this->logger->error('[HttpRequestEventListener] Uncaught exception: '.get_class($e).': '.$e->getMessage()."\n".$e->getTraceAsString());
+            $this->logger->error(self::TAG.'Uncaught exception: '.get_class($e).': '.$e->getMessage()."\n"
+                .$e->getTraceAsString());
         }
     }
 

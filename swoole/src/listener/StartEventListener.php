@@ -4,14 +4,26 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\listener;
 
+use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\event\StartEvent;
-use kuiper\swoole\SwooleServer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class StartEventListener implements EventListenerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
+
+    private const TAG = '['.__CLASS__.'] ';
+
+    /**
+     * StartEventListener constructor.
+     */
+    public function __construct(?LoggerInterface $logger)
+    {
+        $this->setLogger($logger ?? new NullLogger());
+    }
 
     /**
      * @param StartEvent $event
@@ -19,16 +31,15 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
     public function __invoke($event): void
     {
         $serverConfig = $event->getServer()->getServerConfig();
-        @cli_set_process_title(sprintf('%s: %s process', $serverConfig->getServerName(), SwooleServer::MASTER_PROCESS_NAME));
+        @cli_set_process_title(sprintf('%s: %s process', $serverConfig->getServerName(), ProcessType::MASTER));
 
-        $server = $event->getSwooleServer();
+        $server = $event->getServer();
         try {
-            $this->writePidFile($serverConfig->getMasterPidFile(), $server->master_pid);
-            $this->writePidFile($serverConfig->getManagerPidFile(), $server->manager_pid);
+            $this->writePidFile($serverConfig->getMasterPidFile(), $server->getMasterPid());
             $port = $serverConfig->getPort();
-            $this->logger->info(sprintf('[StartEventListener] Listening on %s://%s:%s', $port->getServerType()->value, $port->getHost(), $port->getPort()));
+            $this->logger->info(self::TAG.'Listening on '.$port);
         } catch (\RuntimeException $e) {
-            $this->logger->error('Cannot write master and manager pid file: '.$e->getMessage());
+            $this->logger->error(self::TAG.'Cannot write pid file: '.$e->getMessage());
             $server->stop();
         }
     }
@@ -40,7 +51,7 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
         }
         $dir = dirname($pidFile);
         if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-            $this->logger->error("[StartEventListener] Cannot create pid file directory $dir");
+            $this->logger->error(self::TAG."Cannot create pid file directory $dir");
             throw new \RuntimeException("Cannot create pid file directory $dir");
         }
         $ret = file_put_contents($pidFile, $pid);

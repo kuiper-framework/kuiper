@@ -8,50 +8,41 @@
 ```php
 <?php
 
-use kuiper\swoole\http\DiactorosServerRequestFactory;
-use kuiper\swoole\http\SimpleResponseSender;
+require __DIR__ . '/vendor/autoload.php';
+
+use kuiper\swoole\constants\ServerType;
+use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\listener\HttpRequestEventListener;
 use kuiper\swoole\ServerConfig;
+use kuiper\swoole\ServerFactory;
 use kuiper\swoole\ServerPort;
-use kuiper\swoole\ServerType;
-use kuiper\swoole\SwooleServer;
 use Laminas\Diactoros\ResponseFactory;
 use Laminas\Diactoros\StreamFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
-$logger = new NullLogger();
-$eventDispatcher = new EventDispatcher();
-$port = new ServerPort("0.0.0.0", 9527, ServerType::HTTP());
+$port = new ServerPort("0.0.0.0", 8080, ServerType::HTTP());
 $serverConfig = new ServerConfig("demo", [], [$port]);
-$server = new SwooleServer($serverConfig, $eventDispatcher);
-$server->setLogger($logger);
+$logger = new NullLogger();
 
-$handler = new class implements RequestHandlerInterface {
-    /**
-     * @inheritDoc
-     */
+$serverFactory = new ServerFactory($logger);
+$httpRequestHandler = new class implements RequestHandlerInterface {
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $responseFactory = new ResponseFactory();
         $streamFactory = new StreamFactory();
         return $responseFactory->createResponse()
-            ->withBody($streamFactory->createStream("hello world!"));
+            ->withBody($streamFactory->createStream("hello world!\n"));
     }
 };
-$serverRequestFactory = new DiactorosServerRequestFactory();
-$responseSender = new SimpleResponseSender();
-$httpRequestEventListener = new HttpRequestEventListener($serverRequestFactory, $handler, $responseSender);
-$httpRequestEventListener->setLogger($logger);
 
-$listeners = [$httpRequestEventListener];
-foreach ($listeners as $listener) {
-    $eventDispatcher->addListener($listener->getSubscribedEvent(), $listener);
-}
-$server->start();
+$serverFactory->getEventDispatcher()
+    ->addListener(RequestEvent::class, new HttpRequestEventListener($httpRequestHandler, $logger));
+$serverFactory
+    ->create($serverConfig)
+    ->start();
 ```
 
 ## 事件
@@ -64,7 +55,7 @@ $server->start();
 
 进程生命周期事件包括：
 
-- BeforeStartEvent 这个事件不是 swoole 事件，是个虚拟事件，在服务启动前调用，用于初始化服务器资源
+- BootstrapEvent 这个事件不是 swoole 事件，是个虚拟事件，在服务启动前调用，用于初始化服务器资源
 - StartEvent 
 - ShutdownEvent
 - ManagerStartEvent

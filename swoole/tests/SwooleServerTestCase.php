@@ -7,6 +7,7 @@ namespace kuiper\swoole;
 use function DI\autowire;
 use DI\ContainerBuilder;
 use function DI\get;
+use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\event\ManagerStartEvent;
 use kuiper\swoole\event\StartEvent;
 use kuiper\swoole\listener\ManagerStartEventListener;

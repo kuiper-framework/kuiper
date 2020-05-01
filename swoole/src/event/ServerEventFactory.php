@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
+use Psr\Http\Message\ServerRequestInterface;
 use Swoole\WebSocket\Frame;
 
 class ServerEventFactory
@@ -12,9 +13,10 @@ class ServerEventFactory
     {
         $method = sprintf('create%sEvent', $eventName);
         if (method_exists($this, $method)) {
+            $server = array_shift($args);
             /** @var AbstractServerEvent $event */
             $event = $this->$method(...$args);
-            $event->setServer($args[0]);
+            $event->setServer($server);
 
             return $event;
         }
@@ -47,7 +49,7 @@ class ServerEventFactory
         return new ManagerStopEvent();
     }
 
-    public function createWorkerStartEvent($server, int $workerId): WorkerStartEvent
+    public function createWorkerStartEvent(int $workerId): WorkerStartEvent
     {
         $event = new WorkerStartEvent();
         $event->setWorkerId($workerId);
@@ -55,7 +57,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createWorkerStopEvent($server, int $workerId): WorkerStopEvent
+    public function createWorkerStopEvent(int $workerId): WorkerStopEvent
     {
         $event = new WorkerStopEvent();
         $event->setWorkerId($workerId);
@@ -63,7 +65,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createWorkerExitEvent($server, int $workerId): WorkerExitEvent
+    public function createWorkerExitEvent(int $workerId): WorkerExitEvent
     {
         $event = new WorkerExitEvent();
         $event->setWorkerId($workerId);
@@ -71,7 +73,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createWorkerErrorEvent($server, int $workerId, int $workerPid, int $exitCode): WorkerErrorEvent
+    public function createWorkerErrorEvent(int $workerId, int $workerPid, int $exitCode): WorkerErrorEvent
     {
         $event = new WorkerErrorEvent();
         $event->setWorkerId($workerId);
@@ -81,7 +83,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createConnectEvent($server, int $fd, int $reactorId): ConnectEvent
+    public function createConnectEvent(int $fd, int $reactorId): ConnectEvent
     {
         $event = new ConnectEvent();
         $event->setFd($fd);
@@ -90,7 +92,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createCloseEvent($server, int $fd, int $reactorId): CloseEvent
+    public function createCloseEvent(int $fd, int $reactorId): CloseEvent
     {
         $event = new CloseEvent();
         $event->setFd($fd);
@@ -99,16 +101,15 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createRequestEvent($request, $response): RequestEvent
+    public function createRequestEvent(ServerRequestInterface $request): RequestEvent
     {
         $event = new RequestEvent();
         $event->setRequest($request);
-        $event->setResponse($response);
 
         return $event;
     }
 
-    public function createReceiveEvent($server, int $fd, int $reactorId, string $data): ReceiveEvent
+    public function createReceiveEvent(int $fd, int $reactorId, string $data): ReceiveEvent
     {
         $event = new ReceiveEvent();
         $event->setFd($fd);
@@ -118,7 +119,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createPacketEvent($server, string $data, array $clientInfo): PacketEvent
+    public function createPacketEvent(string $data, array $clientInfo): PacketEvent
     {
         $event = new PacketEvent();
         $event->setData($data);
@@ -127,7 +128,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createTaskEvent($server, int $taskId, int $fromWorkerId, $data): TaskEvent
+    public function createTaskEvent(int $taskId, int $fromWorkerId, $data): TaskEvent
     {
         $event = new TaskEvent();
         $event->setTaskId($taskId);
@@ -137,7 +138,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createFinishEvent($server, int $taskId, string $result): FinishEvent
+    public function createFinishEvent(int $taskId, string $result): FinishEvent
     {
         $event = new FinishEvent();
         $event->setTaskId($taskId);
@@ -146,7 +147,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createPipeMessageEvent($server, int $fromWorkerId, string $message): PipeMessageEvent
+    public function createPipeMessageEvent(int $fromWorkerId, string $message): PipeMessageEvent
     {
         $event = new PipeMessageEvent();
         $event->setFromWorkerId($fromWorkerId);
@@ -155,7 +156,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createOpenEvent($server, $request): OpenEvent
+    public function createOpenEvent($request): OpenEvent
     {
         $event = new OpenEvent();
         $event->setRequest($request);
@@ -172,7 +173,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createMessageEvent($server, Frame $frame): MessageEvent
+    public function createMessageEvent(Frame $frame): MessageEvent
     {
         $event = new MessageEvent();
         $event->setFrame($frame);

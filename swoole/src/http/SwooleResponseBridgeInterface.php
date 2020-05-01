@@ -7,10 +7,10 @@ namespace kuiper\swoole\http;
 use Psr\Http\Message\ResponseInterface;
 use Swoole\Http\Response;
 
-interface ResponseSenderInterface
+interface SwooleResponseBridgeInterface
 {
     /**
      * send psr-7 http response with swoole response.
      */
-    public function send(ResponseInterface $response, Response $swooleResponse): void;
+    public function update(ResponseInterface $response, Response $swooleResponse): void;
 }

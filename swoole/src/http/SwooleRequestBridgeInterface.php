@@ -7,10 +7,10 @@ namespace kuiper\swoole\http;
 use Psr\Http\Message\ServerRequestInterface;
 use Swoole\Http\Request;
 
-interface ServerRequestFactoryInterface
+interface SwooleRequestBridgeInterface
 {
     /**
      * Convert swoole request to PSR-7 http request.
      */
-    public function createServerRequest(Request $swooleRequest): ServerRequestInterface;
+    public function create(Request $swooleRequest): ServerRequestInterface;
 }

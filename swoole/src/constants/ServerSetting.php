@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\swoole;
+namespace kuiper\swoole\constants;
 
 use kuiper\helper\Enum;
 

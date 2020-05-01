@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server;
 
-use kuiper\swoole\Event;
+use kuiper\swoole\constants\Event;
+use kuiper\swoole\event\RequestEvent;
+use kuiper\swoole\http\SwooleRequestBridgeInterface;
+use kuiper\swoole\http\SwooleResponseBridgeInterface;
 use kuiper\swoole\ServerPort;
 use Swoole\Server;
 
@@ -12,10 +15,62 @@ class SwooleServer extends AbstractServer
 {
     private const TAG = '['.__CLASS__.'] ';
 
+    private const SWOOLE_SERVER_WORKER = '__SwooleServer:worker';
+
+    /**
+     * @var HttpMessageFactoryHolder
+     */
+    private $httpMessageFactoryHolder;
+
+    /**
+     * @var SwooleRequestBridgeInterface
+     */
+    private $swooleRequestBridge;
+
+    /**
+     * @var SwooleResponseBridgeInterface
+     */
+    private $swooleResponseBridge;
+
     /**
      * @var Server
      */
     private $resource;
+
+    /**
+     * @var Server
+     */
+    private $workerServer;
+
+    public function getHttpMessageFactoryHolder(): HttpMessageFactoryHolder
+    {
+        return $this->httpMessageFactoryHolder;
+    }
+
+    public function setHttpMessageFactoryHolder(HttpMessageFactoryHolder $httpMessageFactoryHolder): void
+    {
+        $this->httpMessageFactoryHolder = $httpMessageFactoryHolder;
+    }
+
+    public function getSwooleRequestBridge(): SwooleRequestBridgeInterface
+    {
+        return $this->swooleRequestBridge;
+    }
+
+    public function setSwooleRequestBridge(SwooleRequestBridgeInterface $swooleRequestBridge): void
+    {
+        $this->swooleRequestBridge = $swooleRequestBridge;
+    }
+
+    public function getSwooleResponseBridge(): SwooleResponseBridgeInterface
+    {
+        return $this->swooleResponseBridge;
+    }
+
+    public function setSwooleResponseBridge(SwooleResponseBridgeInterface $swooleResponseBridge): void
+    {
+        $this->swooleResponseBridge = $swooleResponseBridge;
+    }
 
     public static function check(): void
     {
@@ -41,6 +96,43 @@ class SwooleServer extends AbstractServer
         $this->resource->start();
     }
 
+    public function reload(): void
+    {
+        $this->resource->reload();
+    }
+
+    public function stop(): void
+    {
+        $this->resource->stop();
+    }
+
+    public function task($data, $workerId = -1, $onFinish = null)
+    {
+        return $this->resource->task($data, $workerId, $onFinish);
+    }
+
+    public function finish($data): void
+    {
+        $this->resource->finish($data);
+    }
+
+    public function getMasterPid(): int
+    {
+        return $this->resource->master_pid;
+    }
+
+    public function isTaskWorker(): bool
+    {
+        return $this->hasWorker() && (bool) $this->getWorker()->taskworker;
+    }
+
+    public function send(int $clientId, string $data): void
+    {
+        if ($this->getWorker()) {
+            $this->getWorker()->send($clientId, $data);
+        }
+    }
+
     private function createSwooleServer(ServerPort $port): void
     {
         $serverType = $port->getServerType();
@@ -49,7 +141,8 @@ class SwooleServer extends AbstractServer
         $this->resource->set(array_merge($this->getSettings()->toArray(), $serverType->settings));
 
         foreach (Event::values() as $event) {
-            if (in_array($event, Event::requestEvents(), true)) {
+            if (Event::fromValue($event)->non_swoole
+                || in_array($event, Event::requestEvents(), true)) {
                 continue;
             }
             $this->attach($event);
@@ -76,16 +169,58 @@ class SwooleServer extends AbstractServer
     private function createEventHandler(string $eventName): callable
     {
         return function () use ($eventName) {
-            $this->dispatch($eventName, func_get_args());
+            $args = func_get_args();
+            if (Event::REQUEST === $eventName) {
+                $this->onRequest(...$args);
+
+                return;
+            }
+            if ($args[0] instanceof Server) {
+                $this->setWorker(array_shift($args));
+            }
+
+            try {
+                $this->dispatch($eventName, $args);
+            } finally {
+                $this->setWorker(null);
+            }
         };
     }
 
-    /**
-     * @param $event
-     */
+    private function setWorker(?Server $server): void
+    {
+        $this->workerServer = $server;
+    }
+
+    private function hasWorker(): bool
+    {
+        return isset($this->workerServer);
+    }
+
+    private function getWorker(): ?Server
+    {
+        return $this->workerServer;
+    }
+
     private function attach(string $event): void
     {
         $this->logger->debug(self::TAG."attach $event to server");
         $this->resource->on($event, $this->createEventHandler($event));
+    }
+
+    private function onRequest($request, $response): void
+    {
+        try {
+            /** @var RequestEvent $event */
+            $event = $this->dispatch(Event::REQUEST, [$this->swooleRequestBridge->create($request)]);
+            if ($event) {
+                $this->swooleResponseBridge->update($event->getResponse() ?? $this->httpMessageFactoryHolder->getResponseFactory()
+                        ->createResponse(500), $response);
+            }
+        } catch (\Exception $e) {
+            $this->logger->error(self::TAG.'handle http request failed: '.$e->getMessage());
+            $this->swooleResponseBridge->update($event->getResponse() ?? $this->httpMessageFactoryHolder->getResponseFactory()
+                    ->createResponse(500), $response);
+        }
     }
 }

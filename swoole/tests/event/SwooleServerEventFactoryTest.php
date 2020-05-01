@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
-use kuiper\swoole\Event;
+use kuiper\swoole\constants\Event;
 use kuiper\swoole\SwooleServer;
 use PHPUnit\Framework\TestCase;
 

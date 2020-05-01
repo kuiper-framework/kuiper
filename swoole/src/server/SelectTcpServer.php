@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server;
 
-use kuiper\swoole\Event;
+use kuiper\swoole\constants\Event;
+use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\exception\ServerStateException;
-use kuiper\swoole\ServerSetting;
 
 class SelectTcpServer extends AbstractServer
 {
@@ -20,9 +20,24 @@ class SelectTcpServer extends AbstractServer
      */
     private $sockets;
 
+    /**
+     * @var int
+     */
+    private $masterPid;
+
+    /**
+     * {@inheritdoc}
+     */
     public function start(): void
     {
+        $this->getSettings()->merge([
+            ServerSetting::BUFFER_OUTPUT_SIZE => 2097152,
+            ServerSetting::SOCKET_BUFFER_SIZE => 8192,
+            ServerSetting::MAX_CONN => 1000,
+        ]);
+        $this->masterPid = getmypid();
         $this->dispatch(Event::BOOTSTRAP, []);
+        // TODO 信号控制
         $uri = $this->getUri();
         $socket = stream_socket_server($uri, $errno, $err);
 
@@ -38,12 +53,45 @@ class SelectTcpServer extends AbstractServer
     }
 
     /**
-     * 向client发送数据.
+     * {@inheritdoc}
      */
-    public function send(int $clientId, string $data): int
+    public function stop(): void
     {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reload(): void
+    {
+    }
+
+    public function task($data, $workerId = -1, $onFinish = null)
+    {
+    }
+
+    public function finish($data): void
+    {
+    }
+
+    public function getMasterPid(): int
+    {
+        return $this->masterPid;
+    }
+
+    public function isTaskWorker(): bool
+    {
+        return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function send(int $clientId, string $data): void
+    {
+        // TODO 写异常使用 ERROR 事件
         if (!isset($this->sockets[$clientId]) || $clientId === (int) $this->resource) {
-            return -1;
+            return;
         }
         $fp = $this->sockets[$clientId];
         $length = strlen($data);
@@ -51,12 +99,10 @@ class SelectTcpServer extends AbstractServer
         while ($written < $length) {
             $ret = fwrite($fp, substr($data, $written));
             if (false === $ret || $ret <= 0) {
-                return $written;
+                return;
             }
             $written += $ret;
         }
-
-        return $written;
     }
 
     private function getUri(): string
@@ -132,7 +178,18 @@ class SelectTcpServer extends AbstractServer
         return $socketId;
     }
 
-    private function close($socket): void
+    /**
+     * 获取连接信息.
+     */
+    public function getConnectionInfo(int $fd): array
+    {
+        $name = stream_socket_get_name($this->sockets[$fd], true);
+        [$ip, $port] = explode(':', $name);
+
+        return ['remote_port' => $port, 'remote_ip' => $ip];
+    }
+
+    protected function close($socket): void
     {
         $socketId = (int) $socket;
         if (isset($this->sockets[$socketId])) {

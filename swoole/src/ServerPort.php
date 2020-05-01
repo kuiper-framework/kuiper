@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use kuiper\swoole\constants\ServerType;
+
 class ServerPort
 {
     /**
@@ -59,5 +61,10 @@ class ServerPort
     {
         return $this->socketType
             ?? (ServerType::UDP === $this->serverType->value ? SWOOLE_SOCK_UDP : SWOOLE_SOCK_TCP);
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('%s://%s:%s', $this->serverType, $this->host, $this->port);
     }
 }

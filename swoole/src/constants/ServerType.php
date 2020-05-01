@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\swoole;
+namespace kuiper\swoole\constants;
 
 use kuiper\helper\Enum;
 use Swoole\Http\Server as HttpServer;
@@ -61,4 +61,9 @@ class ServerType extends Enum
             self::UDP => [Event::PACKET],
         ],
     ];
+
+    public function isHttpProtocol(): bool
+    {
+        return in_array(Event::REQUEST, $this->events, true);
+    }
 }

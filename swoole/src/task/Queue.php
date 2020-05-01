@@ -7,15 +7,19 @@ namespace kuiper\swoole\task;
 use kuiper\annotations\AnnotationReaderAwareInterface;
 use kuiper\annotations\AnnotationReaderAwareTrait;
 use kuiper\swoole\annotation\TaskProcessor;
-use kuiper\swoole\ServerInterface;
+use kuiper\swoole\server\ServerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwareInterface, LoggerAwareInterface
 {
     use AnnotationReaderAwareTrait;
     use LoggerAwareTrait;
+
+    private const TAG = '['.__CLASS__.'] ';
 
     /**
      * @var ServerInterface
@@ -32,10 +36,11 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
      */
     private $processors;
 
-    public function __construct(ServerInterface $server, ContainerInterface $container)
+    public function __construct(ServerInterface $server, ContainerInterface $container, ?LoggerInterface $logger)
     {
         $this->server = $server;
         $this->container = $container;
+        $this->setLogger($logger ?? new NullLogger());
     }
 
     /**
@@ -45,7 +50,9 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
     {
         $this->getProcessor($task);
 
-        return $this->server->getSwooleServer()->task($task, $workerId, $onFinish);
+        $taskId = $this->server->task($task, $workerId, $onFinish);
+
+        return is_int($taskId) ? $taskId : 0;
     }
 
     public function registerProcessor(string $taskClass, $handler): void
@@ -67,10 +74,10 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
         try {
             $result = $this->getProcessor($task)->process($task);
             if (isset($result)) {
-                $this->server->getSwooleServer()->finish($result);
+                $this->server->finish($result);
             }
         } catch (\Exception $e) {
-            $this->logger && $this->logger->error('[TaskQueue] dispatch error', [
+            $this->logger->error(self::TAG.'dispatch error', [
                 'exception' => get_class($e),
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),

@@ -2,10 +2,15 @@
 
 declare(strict_types=1);
 
-namespace kuiper\swoole;
+namespace kuiper\swoole\constants;
 
 use kuiper\helper\Enum;
 
+/**
+ * Class Event.
+ *
+ * @property bool non_swoole
+ */
 class Event extends Enum
 {
     public const BOOTSTRAP = 'bootstrap';
@@ -47,6 +52,12 @@ class Event extends Enum
     public const MANAGER_START = 'managerStart';
 
     public const MANAGER_STOP = 'managerStop';
+
+    protected static $PROPERTIES = [
+        'non_swoole' => [
+            self::BOOTSTRAP => true,
+        ],
+    ];
 
     public static function requestEvents(): array
     {

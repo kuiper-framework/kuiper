@@ -4,36 +4,36 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
-use Swoole\Http\Request;
-use Swoole\Http\Response;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class RequestEvent extends AbstractServerEvent
 {
     /**
-     * @var Request
+     * @var ServerRequestInterface
      */
     private $request;
     /**
-     * @var Response
+     * @var ResponseInterface
      */
     private $response;
 
-    public function getRequest(): Request
+    public function getRequest(): ServerRequestInterface
     {
         return $this->request;
     }
 
-    public function setRequest(Request $request): void
+    public function setRequest(ServerRequestInterface $request): void
     {
         $this->request = $request;
     }
 
-    public function getResponse(): Response
+    public function getResponse(): ?ResponseInterface
     {
         return $this->response;
     }
 
-    public function setResponse(Response $response): void
+    public function setResponse(ResponseInterface $response): void
     {
         $this->response = $response;
     }

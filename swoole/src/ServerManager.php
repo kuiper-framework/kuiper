@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\exception\ServerStateException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;

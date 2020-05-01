@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\http;
 
-use Psr\Http\Message\ServerRequestInterface;
-use Swoole\Http\Request;
 use Laminas\Diactoros\ServerRequestFactory;
 use Laminas\Diactoros\Stream;
+use Psr\Http\Message\ServerRequestInterface;
+use Swoole\Http\Request;
 use function Laminas\Diactoros\normalizeUploadedFiles;
 
-class DiactorosServerRequestFactory implements ServerRequestFactoryInterface
+class DiactorosSwooleRequestBridge implements SwooleRequestBridgeInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function createServerRequest(Request $swooleRequest): ServerRequestInterface
+    public function create(Request $swooleRequest): ServerRequestInterface
     {
         $server = array_change_key_case($swooleRequest->server, CASE_UPPER);
         $headers = $swooleRequest->header;

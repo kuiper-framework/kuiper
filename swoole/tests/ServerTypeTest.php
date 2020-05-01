@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use kuiper\swoole\constants\ServerType;
 use PHPUnit\Framework\TestCase;
 
 class ServerTypeTest extends TestCase

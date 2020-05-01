@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\swoole;
 
 use kuiper\helper\Properties;
+use kuiper\swoole\constants\ServerSetting;
 use Webmozart\Assert\Assert;
 
 class ServerConfig

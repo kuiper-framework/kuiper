@@ -7,12 +7,12 @@ namespace kuiper\swoole\http;
 use Psr\Http\Message\ResponseInterface;
 use Swoole\Http\Response;
 
-class SimpleResponseSender implements ResponseSenderInterface
+class SimpleSwooleResponseBridge implements SwooleResponseBridgeInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function send(ResponseInterface $response, Response $swooleResponse): void
+    public function update(ResponseInterface $response, Response $swooleResponse): void
     {
         $swooleResponse->status($response->getStatusCode());
         foreach ($response->getHeaders() as $name => $values) {
