@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server;
 
+use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\Event;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\exception\ServerStateException;
@@ -24,6 +25,11 @@ class SelectTcpServer extends AbstractServer
      * @var int
      */
     private $masterPid;
+
+    /**
+     * @var array
+     */
+    private $clients;
 
     /**
      * {@inheritdoc}
@@ -138,11 +144,13 @@ class SelectTcpServer extends AbstractServer
                 foreach ($read as $socket) {
                     if ($socket === $this->resource) {
                         if ($clientSocketId = $this->accept()) {
+                            $this->clients[$clientSocketId]['connect_time'] = time();
                             $this->dispatch(Event::CONNECT, [$clientSocketId, 0]);
                         }
                     } else {
                         $data = $this->read($socket, $this->getSettings()->getInt(ServerSetting::SOCKET_BUFFER_SIZE));
                         if (!empty($data)) {
+                            $this->clients[(int) $socket]['last_time'] = time();
                             $this->dispatch(Event::RECEIVE, [(int) $socket, 0, $data]);
                         } else {
                             $this->close($socket);
@@ -179,14 +187,24 @@ class SelectTcpServer extends AbstractServer
     }
 
     /**
-     * 获取连接信息.
+     * {@inheritdoc}
      */
-    public function getConnectionInfo(int $fd): array
+    public function getConnectionInfo(int $clientId): ?ConnectionInfo
     {
-        $name = stream_socket_get_name($this->sockets[$fd], true);
+        if (!$this->clients[$clientId]) {
+            return null;
+        }
+        $name = stream_socket_get_name($this->sockets[$clientId], true);
         [$ip, $port] = explode(':', $name);
+        $connectionInfo = new ConnectionInfo();
+        $connectionInfo->setRemoteIp($ip);
+        $connectionInfo->setRemotePort((int) $port);
+        $connectionInfo->setServerFd((int) $this->resource);
+        $connectionInfo->setServerPort($this->getServerConfig()->getPort()->getPort());
+        $connectionInfo->setConnectTime($this->clients[$clientId]['connect_time'] ?? 0);
+        $connectionInfo->setLastTime($this->clients[$clientId]['last_time'] ?? 0);
 
-        return ['remote_port' => $port, 'remote_ip' => $ip];
+        return $connectionInfo;
     }
 
     protected function close($socket): void
@@ -196,7 +214,7 @@ class SelectTcpServer extends AbstractServer
             fclose($this->sockets[$socketId]);
         }
         $this->sockets[$socketId] = null;
-        unset($this->sockets[$socketId]);
+        unset($this->sockets[$socketId], $this->clients[$socketId]);
         $this->dispatch(Event::CLOSE, [$socketId, 0]);
     }
 

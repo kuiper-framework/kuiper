@@ -16,6 +16,11 @@ namespace kuiper\helper;
  */
 class Properties extends \ArrayIterator implements PropertyResolverInterface
 {
+    private function __construct()
+    {
+        parent::__construct([]);
+    }
+
     public function __get($name)
     {
         return $this[$name] ?? null;

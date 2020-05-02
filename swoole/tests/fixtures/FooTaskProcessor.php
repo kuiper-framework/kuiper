@@ -12,12 +12,14 @@ class FooTaskProcessor implements ProcessorInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
+    private const TAG = '['.__CLASS__.'] ';
+
     /**
      * @param FooTask $task
      */
     public function process($task)
     {
-        $this->logger->info('handle task', ['task' => $task]);
+        $this->logger->info(self::TAG.'handle task', ['task' => $task]);
         $task->incr();
     }
 }

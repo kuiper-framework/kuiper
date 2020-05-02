@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server;
 
+use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\exception\ServerStateException;
 use kuiper\swoole\ServerConfig;
 
@@ -63,4 +64,9 @@ interface ServerInterface
      * @param mixed $data
      */
     public function finish($data): void;
+
+    /**
+     * @return ConnectionInfo
+     */
+    public function getConnectionInfo(int $clientId): ?ConnectionInfo;
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
+use kuiper\swoole\server\ServerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Swoole\WebSocket\Frame;
 
@@ -16,7 +17,9 @@ class ServerEventFactory
             $server = array_shift($args);
             /** @var AbstractServerEvent $event */
             $event = $this->$method(...$args);
-            $event->setServer($server);
+            if ($server instanceof ServerInterface) {
+                $event->setServer($server);
+            }
 
             return $event;
         }
@@ -86,7 +89,7 @@ class ServerEventFactory
     public function createConnectEvent(int $fd, int $reactorId): ConnectEvent
     {
         $event = new ConnectEvent();
-        $event->setFd($fd);
+        $event->setClientId($fd);
         $event->setReactorId($reactorId);
 
         return $event;
@@ -95,7 +98,7 @@ class ServerEventFactory
     public function createCloseEvent(int $fd, int $reactorId): CloseEvent
     {
         $event = new CloseEvent();
-        $event->setFd($fd);
+        $event->setClientId($fd);
         $event->setReactorId($reactorId);
 
         return $event;
@@ -112,7 +115,7 @@ class ServerEventFactory
     public function createReceiveEvent(int $fd, int $reactorId, string $data): ReceiveEvent
     {
         $event = new ReceiveEvent();
-        $event->setFd($fd);
+        $event->setClientId($fd);
         $event->setReactorId($reactorId);
         $event->setData($data);
 

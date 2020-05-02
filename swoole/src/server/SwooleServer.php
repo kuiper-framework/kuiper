@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server;
 
+use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\Event;
 use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
@@ -131,6 +132,23 @@ class SwooleServer extends AbstractServer
         if ($this->getWorker()) {
             $this->getWorker()->send($clientId, $data);
         }
+    }
+
+    public function getConnectionInfo(int $clientId): ?ConnectionInfo
+    {
+        $clientInfo = $this->resource->getClientInfo($clientId);
+        if (empty($clientInfo)) {
+            return null;
+        }
+        $connectionInfo = new ConnectionInfo();
+        $connectionInfo->setRemoteIp((string) ($clientInfo['remote_ip'] ?? ''));
+        $connectionInfo->setRemotePort((int) ($clientInfo['remote_port'] ?? 0));
+        $connectionInfo->setServerPort((int) ($clientInfo['server_port'] ?? 0));
+        $connectionInfo->setServerFd((int) ($clientInfo['server_fd'] ?? 0));
+        $connectionInfo->setConnectTime((int) ($clientInfo['connect_time'] ?? 0));
+        $connectionInfo->setLastTime((int) ($clientInfo['last_time'] ?? 0));
+
+        return $connectionInfo;
     }
 
     private function createSwooleServer(ServerPort $port): void

@@ -9,21 +9,21 @@ class ConnectEvent extends AbstractServerEvent
     /**
      * @var int
      */
-    private $fd;
+    private $clientId;
 
     /**
      * @var int
      */
     private $reactorId;
 
-    public function getFd(): int
+    public function getClientId(): int
     {
-        return $this->fd;
+        return $this->clientId;
     }
 
-    public function setFd(int $fd): void
+    public function setClientId(int $clientId): void
     {
-        $this->fd = $fd;
+        $this->clientId = $clientId;
     }
 
     public function getReactorId(): int

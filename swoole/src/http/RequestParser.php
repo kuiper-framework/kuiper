@@ -136,8 +136,10 @@ class RequestParser
 
         $info = $this->httpServer->getConnectionInfo($this->clientId);
         $server['REQUEST_URI'] = $uri;
-        $server['REMOTE_ADDR'] = $info['remote_ip'] ?? '';
-        $server['REMOTE_PORT'] = $info['remote_port'] ?? null;
+        if ($info) {
+            $server['REMOTE_ADDR'] = $info->getRemoteIp();
+            $server['REMOTE_PORT'] = $info->getRemotePort();
+        }
         $server['REQUEST_METHOD'] = $method;
         $server['REQUEST_TIME'] = time();
         $server['SERVER_PROTOCOL'] = $protocol;
