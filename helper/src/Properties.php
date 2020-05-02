@@ -116,7 +116,9 @@ class Properties extends \ArrayIterator implements PropertyResolverInterface
     {
         foreach ($configArray as $key => $value) {
             if (!isset($value)) {
-                unset($this[$key]);
+                if (isset($this[$key])) {
+                    unset($this[$key]);
+                }
                 continue;
             }
             if (!is_array($value) || !isset($this[$key]) || !$this[$key] instanceof self) {

@@ -130,7 +130,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $reflectionNamespaceFactory;
 
     /**
-     * @var ConfigurationDefinitionSource
+     * @var ConfigurationDefinitionLoader
      */
     private $configurationDefinition;
 
@@ -441,12 +441,12 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
     }
 
-    public function addConfiguration($configuration): self
+    public function addConfiguration($configuration, bool $ignoreCondition = false): self
     {
         if ($configuration instanceof ContainerBuilderAwareInterface) {
             $configuration->setContainerBuilder($this);
         }
-        $this->addDefinitions($this->getConfigurationDefinition()->getDefinitions($configuration));
+        $this->addDefinitions($this->getConfigurationDefinition()->getDefinitions($configuration, $ignoreCondition));
 
         return $this;
     }
@@ -467,16 +467,16 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $this;
     }
 
-    public function getConfigurationDefinition(): ConfigurationDefinitionSource
+    public function getConfigurationDefinition(): ConfigurationDefinitionLoader
     {
         if (!$this->configurationDefinition) {
-            $this->configurationDefinition = new ConfigurationDefinitionSource($this->getAnnotationReader());
+            $this->configurationDefinition = new ConfigurationDefinitionLoader($this->getAnnotationReader());
         }
 
         return $this->configurationDefinition;
     }
 
-    public function setConfigurationDefinition(ConfigurationDefinitionSource $configurationDefinition): self
+    public function setConfigurationDefinition(ConfigurationDefinitionLoader $configurationDefinition): self
     {
         $this->configurationDefinition = $configurationDefinition;
 

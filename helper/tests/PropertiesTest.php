@@ -117,10 +117,11 @@ class PropertiesTest extends TestCase
     public function testMergeIfNotExists()
     {
         $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
-        $p->mergeIfNotExists(['app' => [
-            'foo' => 'foo_value',
-            'bar' => 'bar_value',
-        ]]);
+        $p->mergeIfNotExists([
+            'app' => [
+                'foo' => 'foo_value',
+                'bar' => 'bar_value',
+            ], ]);
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two'], 'bar' => 'bar_value']);
     }
 }
