@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace kuiper\swoole\http;
 
 use kuiper\swoole\constants\HttpHeaderName;
-use kuiper\swoole\task\DeleteFileTask;
-use kuiper\swoole\task\QueueInterface;
 use Psr\Http\Message\ResponseInterface;
 use Swoole\Http\Response;
+use Swoole\Timer;
 
 class SwooleResponseBridge implements SwooleResponseBridgeInterface
 {
@@ -26,14 +25,8 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
      */
     private $tempFileDelay;
 
-    /**
-     * @var QueueInterface
-     */
-    private $taskQueue;
-
-    public function __construct(QueueInterface $queue, int $bufferOutputSize = 2097152, int $tempFileDelay = 5000)
+    public function __construct(int $bufferOutputSize = 2097152, int $tempFileDelay = 5000)
     {
-        $this->taskQueue = $queue;
         $this->bufferOutputSize = $bufferOutputSize;
         $this->tempFileDelay = $tempFileDelay;
     }
@@ -60,10 +53,12 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
         }
 
         if ($contentLength > $this->bufferOutputSize) {
-            $file = tempnam(sys_get_temp_dir(), 'swoole-tmp-body');
-            file_put_contents($file, (string) $body);
-            $swooleResponse->sendfile($file);
-            $this->taskQueue->put(new DeleteFileTask($file, $this->tempFileDelay));
+            $tempFile = tempnam(sys_get_temp_dir(), 'swoole-tmp-body');
+            file_put_contents($tempFile, (string) $body);
+            $swooleResponse->sendfile($tempFile);
+            $this->defer(static function () use ($tempFile) {
+                @unlink($tempFile);
+            }, $this->tempFileDelay);
         } else {
             if ($contentLength > 0) {
                 // $response->end($body) 在 1.9.8 版出现错误
@@ -71,5 +66,10 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
             }
             $swooleResponse->end();
         }
+    }
+
+    private function defer($callback, int $milliseconds): void
+    {
+        Timer::after($milliseconds, $callback);
     }
 }

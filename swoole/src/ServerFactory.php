@@ -6,8 +6,8 @@ namespace kuiper\swoole;
 
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\http\DiactorosSwooleRequestBridge;
-use kuiper\swoole\http\SimpleSwooleResponseBridge;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
+use kuiper\swoole\http\SwooleResponseBridge;
 use kuiper\swoole\http\SwooleResponseBridgeInterface;
 use kuiper\swoole\server\HttpMessageFactoryHolder;
 use kuiper\swoole\server\HttpServer;
@@ -136,7 +136,7 @@ class ServerFactory implements LoggerAwareInterface
     public function getSwooleResponseBridge(): SwooleResponseBridgeInterface
     {
         if (!$this->swooleResponseBridge) {
-            $this->swooleResponseBridge = new SimpleSwooleResponseBridge();
+            $this->swooleResponseBridge = new SwooleResponseBridge();
         }
 
         return $this->swooleResponseBridge;
