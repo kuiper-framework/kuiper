@@ -167,10 +167,15 @@ class Properties extends \ArrayIterator implements PropertyResolverInterface
         return $result;
     }
 
-    public static function fromArray(array $configArray): self
+    public static function create(array $arr = []): self
+    {
+        return self::fromArray($arr);
+    }
+
+    public static function fromArray(array $arr): self
     {
         $config = new static();
-        foreach ($configArray as $key => $value) {
+        foreach ($arr as $key => $value) {
             if (is_array($value)) {
                 $config[$key] = static::fromArray($value);
             } else {
