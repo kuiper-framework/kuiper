@@ -7,14 +7,14 @@ namespace kuiper\helper;
 /**
  * Access array use key separated by dot(.) :.
  *
- *     $array = Properties::fromArray([
+ *     $array = Properties::create([
  *          'redis' => [
  *              'host' => 'localhost'
  *          ]
  *     ]);
  *     echo $array->get('redis.host');   // 'localhost'
  */
-class Properties extends \ArrayIterator implements PropertyResolverInterface
+final class Properties extends \ArrayIterator implements PropertyResolverInterface
 {
     private function __construct()
     {
@@ -169,7 +169,7 @@ class Properties extends \ArrayIterator implements PropertyResolverInterface
 
     public static function create(array $arr = []): self
     {
-        return self::fromArray($arr);
+        return static::fromArray($arr);
     }
 
     public static function fromArray(array $arr): self
