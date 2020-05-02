@@ -124,4 +124,25 @@ class PropertiesTest extends TestCase
             ], ]);
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two'], 'bar' => 'bar_value']);
     }
+
+    public function testSetExistKey()
+    {
+        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p->set('app.foo', 'foo_value');
+        $this->assertEquals($p->get('app'), ['foo' => 'foo_value']);
+    }
+
+    public function testSetNotExistKey()
+    {
+        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p->set('app.bar', 'bar_value');
+        $this->assertEquals($p->get('app'), ['foo' => ['one', 'two'], 'bar' => 'bar_value']);
+    }
+
+    public function testSetNotArrayKey()
+    {
+        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p->set('app.foo[0].bar', 'bar_value');
+        $this->assertEquals($p->get('app'), ['foo' => [['bar' => 'bar_value'], 'two']]);
+    }
 }

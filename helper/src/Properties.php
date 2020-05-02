@@ -57,6 +57,11 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         return $value ?? $default;
     }
 
+    public function set(string $key, $value): void
+    {
+        $this->setValue($key, $value);
+    }
+
     public function getInt(string $key, $default = 0): int
     {
         return (int) $this->get($key, $default);
@@ -77,12 +82,12 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         return (float) $this->get($key, $default);
     }
 
-    private function getValue(string $key)
+    private function parseKey(string $key): array
     {
         $pos = strpos($key, '.');
         $posBracket = strpos($key, '[');
         if (false === $pos && false === $posBracket) {
-            return $this[$key] ?? null;
+            return [$key, null];
         }
         if (false === $pos || (false !== $posBracket && $posBracket < $pos)) {
             if (0 === $posBracket) {
@@ -90,7 +95,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
                 if (false === $posRight) {
                     throw new \InvalidArgumentException("invalid key $key");
                 }
-                $current = substr($key, 1, $posRight - 1);
+                $current = (int) substr($key, 1, $posRight - 1);
                 $rest = substr($key, $posRight + 1);
                 if ($rest && 0 === strpos($rest, '.')) {
                     $rest = substr($rest, 1);
@@ -103,18 +108,39 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
             $current = substr($key, 0, $pos);
             $rest = substr($key, $pos + 1);
         }
-        // var_export([$pos, $posBracket, $current, $key, $rest]);
-        if (isset($this[$current])) {
-            if (empty($rest)) {
-                return $this[$current] ?? null;
-            }
 
-            if ($this[$current] instanceof self) {
-                return $this[$current]->getValue($rest);
-            }
+        return [$current, $rest];
+    }
+
+    private function getValue(string $key)
+    {
+        [$current, $rest] = $this->parseKey($key);
+        if (!isset($this[$current])) {
+            return null;
+        }
+        if (empty($rest)) {
+            return $this[$current] ?? null;
+        }
+
+        if ($this[$current] instanceof self) {
+            return $this[$current]->getValue($rest);
         }
 
         return null;
+    }
+
+    private function setValue(string $key, $value, $prefix = null): void
+    {
+        [$current, $rest] = $this->parseKey($key);
+        if (empty($rest)) {
+            $this[$current] = $this->createItem($value);
+
+            return;
+        }
+        if (!isset($this[$current]) || !$this[$current] instanceof self) {
+            $this[$current] = self::create();
+        }
+        $this[$current]->setValue($rest, $value, $prefix.(is_int($current) ? "[$current]" : $current.'.'));
     }
 
     public function merge(array $configArray, $append = true): void
