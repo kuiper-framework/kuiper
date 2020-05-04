@@ -15,7 +15,7 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    private const TAG = '['.__CLASS__.'] ';
+    protected const TAG = '['.__CLASS__.'] ';
 
     /**
      * StartEventListener constructor.
@@ -37,9 +37,9 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
         try {
             $this->writePidFile($serverConfig->getMasterPidFile(), $server->getMasterPid());
             $port = $serverConfig->getPort();
-            $this->logger->info(self::TAG.'Listening on '.$port);
+            $this->logger->info(static::TAG.'Listening on '.$port);
         } catch (\RuntimeException $e) {
-            $this->logger->error(self::TAG.'Cannot write pid file: '.$e->getMessage());
+            $this->logger->error(static::TAG.'Cannot write pid file: '.$e->getMessage());
             $server->stop();
         }
     }
@@ -51,7 +51,7 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
         }
         $dir = dirname($pidFile);
         if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-            $this->logger->error(self::TAG."Cannot create pid file directory $dir");
+            $this->logger->error(static::TAG."Cannot create pid file directory $dir");
             throw new \RuntimeException("Cannot create pid file directory $dir");
         }
         $ret = file_put_contents($pidFile, $pid);

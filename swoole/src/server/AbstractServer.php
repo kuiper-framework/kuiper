@@ -18,7 +18,7 @@ abstract class AbstractServer implements ServerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    private const TAG = '['.__CLASS__.'] ';
+    protected const TAG = '['.__CLASS__.'] ';
 
     /**
      * @var ServerConfig
@@ -48,13 +48,13 @@ abstract class AbstractServer implements ServerInterface, LoggerAwareInterface
         array_unshift($args, $this);
         $event = $this->serverEventFactory->create($eventName, $args);
         if ($event) {
-            $this->logger->debug(self::TAG."dispatch event $eventName using ".get_class($event));
+            $this->logger->debug(static::TAG."dispatch event $eventName using ".get_class($event));
 
             /* @noinspection PhpIncompatibleReturnTypeInspection */
             return $this->getEventDispatcher()->dispatch($event);
         }
 
-        $this->logger->debug(self::TAG."unhandled event $eventName");
+        $this->logger->debug(static::TAG."unhandled event $eventName");
 
         return null;
     }

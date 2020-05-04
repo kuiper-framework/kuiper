@@ -14,7 +14,7 @@ use Swoole\Server;
 
 class SwooleServer extends AbstractServer
 {
-    private const TAG = '['.__CLASS__.'] ';
+    protected const TAG = '['.__CLASS__.'] ';
 
     private const SWOOLE_SERVER_WORKER = '__SwooleServer:worker';
 
@@ -179,7 +179,7 @@ class SwooleServer extends AbstractServer
         $swoolePort->set($serverType->settings);
 
         foreach ($serverType->events as $event) {
-            $this->logger->debug(self::TAG."attach $event to port ".$port->getPort());
+            $this->logger->debug(static::TAG."attach $event to port ".$port->getPort());
             $swoolePort->on($event, $this->createEventHandler($event));
         }
     }
@@ -222,7 +222,7 @@ class SwooleServer extends AbstractServer
 
     private function attach(string $event): void
     {
-        $this->logger->debug(self::TAG."attach $event to server");
+        $this->logger->debug(static::TAG."attach $event to server");
         $this->resource->on($event, $this->createEventHandler($event));
     }
 
@@ -236,7 +236,7 @@ class SwooleServer extends AbstractServer
                         ->createResponse(500), $response);
             }
         } catch (\Exception $e) {
-            $this->logger->error(self::TAG.'handle http request failed: '.$e->getMessage());
+            $this->logger->error(static::TAG.'handle http request failed: '.$e->getMessage());
             $this->swooleResponseBridge->update($event->getResponse() ?? $this->httpMessageFactoryHolder->getResponseFactory()
                     ->createResponse(500), $response);
         }

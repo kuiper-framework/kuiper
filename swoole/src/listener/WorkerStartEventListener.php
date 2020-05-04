@@ -15,7 +15,7 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
 {
     use LoggerAwareTrait;
 
-    private const TAG = '['.__CLASS__.'] ';
+    protected const TAG = '['.__CLASS__.'] ';
 
     /**
      * WorkerStartEventListener constructor.
@@ -34,7 +34,7 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
         $title = sprintf('%s: %s%s %d process', $serverName,
             ($event->getServer()->isTaskWorker() ? 'task ' : ''), ProcessType::WORKER, $event->getWorkerId());
         @cli_set_process_title($title);
-        $this->logger->debug(self::TAG."start worker {$title}");
+        $this->logger->debug(static::TAG."start worker {$title}");
     }
 
     public function getSubscribedEvent(): string

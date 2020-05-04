@@ -19,7 +19,7 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
     use AnnotationReaderAwareTrait;
     use LoggerAwareTrait;
 
-    private const TAG = '['.__CLASS__.'] ';
+    protected const TAG = '['.__CLASS__.'] ';
 
     /**
      * @var ServerInterface
@@ -77,7 +77,7 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
                 $this->server->finish($result);
             }
         } catch (\Exception $e) {
-            $this->logger->error(self::TAG.'dispatch error', [
+            $this->logger->error(static::TAG.'dispatch error', [
                 'exception' => get_class($e),
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),

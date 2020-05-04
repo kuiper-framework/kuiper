@@ -15,7 +15,7 @@ class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInt
 {
     use LoggerAwareTrait;
 
-    private const TAG = '['.__CLASS__.'] ';
+    protected const TAG = '['.__CLASS__.'] ';
 
     /**
      * @var RequestHandlerInterface
@@ -34,10 +34,10 @@ class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInt
     public function __invoke($event): void
     {
         try {
-            $this->logger->debug(self::TAG.'receive request');
+            $this->logger->debug(static::TAG.'receive request');
             $event->setResponse($this->requestHandler->handle($event->getRequest()));
         } catch (\Exception $e) {
-            $this->logger->error(self::TAG.'Uncaught exception: '.get_class($e).': '.$e->getMessage()."\n"
+            $this->logger->error(static::TAG.'Uncaught exception: '.get_class($e).': '.$e->getMessage()."\n"
                 .$e->getTraceAsString());
         }
     }

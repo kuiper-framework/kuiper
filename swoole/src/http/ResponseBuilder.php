@@ -19,7 +19,7 @@ class ResponseBuilder implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    private const TAG = '['.__CLASS__.'] ';
+    protected const TAG = '['.__CLASS__.'] ';
 
     private const END_OF_LINE = "\r\n";
 
@@ -52,7 +52,7 @@ class ResponseBuilder implements LoggerAwareInterface
                     $body = \gzdeflate($body, $gzipLevel);
                     $response = $response->withHeader(HttpHeaderName::CONTENT_ENCODING, 'deflate');
                 } else {
-                    $this->logger->error(self::TAG."Unsupported compression type : {$encoding}");
+                    $this->logger->error(static::TAG."Unsupported compression type : {$encoding}");
                 }
             }
         }
