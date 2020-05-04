@@ -24,7 +24,7 @@ class HttpServer extends SelectTcpServer
 {
     public const SERVER_NAME = 'KuiperHttpServer';
 
-    private const TAG = '['.__CLASS__.'] ';
+    protected const TAG = '['.__CLASS__.'] ';
 
     /**
      * @var HttpMessageFactoryHolder
