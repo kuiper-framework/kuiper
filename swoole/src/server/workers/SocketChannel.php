@@ -37,14 +37,14 @@ class SocketChannel
     {
         fclose($this->parent);
         $this->socket = $this->child;
-        unset($this->parent, $this->child);
+//        unset($this->parent, $this->child);
     }
 
     public function parent(): void
     {
         fclose($this->child);
         $this->socket = $this->parent;
-        unset($this->parent, $this->child);
+//        unset($this->parent, $this->child);
     }
 
     public function close(): void
@@ -57,7 +57,7 @@ class SocketChannel
 
     public function isActive(): bool
     {
-        return !isset($this->socket);
+        return isset($this->socket);
     }
 
     public function send($data): void
@@ -71,7 +71,7 @@ class SocketChannel
         $total = strlen($buffer);
         while (true) {
             $sent = fwrite($this->socket, $buffer);
-            if (false === $sent) {
+            if (empty($sent)) {
                 // @todo handle error?
                 //$error = socket_strerror(socket_last_error());
                 break;
@@ -84,9 +84,9 @@ class SocketChannel
         }
     }
 
-    public function receive()
+    public function receive(?int $timeout = null)
     {
-        $select = self::select([$this]);
+        $select = self::select([$this], $timeout);
         if ($select) {
             return $select[0]->read();
         }
@@ -129,7 +129,7 @@ class SocketChannel
      *
      * @return self[]
      */
-    public static function select(array $channels): array
+    public static function select(array $channels, ?int $timeout = null): array
     {
         $read = [];
         foreach ($channels as $i => $channel) {
@@ -137,7 +137,7 @@ class SocketChannel
                 $read[$i] = $channel->socket;
             }
         }
-        if ($read && stream_select($read, $write, $except, 0) && $read) {
+        if ($read && stream_select($read, $write, $except, $timeout) && $read) {
             $ready = [];
             foreach ($read as $i => $fd) {
                 $ready[] = $channels[$i];

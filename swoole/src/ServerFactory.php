@@ -9,6 +9,7 @@ use kuiper\swoole\http\DiactorosSwooleRequestBridge;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use kuiper\swoole\http\SwooleResponseBridge;
 use kuiper\swoole\http\SwooleResponseBridgeInterface;
+use kuiper\swoole\listener\EventListenerInterface;
 use kuiper\swoole\server\HttpMessageFactoryHolder;
 use kuiper\swoole\server\HttpServer;
 use kuiper\swoole\server\SelectTcpServer;
@@ -69,7 +70,7 @@ class ServerFactory implements LoggerAwareInterface
         return $this->phpServerEnabled;
     }
 
-    public function enablePhpServer(bool $enable = true): ServerFactory
+    public function enablePhpServer(bool $enable = true): self
     {
         $this->phpServerEnabled = $enable;
 
@@ -86,9 +87,22 @@ class ServerFactory implements LoggerAwareInterface
         return $this->eventDispatcher;
     }
 
-    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): ServerFactory
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): self
     {
         $this->eventDispatcher = $eventDispatcher;
+
+        return $this;
+    }
+
+    public function addEventListener($event, $listener = null): self
+    {
+        /** @var EventDispatcher $eventDispatcher */
+        $eventDispatcher = $this->getEventDispatcher();
+        if ($event instanceof EventListenerInterface) {
+            $eventDispatcher->addListener($event->getSubscribedEvent(), $event);
+        } else {
+            $eventDispatcher->addListener($event, $listener);
+        }
 
         return $this;
     }
@@ -109,7 +123,7 @@ class ServerFactory implements LoggerAwareInterface
         return $this->httpMessageFactoryHolder;
     }
 
-    public function setHttpMessageFactoryHolder(HttpMessageFactoryHolder $httpMessageFactoryHolder): ServerFactory
+    public function setHttpMessageFactoryHolder(HttpMessageFactoryHolder $httpMessageFactoryHolder): self
     {
         $this->httpMessageFactoryHolder = $httpMessageFactoryHolder;
 
@@ -126,7 +140,7 @@ class ServerFactory implements LoggerAwareInterface
         return $this->swooleRequestBridge;
     }
 
-    public function setSwooleRequestBridge(SwooleRequestBridgeInterface $swooleRequestBridge): ServerFactory
+    public function setSwooleRequestBridge(SwooleRequestBridgeInterface $swooleRequestBridge): self
     {
         $this->swooleRequestBridge = $swooleRequestBridge;
 
@@ -142,7 +156,7 @@ class ServerFactory implements LoggerAwareInterface
         return $this->swooleResponseBridge;
     }
 
-    public function setSwooleResponseBridge(SwooleResponseBridgeInterface $swooleResponseBridge): ServerFactory
+    public function setSwooleResponseBridge(SwooleResponseBridgeInterface $swooleResponseBridge): self
     {
         $this->swooleResponseBridge = $swooleResponseBridge;
 

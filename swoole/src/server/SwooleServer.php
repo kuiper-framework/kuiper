@@ -17,8 +17,6 @@ class SwooleServer extends AbstractServer
 {
     protected const TAG = '['.__CLASS__.'] ';
 
-    private const SWOOLE_SERVER_WORKER = '__SwooleServer:worker';
-
     /**
      * @var HttpMessageFactoryHolder
      */
@@ -99,41 +97,70 @@ class SwooleServer extends AbstractServer
         $this->resource->start();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function reload(): void
     {
         $this->resource->reload();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function stop(): void
     {
         $this->resource->stop();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function task($data, $taskWorkerId = -1, $onFinish = null)
     {
         return $this->resource->task($data, $taskWorkerId, $onFinish);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function finish($data): void
     {
         $this->resource->finish($data);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getMasterPid(): int
     {
         return $this->resource->master_pid;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isTaskWorker(): bool
     {
         return $this->hasWorker() && (bool) $this->getWorker()->taskworker;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function send(int $clientId, string $data): void
     {
         if ($this->getWorker()) {
             $this->getWorker()->send($clientId, $data);
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function tick(int $millisecond, callable $callback): int
+    {
+        return $this->resource->tick($millisecond, $callback);
     }
 
     public function getConnectionInfo(int $clientId): ?ConnectionInfo

@@ -37,7 +37,7 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
      */
     private $processors;
 
-    public function __construct(ServerInterface $server, ContainerInterface $container, ?LoggerInterface $logger)
+    public function __construct(ServerInterface $server, ?ContainerInterface $container, ?LoggerInterface $logger)
     {
         $this->server = $server;
         $this->container = $container;
@@ -59,6 +59,9 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
     public function registerProcessor(string $taskClass, $handler): void
     {
         if (is_string($handler)) {
+            if (!$this->container) {
+                throw new \InvalidArgumentException('container not set');
+            }
             $handler = $this->container->get($handler);
         }
         if (!($handler instanceof ProcessorInterface)) {

@@ -42,8 +42,7 @@ class SocketWorker extends AbstractWorker
     protected function work(): void
     {
         $read = $this->sockets;
-        $write = $except = null;
-        if (stream_select($read, $write, $except, null)) {
+        if (stream_select($read, $write, $except, 0)) {
             foreach ($read as $socket) {
                 if ($socket === $this->resource) {
                     if ($clientSocketId = $this->accept()) {
@@ -180,11 +179,14 @@ class SocketWorker extends AbstractWorker
 
     private function handleMessages(): void
     {
-        $data = $this->getChannel()->receive();
+        $data = $this->getChannel()->receive(0);
         if ($data && 2 === count($data)) {
             /** @var Task $task */
             [$msgType, $task] = $data;
             switch ($msgType) {
+                case MessageType::TICK:
+                    $this->triggerTick();
+                    break;
                 case MessageType::TASK_RESULT:
                     if (isset($this->callbacks[$task->getCallbackId()])) {
                         call_user_func($this->callbacks[$task->getCallbackId()], $task->getResult());

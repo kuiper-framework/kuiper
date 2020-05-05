@@ -69,6 +69,8 @@ interface ServerInterface
      */
     public function finish($data): void;
 
+    public function tick(int $millisecond, callable $callback): int;
+
     /**
      * @return ConnectionInfo
      */

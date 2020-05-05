@@ -94,13 +94,20 @@ class SelectTcpServer extends AbstractServer
                 $this->startWorkers();
                 $this->handleMessages();
                 $this->dispatchTask();
+                sleep(1);
             }
         } catch (\Exception $e) {
+            $this->logger->error(static::TAG.'start fail', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             $this->stopWorkers();
         }
         $this->dispatch(Event::SHUTDOWN, []);
         $this->wait();
-        fclose($this->resource);
+        if ($this->resource) {
+            fclose($this->resource);
+        }
     }
 
     private function installSignal(): void
@@ -147,6 +154,7 @@ class SelectTcpServer extends AbstractServer
         }
         stream_set_blocking($socket, false);
         $this->resource = $socket;
+        $this->logger->debug(static::TAG.'create listen socket', ['resource' => (int) $socket]);
     }
 
     /**
@@ -241,11 +249,24 @@ class SelectTcpServer extends AbstractServer
             /** @var WorkerInterface $worker */
             $worker = new $workerType($this, $channel, $pid, $workerId, $this->logger);
             if (0 === $pid) {
+                $this->logger->debug(static::TAG.'start worker', [
+                    'workerId' => $workerId, 'worker' => $workerType,
+                ]);
                 $this->worker = $worker;
-                $worker->start();
+                try {
+                    $worker->start();
+                } catch (\Exception $e) {
+                    $this->logger->error(static::TAG.'Cannot start worker', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(), ]);
+                }
+                $this->logger->debug(static::TAG.'worker exit');
                 exit;
             }
             $channel->parent();
+            if (!$channel->isActive()) {
+                throw new \RuntimeException('Cannot create channel');
+            }
             $this->workers[$workerId] = $worker;
         }
     }
@@ -294,6 +315,7 @@ class SelectTcpServer extends AbstractServer
         while ($pid > 0) {
             foreach ($this->workers as $i => $worker) {
                 if ($worker->getPid() === $pid) {
+                    $this->logger->info(static::TAG."reaper pid $pid");
                     unset($this->workers[$i]);
                 }
             }
@@ -322,7 +344,7 @@ class SelectTcpServer extends AbstractServer
     private function getTaskWorker(): TaskWorker
     {
         if (!$this->worker || !$this->worker instanceof TaskWorker) {
-            throw new \InvalidArgumentException('not in task worker');
+            throw new \InvalidArgumentException('not in task worker: '.(isset($this->worker) ? get_class($this->worker) : 'null'));
         }
 
         return $this->worker;
@@ -342,30 +364,40 @@ class SelectTcpServer extends AbstractServer
         if (!$this->workers) {
             return;
         }
-        $channels = SocketChannel::select(array_map(static function (WorkerInterface $worker) {
-            return $worker->getChannel();
-        }, $this->workers));
-        foreach ($channels as $channel) {
-            $data = $channel->read();
-            if (2 !== count($data)) {
-                throw new \InvalidArgumentException('invalid message');
+        while (true) {
+            $channels = array_filter(array_map(static function (WorkerInterface $worker) {
+                return $worker->getChannel();
+            }, $this->workers));
+            $channels = SocketChannel::select($channels, 0);
+            if (empty($channels)) {
+                break;
             }
-            switch ($data[0]) {
-                case MessageType::TASK:
-                    $this->taskQueue->push($data[1]);
-                    break;
-                case MessageType::TASK_RESULT:
-                    $this->sendTaskResult($data[1]);
-                    break;
-                case MessageType::TASK_FINISH:
-                    $this->onTaskFinished($data[1]);
-                    break;
+            $this->logger->debug(static::TAG.'select worker channels', ['channels' => $channels]);
+            foreach ($channels as $channel) {
+                $data = $channel->read();
+                $this->logger->debug(static::TAG.'read data', ['data' => $data]);
+                if (!is_array($data) || 2 !== count($data)) {
+                    $this->logger->error(static::TAG.'read invalid message from channel', ['data' => $data]);
+                    continue;
+                }
+                switch ($data[0]) {
+                    case MessageType::TASK:
+                        $this->taskQueue->push($data[1]);
+                        break;
+                    case MessageType::TASK_RESULT:
+                        $this->sendTaskResult($data[1]);
+                        break;
+                    case MessageType::TASK_FINISH:
+                        $this->onTaskFinished($data[1]);
+                        break;
+                }
             }
         }
     }
 
     private function dispatchTask(): void
     {
+        $this->sendTick();
         if ($this->taskQueue->isEmpty()) {
             return;
         }
@@ -411,5 +443,25 @@ class SelectTcpServer extends AbstractServer
     {
         $this->getTaskWorkerByWorkerId($task->getTaskWorkerId())->done();
         $this->getSocketWorkerByWorkerId($task->getFromWorkerId())->getChannel()->send([MessageType::TASK_FINISH, $task]);
+    }
+
+    public function tick(int $millisecond, callable $callback): int
+    {
+        if (!$this->worker) {
+            throw new \InvalidArgumentException('Cannot call tick on master process');
+        }
+
+        return $this->worker->tick($millisecond, $callback);
+    }
+
+    private function sendTick(): void
+    {
+        foreach ($this->workers as $worker) {
+            if ($worker->getChannel()->isActive()) {
+                $worker->getChannel()->send([MessageType::TICK, null]);
+            } else {
+                $this->logger->error(static::TAG.'worker channel is closed', ['worker' => $worker->getWorkerId()]);
+            }
+        }
     }
 }

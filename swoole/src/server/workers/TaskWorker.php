@@ -8,6 +8,8 @@ use kuiper\swoole\constants\Event;
 
 class TaskWorker extends AbstractWorker
 {
+    protected const TAG = '['.__CLASS__.'] ';
+
     /**
      * @var Task
      */
@@ -16,15 +18,23 @@ class TaskWorker extends AbstractWorker
     protected function work(): void
     {
         /** @var Task $task */
-        [$msgType, $task] = $this->getChannel()->receive();
-        if (MessageType::TASK !== $msgType) {
-            throw new \InvalidArgumentException('TaskWorker only accept task message');
+        $data = $this->getChannel()->receive();
+        if ($data && 2 === count($data)) {
+            [$msgType, $task] = $data;
+            if (MessageType::TICK === $msgType) {
+                $this->triggerTick();
+
+                return;
+            }
+            if (MessageType::TASK !== $msgType) {
+                throw new \InvalidArgumentException("TaskWorker only accept task message: type=$msgType");
+            }
+            $this->task = $task;
+            $this->dispatch(Event::TASK, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
+            unset($this->task);
+            $task->setData(null);
+            $this->getChannel()->send([MessageType::TASK_FINISH, $task]);
         }
-        $this->task = $task;
-        $this->dispatch(Event::TASK, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
-        unset($this->task);
-        $task->setData(null);
-        $this->getChannel()->send([MessageType::TASK_FINISH, $task]);
     }
 
     public function finish($data): void

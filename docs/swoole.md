@@ -38,9 +38,8 @@ $httpRequestHandler = new class implements RequestHandlerInterface {
     }
 };
 
-$serverFactory->getEventDispatcher()
-    ->addListener(RequestEvent::class, new HttpRequestEventListener($httpRequestHandler, $logger));
 $serverFactory
+    ->addEventListener(new HttpRequestEventListener($httpRequestHandler, $logger))
     ->create($serverConfig)
     ->start();
 ```
@@ -81,3 +80,16 @@ $serverFactory
 
 - TaskEvent
 - FinishEvent
+
+## 自动加载
+
+安装 [fswatch](https://github.com/emcrisostomo/fswatch) 后可以通过以下代码实现修改代码后自动重新启动服务：
+
+```php
+<?php
+use kuiper\swoole\livereload\FswatchWatcher;
+use kuiper\swoole\livereload\Reloader;
+
+$serverFactory->addEventListener(new Reloader(new FswatchWatcher([__DIR__]), 1, $logger));
+```
+
