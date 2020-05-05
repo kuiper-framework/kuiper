@@ -8,9 +8,13 @@ use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\exception\ServerStateException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class ServerManager implements LoggerAwareInterface
 {
+    protected const TAG = '['.__CLASS__.'] ';
+
     use LoggerAwareTrait;
 
     /**
@@ -21,9 +25,10 @@ class ServerManager implements LoggerAwareInterface
     /**
      * ServerManager constructor.
      */
-    public function __construct(ServerConfig $serverConfig)
+    public function __construct(ServerConfig $serverConfig, ?LoggerInterface $logger)
     {
         $this->serverConfig = $serverConfig;
+        $this->setLogger($logger ?? new NullLogger());
     }
 
     /**
@@ -31,38 +36,23 @@ class ServerManager implements LoggerAwareInterface
      */
     public function stop(): void
     {
-        $pidList = $this->getAllPidList();
-        if (empty($pidList)) {
+        $masterPid = $this->getMasterPid();
+        if (empty($masterPid)) {
             throw new ServerStateException('Server was not started');
         }
-        exec('kill -9 '.implode(' ', $pidList), $output, $ret);
+        exec("kill -9 $masterPid", $output, $ret);
         if (0 !== $ret) {
             throw new ServerStateException('Server was failed to stop');
         }
     }
 
-    public function getAllPidList()
+    public function getMasterPid(): int
     {
-        $pidList[] = $this->getMasterPid();
-        $pidList[] = $this->getManagerPid();
-        $pidList = array_merge($pidList, $this->getWorkerPidList());
+        if (file_exists($this->serverConfig->getMasterPidFile())) {
+            return (int) file_get_contents($this->serverConfig->getMasterPidFile());
+        }
 
-        return array_filter($pidList);
-    }
-
-    public function getMasterPid()
-    {
         return current($this->getPidListByType(ProcessType::MASTER));
-    }
-
-    public function getManagerPid()
-    {
-        return current($this->getPidListByType(ProcessType::MANAGER));
-    }
-
-    public function getWorkerPidList(): array
-    {
-        return $this->getPidListByType(ProcessType::WORKER);
     }
 
     private function getPidListByType(string $processType): array
@@ -70,7 +60,7 @@ class ServerManager implements LoggerAwareInterface
         $cmd = sprintf("ps -ewo pid,cmd | grep %s | grep %s | grep -v grep | awk '{print $1}'",
             $this->serverConfig->getServerName(), $processType);
         exec($cmd, $pidList);
-        $this->logger->debug("[SwooleServer] get $processType pid list by '$cmd'", ['pid' => $pidList]);
+        $this->logger->debug(static::TAG."get $processType pid list by '$cmd'", ['pid' => $pidList]);
 
         return array_map('intval', $pidList);
     }

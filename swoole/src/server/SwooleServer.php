@@ -6,6 +6,7 @@ namespace kuiper\swoole\server;
 
 use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\Event;
+use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use kuiper\swoole\http\SwooleResponseBridgeInterface;
@@ -88,6 +89,7 @@ class SwooleServer extends AbstractServer
      */
     public function start(): void
     {
+        self::check();
         $this->dispatch(Event::BOOTSTRAP, []);
         $ports = $this->getServerConfig()->getPorts();
         $this->createSwooleServer(array_shift($ports));
@@ -107,9 +109,9 @@ class SwooleServer extends AbstractServer
         $this->resource->stop();
     }
 
-    public function task($data, $workerId = -1, $onFinish = null)
+    public function task($data, $taskWorkerId = -1, $onFinish = null)
     {
-        return $this->resource->task($data, $workerId, $onFinish);
+        return $this->resource->task($data, $taskWorkerId, $onFinish);
     }
 
     public function finish($data): void
@@ -153,7 +155,7 @@ class SwooleServer extends AbstractServer
 
     private function createSwooleServer(ServerPort $port): void
     {
-        $serverType = $port->getServerType();
+        $serverType = ServerType::fromValue($port->getServerType());
         $swooleServerClass = $serverType->server;
         $this->resource = new $swooleServerClass($port->getHost(), $port->getPort(), SWOOLE_PROCESS, $port->getSockType());
         $this->resource->set(array_merge($this->getSettings()->toArray(), $serverType->settings));
@@ -173,7 +175,7 @@ class SwooleServer extends AbstractServer
 
     private function addPort(ServerPort $port): void
     {
-        $serverType = $port->getServerType();
+        $serverType = ServerType::fromValue($port->getServerType());
         /** @var Server\Port $swoolePort */
         $swoolePort = $this->resource->addListener($port->getHost(), $port->getPort(), $port->getSockType());
         $swoolePort->set($serverType->settings);

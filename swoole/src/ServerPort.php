@@ -19,7 +19,9 @@ class ServerPort
     private $port;
 
     /**
-     * @var ServerType
+     * @var string
+     *
+     * @see ServerType
      */
     private $serverType;
 
@@ -28,10 +30,13 @@ class ServerPort
      */
     private $socketType;
 
-    public function __construct(string $host, int $port, ServerType $serverType)
+    public function __construct(string $host, int $port, string $serverType)
     {
         $this->host = $host;
         $this->port = $port;
+        if (!ServerType::hasValue($serverType)) {
+            throw new \InvalidArgumentException("Unknown server type $serverType");
+        }
         $this->serverType = $serverType;
     }
 
@@ -45,7 +50,7 @@ class ServerPort
         return $this->port;
     }
 
-    public function getServerType(): ServerType
+    public function getServerType(): string
     {
         return $this->serverType;
     }
@@ -60,7 +65,12 @@ class ServerPort
     public function getSockType(): int
     {
         return $this->socketType
-            ?? (ServerType::UDP === $this->serverType->value ? SWOOLE_SOCK_UDP : SWOOLE_SOCK_TCP);
+            ?? (ServerType::UDP === $this->serverType ? SWOOLE_SOCK_UDP : SWOOLE_SOCK_TCP);
+    }
+
+    public function isHttpProtocol(): bool
+    {
+        return ServerType::fromValue($this->serverType)->isHttpProtocol();
     }
 
     public function __toString(): string

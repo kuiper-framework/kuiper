@@ -90,7 +90,7 @@ class HttpServer extends SelectTcpServer
         $this->responseBuilder = $responseBuilder;
     }
 
-    protected function dispatch(string $eventName, array $args): ?AbstractServerEvent
+    public function dispatch(string $eventName, array $args): ?AbstractServerEvent
     {
         if (in_array($eventName, [Event::CONNECT, Event::CLOSE], true)) {
             return null;

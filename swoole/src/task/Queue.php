@@ -7,6 +7,7 @@ namespace kuiper\swoole\task;
 use kuiper\annotations\AnnotationReaderAwareInterface;
 use kuiper\annotations\AnnotationReaderAwareTrait;
 use kuiper\swoole\annotation\TaskProcessor;
+use kuiper\swoole\exception\TaskProcessorNotFoundException;
 use kuiper\swoole\server\ServerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareInterface;

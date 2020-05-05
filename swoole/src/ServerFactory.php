@@ -154,7 +154,7 @@ class ServerFactory implements LoggerAwareInterface
         if (!$this->phpServerEnabled) {
             return $this->createSwooleServer($serverConfig);
         }
-        switch ($serverConfig->getPort()->getServerType()->value) {
+        switch ($serverConfig->getPort()->getServerType()) {
             case ServerType::TCP:
                 return $this->createTcpServer($serverConfig);
             case ServerType::HTTP:
@@ -179,9 +179,8 @@ class ServerFactory implements LoggerAwareInterface
 
     private function createSwooleServer(ServerConfig $serverConfig): SwooleServer
     {
-        SwooleServer::check();
         $swooleServer = new SwooleServer($serverConfig, $this->getEventDispatcher(), $this->logger);
-        if ($serverConfig->getPort()->getServerType()->isHttpProtocol()) {
+        if ($serverConfig->getPort()->isHttpProtocol()) {
             $swooleServer->setHttpMessageFactoryHolder($this->getHttpMessageFactoryHolder());
             $swooleServer->setSwooleRequestBridge($this->getSwooleRequestBridge());
             $swooleServer->setSwooleResponseBridge($this->getSwooleResponseBridge());

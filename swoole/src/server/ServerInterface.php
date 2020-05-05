@@ -19,11 +19,15 @@ interface ServerInterface
 
     /**
      * Reload the server.
+     *
+     * @throws ServerStateException
      */
     public function reload(): void;
 
     /**
      * Stops the server.
+     *
+     * @throws ServerStateException
      */
     public function stop(): void;
 
@@ -51,12 +55,12 @@ interface ServerInterface
      * Send task.
      *
      * @param mixed    $data
-     * @param int      $workerId
+     * @param int      $taskWorkerId
      * @param callable $onFinish
      *
      * @return mixed
      */
-    public function task($data, $workerId = -1, $onFinish = null);
+    public function task($data, $taskWorkerId = -1, $onFinish = null);
 
     /**
      * Finish task and return data.

@@ -43,7 +43,7 @@ abstract class AbstractServer implements ServerInterface, LoggerAwareInterface
         $this->serverEventFactory = new ServerEventFactory();
     }
 
-    protected function dispatch(string $eventName, array $args): ?AbstractServerEvent
+    public function dispatch(string $eventName, array $args): ?AbstractServerEvent
     {
         array_unshift($args, $this);
         $event = $this->serverEventFactory->create($eventName, $args);

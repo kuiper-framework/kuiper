@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\swoole\task;
+namespace kuiper\swoole\exception;
 
 class TaskProcessorNotFoundException extends \RuntimeException
 {
