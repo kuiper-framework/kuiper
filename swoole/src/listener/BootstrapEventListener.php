@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\listener;
 
+use kuiper\di\annotation\EventListener;
 use kuiper\di\ComponentCollection;
-use kuiper\swoole\annotation\EventListener;
 use kuiper\swoole\event\BootstrapEvent;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
