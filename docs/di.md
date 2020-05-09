@@ -162,3 +162,16 @@ $builder->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class))
 
 添加这个声明后，所有实现 `LoggerAwareInterface` 的对象都将由容器统一调用 `setLogger` 方法设置
 容器中 `Psr\Logger\LoggerInterface` 定义的对象。
+
+## 通过 composer.json 声明插件机制
+
+```json
+{
+  "extra": {
+    "kuiper": {
+      "component-scan": [],
+      "configuration": []
+    }
+  }
+}
+```

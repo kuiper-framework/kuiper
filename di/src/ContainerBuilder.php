@@ -167,6 +167,36 @@ class ContainerBuilder implements ContainerBuilderInterface
         return new Container();
     }
 
+    public static function create(string $projectPath): self
+    {
+        if (!file_exists($projectPath.'/vendor/autoload.php')
+            || !file_exists($projectPath.'/composer.json')) {
+            throw new \InvalidArgumentException("Cannot detect project path, expected composer.json in $projectPath");
+        }
+        $builder = new self();
+        $builder->setClassLoader(require $projectPath.'/vendor/autoload.php');
+
+        $composerJson = json_decode(file_get_contents($projectPath.'/composer.json'), true);
+        $configFile = $projectPath.'/'.($composerJson['extra']['kuiper']['config-file'] ?? 'config/container.php');
+        if (file_exists($configFile)) {
+            $config = require $configFile;
+
+            if (!empty($config['configuration'])) {
+                foreach ($config['configuration'] as $configurationBean) {
+                    if (is_string($configurationBean)) {
+                        $configurationBean = new $configurationBean();
+                    }
+                    $builder->addConfiguration($configurationBean);
+                }
+            }
+            if (!empty($config['component_scan'])) {
+                $builder->componentScan($config['component_scan']);
+            }
+        }
+
+        return $builder;
+    }
+
     /**
      * @param string $containerClass name of the container class, used to create the container
      */
