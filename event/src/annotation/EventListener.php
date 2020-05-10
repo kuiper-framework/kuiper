@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\event\annotation;
+
+use kuiper\di\annotation\ComponentInterface;
+use kuiper\di\annotation\ComponentTrait;
 
 /**
  * @Annotation
