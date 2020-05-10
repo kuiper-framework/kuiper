@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\listener;
 
+use kuiper\event\EventListenerInterface;
 use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\event\ManagerStartEvent;
 

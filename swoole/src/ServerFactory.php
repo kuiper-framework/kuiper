@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use kuiper\event\EventListenerInterface;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\http\DiactorosSwooleRequestBridge;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use kuiper\swoole\http\SwooleResponseBridge;
 use kuiper\swoole\http\SwooleResponseBridgeInterface;
-use kuiper\swoole\listener\EventListenerInterface;
 use kuiper\swoole\server\HttpMessageFactoryHolder;
 use kuiper\swoole\server\HttpServer;
 use kuiper\swoole\server\SelectTcpServer;
@@ -205,12 +205,12 @@ class ServerFactory implements LoggerAwareInterface
 
     private function checkLaminasDiactoros(): void
     {
-        $this->checkClassExists(EventDispatcher::class, 'symfony/event-dispatcher');
+        $this->checkClassExists(RequestFactory::class, 'laminas/laminas-diactoros');
     }
 
     private function checkSymfonyEventDispatcher(): void
     {
-        $this->checkClassExists(RequestFactory::class, 'laminas/laminas-diactoros');
+        $this->checkClassExists(EventDispatcher::class, 'symfony/event-dispatcher');
     }
 
     private function checkClassExists(string $className, string $package): void

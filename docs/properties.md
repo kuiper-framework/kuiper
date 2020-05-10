@@ -38,5 +38,3 @@ $config = Properties::fromArray([
 ]);
 echo $config->get('redis-cluster[0].host');   // 'server1'
 ```
-
-修改数据只能通过

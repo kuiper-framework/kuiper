@@ -31,7 +31,8 @@ class FactoryDefinitionTest extends TestCase
         ]);
         $container = $builder->build();
         $foo = $container->get('foo');
-        var_export($foo);
+        // var_export($foo);
+        $this->assertInstanceOf(Bar::class, $foo);
     }
 
     public function create($param)

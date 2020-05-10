@@ -6,6 +6,7 @@ namespace kuiper\swoole\listener;
 
 use kuiper\di\annotation\EventListener;
 use kuiper\di\ComponentCollection;
+use kuiper\event\EventListenerInterface;
 use kuiper\swoole\event\BootstrapEvent;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\listener;
 
+use kuiper\event\EventListenerInterface;
 use kuiper\swoole\event\RequestEvent;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerAwareInterface;

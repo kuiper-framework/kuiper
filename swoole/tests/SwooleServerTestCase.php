@@ -39,7 +39,7 @@ abstract class SwooleServerTestCase extends TestCase
                     ServerSetting::TASK_WORKER_NUM => 1,
                     ServerSetting::WORKER_NUM => 1,
                 ], [
-                    new ServerPort('0.0.0.0', 9876, ServerType::HTTP()),
+                    new ServerPort('0.0.0.0', 9876, ServerType::HTTP),
                 ]),
                 LoggerInterface::class => function () {
                     return new Logger('test', [new ErrorLogHandler()]);

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\livereload;
 
+use kuiper\event\EventListenerInterface;
 use kuiper\swoole\event\WorkerStartEvent;
-use kuiper\swoole\listener\EventListenerInterface;
 use kuiper\swoole\server\ServerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;

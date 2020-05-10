@@ -19,7 +19,7 @@ class ConditionalOnClassConfiguration
     }
 
     /**
-     * @ConditionalOnClass(Bar::class)
+     * @ConditionalOnClass(\Bar::class)
      * @Bean("bar")
      */
     public function bar()
