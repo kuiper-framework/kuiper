@@ -39,6 +39,7 @@ class ComponentScanner implements ComponentScannerInterface
 
     public function scan(array $namespaces): void
     {
+        $namespaces = array_reverse($namespaces);
         while (!empty($namespaces)) {
             $namespace = array_pop($namespaces);
             if (isset($this->scannedNamespaces[$namespace])) {
