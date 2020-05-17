@@ -7,10 +7,10 @@ namespace kuiper\swoole;
 use kuiper\event\EventListenerInterface;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\http\DiactorosSwooleRequestBridge;
+use kuiper\swoole\http\HttpMessageFactoryHolder;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use kuiper\swoole\http\SwooleResponseBridge;
 use kuiper\swoole\http\SwooleResponseBridgeInterface;
-use kuiper\swoole\server\HttpMessageFactoryHolder;
 use kuiper\swoole\server\HttpServer;
 use kuiper\swoole\server\SelectTcpServer;
 use kuiper\swoole\server\ServerInterface;
@@ -111,13 +111,13 @@ class ServerFactory implements LoggerAwareInterface
     {
         if (!$this->httpMessageFactoryHolder) {
             $this->checkLaminasDiactoros();
-            $httpMessageFactoryHolder = new HttpMessageFactoryHolder();
-            $httpMessageFactoryHolder->setUriFactory(new UriFactory());
-            $httpMessageFactoryHolder->setResponseFactory(new ResponseFactory());
-            $httpMessageFactoryHolder->setServerRequestFactory(new ServerRequestFactory());
-            $httpMessageFactoryHolder->setStreamFactory(new StreamFactory());
-            $httpMessageFactoryHolder->setUploadFileFactory(new UploadedFileFactory());
-            $this->httpMessageFactoryHolder = $httpMessageFactoryHolder;
+            $this->httpMessageFactoryHolder = new HttpMessageFactoryHolder(
+                new ServerRequestFactory(),
+                new ResponseFactory(),
+                new StreamFactory(),
+                new UriFactory(),
+                new UploadedFileFactory()
+            );
         }
 
         return $this->httpMessageFactoryHolder;

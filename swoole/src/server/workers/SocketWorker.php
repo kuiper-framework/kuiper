@@ -55,7 +55,7 @@ class SocketWorker extends AbstractWorker
                         $this->clients[(int) $socket]['last_time'] = time();
                         $this->dispatch(Event::RECEIVE, [(int) $socket, 0, $data]);
                     } else {
-                        $this->close($socket);
+                        $this->close((int) $socket);
                     }
                 }
             }
@@ -84,7 +84,7 @@ class SocketWorker extends AbstractWorker
     {
         foreach ($this->sockets as $socket) {
             if ($socket !== $this->resource) {
-                $this->close($socket);
+                $this->close((int) $socket);
             }
         }
     }
@@ -145,9 +145,8 @@ class SocketWorker extends AbstractWorker
         return $data;
     }
 
-    public function close($socket): void
+    public function close(int $socketId): void
     {
-        $socketId = (int) $socket;
         if (isset($this->sockets[$socketId])) {
             fclose($this->sockets[$socketId]);
         }

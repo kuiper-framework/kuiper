@@ -8,9 +8,11 @@ use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\Event;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\event\RequestEvent;
+use kuiper\swoole\http\HttpMessageFactoryHolder;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use kuiper\swoole\http\SwooleResponseBridgeInterface;
 use kuiper\swoole\ServerPort;
+use Psr\Http\Message\ResponseFactoryInterface;
 use Swoole\Server;
 
 class SwooleServer extends AbstractServer
@@ -50,6 +52,11 @@ class SwooleServer extends AbstractServer
     public function setHttpMessageFactoryHolder(HttpMessageFactoryHolder $httpMessageFactoryHolder): void
     {
         $this->httpMessageFactoryHolder = $httpMessageFactoryHolder;
+    }
+
+    public function getResponseFactory(): ResponseFactoryInterface
+    {
+        return $this->getHttpMessageFactoryHolder()->getResponseFactory();
     }
 
     public function getSwooleRequestBridge(): SwooleRequestBridgeInterface
@@ -259,14 +266,14 @@ class SwooleServer extends AbstractServer
     {
         try {
             /** @var RequestEvent $event */
-            $event = $this->dispatch(Event::REQUEST, [$this->swooleRequestBridge->create($request)]);
+            $event = $this->dispatch(Event::REQUEST, [$this->getSwooleRequestBridge()->create($request)]);
             if ($event) {
-                $this->swooleResponseBridge->update($event->getResponse() ?? $this->httpMessageFactoryHolder->getResponseFactory()
+                $this->getSwooleResponseBridge()->update($event->getResponse() ?? $this->getResponseFactory()
                         ->createResponse(500), $response);
             }
         } catch (\Exception $e) {
             $this->logger->error(static::TAG.'handle http request failed: '.$e->getMessage());
-            $this->swooleResponseBridge->update($event->getResponse() ?? $this->httpMessageFactoryHolder->getResponseFactory()
+            $this->getSwooleResponseBridge()->update($event->getResponse() ?? $this->getResponseFactory()
                     ->createResponse(500), $response);
         }
     }

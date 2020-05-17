@@ -10,6 +10,7 @@ use kuiper\swoole\constants\HttpServerSetting;
 use kuiper\swoole\event\AbstractServerEvent;
 use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\exception\BadHttpRequestException;
+use kuiper\swoole\http\HttpMessageFactoryHolder;
 use kuiper\swoole\http\RequestParser;
 use kuiper\swoole\http\ResponseBuilder;
 use Psr\Http\Message\ResponseFactoryInterface;
