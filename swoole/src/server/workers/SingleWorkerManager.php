@@ -53,7 +53,10 @@ class SingleWorkerManager extends AbstractWorkerManager
      * @var int
      */
     private $taskCallbackId = 0;
-
+    /**
+     * @var int
+     */
+    private $taskId = 0;
     /**
      * @var Task
      */
@@ -165,6 +168,8 @@ class SingleWorkerManager extends AbstractWorkerManager
             /** @var Task $task */
             $task = $this->taskQueue->pop();
             try {
+                $task->setTaskId($this->taskId++);
+                $task->setTaskWorkerId($this->getWorkerId());
                 $this->currentTask = $task;
                 $this->dispatch(Event::TASK, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
             } finally {
