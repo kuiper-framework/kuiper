@@ -13,7 +13,7 @@ class SecurityContext
 {
     public const SESSION = '__session__';
 
-    private static $COMPONENTS = [
+    protected static $COMPONENTS = [
         SecurityContext::class => SecurityContext::class,
         FlashInterface::class => SessionFlash::class,
         CsrfTokenInterface::class => CsrfToken::class,
@@ -35,38 +35,38 @@ class SecurityContext
 
     public function getFlash(): FlashInterface
     {
-        return self::createComponent(FlashInterface::class, $this->session);
+        return static::createComponent(FlashInterface::class, $this->session);
     }
 
     public function getCsrfToken(): CsrfTokenInterface
     {
-        return self::createComponent(CsrfTokenInterface::class, $this->session);
+        return static::createComponent(CsrfTokenInterface::class, $this->session);
     }
 
     public function getAuth(): AuthInterface
     {
-        return self::createComponent(AuthInterface::class, $this->session);
+        return static::createComponent(AuthInterface::class, $this->session);
     }
 
     public static function fromRequest(ServerRequestInterface $request): self
     {
-        $session = $request->getAttribute(self::SESSION);
+        $session = $request->getAttribute(static::SESSION);
         if (!$session) {
             throw new \BadMethodCallException('SessionMiddleware not enabled');
         }
 
-        return self::createComponent(SecurityContext::class, $session);
+        return static::createComponent(SecurityContext::class, $session);
     }
 
     private static function createComponent(string $component, SessionInterface $session)
     {
-        $class = self::$COMPONENTS[$component];
+        $class = static::$COMPONENTS[$component];
 
         return new $class($session);
     }
 
     public static function setComponent(string $component, string $implClass): void
     {
-        self::$COMPONENTS[$component] = $implClass;
+        static::$COMPONENTS[$component] = $implClass;
     }
 }

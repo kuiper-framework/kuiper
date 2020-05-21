@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace kuiper\web\annotation\filter;
 
-use kuiper\web\exception\HttpCsrfTokenException;
-use kuiper\web\security\SecurityContext;
+use kuiper\web\middleware\CsrfToken as CsrfTokenMiddleware;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-use Slim\Exception\HttpMethodNotAllowedException;
 
 /**
  * @Annotation
@@ -19,11 +14,6 @@ use Slim\Exception\HttpMethodNotAllowedException;
  */
 class CsrfToken extends AbstractFilter
 {
-    /**
-     * @var array all allowed http request methods
-     */
-    public const ALLOWED_METHODS = ['PUT', 'POST', 'DELETE'];
-
     /**
      * @var bool
      */
@@ -34,32 +24,6 @@ class CsrfToken extends AbstractFilter
      */
     public function createMiddleware(ContainerInterface $container): MiddlewareInterface
     {
-        return new class($this->repeatOk) implements MiddlewareInterface {
-            /**
-             * @var bool
-             */
-            private $repeatOk;
-
-            public function __construct(bool $repeatOk)
-            {
-                $this->repeatOk = $repeatOk;
-            }
-
-            /**
-             * {@inheritdoc}
-             */
-            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-            {
-                if (!in_array($request->getMethod(), CsrfToken::ALLOWED_METHODS, true)) {
-                    throw (new HttpMethodNotAllowedException($request))->setAllowedMethods(CsrfToken::ALLOWED_METHODS);
-                }
-                $csrfToken = SecurityContext::fromRequest($request)->getCsrfToken();
-                if ($csrfToken->check($request, $destroy = !$this->repeatOk)) {
-                    return $handler->handle($request);
-                }
-
-                throw new HttpCsrfTokenException($request);
-            }
-        };
+        return new CsrfTokenMiddleware($this->repeatOk);
     }
 }

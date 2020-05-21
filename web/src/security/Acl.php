@@ -8,7 +8,7 @@ class Acl implements AclInterface
 {
     private $acl = [];
 
-    public function allow($role, $resource, $action)
+    public function allow($role, $resource, $action): void
     {
         $this->acl[$role][$resource][$action] = true;
     }
