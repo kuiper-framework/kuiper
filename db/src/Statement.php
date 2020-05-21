@@ -1,0 +1,309 @@
+<?php
+
+declare(strict_types=1);
+
+namespace kuiper\db;
+
+use kuiper\db\event\StatementQueriedEvent;
+use Psr\EventDispatcher\EventDispatcherInterface;
+
+class Statement implements StatementInterface
+{
+    private const OPERATOR_OR = 'OR';
+    private const OPERATOR_AND = 'AND';
+
+    /**
+     * @var ConnectionInterface
+     */
+    protected $connection;
+
+    /**
+     * @var object
+     */
+    protected $query;
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    protected $eventDispatcher;
+
+    /**
+     * @var \PDOStatement
+     */
+    protected $pdoStatement;
+
+    public function __construct(ConnectionInterface $connection, $query, EventDispatcherInterface $eventDispatcher = null)
+    {
+        $this->connection = $connection;
+        $this->query = $query;
+        $this->eventDispatcher = $eventDispatcher;
+    }
+
+    public function close(): void
+    {
+        if ($this->pdoStatement) {
+            $this->pdoStatement->closeCursor();
+            $this->pdoStatement = null;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function select(...$columns): StatementInterface
+    {
+        $this->query->resetCols();
+        $this->query->cols($columns);
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function where($condition, ...$args): StatementInterface
+    {
+        if (is_string($condition)) {
+            call_user_func_array([$this->query, 'WHERE'], func_get_args());
+        } elseif (is_array($condition)) {
+            $this->addWhere($condition);
+        } else {
+            throw new \InvalidArgumentException('Expected array or string, got '.gettype($condition));
+        }
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function orWhere($condition, ...$args): StatementInterface
+    {
+        if (is_string($condition)) {
+            call_user_func_array([$this->query, 'orWhere'], func_get_args());
+        } elseif (is_array($condition)) {
+            $this->addWhere($condition, self::OPERATOR_OR);
+        } else {
+            throw new \InvalidArgumentException('Expected array or string, got '.gettype($condition));
+        }
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function like(string $field, string $value): StatementInterface
+    {
+        return $this->where($field.' LIKE ?', $value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function in(string $field, array $values): StatementInterface
+    {
+        if (empty($values)) {
+            throw new \InvalidArgumentException('Cannot bind empty value for in statment');
+        }
+
+        return $this->addInWhere($field, $values);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function orIn(string $field, array $values): StatementInterface
+    {
+        if (empty($values)) {
+            throw new \InvalidArgumentException('Cannot bind empty value for in statment');
+        }
+
+        return $this->addInWhere($field, $values, self::OPERATOR_OR);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function notIn(string $field, array $values): StatementInterface
+    {
+        if (empty($values)) {
+            throw new \InvalidArgumentException('Cannot bind empty value for in statment');
+        }
+
+        return $this->addInWhere($field, $values, self::OPERATOR_AND, 'not IN');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function orNotIn(string $field, array $values): StatementInterface
+    {
+        if (empty($values)) {
+            throw new \InvalidArgumentException('Cannot bind empty value for in statment');
+        }
+
+        return $this->addInWhere($field, $values, self::OPERATOR_OR, 'not IN');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function cols(array $values): StatementInterface
+    {
+        $this->query->cols($values);
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function limit($limit): StatementInterface
+    {
+        $this->query->limit($limit);
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offset($offset): StatementInterface
+    {
+        $this->query->offset($offset);
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function orderBy(array $orderSpec): StatementInterface
+    {
+        $this->query->orderBy($orderSpec);
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function groupBy(array $columns): StatementInterface
+    {
+        $this->query->groupBy($columns);
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(): bool
+    {
+        return $this->doQuery();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function query(): \PDOStatement
+    {
+        $this->doQuery();
+
+        return $this->pdoStatement;
+    }
+
+    public function __call($method, $args)
+    {
+        call_user_func_array([$this->query, $method], $args);
+
+        return $this;
+    }
+
+    public function getConnection(): ConnectionInterface
+    {
+        return $this->connection;
+    }
+
+    public function getStatement(): string
+    {
+        return (string) $this->query->getStatement();
+    }
+
+    public function getBindValues(): array
+    {
+        return $this->query->getBindValues();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function rowCount(): int
+    {
+        return $this->pdoStatement ? $this->pdoStatement->rowCount() : 0;
+    }
+
+    protected function doQuery(): bool
+    {
+        try {
+            $result = $this->doQueryOnce();
+        } catch (\PDOException $e) {
+            if (Connection::isRetryableError($e)) {
+                $this->connection->reconnect();
+                $result = $this->doQueryOnce();
+            } else {
+                throw $e;
+            }
+        }
+        $this->eventDispatcher && $this->eventDispatcher->dispatch(new StatementQueriedEvent($this->getConnection(), $this));
+
+        return $result;
+    }
+
+    protected function doQueryOnce(): bool
+    {
+        $this->pdoStatement = $this->connection->prepare($this->query->getStatement());
+
+        return @$this->pdoStatement->execute($this->query->getBindValues());
+    }
+
+    protected function addWhere(array $condition, $op = self::OPERATOR_AND): void
+    {
+        foreach ($condition as $key => $value) {
+            if (is_array($value)) {
+                if (self::OPERATOR_OR === $op) {
+                    throw new \InvalidArgumentException('orWhere does not support in operator yet');
+                }
+                $this->in($key, $value);
+                unset($condition[$key]);
+            }
+        }
+        if (!empty($condition)) {
+            $cond = implode(' AND ', array_map(static function ($field) {
+                return $field.'=?';
+            }, array_keys($condition)));
+            $args = array_values($condition);
+            array_unshift($args, $cond);
+            if (self::OPERATOR_AND === $op) {
+                $this->query->where(...$args);
+            } else {
+                $this->query->orWhere(...$args);
+            }
+        }
+    }
+
+    protected function addInWhere($field, array $values, $op = self::OPERATOR_AND, $in = 'IN'): self
+    {
+        if (!empty($values)) {
+            $condition = sprintf('%s %s (%s)', $field, $in, implode(',', array_fill(0, count($values), '?')));
+            if (self::OPERATOR_AND === $op) {
+                $this->query->where($condition, ...$values);
+            } else {
+                $this->query->orWhere($condition, ...$values);
+            }
+        }
+
+        return $this;
+    }
+}

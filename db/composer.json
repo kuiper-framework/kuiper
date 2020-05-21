@@ -1,0 +1,29 @@
+{
+	"name": "kuiper/db",
+	"description": "A PDO extension that provides lazy connections, auto reconnecting, and fluent query builder",
+	"keywords": ["mysql", "pdo"],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+	"authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "yewenbin@winwin-inc.com"
+        }
+	],
+    "require": {
+        "php": "^7.0",
+        "ext-pdo": "*",
+		"aura/sqlquery": "^2.7",
+		"kuiper/helper": "^0.5"
+    },
+	"autoload": {
+        "psr-4": {
+            "kuiper\\db\\": "src/"
+        }
+	},
+	"autoload-dev": {
+        "psr-4": {
+            "kuiper\\db\\": "tests/"
+        }
+	}
+}
