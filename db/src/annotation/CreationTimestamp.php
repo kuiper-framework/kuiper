@@ -8,6 +8,6 @@ namespace kuiper\db\annotation;
  * @Annotation
  * @Target("PROPERTY")
  */
-final class UpdatedAt implements Annotation
+final class CreationTimestamp implements Annotation
 {
 }

@@ -7,7 +7,7 @@ namespace kuiper\db\orm;
 use kuiper\annotations\DocReaderInterface;
 use kuiper\annotations\ReaderInterface;
 use kuiper\db\annotation\Column;
-use kuiper\db\annotation\CreatedAt;
+use kuiper\db\annotation\CreationTimestamp;
 use kuiper\db\exception\ConfigurationException;
 use kuiper\db\orm\annotation\Annotation;
 use kuiper\db\orm\annotation\Entity;
@@ -41,7 +41,7 @@ class TableMetadataFactory
     private static $ANNOTATION_HANDLERS = [
         Table::class => 'processTableAnnotation',
         Entity::class => 'processEntityAnnotation',
-        CreatedAt::class => 'processCreatedAtAnnotation',
+        CreationTimestamp::class => 'processCreatedAtAnnotation',
         UpdatedAt::class => 'processUpdatedAtAnnotation',
         Enum::class => 'processEnumAnnotation',
         Id::class => 'processIdAnnotation',
@@ -193,7 +193,7 @@ class TableMetadataFactory
         return $column;
     }
 
-    private function processCreatedAtAnnotation(TableMetadata $metadata, ColumnMetadata $column, CreatedAt $annotation)
+    private function processCreatedAtAnnotation(TableMetadata $metadata, ColumnMetadata $column, CreationTimestamp $annotation)
     {
         $metadata->setTimestamp(TableMetadata::CREATED_AT, $column->getName());
     }

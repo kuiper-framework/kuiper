@@ -10,14 +10,10 @@ namespace kuiper\db\annotation;
  */
 final class GeneratedValue implements Annotation
 {
-    const AUTO = 'AUTO';
-
     /**
      * The type of Id generator.
      *
      * @var string
-     *
-     * @Enum
      */
-    public $strategy = 'AUTO';
+    public $value = 'AUTO';
 }

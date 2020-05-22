@@ -77,7 +77,7 @@ interface PdoInterface
      *
      * @see http://php.net/manual/en/pdo.lastinsertid.php
      */
-    public function lastInsertId($name = null): int;
+    public function lastInsertId($name = null);
 
     /**
      * Prepares an SQL statement for execution.

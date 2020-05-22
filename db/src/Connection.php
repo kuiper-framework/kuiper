@@ -305,7 +305,7 @@ class Connection extends PDO implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function lastInsertId($name = null): int
+    public function lastInsertId($name = null)
     {
         if (!$this->pdo) {
             throw new \BadMethodCallException('Cannot call lastInsertId without insert');
