@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\db\sharding;
 
+use kuiper\db\sharding\rule\RuleInterface;
+
 class Strategy implements StrategyInterface
 {
     /**
@@ -26,24 +28,20 @@ class Strategy implements StrategyInterface
         $this->tableFormat = $tableFormat;
     }
 
-    public function setDbRule(RuleInterface $rule)
+    public function setDbRule(RuleInterface $rule): void
     {
         $this->dbRule = $rule;
-
-        return $this;
     }
 
-    public function setTableRule(RuleInterface $rule)
+    public function setTableRule(RuleInterface $rule): void
     {
         $this->tableRule = $rule;
-
-        return $this;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getTable(array $fields, $table)
+    public function getTable(array $fields, $table): string
     {
         return sprintf($this->tableFormat, $table, $this->tableRule->getPartition($fields));
     }
@@ -51,7 +49,7 @@ class Strategy implements StrategyInterface
     /**
      * {@inheritdoc}
      */
-    public function getDb(array $fields)
+    public function getDb(array $fields): int
     {
         return $this->dbRule->getPartition($fields);
     }

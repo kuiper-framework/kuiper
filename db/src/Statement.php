@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+use Aura\SqlQuery\QueryInterface;
 use kuiper\db\event\StatementQueriedEvent;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
@@ -18,7 +19,7 @@ class Statement implements StatementInterface
     protected $connection;
 
     /**
-     * @var object
+     * @var QueryInterface
      */
     protected $query;
 
@@ -32,11 +33,16 @@ class Statement implements StatementInterface
      */
     protected $pdoStatement;
 
-    public function __construct(ConnectionInterface $connection, $query, EventDispatcherInterface $eventDispatcher = null)
+    public function __construct(ConnectionInterface $connection, QueryInterface $query, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->connection = $connection;
         $this->query = $query;
         $this->eventDispatcher = $eventDispatcher;
+    }
+
+    public function __destruct()
+    {
+        $this->close();
     }
 
     public function close(): void
@@ -181,7 +187,11 @@ class Statement implements StatementInterface
      */
     public function orderBy(array $orderSpec): StatementInterface
     {
-        $this->query->orderBy($orderSpec);
+        if (empty($orderSpec)) {
+            $this->query->resetOrderBy();
+        } else {
+            $this->query->orderBy($orderSpec);
+        }
 
         return $this;
     }
@@ -191,7 +201,11 @@ class Statement implements StatementInterface
      */
     public function groupBy(array $columns): StatementInterface
     {
-        $this->query->groupBy($columns);
+        if (empty($columns)) {
+            $this->query->resetGroupBy();
+        } else {
+            $this->query->groupBy($columns);
+        }
 
         return $this;
     }
@@ -280,9 +294,9 @@ class Statement implements StatementInterface
             }
         }
         if (!empty($condition)) {
-            $cond = implode(' AND ', array_map(static function ($field) {
+            $cond = '('.implode(' AND ', array_map(static function ($field) {
                 return $field.'=?';
-            }, array_keys($condition)));
+            }, array_keys($condition))).')';
             $args = array_values($condition);
             array_unshift($args, $cond);
             if (self::OPERATOR_AND === $op) {

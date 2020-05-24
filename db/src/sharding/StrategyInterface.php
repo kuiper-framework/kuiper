@@ -6,19 +6,22 @@ namespace kuiper\db\sharding;
 
 interface StrategyInterface
 {
-    public function setDbRule(RuleInterface $rule);
-
-    public function setTableRule(RuleInterface $rule);
-
     /**
-     * @param string $table
+     * Gets the partition table name.
      *
-     * @return string
+     * @param array  $fields the sharding values
+     * @param string $table  the original table name
+     *
+     * @return string the table name
      */
-    public function getTable(array $fields, $table);
+    public function getTable(array $fields, string $table): string;
 
     /**
-     * @return int
+     * Gets the connection id.
+     *
+     * @param array $fields the sharding values
+     *
+     * @return int the connection id
      */
-    public function getDb(array $fields);
+    public function getDb(array $fields): int;
 }

@@ -13,12 +13,25 @@ interface CrudRepositoryInterface
      *
      * @return object the entity
      */
-    public function save($entity);
+    public function insert($entity);
 
     /**
-     * Saves all entities.
+     * Saves the entity.
+     *
+     * @param object $entity
+     *
+     * @return object the entity
      */
-    public function saveAll(array $entities): array;
+    public function update($entity);
+
+    /**
+     * Saves the entity.
+     *
+     * @param object $entity
+     *
+     * @return object the entity
+     */
+    public function save($entity);
 
     /**
      * Finds the entity by id.
@@ -37,9 +50,39 @@ interface CrudRepositoryInterface
     public function existsById($id): bool;
 
     /**
+     * Finds the entity.
+     *
+     * @param array|callable|Criteria $criteria
+     *
+     * @return object|null the entity
+     */
+    public function findFirstBy($criteria);
+
+    /**
      * Returns all instances of the type with the given IDs.
      */
     public function findAllById(array $ids): array;
+
+    /**
+     * Returns all entities match the criteria.
+     *
+     * @param array|callable|Criteria $criteria
+     */
+    public function findAllBy($criteria = null): array;
+
+    /**
+     * Query with the given criteria.
+     *
+     * @param array|callable|Criteria $criteria
+     */
+    public function query($criteria): array;
+
+    /**
+     * Returns row count match the criteria.
+     *
+     * @param array|callable|Criteria $criteria
+     */
+    public function count($criteria = null): int;
 
     /**
      * Finds the entity by id.
@@ -58,4 +101,6 @@ interface CrudRepositoryInterface
     public function deleteAllById(array $ids): void;
 
     public function deleteAll(array $entities): void;
+
+    public function deleteAllBy($criteria = null): void;
 }

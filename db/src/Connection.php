@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use Aura\SqlQuery\QueryFactory;
+use Aura\SqlQuery\QueryInterface;
 use kuiper\db\constants\ErrorCode;
 use kuiper\db\event\ConnectedEvent;
 use kuiper\db\event\DisconnectedEvent;
@@ -244,11 +245,11 @@ class Connection extends PDO implements ConnectionInterface
     public function exec($statement): int
     {
         $this->connect();
-        $this->profiling && $this->beforeQuery($statement);
+        $this->profiling && $this->beforeQuery();
         try {
             $affected_rows = @$this->pdo->exec($statement);
         } catch (\PDOException $e) {
-            if ($this->isRetryableError($e)) {
+            if (self::isRetryableError($e)) {
                 $this->reconnect();
                 $affected_rows = $this->pdo->exec($statement);
             } else {
@@ -273,11 +274,11 @@ class Connection extends PDO implements ConnectionInterface
             unset($args[3]);
         }
 
-        $this->profiling && $this->beforeQuery($statement);
+        $this->profiling && $this->beforeQuery();
         try {
             $sth = @call_user_func_array([$this->pdo, 'query'], $args);
         } catch (\PDOException $e) {
-            if ($this->isRetryableError($e)) {
+            if (self::isRetryableError($e)) {
                 $this->reconnect();
                 $sth = call_user_func_array([$this->pdo, 'query'], $args);
             } else {
@@ -295,7 +296,7 @@ class Connection extends PDO implements ConnectionInterface
     public function prepare($statement, $options = []): PDOStatement
     {
         $this->connect();
-        $this->profiling && $this->beforeQuery($statement);
+        $this->profiling && $this->beforeQuery();
         $sth = $this->pdo->prepare($statement, $options);
         $this->dispatch(new SqlPreparedEvent($this, $statement));
 
@@ -371,10 +372,15 @@ class Connection extends PDO implements ConnectionInterface
         return $this->queryFactory;
     }
 
+    public function setQueryFactory(QueryFactory $queryFactory): void
+    {
+        $this->queryFactory = $queryFactory;
+    }
+
     /**
      * {@inheritdoc}
      */
-    public function from($table): StatementInterface
+    public function from(string $table): StatementInterface
     {
         $query = $this->getQueryFactory()->newSelect()
             ->from($table);
@@ -385,7 +391,7 @@ class Connection extends PDO implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function delete($table): StatementInterface
+    public function delete(string $table): StatementInterface
     {
         $query = $this->getQueryFactory()->newDelete()
             ->from($table);
@@ -396,7 +402,7 @@ class Connection extends PDO implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function update($table): StatementInterface
+    public function update(string $table): StatementInterface
     {
         $query = $this->getQueryFactory()->newUpdate()
             ->table($table);
@@ -407,7 +413,7 @@ class Connection extends PDO implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function insert($table): StatementInterface
+    public function insert(string $table): StatementInterface
     {
         $query = $this->getQueryFactory()->newInsert()
             ->into($table);
@@ -480,12 +486,12 @@ class Connection extends PDO implements ConnectionInterface
         return time() - $this->connectedAt > $this->timeout;
     }
 
-    protected function beforeQuery($statement)
+    protected function beforeQuery()
     {
         $this->lastQueryStart = microtime(true);
     }
 
-    protected function createStatement($query): StatementInterface
+    protected function createStatement(QueryInterface $query): StatementInterface
     {
         return new Statement($this, $query, $this->eventDispatcher);
     }

@@ -4,50 +4,300 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+use InvalidArgumentException;
+use kuiper\db\event\AfterPersistEvent;
+use kuiper\db\event\BeforePersistEvent;
+use kuiper\db\exception\ExecutionFailException;
+use kuiper\db\metadata\MetaModelFactoryInterface;
+use kuiper\db\metadata\MetaModelInterface;
+use PDO;
+use Psr\EventDispatcher\EventDispatcherInterface;
+
 abstract class AbstractCrudRepository implements CrudRepositoryInterface
 {
-    public function save($entity)
+    /**
+     * @var QueryBuilderInterface
+     */
+    protected $queryBuilder;
+
+    /**
+     * @var MetaModelInterface
+     */
+    protected $metaModel;
+
+    /**
+     * @var DateTimeFactoryInterface
+     */
+    protected $dateTimeFactory;
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    protected $eventDispatcher;
+
+    public function __construct(QueryBuilderInterface $queryBuilder,
+                                MetaModelFactoryInterface $metaModelFactory,
+                                DateTimeFactoryInterface $dateTimeFactory,
+                                EventDispatcherInterface $eventDispatcher)
     {
-        // TODO: Implement save() method.
+        $this->queryBuilder = $queryBuilder;
+        $this->metaModel = $metaModelFactory->create($this);
+        $this->dateTimeFactory = $dateTimeFactory;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
-    public function saveAll(array $entities): array
+    public function insert($entity)
     {
-        // TODO: Implement saveAll() method.
+        $this->dispatch(new BeforePersistEvent($this, $entity));
+        $stmt = $this->buildInsertStatement($entity);
+        $this->doExecute($stmt);
+
+        $autoIncrementColumn = $this->metaModel->getAutoIncrement();
+        if ($autoIncrementColumn) {
+            $value = $this->metaModel->getValue($entity, $autoIncrementColumn);
+            if (!$value) {
+                $this->metaModel->setValue($entity, $autoIncrementColumn, $stmt->getConnection()->lastInsertId());
+            }
+        }
+        $this->dispatch(new AfterPersistEvent($this, $entity));
+
+        return $entity;
+    }
+
+    public function update($entity)
+    {
+        $stmt = $this->buildUpdateStatement($entity, $this->metaModel->getUniqueKey($entity));
+        $this->doExecute($stmt);
+
+        return $stmt;
+    }
+
+    public function save($entity)
+    {
+        if ($this->count($this->metaModel->getUniqueKey($entity)) > 0) {
+            return $this->update($entity);
+        }
+
+        return $this->insert($entity);
     }
 
     public function findById($id)
     {
-        // TODO: Implement findById() method.
+        return $this->findFirstBy($this->metaModel->idToPrimaryKey($id));
     }
 
     public function existsById($id): bool
     {
-        // TODO: Implement existsById() method.
+        return $this->count($this->metaModel->idToPrimaryKey($id)) > 0;
+    }
+
+    public function findFirstBy($criteria)
+    {
+        $stmt = $this->buildQueryStatement($criteria)->limit(1)
+            ->offset(0);
+        $row = $this->doQuery($stmt)->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            return $this->metaModel->thaw($row);
+        }
+
+        return null;
     }
 
     public function findAllById(array $ids): array
     {
-        // TODO: Implement findAllById() method.
+        if (empty($ids)) {
+            return [];
+        }
+
+        return $this->findAllBy($this->createCriteriaById($ids));
+    }
+
+    public function findAllBy($criteria = null): array
+    {
+        $stmt = $this->buildQueryStatement($criteria);
+
+        return array_map([$this->metaModel, 'thaw'], $stmt->query()->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    public function count($criteria = null): int
+    {
+        $stmt = $this->buildQueryStatement($criteria)
+            ->select('count(*)')
+            ->limit(1)
+            ->offset(1)
+            ->orderBy([]);
+
+        return (int) $this->doQuery($stmt)->fetchColumn(0);
+    }
+
+    public function query($criteria): array
+    {
+        return $this->doQuery($this->buildQueryStatement($criteria))
+            ->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function deleteById($id): void
     {
-        // TODO: Implement deleteById() method.
+        $this->deleteAllBy($this->metaModel->idToPrimaryKey($id));
     }
 
     public function delete($entity): void
     {
-        // TODO: Implement delete() method.
+        $this->deleteAllBy($this->metaModel->getUniqueKey($entity));
     }
 
     public function deleteAllById(array $ids): void
     {
-        // TODO: Implement deleteAllById() method.
+        if (empty($ids)) {
+            return;
+        }
+        $this->deleteAllBy($this->createCriteriaById($ids));
     }
 
     public function deleteAll(array $entities): void
     {
-        // TODO: Implement deleteAll() method.
+        $this->deleteAllById(array_map([$this->metaModel, 'getId'], $entities));
+    }
+
+    public function deleteAllBy($criteria = null): void
+    {
+        $stmt = $this->buildStatement(
+            $this->queryBuilder->delete($this->metaModel->getTable()), $criteria
+        );
+        $this->doExecute($stmt);
+    }
+
+    /**
+     * @param array|callable|Criteria $criteria
+     */
+    protected function buildQueryStatement($criteria): StatementInterface
+    {
+        return $this->buildStatement(
+            $this->queryBuilder->from($this->metaModel->getTable())
+                ->select($this->metaModel->getColumnNames()), $criteria
+        );
+    }
+
+    /**
+     * @param object $entity
+     */
+    protected function buildInsertStatement($entity): StatementInterface
+    {
+        $this->setCreationTimestamp($entity);
+        $this->setUpdateTimestamp($entity);
+        $cols = $this->metaModel->freeze($entity);
+
+        return $this->queryBuilder->insert($this->metaModel->getTable())
+            ->cols($cols);
+    }
+
+    /**
+     * @param object $entity
+     * @param mixed  $condition
+     */
+    protected function buildUpdateStatement($entity, $condition): StatementInterface
+    {
+        $this->setUpdateTimestamp($entity);
+        $cols = $this->metaModel->freeze($entity);
+        $stmt = $this->queryBuilder->update($this->metaModel->getTable())
+            ->cols($cols);
+
+        return $this->buildStatement($stmt, $condition);
+    }
+
+    /**
+     * @param array|callable|Criteria $condition
+     */
+    protected function buildStatement(StatementInterface $stmt, $condition): StatementInterface
+    {
+        if ($condition instanceof Criteria) {
+            // TODO: 使用 metaModel 过滤 criteria
+            // $condition->filter(function())
+            $condition->buildStatement($stmt);
+        } elseif (is_array($condition)) {
+            if (empty($condition)) {
+                throw new InvalidArgumentException('Condition cannot be empty');
+            }
+            $stmt->where($condition);
+        } elseif (is_callable($condition)) {
+            $stmt = $condition($stmt);
+        } else {
+            throw new InvalidArgumentException('Expected primary key, Got '.gettype($condition));
+        }
+
+        return $stmt;
+    }
+
+    protected function createCriteriaById(array $ids): callable
+    {
+        if (empty($ids)) {
+            throw new InvalidArgumentException('id list is empty');
+        }
+
+        return function (StatementInterface $stmt) use ($ids) {
+            $keys = [];
+            foreach ($ids as $id) {
+                $keys[] = $this->metaModel->idToPrimaryKey($id);
+            }
+            $firstKey = $keys[0];
+            if (1 === count($firstKey)) {
+                $column = array_keys($firstKey)[0];
+                $stmt->in($column, array_column($keys, $column));
+            } else {
+                foreach ($keys as $key) {
+                    $stmt->orWhere($key);
+                }
+            }
+
+            return $stmt;
+        };
+    }
+
+    protected function dispatch($event): void
+    {
+        $this->eventDispatcher && $this->eventDispatcher->dispatch($event);
+    }
+
+    protected function doExecute(StatementInterface $stmt): void
+    {
+        $result = $stmt->execute();
+        if (false === $result) {
+            throw new ExecutionFailException('execution fail');
+        }
+    }
+
+    protected function doQuery(StatementInterface $stmt): \PDOStatement
+    {
+        return $stmt->query();
+    }
+
+    protected function currentTimeString(): string
+    {
+        return $this->dateTimeFactory->currentTimeString();
+    }
+
+    /**
+     * @param $entity
+     */
+    protected function setCreationTimestamp($entity): void
+    {
+        $column = $this->metaModel->getCreationTimestamp();
+        if ($column) {
+            $value = $this->metaModel->getValue($entity, $column);
+            if (!isset($value)) {
+                $this->metaModel->setValue($entity, $column, $this->currentTimeString());
+            }
+        }
+    }
+
+    /**
+     * @param $entity
+     */
+    protected function setUpdateTimestamp($entity): void
+    {
+        $column = $this->metaModel->getUpdateTimestamp();
+        if ($column) {
+            $this->metaModel->setValue($entity, $column, $this->currentTimeString());
+        }
     }
 }

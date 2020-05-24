@@ -10,17 +10,9 @@ use kuiper\db\QueryBuilderInterface;
 interface ClusterInterface extends QueryBuilderInterface
 {
     /**
-     * @param int $id database index
+     * @param int $connectionId database index
      */
-    public function getConnection($id): ConnectionInterface;
+    public function getConnection(int $connectionId): ConnectionInterface;
 
-    /**
-     * @param string $table
-     */
-    public function setTableStrategy($table, StrategyInterface $strategy): void;
-
-    /**
-     * @param string $table
-     */
-    public function getTableStrategy($table): StrategyInterface;
+    public function getTableStrategy(string $table): StrategyInterface;
 }

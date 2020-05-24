@@ -8,11 +8,12 @@ use Aura\SqlQuery\Common\DeleteInterface;
 use Aura\SqlQuery\Common\InsertInterface;
 use Aura\SqlQuery\Common\SelectInterface;
 use Aura\SqlQuery\Common\UpdateInterface;
+use Aura\SqlQuery\QueryInterface;
 use kuiper\db\constants\SqlState;
+use kuiper\db\event\ShardTableNotExistEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Webmozart\Assert\Assert;
 
-class Statement extends \kuiper\db\Statement
+class Statement extends \kuiper\db\Statement implements StatementInterface
 {
     /**
      * @var ClusterInterface
@@ -30,33 +31,49 @@ class Statement extends \kuiper\db\Statement
     private $strategy;
 
     /**
-     * @var bool
-     */
-    private $autoCreateTable;
-
-    /**
      * @var array
      */
     private $shardBy = [];
 
-    public function __construct(ClusterInterface $cluster, $query, $table, StrategyInterface $strategy, $autoCreateTable, EventDispatcherInterface $eventDispatcher = null)
+    /** @noinspection MagicMethodsValidityInspection */
+    public function __construct(ClusterInterface $cluster, QueryInterface $query, string $table, StrategyInterface $strategy, EventDispatcherInterface $eventDispatcher)
     {
         $this->cluster = $cluster;
         $this->query = $query;
         $this->table = $table;
         $this->strategy = $strategy;
-        $this->autoCreateTable = $autoCreateTable;
         $this->eventDispatcher = $eventDispatcher;
     }
 
-    public function shardBy(array $fields)
+    public function getCluster(): ClusterInterface
     {
-        $this->shardBy = $fields;
-
-        return $this;
+        return $this->cluster;
     }
 
-    public function cols(array $fields)
+    public function getTable(): string
+    {
+        return $this->table;
+    }
+
+    public function getTableStrategy(): StrategyInterface
+    {
+        return $this->strategy;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function shardBy(array $fields): void
+    {
+        $this->shardBy = $fields;
+    }
+
+    public function getShardBy(): array
+    {
+        return $this->shardBy;
+    }
+
+    public function cols(array $fields): \kuiper\db\StatementInterface
     {
         if (is_array($fields)) {
             $this->shardBy = array_merge($this->shardBy, $fields);
@@ -65,7 +82,7 @@ class Statement extends \kuiper\db\Statement
         return parent::cols($fields);
     }
 
-    public function where($condition, ...$args)
+    public function where($condition, ...$args): \kuiper\db\StatementInterface
     {
         if (is_array($condition)) {
             $cols = [];
@@ -75,12 +92,14 @@ class Statement extends \kuiper\db\Statement
             $this->shardBy = array_merge($this->shardBy, $cols);
         }
 
-        return call_user_func_array('parent::where', func_get_args());
+        return parent::where($condition, ...$args);
     }
 
-    protected function doQuery()
+    protected function doQuery(): bool
     {
-        Assert::notEmpty($this->shardBy, 'Sharding fields are empty');
+        if (empty($this->shardBy)) {
+            throw new \InvalidArgumentException('Sharding fields are empty');
+        }
         $this->connection = $this->cluster->getConnection($this->strategy->getDb($this->shardBy));
         $table = $this->strategy->getTable($this->shardBy, $this->table);
         if ($this->query instanceof SelectInterface || $this->query instanceof DeleteInterface) {
@@ -93,18 +112,14 @@ class Statement extends \kuiper\db\Statement
         try {
             return parent::doQuery();
         } catch (\PDOException $e) {
-            if ($this->autoCreateTable && SqlState::BAD_TABLE == $e->getCode()) {
-                $sql = sprintf('CREATE TABLE IF NOT EXISTS `%s` LIKE `%s`', $table, $this->table);
-                $this->connection->exec($sql);
-
-                return parent::doQuery();
+            if (SqlState::BAD_TABLE === $e->getCode()) {
+                /** @var ShardTableNotExistEvent $event */
+                $event = $this->eventDispatcher->dispatch(new ShardTableNotExistEvent($this, $table));
+                if ($event->isTableCreated()) {
+                    return parent::doQuery();
+                }
             }
             throw $e;
         }
-    }
-
-    public function getShardBy()
-    {
-        return $this->shardBy;
     }
 }

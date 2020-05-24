@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\db\orm\serializer;
 
 use kuiper\annotations\DocReaderInterface;
-use kuiper\db\orm\ColumnMetadata;
+use kuiper\db\metadata\Column;
 use kuiper\serializer\NormalizerInterface;
 
 class JsonObjectSerializer implements Serializer
@@ -26,12 +26,12 @@ class JsonObjectSerializer implements Serializer
         $this->docReader = $docReader;
     }
 
-    public function serialize($value, ColumnMetadata $column)
+    public function serialize($value, Column $column)
     {
         return isset($value) ? json_encode($this->normalizer->normalize($value)) : '';
     }
 
-    public function unserialize($data, ColumnMetadata $column)
+    public function unserialize($data, Column $column)
     {
         if ($data) {
             $type = $this->docReader->getPropertyType($column->getProperty());

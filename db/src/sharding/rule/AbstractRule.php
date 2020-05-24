@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\sharding;
+namespace kuiper\db\sharding\rule;
 
 abstract class AbstractRule implements RuleInterface
 {
@@ -11,15 +11,24 @@ abstract class AbstractRule implements RuleInterface
      */
     protected $field;
 
-    public function __construct($field)
+    public function __construct(string $field)
     {
         $this->field = $field;
     }
 
+    /**
+     * Gets the sharding partition by value
+     *
+     * @param mixed $value
+     * @return int|string
+     */
     abstract protected function getPartitionFor($value);
 
+    /**
+     * @inheritDoc
+     */
     public function getPartition(array $fields)
     {
-        return $this->getPartitionFor(isset($fields[$this->field]) ? $fields[$this->field] : null);
+        return $this->getPartitionFor($fields[$this->field] ?? null);
     }
 }

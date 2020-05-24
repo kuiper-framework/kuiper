@@ -10,35 +10,27 @@ interface QueryBuilderInterface
      * Create select statement.
      *
      * @see \Aura\SqlQuery\QueryFactory::newSelect()
-     *
-     * @param string $table
      */
-    public function from($table): StatementInterface;
+    public function from(string $table): StatementInterface;
 
     /**
      * Create delete statement.
      *
      * @see \Aura\SqlQuery\QueryFactory::newDelete()
-     *
-     * @param string $table
      */
-    public function delete($table): StatementInterface;
+    public function delete(string $table): StatementInterface;
 
     /**
      * Create update statement.
      *
      * @see \Aura\SqlQuery\QueryFactory::newUpdate()
-     *
-     * @param string $table
      */
-    public function update($table): StatementInterface;
+    public function update(string $table): StatementInterface;
 
     /**
      * Create insert statement.
      *
      * @see \Aura\SqlQuery\QueryFactory::newInsert()
-     *
-     * @param string $table
      */
-    public function insert($table): StatementInterface;
+    public function insert(string $table): StatementInterface;
 }

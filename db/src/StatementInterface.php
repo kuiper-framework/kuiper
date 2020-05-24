@@ -98,4 +98,9 @@ interface StatementInterface
      * close statement.
      */
     public function close(): void;
+
+    /**
+     * Gets the db connection.
+     */
+    public function getConnection(): ConnectionInterface;
 }

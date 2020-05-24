@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\sharding;
+namespace kuiper\db\sharding\rule;
 
 class MonthlyRule extends AbstractRule
 {

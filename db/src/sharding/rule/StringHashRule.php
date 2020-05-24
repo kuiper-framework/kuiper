@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\sharding;
+namespace kuiper\db\sharding\rule;
 
 use Webmozart\Assert\Assert;
 
@@ -27,7 +27,9 @@ class StringHashRule extends AbstractRule
 
     protected function getPartitionFor($value)
     {
-        Assert::string($value, "Value of column '{$this->field}' must be a string, Got %s");
+        if (!is_string($value)) {
+            throw new \InvalidArgumentException("Value of column '{$this->field}' must be a string, Got $value");
+        }
 
         return call_user_func($this->hashFunction, $value) % $this->bucket;
     }

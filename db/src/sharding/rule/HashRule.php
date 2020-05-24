@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\sharding;
+namespace kuiper\db\sharding\rule;
 
 use Webmozart\Assert\Assert;
 
@@ -13,7 +13,7 @@ class HashRule extends AbstractRule
      */
     protected $bucket;
 
-    public function __construct($field, $bucket)
+    public function __construct(string $field, int $bucket)
     {
         parent::__construct($field);
         $this->bucket = $bucket;
@@ -21,7 +21,9 @@ class HashRule extends AbstractRule
 
     protected function getPartitionFor($value)
     {
-        Assert::integerish($value, "Value of column '{$this->field}' must be an integer, Got %s");
+        if (!\is_numeric($value) || $value != (int) $value) {
+            throw new \InvalidArgumentException("Value of column '{$this->field}' must be an integer, Got $value");
+        }
 
         return $value % $this->bucket;
     }
