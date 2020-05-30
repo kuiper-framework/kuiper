@@ -12,10 +12,13 @@ use Doctrine\Common\Annotations\Annotation\Enum;
  */
 final class Enumerated implements Annotation
 {
+    public const ORDINAL = 'ORDINAL';
+    public const STRING = 'STRING';
+
     /**
      * @Enum({"ORDINAL", "STRING"})
      *
      * @var string
      */
-    public $value = 'ORDINAL';
+    public $value = self::ORDINAL;
 }

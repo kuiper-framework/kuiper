@@ -31,6 +31,6 @@ class CriteriaTest extends TestCase
 FROM
     `article`
 WHERE
-    (id=:_1_)', $query->getStatement());
+    id=:_1_', $query->getStatement());
     }
 }

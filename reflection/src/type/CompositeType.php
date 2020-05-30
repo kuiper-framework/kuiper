@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection\type;
 
 use kuiper\reflection\ReflectionType;
@@ -25,7 +27,7 @@ class CompositeType extends ReflectionType
 
     public function getName(): string
     {
-        return implode('|', array_map(function (ReflectionTypeInterface $type) {
+        return implode('|', array_map(static function (ReflectionTypeInterface $type) {
             return $type->getName();
         }, $this->types));
     }

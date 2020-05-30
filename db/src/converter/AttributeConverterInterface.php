@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db;
+namespace kuiper\db\converter;
 
 use kuiper\db\metadata\Column;
 

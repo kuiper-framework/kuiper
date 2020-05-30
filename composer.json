@@ -2,7 +2,9 @@
     "name": "kuiper/kuiper",
     "type": "library",
     "description": "The Kuiper PHP framework",
-    "keywords": ["framework"],
+    "keywords": [
+        "framework"
+    ],
     "license": "MIT",
     "authors": [
         {
@@ -39,6 +41,7 @@
         "phpunit/phpunit": "^8.0",
         "slim/slim": "^4.5",
         "swoft/swoole-ide-helper": "^4.4",
+        "symfony/serializer": "^5.0",
         "twig/twig": "^3.0",
         "vlucas/phpdotenv": "^4.1",
         "winwin/composer-phpcs-plugin": "^0.1"
@@ -47,6 +50,16 @@
         "nikic/fast-route": "Required to use web component",
         "dflydev/fig-cookies": "Required to use web component",
         "twig/twig": "Required to use twig template"
+    },
+    "replace": {
+        "kuiper/helper": "self.version",
+        "kuiper/annotations": "self.version",
+        "kuiper/db": "self.version",
+        "kuiper/di": "self.version",
+        "kuiper/event": "self.version",
+        "kuiper/web": "self.version",
+        "kuiper/swoole": "self.version",
+        "kuiper/reflection": "self.version"
     },
     "autoload": {
         "psr-4": {

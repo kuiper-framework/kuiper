@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace kuiper\db\metadata;
 
-use kuiper\db\AttributeConverterInterface;
+use kuiper\db\annotation\CreationTimestamp;
+use kuiper\db\annotation\GeneratedValue;
+use kuiper\db\annotation\Id;
+use kuiper\db\annotation\NaturalId;
+use kuiper\db\annotation\UpdateTimestamp;
+use kuiper\db\converter\AttributeConverterInterface;
+use kuiper\reflection\ReflectionTypeInterface;
 
 class Column
 {
@@ -14,9 +20,9 @@ class Column
     private $name;
 
     /**
-     * @var \ReflectionProperty[]
+     * @var MetaModelProperty
      */
-    private $propertyPath;
+    private $property;
 
     /**
      * @var AttributeConverterInterface
@@ -29,7 +35,7 @@ class Column
     private $id;
 
     /**
-     * @var string
+     * @var ?string
      */
     private $generateStrategy;
 
@@ -48,70 +54,46 @@ class Column
      */
     private $updateTimestamp;
 
-    /**
-     * Column constructor.
-     *
-     * @param \ReflectionProperty[] $propertyPath
-     */
-    public function __construct(string $name, array $propertyPath, AttributeConverterInterface $converter,
-                                bool $id, string $generateStrategy, bool $naturalId,
-                                bool $creationTimestamp, bool $updateTimestamp)
+    public function __construct(string $name, MetaModelProperty $property, AttributeConverterInterface $converter)
     {
         $this->name = $name;
-        $this->propertyPath = $propertyPath;
+        $this->property = $property;
         $this->converter = $converter;
-        $this->id = $id;
-        $this->generateStrategy = $generateStrategy;
-        $this->naturalId = $naturalId;
-        $this->creationTimestamp = $creationTimestamp;
-        $this->updateTimestamp = $updateTimestamp;
-    }
-
-    public function getValue($entity)
-    {
-        $value = $this->getPropertyValue($entity, -1);
-
-        return $this->converter->convertToDatabaseColumn($value, $this);
-    }
-
-    public function getPropertyValue($entity, int $level = 0)
-    {
-        if (-1 === $level) {
-            $level = count($this->propertyPath) - 1;
+        $this->id = $property->hasAnnotation(Id::class);
+        $this->naturalId = $property->hasAnnotation(NaturalId::class);
+        $this->creationTimestamp = $property->hasAnnotation(CreationTimestamp::class);
+        $this->updateTimestamp = $property->hasAnnotation(UpdateTimestamp::class);
+        /** @var GeneratedValue $generatedValue */
+        $generatedValue = $property->getAnnotation(GeneratedValue::class);
+        if ($generatedValue) {
+            $this->generateStrategy = $generatedValue->value;
         }
-        if ($level > count($this->propertyPath) - 1) {
-            throw new \InvalidArgumentException("Cannot set property of level $level");
-        }
-        $value = $entity;
-        for ($i = 0; $i <= $level; ++$i) {
-            $property = $this->propertyPath[$i];
-            $value = $property->getValue($value);
-        }
-
-        return $value;
-    }
-
-    public function setValue($entity, $value): void
-    {
-        $attributeValue = $this->converter->convertToEntityAttribute($value, $this);
-        $propertyValue = $entity;
-        $level = count($this->propertyPath) - 1;
-        for ($i = 0; $i < $level; ++$i) {
-            $property = $this->propertyPath[$i];
-            $theValue = $property->getValue($propertyValue);
-            if (!isset($theValue)) {
-                $class = $property->getDeclaringClass()->getName();
-                $theValue = new $class();
-                $property->setValue($propertyValue, $theValue);
-            }
-            $propertyValue = $theValue;
-        }
-        $this->propertyPath[$level]->setValue($propertyValue, $attributeValue);
     }
 
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getValue($entity)
+    {
+        $value = $this->property->getValue($entity);
+        if ($this->isNull($value)) {
+            return $value;
+        }
+
+        return $this->converter->convertToDatabaseColumn($value, $this);
+    }
+
+    public function setValue($entity, $value): void
+    {
+        $attributeValue = isset($value) ? $this->converter->convertToEntityAttribute($value, $this) : null;
+        $this->property->setValue($entity, $attributeValue);
+    }
+
+    public function getType(): ReflectionTypeInterface
+    {
+        return $this->property->getType();
     }
 
     public function isId(): bool
@@ -137,5 +119,10 @@ class Column
     public function isUpdateTimestamp(): bool
     {
         return $this->updateTimestamp;
+    }
+
+    private function isNull($value): bool
+    {
+        return !isset($value) || $value instanceof NullValue;
     }
 }

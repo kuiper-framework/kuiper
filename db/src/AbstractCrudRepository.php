@@ -162,7 +162,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     public function deleteAllBy($criteria = null): void
     {
         $stmt = $this->buildStatement(
-            $this->queryBuilder->delete($this->metaModel->getTable()), $criteria
+            $this->queryBuilder->delete($this->getTableName()), $criteria
         );
         $this->doExecute($stmt);
     }
@@ -173,7 +173,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     protected function buildQueryStatement($criteria): StatementInterface
     {
         return $this->buildStatement(
-            $this->queryBuilder->from($this->metaModel->getTable())
+            $this->queryBuilder->from($this->getTableName())
                 ->select($this->metaModel->getColumnNames()), $criteria
         );
     }
@@ -187,7 +187,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $this->setUpdateTimestamp($entity);
         $cols = $this->metaModel->freeze($entity);
 
-        return $this->queryBuilder->insert($this->metaModel->getTable())
+        return $this->queryBuilder->insert($this->getTableName())
             ->cols($cols);
     }
 
@@ -199,7 +199,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     {
         $this->setUpdateTimestamp($entity);
         $cols = $this->metaModel->freeze($entity);
-        $stmt = $this->queryBuilder->update($this->metaModel->getTable())
+        $stmt = $this->queryBuilder->update($this->getTableName())
             ->cols($cols);
 
         return $this->buildStatement($stmt, $condition);
@@ -299,5 +299,10 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         if ($column) {
             $this->metaModel->setValue($entity, $column, $this->currentTimeString());
         }
+    }
+
+    protected function getTableName(): string
+    {
+        return $this->metaModel->getTable();
     }
 }

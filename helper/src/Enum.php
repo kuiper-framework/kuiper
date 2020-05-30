@@ -70,6 +70,14 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
+     * Gets the ordinal.
+     */
+    public function ordinal(): int
+    {
+        return array_search($this->value, array_values(self::getNames()), true);
+    }
+
+    /**
      * default to string method.
      *
      * @return string name of enum
@@ -221,6 +229,28 @@ abstract class Enum implements \JsonSerializable
     }
 
     /**
+     * Gets the enum instance by ordinal.
+     *
+     * @param static $default
+     *
+     * @return static
+     *
+     * @throws \InvalidArgumentException
+     */
+    public static function fromOrdinal(int $ordinal, $default = null)
+    {
+        $values = self::instances();
+        if ($ordinal >= 0 && $ordinal < count($values)) {
+            return $values[$ordinal];
+        }
+        if (null === $default) {
+            throw new \InvalidArgumentException("No enum for ordinal $ordinal class ".static::class);
+        }
+
+        return $default;
+    }
+
+    /**
      * Returns a value when called statically like so: MyEnum::SOME_VALUE() given SOME_VALUE is a class constant.
      *
      * @param string $name
@@ -258,13 +288,13 @@ abstract class Enum implements \JsonSerializable
             }
             $constants = $reflect->getConstants();
             self::$NAMES[$class] = $constants;
-            $flip = [];
+            $valueArray = [];
             foreach ($constants as $name => $val) {
-                $flip[$val] = new $class($name, $val);
+                $valueArray[$val] = new $class($name, $val);
             }
             // Should not use `array_flip` here, error will be triggered if value is true or false
             // array_flip(): Can only flip STRING and INTEGER values! on line 1
-            self::$VALUES[$class] = $flip;
+            self::$VALUES[$class] = $valueArray;
         }
 
         return self::$VALUES[$class];

@@ -23,7 +23,7 @@ interface EntityMapperInterface
     public function thaw(array $columnValues);
 
     /**
-     * Gets the entity field value.
+     * Gets the database column value from entity object.
      *
      * @param object $entity     entity
      * @param string $columnName the database column name
@@ -33,7 +33,7 @@ interface EntityMapperInterface
     public function getValue($entity, string $columnName);
 
     /**
-     * Sets the entity value.
+     * Sets the entity property value.
      *
      * @param object     $entity
      * @param string     $columnName the database column name
@@ -42,7 +42,7 @@ interface EntityMapperInterface
     public function setValue($entity, string $columnName, $value): void;
 
     /**
-     * Converts id value to.
+     * Converts id value to database column value.
      *
      * @param mixed $id
      */

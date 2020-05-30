@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\helper;
 
 use kuiper\helper\fixtures\Gender;
@@ -93,11 +95,15 @@ class EnumTest extends TestCase
                             json_encode([Gender::fromValue('m'), Gender::MALE()]));
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
+    public function testOrdinal()
+    {
+        $this->assertEquals(OnOff::ON()->ordinal(), 0);
+        $this->assertEquals(OnOff::OFF()->ordinal(), 1);
+    }
+
     public function testGetPropertyNotDefined()
     {
+        $this->expectException(\InvalidArgumentException::class);
         Gender::MALE()->text;
     }
 

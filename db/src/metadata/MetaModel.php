@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace kuiper\db\metadata;
 
+use kuiper\db\annotation\CreationTimestamp;
+use kuiper\db\annotation\Id;
+use kuiper\db\annotation\NaturalId;
+use kuiper\db\annotation\UpdateTimestamp;
+
 class MetaModel implements MetaModelInterface
 {
     /**
@@ -17,47 +22,51 @@ class MetaModel implements MetaModelInterface
     private $entityClass;
 
     /**
+     * @var MetaModelProperty[]
+     */
+    private $properties;
+
+    /**
      * @var Column[]
      */
     private $columns;
 
     /**
-     * @var Column
+     * @var array
      */
-    private $idColumn;
+    private $annotatedColumns;
 
     /**
-     * @var Column[]
+     * @var MetaModelProperty
      */
-    private $naturalIdColumns;
+    private $idProperty;
 
-    /**
-     * @var Column
-     */
-    private $creationTimestampColumn;
-
-    /**
-     * @var Column
-     */
-    private $updateTimestampColumn;
-
-    public function __construct(string $table, string $entityClass, array $columns)
+    public function __construct(string $table, string $entityClass, array $properties)
     {
         $this->table = $table;
         $this->entityClass = $entityClass;
-        /** @var Column $column */
-        foreach ($columns as $column) {
-            if ($column->isId()) {
-                $this->idColumn = $column;
-            } elseif ($column->isNaturalId()) {
-                $this->naturalIdColumns[$column->getName()] = $column;
+        $this->properties = $properties;
+        /** @var MetaModelProperty $property */
+        foreach ($properties as $property) {
+            if ($property->hasAnnotation(Id::class)) {
+                $this->idProperty = $property;
             }
-            if ($column->isCreationTimestamp()) {
-                $this->creationTimestampColumn = $column;
-            } elseif ($column->isUpdateTimestamp()) {
-                $this->updateTimestampColumn = $column;
+            foreach ($property->getColumns() as $column) {
+                $this->columns[$column->getName()] = $column;
+                if ($column->isId()) {
+                    $this->annotatedColumns[Id::class][] = $column;
+                } elseif ($column->isNaturalId()) {
+                    $this->annotatedColumns[NaturalId::class][] = $column;
+                }
+                if ($column->isCreationTimestamp()) {
+                    $this->annotatedColumns[CreationTimestamp::class] = $column;
+                } elseif ($column->isUpdateTimestamp()) {
+                    $this->annotatedColumns[UpdateTimestamp::class] = $column;
+                }
             }
-            $this->columns[$column->getName()] = $column;
+        }
+        if (!isset($this->idProperty)) {
+            throw new \InvalidArgumentException($entityClass.' does not contain id');
         }
     }
 
@@ -109,50 +118,59 @@ class MetaModel implements MetaModelInterface
         $this->columns[$columnName]->setValue($entity, $value);
     }
 
-    public function idToPrimaryKey($id): array
-    {
-        if (is_object($id)) {
-            $entity = $this->createEntity();
-            $this->idColumn->getProperty()->setValue($id);
-
-            return $this->getUniqueKey($entity);
-        }
-
-        return [$this->idColumn->getName() => $id];
-    }
-
     public function getCreationTimestamp(): ?string
     {
-        return $this->creationTimestampColumn ? $this->creationTimestampColumn->getName() : null;
+        return isset($this->annotatedColumns[CreationTimestamp::class])
+            ? $this->annotatedColumns[CreationTimestamp::class]->getName() : null;
     }
 
     public function getUpdateTimestamp(): ?string
     {
-        return $this->updateTimestampColumn ? $this->updateTimestampColumn->getName() : null;
+        return isset($this->annotatedColumns[UpdateTimestamp::class])
+            ? $this->annotatedColumns[UpdateTimestamp::class]->getName() : null;
+    }
+
+    public function idToPrimaryKey($id): array
+    {
+        /** @var Column[] $idColumns */
+        $idColumns = $this->annotatedColumns[Id::class];
+        if (is_object($id) || count($idColumns) > 1) {
+            $entity = $this->createEntity();
+            $this->idProperty->setValue($entity, $id);
+
+            return $this->getColumnValues($entity, $idColumns);
+        }
+
+        return [$idColumns[0]->getName() => $id];
     }
 
     public function getAutoIncrement(): ?string
     {
-        return $this->idColumn->isGeneratedValue() ? $this->idColumn->getName() : null;
+        /** @var Column[] $idColumns */
+        $idColumns = $this->annotatedColumns[Id::class];
+        if (1 === count($idColumns) && $idColumns[0]->isGeneratedValue()) {
+            return $idColumns[0]->getName();
+        }
+
+        return null;
     }
 
     public function getUniqueKey($entity): array
     {
-        $idValue = $this->idColumn->getValue($entity);
+        $keys = [];
+        $idValue = $this->idProperty->getValue($entity);
         if (isset($idValue)) {
-            return [$this->idColumn->getName() => $idValue];
+            return $this->getColumnValues($entity, $this->annotatedColumns[Id::class]);
         }
-        if ($this->naturalIdColumns) {
-            return array_map(static function (Column $column) use ($entity) {
-                return $column->getValue($entity);
-            }, $this->naturalIdColumns);
+        if (isset($this->annotatedColumns[NaturalId::class])) {
+            return $this->getColumnValues($entity, $this->annotatedColumns[NaturalId::class]);
         }
         throw new \InvalidArgumentException('entity id column is not set');
     }
 
     public function getId($entity)
     {
-        return $this->idColumn->getPropertyValue($entity);
+        return $this->idProperty->getValue($entity);
     }
 
     /**
@@ -161,6 +179,20 @@ class MetaModel implements MetaModelInterface
     public function getColumnNames(): array
     {
         return array_keys($this->columns);
+    }
+
+    /**
+     * @param object   $entity
+     * @param Column[] $columns
+     */
+    protected function getColumnValues($entity, array $columns): array
+    {
+        $values = [];
+        foreach ($columns as $column) {
+            $values[$column->getName()] = $column->getValue($entity);
+        }
+
+        return $values;
     }
 
     /**
@@ -175,6 +207,6 @@ class MetaModel implements MetaModelInterface
 
     protected function isNull($value): bool
     {
-        return $value === NullValue::instance();
+        return $value instanceof NullValue;
     }
 }
