@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace kuiper\db\fixtures;
 
 use kuiper\db\annotation\CreationTimestamp;
+use kuiper\db\annotation\GeneratedValue;
+use kuiper\db\annotation\Id;
 use kuiper\db\annotation\UpdateTimestamp;
 
 class Department
 {
     /**
+     * @Id()
+     * @GeneratedValue()
+     *
      * @var int
      */
     private $id;

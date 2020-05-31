@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 class ReflectionFileFactory implements ReflectionFileFactoryInterface
@@ -17,7 +19,7 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public static function createInstance()
+    public static function getInstance()
     {
         if (!isset(self::$INSTANCE)) {
             self::$INSTANCE = new self();
@@ -53,10 +55,12 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
                 return false;
             }
             unset($this->files[$file]);
+
             return true;
         }
 
         $this->files = [];
+
         return true;
     }
 }

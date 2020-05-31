@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 use Composer\Autoload\ClassLoader;
@@ -31,13 +33,15 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      */
     private $extensions = ['php'];
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function createInstance(ReflectionFileFactoryInterface $reflectionFileFactory = null)
+    public static function createInstance(ReflectionFileFactoryInterface $reflectionFileFactory): void
+    {
+        self::$INSTANCE = new self($reflectionFileFactory);
+    }
+
+    public static function getInstance(): ReflectionNamespaceFactoryInterface
     {
         if (!isset(self::$INSTANCE)) {
-            self::$INSTANCE = new self($reflectionFileFactory);
+            self::createInstance(ReflectionFileFactory::getInstance());
         }
 
         return self::$INSTANCE;
@@ -45,7 +49,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 
     private function __construct(ReflectionFileFactoryInterface $factory = null)
     {
-        $this->reflectionFileFactory = $factory ?: ReflectionFileFactory::createInstance();
+        $this->reflectionFileFactory = $factory ?: ReflectionFileFactory::getInstance();
     }
 
     /**
@@ -62,7 +66,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
         foreach ($this->namespaceDirs as $prefix => $prefixDirs) {
             if (empty($prefix) || 0 === strpos($namespace, $prefix)) {
                 foreach (array_keys($prefixDirs) as $dir) {
-                    $dir .= '/' . str_replace('\\', '/', substr($namespace, strlen($prefix)));
+                    $dir .= '/'.str_replace('\\', '/', substr($namespace, strlen($prefix)));
                     $dirs[] = $dir;
                 }
             }
@@ -89,8 +93,6 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      *
      * @param string $namespace
      * @param string $dir
-     *
-     * @return self
      */
     public function register($namespace, $dir): self
     {
@@ -103,10 +105,6 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
     /**
      * Registers composer class loader.
      * Only psr4 namespace support.
-     *
-     * @param ClassLoader $loader
-     *
-     * @return self
      */
     public function registerLoader(ClassLoader $loader): self
     {
@@ -121,10 +119,6 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 
     /**
      * Adds new php code file extension.
-     *
-     * @param string $ext
-     *
-     * @return self
      */
     public function addExtension(string $ext): self
     {
@@ -139,8 +133,6 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      * Sets php code file extension list.
      *
      * @param string[] $extensions
-     *
-     * @return self
      */
     public function setExtensions(array $extensions): self
     {
@@ -151,6 +143,6 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 
     private function normalizeNamespace(string $namespace): string
     {
-        return trim($namespace, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR) . ReflectionNamespaceInterface::NAMESPACE_SEPARATOR;
+        return trim($namespace, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR).ReflectionNamespaceInterface::NAMESPACE_SEPARATOR;
     }
 }

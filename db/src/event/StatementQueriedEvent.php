@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace kuiper\db\event;
 
-use kuiper\db\ConnectionInterface;
 use kuiper\db\StatementInterface;
 
-class StatementQueriedEvent extends AbstractEvent
+class StatementQueriedEvent
 {
     /**
      * @var StatementInterface
@@ -17,9 +16,8 @@ class StatementQueriedEvent extends AbstractEvent
     /**
      * StatementQueriedEvent constructor.
      */
-    public function __construct(ConnectionInterface $connection, StatementInterface $statement)
+    public function __construct(StatementInterface $statement)
     {
-        parent::__construct($connection);
         $this->statement = $statement;
     }
 

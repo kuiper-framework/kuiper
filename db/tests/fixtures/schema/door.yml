@@ -1,0 +1,15 @@
+door:
+  columns:
+    door_code: 'string notnull'
+    name: 'string'
+  indexes:
+    PRIMARY: 'PRIMARY KEY(door_code)'
+
+department:
+  columns:
+    id: 'bigint unsigned notnull autoincrement'
+    create_time: 'datetime notnull'
+    update_time: 'datetime notnull'
+    name: 'string'
+  indexes:
+    PRIMARY: 'PRIMARY KEY(id)'

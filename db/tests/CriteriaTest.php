@@ -31,6 +31,19 @@ class CriteriaTest extends TestCase
 FROM
     `article`
 WHERE
-    id=:_1_', $query->getStatement());
+    id = :_1_', $query->getStatement());
+    }
+
+    public function testNot(): void
+    {
+        $query = Criteria::create()
+            ->not(Criteria::create(['id' => 1]))
+            ->buildStatement($this->statement);
+        $this->assertEquals('SELECT
+    *
+FROM
+    `article`
+WHERE
+    !(id = :_1_)', $query->getStatement());
     }
 }

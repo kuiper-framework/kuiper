@@ -13,6 +13,7 @@ use kuiper\db\event\SqlExecutedEvent;
 use kuiper\db\event\SqlPreparedEvent;
 use kuiper\db\event\SqlQueriedEvent;
 use kuiper\db\event\TimedOutEvent;
+use kuiper\event\NullEventDispatcher;
 use PDO;
 use PDOStatement;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -122,6 +123,7 @@ class Connection extends PDO implements ConnectionInterface
         $this->password = $password;
         $this->options = $options;
         $this->attributes = array_replace($this->attributes, $attributes);
+        $this->eventDispatcher = new NullEventDispatcher();
     }
 
     /**
@@ -506,7 +508,7 @@ class Connection extends PDO implements ConnectionInterface
 
     protected function dispatch($event): void
     {
-        $this->eventDispatcher && $this->eventDispatcher->dispatch($event);
+        $this->eventDispatcher->dispatch($event);
     }
 
     public static function isRetryableError(\PDOException $e): bool

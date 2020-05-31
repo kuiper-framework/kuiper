@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 class ReflectionFileTest extends TestCase
 {
     public function createReflectionFile($file)
     {
-        return ReflectionFileFactory::createInstance()->create($file);
+        return ReflectionFileFactory::getInstance()->create($file);
     }
 
     public function testGetClasses()

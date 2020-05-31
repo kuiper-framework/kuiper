@@ -33,7 +33,7 @@ class Statement implements StatementInterface
      */
     protected $pdoStatement;
 
-    public function __construct(ConnectionInterface $connection, QueryInterface $query, EventDispatcherInterface $eventDispatcher = null)
+    public function __construct(ConnectionInterface $connection, QueryInterface $query, EventDispatcherInterface $eventDispatcher)
     {
         $this->connection = $connection;
         $this->query = $query;
@@ -270,7 +270,7 @@ class Statement implements StatementInterface
                 throw $e;
             }
         }
-        $this->eventDispatcher && $this->eventDispatcher->dispatch(new StatementQueriedEvent($this->getConnection(), $this));
+        $this->eventDispatcher->dispatch(new StatementQueriedEvent($this));
 
         return $result;
     }

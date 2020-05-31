@@ -4,15 +4,27 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+use kuiper\db\criteria\AndClause;
+use kuiper\db\criteria\CriteriaClauseInterface;
+use kuiper\db\criteria\ExpressionClause;
+use kuiper\db\criteria\ExpressionClauseFilterInterface;
+use kuiper\db\criteria\LogicClause;
+use kuiper\db\criteria\NotClause;
+use kuiper\db\criteria\OrClause;
+use kuiper\db\criteria\RawClause;
+use kuiper\db\criteria\Sort;
+
 class Criteria
 {
     public const OPERATOR_EQUAL = '=';
 
     public const OPERATOR_IN = 'IN';
 
-    public const STATEMENT_OR = '__OR__';
+    public const OPERATOR_NOT_IN = 'NOT IN';
 
-    public const STATEMENT_AND = '__AND__';
+    public const OPERATOR_LIKE = 'LIKE';
+
+    public const OPERATOR_NOT_LIKE = 'NOT LIKE';
 
     /**
      * @var string[]
@@ -20,9 +32,9 @@ class Criteria
     private $columns = [];
 
     /**
-     * @var array
+     * @var CriteriaClauseInterface
      */
-    private $conditions = [];
+    private $conditions;
 
     /**
      * @var int
@@ -79,40 +91,84 @@ class Criteria
         if (self::OPERATOR_EQUAL === $op) {
             $this->bindValues[$column] = $value;
         }
-        if (empty($this->conditions)) {
-            $this->conditions = [$column, $value, $op];
-        } else {
-            $this->conditions = [self::STATEMENT_AND, $this->conditions, [$column, $value, $op]];
-        }
 
-        return $this;
+        return $this->merge(new ExpressionClause($column, $op, $value));
+    }
+
+    public function expression(string $expression, ...$bindValues): self
+    {
+        return $this->merge(new RawClause($expression, $bindValues));
+    }
+
+    public function like(string $column, $value): self
+    {
+        return $this->where($column, $value, self::OPERATOR_LIKE);
+    }
+
+    public function notLike(string $column, $value): self
+    {
+        return $this->where($column, $value, self::OPERATOR_NOT_LIKE);
+    }
+
+    public function in(string $column, $value): self
+    {
+        return $this->where($column, $value, self::OPERATOR_IN);
+    }
+
+    public function notIn(string $column, $value): self
+    {
+        return $this->where($column, $value, self::OPERATOR_NOT_IN);
     }
 
     public function orWhere(string $column, $value, string $op = self::OPERATOR_EQUAL): self
     {
-        if (empty($this->conditions)) {
-            $this->where($column, $value, $op);
-        } else {
-            $this->conditions = [self::STATEMENT_OR, $this->conditions, [$column, $value, $op]];
-        }
-
-        return $$this;
+        return $this->merge(new ExpressionClause($column, $op, $value), false);
     }
 
     public function or(Criteria $criteria): self
     {
-        $this->conditions = [self::STATEMENT_AND, $this->conditions, $criteria->getConditions()];
+        if ($criteria->getConditions()) {
+            $this->merge($criteria->getConditions(), false);
+        }
 
         return $this;
     }
 
     public function and(Criteria $criteria): self
     {
-        $this->conditions = [self::STATEMENT_AND, $this->conditions, $criteria->getConditions()];
+        if ($criteria->getConditions()) {
+            $this->merge($criteria->getConditions());
+        }
 
         return $this;
     }
 
+    public function not(Criteria $criteria): self
+    {
+        if ($criteria->conditions) {
+            $this->merge(new NotClause($criteria->getConditions()));
+        }
+
+        return $this;
+    }
+
+    private function merge(CriteriaClauseInterface $clause, $and = true): self
+    {
+        if ($this->conditions) {
+            $this->conditions = $and ? new AndClause($this->conditions, $clause)
+                : new OrClause($this->conditions, $clause);
+        } else {
+            $this->conditions = $clause;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param Sort[] $columns
+     *
+     * @return static
+     */
     public function orderBy(array $columns): self
     {
         $this->orderBy = $columns;
@@ -130,21 +186,12 @@ class Criteria
     /**
      * @return string[]
      */
-    public function getColumns(array $columnAlias = []): array
+    public function getColumns(): array
     {
-        if ($this->columns && $columnAlias) {
-            $cols = [];
-            foreach ($this->columns as $column) {
-                $cols[] = $columnAlias[$column] ?? $column;
-            }
-
-            return $cols;
-        }
-
         return $this->columns;
     }
 
-    public function getConditions(): array
+    public function getConditions(): ?CriteriaClauseInterface
     {
         return $this->conditions;
     }
@@ -164,97 +211,169 @@ class Criteria
         return $this->orderBy;
     }
 
+    public function getGroupBy(): array
+    {
+        return $this->groupBy;
+    }
+
     public function getBindValues(): array
     {
         return $this->bindValues;
     }
 
-    public function getQuery(array $columnAlias = []): array
+    public function getQuery(): array
     {
         if (empty($this->conditions)) {
             return ['1=1'];
         }
 
-        return $this->buildQuery($this->conditions, $columnAlias);
+        return $this->buildQuery($this->conditions);
     }
 
     /**
      * 过滤查询条件
      * $callback 接受三个参数 function($column, $value, $operator), 也必须返回这三个参数构成的数组。
      *
-     * @param callable $callback the callback
+     * @param ExpressionClauseFilterInterface|callable $filter the callback
      *
      * @return Criteria
      */
-    public function filter(callable $callback): self
+    public function filter($filter): self
     {
         $copy = clone $this;
         if ($copy->conditions) {
-            $copy->conditions = $this->filterConditions($copy->conditions, $callback);
+            $copy->conditions = $this->filterConditions($copy->conditions, $filter);
         }
 
         return $copy;
     }
 
-    public function buildStatement(StatementInterface $stmt, array $columnAlias = []): StatementInterface
+    public function alias(array $columnAlias): self
     {
-        $stmt->where(...$this->getQuery($columnAlias));
-        if ($this->getColumns()) {
-            $stmt->select($this->getColumns($columnAlias));
+        $copy = clone $this;
+
+        if ($this->columns) {
+            $copy->columns = array_map(static function (string $column) use ($columnAlias) {
+                return $columnAlias[$column] ?? $column;
+            }, $this->columns);
         }
-        if ($this->getLimit()) {
+
+        if ($this->groupBy) {
+            $copy->groupBy = array_map(static function (string $column) use ($columnAlias) {
+                return $columnAlias[$column] ?? $column;
+            }, $this->groupBy);
+        }
+
+        if ($this->orderBy) {
+            $copy->orderBy = array_map(static function (Sort $sort) use ($columnAlias) {
+                return isset($columnAlias[$sort->getColumn()])
+                    ? Sort::of($columnAlias[$sort->getColumn()], $sort->getDirection())
+                    : $sort;
+            }, $this->orderBy);
+        }
+
+        if ($this->bindValues) {
+            $copy->bindValues = [];
+            foreach ($this->bindValues as $name => $value) {
+                $copy->bindValues[$columnAlias[$name] ?? $name] = $value;
+            }
+        }
+
+        return $copy;
+    }
+
+    public function buildStatement(StatementInterface $stmt): StatementInterface
+    {
+        $stmt->where(...$this->getQuery());
+        if ($this->columns) {
+            $stmt->select($this->getColumns());
+        }
+        if ($this->limit) {
             $stmt->limit($this->getLimit())->offset($this->getOffset());
         }
-        if ($this->getOrderBy()) {
-            $stmt->orderBy($this->getOrderBy());
+        if ($this->orderBy) {
+            $stmt->orderBy(array_map(static function (Sort $sort) {
+                return (string) $sort;
+            }, $this->getOrderBy()));
+        }
+        if ($this->groupBy) {
+            $stmt->groupBy($this->getGroupBy());
         }
 
         return $stmt;
     }
 
-    private function buildQuery(array $conditions, array $columnAlias): array
+    private function buildQuery(CriteriaClauseInterface $conditions): array
     {
-        if (in_array($conditions[0], [self::STATEMENT_AND, self::STATEMENT_OR], true)) {
-            $left = $this->buildQuery($conditions[1], $columnAlias);
-            $right = $this->buildQuery($conditions[2], $columnAlias);
+        if ($conditions instanceof LogicClause) {
+            $left = $this->buildQuery($conditions->getLeft());
+            $right = $this->buildQuery($conditions->getLeft());
             $stmtLeft = array_shift($left);
             $stmtRight = array_shift($right);
             $bindValues = array_merge($left, $right);
-            $op = self::STATEMENT_AND === $conditions[0] ? 'AND' : 'OR';
+            $op = $conditions instanceof AndClause ? 'AND' : 'OR';
             $stmt = sprintf('(%s) %s (%s)', $stmtLeft, $op, $stmtRight);
             array_unshift($bindValues, $stmt);
 
             return $bindValues;
         }
+        if ($conditions instanceof ExpressionClause) {
+            $column = $columnAlias[$conditions->getColumn()] ?? $conditions->getColumn();
+            if (is_array($conditions->getValue())) {
+                if (!in_array($conditions->getOperator(), [self::OPERATOR_IN, self::OPERATOR_NOT_IN], true)) {
+                    throw new \InvalidArgumentException($conditions->getOperator().' does not support array value');
+                }
+                $stmt = sprintf('%s %s (%s)',
+                    $column,
+                    self::OPERATOR_NOT_IN === $conditions->getOperator() ? self::OPERATOR_NOT_IN : self::OPERATOR_IN,
+                    implode(',', array_fill(0, count($conditions->getValue()), '?')));
 
-        [$column, $value, $op] = $conditions;
-        $column = $columnAlias[$column] ?? $column;
-        if (is_array($value) && in_array($op, [self::OPERATOR_EQUAL, self::OPERATOR_IN], true)) {
-            $stmt = sprintf('%s IN (%s)', $column, implode(',', array_fill(0, count($value), '?')));
+                return array_merge([$stmt], $conditions->getValue());
+            }
 
-            return array_merge([$stmt], $value);
+            $stmt = sprintf('%s %s ?', $column, $conditions->getOperator());
+
+            return [$stmt, $conditions->getValue()];
         }
+        if ($conditions instanceof NotClause) {
+            $stmt = $this->buildQuery($conditions->getClause());
 
-        $stmt = sprintf('%s %s ?', $column, $op);
-
-        return [$stmt, $value];
+            return [sprintf('!(%s)', $stmt[0]), $stmt[1]];
+        }
+        if ($conditions instanceof RawClause) {
+            return array_merge([$conditions->getExpression()], $conditions->getBindValues());
+        }
+        throw new \InvalidArgumentException('unknown conditions type '.get_class($conditions));
     }
 
-    private function filterConditions(array $conditions, callable $callback): array
+    private function filterConditions(CriteriaClauseInterface $conditions, $callback): CriteriaClauseInterface
     {
-        if (in_array($conditions[0], [self::STATEMENT_AND, self::STATEMENT_OR], true)) {
-            return [
-                $conditions[0],
-                $this->filterConditions($conditions[1], $callback),
-                $this->filterConditions($conditions[2], $callback),
-            ];
+        if ($conditions instanceof LogicClause) {
+            $class = get_class($conditions);
+
+            return new $class($this->filterConditions($conditions->getLeft(), $callback),
+                $this->filterConditions($conditions->getRight(), $callback));
         }
 
-        $ret = call_user_func_array($callback, $conditions);
-        if (is_array($ret) && 3 === count($ret)) {
-            return $ret;
+        if ($conditions instanceof ExpressionClause) {
+            if ($callback instanceof ExpressionClauseFilterInterface) {
+                return $callback->filter($conditions);
+            }
+
+            $ret = $callback($conditions);
+            if ($ret instanceof CriteriaClauseInterface) {
+                return $ret;
+            }
+            throw new \InvalidArgumentException('invalid filter callback return value');
         }
 
-        throw new \InvalidArgumentException('Callback should return valid statement');
+        if ($conditions instanceof NotClause) {
+            return new NotClause($this->filterConditions($conditions->getClause(), $callback));
+        }
+
+        if ($conditions instanceof RawClause) {
+            return $conditions;
+        }
+        throw new \InvalidArgumentException('unknown conditions type '.get_class($conditions));
     }
 }

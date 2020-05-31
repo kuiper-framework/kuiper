@@ -7,7 +7,7 @@ namespace kuiper\db\metadata;
 class NamingContext
 {
     /**
-     * @var string
+     * @var \ReflectionClass
      */
     private $entityClass;
 
@@ -21,14 +21,19 @@ class NamingContext
      */
     private $propertyName;
 
-    public function getEntityClass(): string
+    public function getEntityClass(): \ReflectionClass
     {
         return $this->entityClass;
     }
 
-    public function setEntityClass(string $entityClass): void
+    public function setEntityClass(\ReflectionClass $entityClass): void
     {
         $this->entityClass = $entityClass;
+    }
+
+    public function getEntityClassShortName(): string
+    {
+        return $this->entityClass->getShortName();
     }
 
     /**

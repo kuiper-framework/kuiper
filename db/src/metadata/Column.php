@@ -12,7 +12,7 @@ use kuiper\db\annotation\UpdateTimestamp;
 use kuiper\db\converter\AttributeConverterInterface;
 use kuiper\reflection\ReflectionTypeInterface;
 
-class Column
+class Column implements ColumnInterface
 {
     /**
      * @var string
@@ -70,9 +70,19 @@ class Column
         }
     }
 
+    public function getProperty(): MetaModelProperty
+    {
+        return $this->property;
+    }
+
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getPropertyPath(): string
+    {
+        return $this->property->getPath();
     }
 
     public function getValue($entity)
@@ -89,6 +99,11 @@ class Column
     {
         $attributeValue = isset($value) ? $this->converter->convertToEntityAttribute($value, $this) : null;
         $this->property->setValue($entity, $attributeValue);
+    }
+
+    public function getConverter(): AttributeConverterInterface
+    {
+        return $this->converter;
     }
 
     public function getType(): ReflectionTypeInterface

@@ -8,6 +8,8 @@ use kuiper\db\annotation\CreationTimestamp;
 use kuiper\db\annotation\Id;
 use kuiper\db\annotation\NaturalId;
 use kuiper\db\annotation\UpdateTimestamp;
+use kuiper\db\criteria\ExpressionClauseFilterInterface;
+use kuiper\db\criteria\MetaModelExpressionClauseFilter;
 
 class MetaModel implements MetaModelInterface
 {
@@ -17,7 +19,7 @@ class MetaModel implements MetaModelInterface
     private $table;
 
     /**
-     * @var string
+     * @var \ReflectionClass
      */
     private $entityClass;
 
@@ -41,13 +43,18 @@ class MetaModel implements MetaModelInterface
      */
     private $idProperty;
 
-    public function __construct(string $table, string $entityClass, array $properties)
+    /**
+     * @var MetaModelExpressionClauseFilter
+     */
+    private $expressionClauseFilter;
+
+    public function __construct(string $table, \ReflectionClass $entityClass, array $properties)
     {
         $this->table = $table;
         $this->entityClass = $entityClass;
-        $this->properties = $properties;
         /** @var MetaModelProperty $property */
         foreach ($properties as $property) {
+            $this->properties[$property->getName()] = $property;
             if ($property->hasAnnotation(Id::class)) {
                 $this->idProperty = $property;
             }
@@ -132,16 +139,7 @@ class MetaModel implements MetaModelInterface
 
     public function idToPrimaryKey($id): array
     {
-        /** @var Column[] $idColumns */
-        $idColumns = $this->annotatedColumns[Id::class];
-        if (is_object($id) || count($idColumns) > 1) {
-            $entity = $this->createEntity();
-            $this->idProperty->setValue($entity, $id);
-
-            return $this->getColumnValues($entity, $idColumns);
-        }
-
-        return [$idColumns[0]->getName() => $id];
+        return $this->idProperty->getColumnValues($id);
     }
 
     public function getAutoIncrement(): ?string
@@ -155,9 +153,8 @@ class MetaModel implements MetaModelInterface
         return null;
     }
 
-    public function getUniqueKey($entity): array
+    public function getUniqueKey($entity): ?array
     {
-        $keys = [];
         $idValue = $this->idProperty->getValue($entity);
         if (isset($idValue)) {
             return $this->getColumnValues($entity, $this->annotatedColumns[Id::class]);
@@ -165,7 +162,8 @@ class MetaModel implements MetaModelInterface
         if (isset($this->annotatedColumns[NaturalId::class])) {
             return $this->getColumnValues($entity, $this->annotatedColumns[NaturalId::class]);
         }
-        throw new \InvalidArgumentException('entity id column is not set');
+
+        return null;
     }
 
     public function getId($entity)
@@ -179,6 +177,36 @@ class MetaModel implements MetaModelInterface
     public function getColumnNames(): array
     {
         return array_keys($this->columns);
+    }
+
+    public function getColumns(): array
+    {
+        return array_values($this->columns);
+    }
+
+    public function getProperty(string $propertyPath): ?MetaModelProperty
+    {
+        $parts = explode($propertyPath, '.', 2);
+        if (!isset($this->properties[$parts[0]])) {
+            return null;
+        }
+        if (1 === count($parts)) {
+            return $this->properties[$propertyPath] ?? null;
+        }
+
+        return $this->properties[$parts[0]]->getSubProperty($parts[1]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getExpressionClauseFilter(): ExpressionClauseFilterInterface
+    {
+        if ($this->expressionClauseFilter) {
+            $this->expressionClauseFilter = new MetaModelExpressionClauseFilter($this);
+        }
+
+        return $this->expressionClauseFilter;
     }
 
     /**
@@ -200,9 +228,7 @@ class MetaModel implements MetaModelInterface
      */
     protected function createEntity()
     {
-        $entityClass = $this->entityClass;
-
-        return new $entityClass();
+        return $this->entityClass->newInstanceWithoutConstructor();
     }
 
     protected function isNull($value): bool

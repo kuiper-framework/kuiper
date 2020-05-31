@@ -11,9 +11,9 @@ use kuiper\db\converter\PrimitiveConverter;
 use kuiper\reflection\ReflectionType;
 use PHPUnit\Framework\TestCase;
 
-class AbstractRepositoryTestCase extends TestCase
+abstract class AbstractRepositoryTestCase extends TestCase
 {
-    public function createAttributeRegistry()
+    public function createAttributeRegistry(): AttributeConverterRegistry
     {
         $registry = new AttributeConverterRegistry();
         $registry->register('bool', new BoolConverter());
@@ -22,5 +22,7 @@ class AbstractRepositoryTestCase extends TestCase
             $registry->register($type->getName(), new PrimitiveConverter($type));
         }
         $registry->register(\DateTime::class, new DateTimeConverter(new DateTimeFactory()));
+
+        return $registry;
     }
 }

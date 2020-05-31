@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 class FqcnResolverTest extends TestCase
 {
     public function createResolver($file)
     {
-        return new FqcnResolver(ReflectionFileFactory::createInstance()->create($file));
+        return new FqcnResolver(ReflectionFileFactory::getInstance()->create($file));
     }
 
     public function testResolveNotImported()

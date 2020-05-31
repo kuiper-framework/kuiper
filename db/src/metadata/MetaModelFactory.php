@@ -19,6 +19,7 @@ use kuiper\db\converter\AttributeConverterRegistry;
 use kuiper\db\converter\EnumConverter;
 use kuiper\db\exception\MetaModelException;
 use kuiper\reflection\FqcnResolver;
+use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionFileFactoryInterface;
 use kuiper\reflection\ReflectionType;
 use kuiper\reflection\ReflectionTypeInterface;
@@ -45,25 +46,25 @@ class MetaModelFactory implements MetaModelFactoryInterface
     private $reflectionFileFactory;
 
     public function __construct(AttributeConverterRegistry $attributeConverterRegistry,
-                                NamingStrategyInterface $namingStrategy,
+                                ?NamingStrategyInterface $namingStrategy,
                                 ?AnnotationReaderInterface $annotationReader,
                                 ?ReflectionFileFactoryInterface $reflectionFileFactory)
     {
-        $this->namingStrategy = $namingStrategy;
         $this->attributeConverterRegistry = $attributeConverterRegistry;
+        $this->namingStrategy = $namingStrategy ?: new NamingStrategy();
         $this->annotationReader = $annotationReader ?: AnnotationReader::getInstance();
-        $this->reflectionFileFactory = $reflectionFileFactory;
+        $this->reflectionFileFactory = $reflectionFileFactory ?: ReflectionFileFactory::getInstance();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function create($repository): MetaModelInterface
+    public function create(string $repositoryClass): MetaModelInterface
     {
-        $reflectionClass = new \ReflectionClass($repository);
+        $reflectionClass = new \ReflectionClass($repositoryClass);
         $entityClass = $this->getEntityClass($reflectionClass);
 
-        return new MetaModel($this->getTableName($entityClass), $entityClass->getName(),
+        return new MetaModel($this->getTableName($entityClass), $entityClass,
             $this->getProperties($entityClass, null));
     }
 
@@ -91,8 +92,10 @@ class MetaModelFactory implements MetaModelFactoryInterface
         $context = new NamingContext();
         /** @var Table $annotation */
         $annotation = $this->annotationReader->getClassAnnotation($entityClass, Table::class);
-        $context->setEntityClass($entityClass->getName());
-        $context->setAnnotationValue($annotation ? $annotation->name : null);
+        $context->setEntityClass($entityClass);
+        if ($annotation && $annotation->name) {
+            $context->setAnnotationValue($annotation->name);
+        }
 
         return $this->namingStrategy->toTableName($context);
     }
@@ -161,22 +164,25 @@ class MetaModelFactory implements MetaModelFactoryInterface
             $columnAnnotation = $this->getAnnotation($annotations, ColumnAnnotation::class);
             $namingContext = new NamingContext();
             $namingContext->setEntityClass($metaProperty->getEntityClass());
-            $namingContext->setAnnotationValue($columnAnnotation ? $columnAnnotation->name : null);
+            if ($columnAnnotation && $columnAnnotation->name) {
+                $namingContext->setAnnotationValue($columnAnnotation->name);
+            }
             $namingContext->setPropertyName($property->getName());
             $columnName = $this->namingStrategy->toColumnName($namingContext);
 
             $metaProperty->createColumn($columnName, $attributeConverter);
-        }
-        if (!$type->isClass()) {
-            throw new MetaModelException(sprintf('Unsupported type %s for %s property %s', $type->getName(), $metaProperty->getEntityClass(), $metaProperty->getPath()));
-        }
-        $reflectionClass = new \ReflectionClass($type->getName());
-        $isEmbeddable = $this->annotationReader->getClassAnnotation($reflectionClass, Embeddable::class);
-        if (!$isEmbeddable) {
-            throw new MetaModelException(sprintf('%s property %s type class %s is not annotated with %s', $metaProperty->getEntityClass(), $metaProperty->getPath(), $type->getName(), Embeddable::class));
-        }
+        } else {
+            if (!$type->isClass()) {
+                throw new MetaModelException(sprintf('Unsupported type %s for %s property %s', $type->getName(), $metaProperty->getEntityClass(), $metaProperty->getPath()));
+            }
+            $reflectionClass = new \ReflectionClass($type->getName());
+            $isEmbeddable = $this->annotationReader->getClassAnnotation($reflectionClass, Embeddable::class);
+            if (!$isEmbeddable) {
+                throw new MetaModelException(sprintf('%s property %s type class %s is not annotated with %s', $metaProperty->getEntityClass(), $metaProperty->getPath(), $type->getName(), Embeddable::class));
+            }
 
-        $metaProperty->setChildren($this->getProperties($reflectionClass, $metaProperty));
+            $metaProperty->setChildren($this->getProperties($reflectionClass, $metaProperty));
+        }
 
         return $metaProperty;
     }

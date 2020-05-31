@@ -41,8 +41,8 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
                                 EventDispatcherInterface $eventDispatcher)
     {
         $this->queryBuilder = $queryBuilder;
-        $this->metaModel = $metaModelFactory->create($this);
         $this->dateTimeFactory = $dateTimeFactory;
+        $this->metaModel = $metaModelFactory->create(get_class($this));
         $this->eventDispatcher = $eventDispatcher;
     }
 
@@ -74,7 +74,8 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     public function save($entity)
     {
-        if ($this->count($this->metaModel->getUniqueKey($entity)) > 0) {
+        $uniqueKey = $this->metaModel->getUniqueKey($entity);
+        if ($uniqueKey && $this->count($uniqueKey) > 0) {
             return $this->update($entity);
         }
 
@@ -124,7 +125,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $stmt = $this->buildQueryStatement($criteria)
             ->select('count(*)')
             ->limit(1)
-            ->offset(1)
+            ->offset(0)
             ->orderBy([]);
 
         return (int) $this->doQuery($stmt)->fetchColumn(0);
@@ -174,7 +175,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     {
         return $this->buildStatement(
             $this->queryBuilder->from($this->getTableName())
-                ->select($this->metaModel->getColumnNames()), $criteria
+                ->select(...$this->metaModel->getColumnNames()), $criteria
         );
     }
 
@@ -211,9 +212,13 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     protected function buildStatement(StatementInterface $stmt, $condition): StatementInterface
     {
         if ($condition instanceof Criteria) {
-            // TODO: 使用 metaModel 过滤 criteria
-            // $condition->filter(function())
-            $condition->buildStatement($stmt);
+            $alias = [];
+            foreach ($this->metaModel->getColumns() as $column) {
+                $alias[$column->getPropertyPath()] = $column->getName();
+            }
+            $criteria = $condition->filter($this->metaModel->getExpressionClauseFilter())
+                ->alias($alias);
+            $this->buildStatementByCriteria($stmt, $criteria);
         } elseif (is_array($condition)) {
             if (empty($condition)) {
                 throw new InvalidArgumentException('Condition cannot be empty');
@@ -226,6 +231,11 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         }
 
         return $stmt;
+    }
+
+    protected function buildStatementByCriteria(StatementInterface $stmt, Criteria $criteria): StatementInterface
+    {
+        return $criteria->buildStatement($stmt);
     }
 
     protected function createCriteriaById(array $ids): callable

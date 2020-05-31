@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 class ReflectionNamespaceTest extends TestCase
@@ -11,7 +13,7 @@ class ReflectionNamespaceTest extends TestCase
         $prop->setAccessible(true);
         $prop->setValue(null);
 
-        return ReflectionNamespaceFactory::createInstance();
+        return ReflectionNamespaceFactory::getInstance();
     }
 
     public function testScanRegistered()
@@ -34,7 +36,7 @@ class ReflectionNamespaceTest extends TestCase
         $factory = $this->createFactory();
         foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../vendor/autoload.php'] as $file) {
             if (file_exists($file)) {
-                $factory->registerLoader(require($file));
+                $factory->registerLoader(require $file);
                 break;
             }
         }

@@ -26,7 +26,6 @@ use InvalidArgumentException;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Conditional;
-use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 use Psr\Container\ContainerInterface;
@@ -532,7 +531,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     public function getReflectionNamespaceFactory(): ReflectionNamespaceFactoryInterface
     {
         if (!$this->reflectionNamespaceFactory) {
-            $this->reflectionNamespaceFactory = ReflectionNamespaceFactory::createInstance(ReflectionFileFactory::createInstance())
+            $this->reflectionNamespaceFactory = ReflectionNamespaceFactory::getInstance()
                 ->registerLoader($this->getClassLoader());
         }
 

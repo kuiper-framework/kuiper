@@ -6,6 +6,7 @@ namespace kuiper\db\metadata;
 
 use kuiper\db\annotation\Id;
 use kuiper\db\annotation\NaturalId;
+use kuiper\db\criteria\ExpressionClauseFilterInterface;
 
 interface MetaModelInterface extends EntityMapperInterface
 {
@@ -20,6 +21,13 @@ interface MetaModelInterface extends EntityMapperInterface
      * @return string[]
      */
     public function getColumnNames(): array;
+
+    /**
+     * Gets the column objects.
+     *
+     * @return ColumnInterface[]
+     */
+    public function getColumns(): array;
 
     /**
      * Gets the creation timestamp column name.
@@ -41,7 +49,7 @@ interface MetaModelInterface extends EntityMapperInterface
      *
      * @param object $entity
      */
-    public function getUniqueKey($entity): array;
+    public function getUniqueKey($entity): ?array;
 
     /**
      * Gets the property value annotated with {@see Id}.
@@ -51,4 +59,6 @@ interface MetaModelInterface extends EntityMapperInterface
      * @return mixed
      */
     public function getId($entity);
+
+    public function getExpressionClauseFilter(): ExpressionClauseFilterInterface;
 }
