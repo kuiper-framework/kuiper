@@ -102,5 +102,5 @@ interface StatementInterface
     /**
      * Gets the db connection.
      */
-    public function getConnection(): ConnectionInterface;
+    public function getConnection(): ?ConnectionInterface;
 }

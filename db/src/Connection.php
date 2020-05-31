@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
-use Aura\SqlQuery\QueryFactory;
-use Aura\SqlQuery\QueryInterface;
 use kuiper\db\constants\ErrorCode;
 use kuiper\db\event\ConnectedEvent;
 use kuiper\db\event\DisconnectedEvent;
@@ -20,6 +18,8 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 class Connection extends PDO implements ConnectionInterface
 {
+    private static $GID = 1;
+
     /**
      * The attributes for a lazy connection.
      *
@@ -65,11 +65,6 @@ class Connection extends PDO implements ConnectionInterface
     protected $pdo;
 
     /**
-     * @var QueryFactory
-     */
-    protected $queryFactory;
-
-    /**
      * @var bool whether
      */
     protected $longRunning = true;
@@ -103,6 +98,11 @@ class Connection extends PDO implements ConnectionInterface
      * @var float
      */
     protected $lastQueryStart;
+
+    /**
+     * @var int
+     */
+    private $uniqueId;
 
     /**
      * Constructor connection.
@@ -141,6 +141,7 @@ class Connection extends PDO implements ConnectionInterface
         }
 
         $this->pdo = new PDO($this->dsn, $this->username, $this->password, $this->options);
+        $this->uniqueId = self::$GID++;
 
         // set attributes
         foreach ($this->attributes as $attribute => $value) {
@@ -150,6 +151,11 @@ class Connection extends PDO implements ConnectionInterface
         $this->connectedAt = time();
         $this->inTransaction = false;
         $this->dispatch(new ConnectedEvent($this));
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('PDO[%d] connected at %s', $this->uniqueId, date('Y-m-d H:i:s', $this->connectedAt));
     }
 
     /**
@@ -365,64 +371,6 @@ class Connection extends PDO implements ConnectionInterface
         }
     }
 
-    public function getQueryFactory(): QueryFactory
-    {
-        if (null === $this->queryFactory) {
-            $this->queryFactory = new QueryFactory($this->getAttribute(PDO::ATTR_DRIVER_NAME));
-        }
-
-        return $this->queryFactory;
-    }
-
-    public function setQueryFactory(QueryFactory $queryFactory): void
-    {
-        $this->queryFactory = $queryFactory;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function from(string $table): StatementInterface
-    {
-        $query = $this->getQueryFactory()->newSelect()
-            ->from($table);
-
-        return $this->createStatement($query);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function delete(string $table): StatementInterface
-    {
-        $query = $this->getQueryFactory()->newDelete()
-            ->from($table);
-
-        return $this->createStatement($query);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function update(string $table): StatementInterface
-    {
-        $query = $this->getQueryFactory()->newUpdate()
-            ->table($table);
-
-        return $this->createStatement($query);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function insert(string $table): StatementInterface
-    {
-        $query = $this->getQueryFactory()->newInsert()
-            ->into($table);
-
-        return $this->createStatement($query);
-    }
-
     public function setLongRunning($longRunning = true): self
     {
         $this->longRunning = $longRunning;
@@ -493,9 +441,9 @@ class Connection extends PDO implements ConnectionInterface
         $this->lastQueryStart = microtime(true);
     }
 
-    protected function createStatement(QueryInterface $query): StatementInterface
+    protected function dispatch($event): void
     {
-        return new Statement($this, $query, $this->eventDispatcher);
+        $this->eventDispatcher->dispatch($event);
     }
 
     /**
@@ -504,11 +452,6 @@ class Connection extends PDO implements ConnectionInterface
     public static function getAvailableDrivers(): array
     {
         return PDO::getAvailableDrivers();
-    }
-
-    protected function dispatch($event): void
-    {
-        $this->eventDispatcher->dispatch($event);
     }
 
     public static function isRetryableError(\PDOException $e): bool

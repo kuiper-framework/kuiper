@@ -7,13 +7,13 @@ namespace kuiper\db;
 class TransactionManager implements TransactionManagerInterface
 {
     /**
-     * @var ConnectionInterface
+     * @var ConnectionPoolInterface
      */
-    protected $connection;
+    protected $pool;
 
-    public function __construct(ConnectionInterface $connection)
+    public function __construct(ConnectionPoolInterface $pool)
     {
-        $this->connection = $connection;
+        $this->pool = $pool;
     }
 
     /**
@@ -21,18 +21,23 @@ class TransactionManager implements TransactionManagerInterface
      */
     public function transaction(callable $callback)
     {
-        if ($this->connection->inTransaction()) {
-            return $callback($this->connection);
-        }
+        $connection = $this->pool->take();
         try {
-            $this->connection->beginTransaction();
-            $ret = $callback($this->connection);
-            $this->connection->commit();
+            if ($connection->inTransaction()) {
+                return $callback($connection);
+            }
+            try {
+                $connection->beginTransaction();
+                $ret = $callback($this->pool);
+                $connection->commit();
 
-            return $ret;
-        } catch (\Throwable $e) {
-            $this->connection->rollback();
-            throw $e;
+                return $ret;
+            } catch (\Throwable $e) {
+                $connection->rollback();
+                throw $e;
+            }
+        } finally {
+            $this->pool->release($connection);
         }
     }
 }

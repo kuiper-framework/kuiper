@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+use Aura\SqlQuery\Common\DeleteInterface;
+use Aura\SqlQuery\Common\InsertInterface;
+use Aura\SqlQuery\Common\SelectInterface;
+use Aura\SqlQuery\Common\UpdateInterface;
 use Aura\SqlQuery\QueryInterface;
 use kuiper\db\event\StatementQueriedEvent;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -14,9 +18,9 @@ class Statement implements StatementInterface
     private const OPERATOR_AND = 'AND';
 
     /**
-     * @var ConnectionInterface
+     * @var ConnectionPoolInterface
      */
-    protected $connection;
+    protected $pool;
 
     /**
      * @var QueryInterface
@@ -29,13 +33,18 @@ class Statement implements StatementInterface
     protected $eventDispatcher;
 
     /**
+     * @var ConnectionInterface
+     */
+    protected $connection;
+
+    /**
      * @var \PDOStatement
      */
     protected $pdoStatement;
 
-    public function __construct(ConnectionInterface $connection, QueryInterface $query, EventDispatcherInterface $eventDispatcher)
+    public function __construct(ConnectionPoolInterface $pool, QueryInterface $query, EventDispatcherInterface $eventDispatcher)
     {
-        $this->connection = $connection;
+        $this->pool = $pool;
         $this->query = $query;
         $this->eventDispatcher = $eventDispatcher;
     }
@@ -51,6 +60,25 @@ class Statement implements StatementInterface
             $this->pdoStatement->closeCursor();
             $this->pdoStatement = null;
         }
+        if ($this->connection) {
+            $this->pool->release($this->connection);
+            $this->connection = null;
+        }
+    }
+
+    public function table(string $table): StatementInterface
+    {
+        if ($this->query instanceof SelectInterface || $this->query instanceof DeleteInterface) {
+            $this->query->from($table);
+        } elseif ($this->query instanceof UpdateInterface) {
+            $this->query->table($table);
+        } elseif ($this->query instanceof InsertInterface) {
+            $this->query->into($table);
+        } else {
+            throw new \InvalidArgumentException('unknown query type '.get_class($this->query));
+        }
+
+        return $this;
     }
 
     /**
@@ -235,7 +263,7 @@ class Statement implements StatementInterface
         return $this;
     }
 
-    public function getConnection(): ConnectionInterface
+    public function getConnection(): ?ConnectionInterface
     {
         return $this->connection;
     }
@@ -260,11 +288,13 @@ class Statement implements StatementInterface
 
     protected function doQuery(): bool
     {
+        $this->connection = $this->pool->take();
         try {
             $result = $this->doQueryOnce();
         } catch (\PDOException $e) {
             if (Connection::isRetryableError($e)) {
-                $this->connection->reconnect();
+                $this->connection->disconnect();
+                $this->connection->connect();
                 $result = $this->doQueryOnce();
             } else {
                 throw $e;

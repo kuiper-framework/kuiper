@@ -13,9 +13,13 @@ interface StatementInterface extends \kuiper\db\StatementInterface
      */
     public function shardBy(array $fields): void;
 
-    public function getCluster(): ClusterInterface;
-
+    /**
+     * Gets the original name of the table.
+     */
     public function getTable(): string;
 
+    /**
+     * Gets the sharding strategy.
+     */
     public function getTableStrategy(): StrategyInterface;
 }

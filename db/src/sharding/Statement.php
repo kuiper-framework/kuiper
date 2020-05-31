@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace kuiper\db\sharding;
 
-use Aura\SqlQuery\Common\DeleteInterface;
-use Aura\SqlQuery\Common\InsertInterface;
-use Aura\SqlQuery\Common\SelectInterface;
-use Aura\SqlQuery\Common\UpdateInterface;
 use Aura\SqlQuery\QueryInterface;
 use kuiper\db\constants\SqlState;
 use kuiper\db\event\ShardTableNotExistEvent;
@@ -15,11 +11,6 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class Statement extends \kuiper\db\Statement implements StatementInterface
 {
-    /**
-     * @var ClusterInterface
-     */
-    private $cluster;
-
     /**
      * @var string
      */
@@ -35,19 +26,11 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
      */
     private $shardBy = [];
 
-    /** @noinspection MagicMethodsValidityInspection */
-    public function __construct(ClusterInterface $cluster, QueryInterface $query, string $table, StrategyInterface $strategy, EventDispatcherInterface $eventDispatcher)
+    public function __construct(ClusterConnectionPool $cluster, QueryInterface $query, string $table, StrategyInterface $strategy, EventDispatcherInterface $eventDispatcher)
     {
-        $this->cluster = $cluster;
-        $this->query = $query;
+        parent::__construct($cluster, $query, $eventDispatcher);
         $this->table = $table;
         $this->strategy = $strategy;
-        $this->eventDispatcher = $eventDispatcher;
-    }
-
-    public function getCluster(): ClusterInterface
-    {
-        return $this->cluster;
     }
 
     public function getTable(): string
@@ -100,15 +83,9 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
         if (empty($this->shardBy)) {
             throw new \InvalidArgumentException('Sharding fields are empty');
         }
-        $this->connection = $this->cluster->getConnection($this->strategy->getDb($this->shardBy));
+        $this->pool->setConnectionId($this->strategy->getDb($this->shardBy));
         $table = $this->strategy->getTable($this->shardBy, $this->table);
-        if ($this->query instanceof SelectInterface || $this->query instanceof DeleteInterface) {
-            $this->query->from($table);
-        } elseif ($this->query instanceof UpdateInterface) {
-            $this->query->table($table);
-        } elseif ($this->query instanceof InsertInterface) {
-            $this->query->into($table);
-        }
+        $this->table($table);
         try {
             return parent::doQuery();
         } catch (\PDOException $e) {

@@ -48,10 +48,10 @@ class RepositoryTest extends AbstractRepositoryTestCase
         ];
     }
 
-    public function createRepository($repositoryClass)
+    public function createRepository($repositoryClass): AbstractCrudRepository
     {
         return new $repositoryClass(
-            $this->createConnection(),
+            new QueryBuilder(new ConnectionPool($this->createConnection()), null, null),
             new MetaModelFactory($this->createAttributeRegistry(), null, null, null),
             new DateTimeFactory(),
             new EventDispatcher());
@@ -64,14 +64,17 @@ class RepositoryTest extends AbstractRepositoryTestCase
         $department = new Department();
         $department->setName('it');
         $result = $repository->save($department);
+        var_export($result);
     }
 
     public function testSaveDor()
     {
+        /** @var DoorRepository $repository */
         $repository = $this->createRepository(DoorRepository::class);
 
         $door = new Door(new DoorId('a01'));
         $door->setName('it');
         $result = $repository->save($door);
+        var_export($result);
     }
 }

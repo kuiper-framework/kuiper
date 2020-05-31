@@ -69,7 +69,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $stmt = $this->buildUpdateStatement($entity, $this->metaModel->getUniqueKey($entity));
         $this->doExecute($stmt);
 
-        return $stmt;
+        return $entity;
     }
 
     public function save($entity)
@@ -287,7 +287,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     }
 
     /**
-     * @param $entity
+     * @param object $entity
      */
     protected function setCreationTimestamp($entity): void
     {
@@ -301,7 +301,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     }
 
     /**
-     * @param $entity
+     * @param object $entity
      */
     protected function setUpdateTimestamp($entity): void
     {

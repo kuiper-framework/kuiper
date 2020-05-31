@@ -19,7 +19,7 @@ class AutoCreateShardTable implements EventListenerInterface
         $statement = $event->getStatement();
 
         $sql = sprintf('CREATE TABLE IF NOT EXISTS `%s` LIKE `%s`', $event->getTable(), $statement->getTable());
-        $statement->getConnection()->exec($sql);
+        $statement->getPool()->exec($sql);
         $event->setTableCreated(true);
     }
 

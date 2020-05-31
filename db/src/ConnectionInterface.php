@@ -6,7 +6,7 @@ namespace kuiper\db;
 
 use PDO;
 
-interface ConnectionInterface extends QueryBuilderInterface, PdoInterface
+interface ConnectionInterface extends PdoInterface
 {
     /**
      * Connects to the database and sets PDO attributes.
