@@ -18,10 +18,5 @@
         "psr-4": {
             "kuiper\\annotations\\": "src/"
         }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "kuiper\\annotations\\": "tests/"
-        }
     }
 }

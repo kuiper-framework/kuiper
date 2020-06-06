@@ -8,8 +8,8 @@ use kuiper\db\annotation\CreationTimestamp;
 use kuiper\db\annotation\Id;
 use kuiper\db\annotation\NaturalId;
 use kuiper\db\annotation\UpdateTimestamp;
-use kuiper\db\criteria\ExpressionClauseFilterInterface;
-use kuiper\db\criteria\MetaModelExpressionClauseFilter;
+use kuiper\db\criteria\CriteriaClauseFilterInterface;
+use kuiper\db\criteria\MetaModelCriteriaClauseFilter;
 
 class MetaModel implements MetaModelInterface
 {
@@ -44,7 +44,7 @@ class MetaModel implements MetaModelInterface
     private $idProperty;
 
     /**
-     * @var MetaModelExpressionClauseFilter
+     * @var MetaModelCriteriaClauseFilter
      */
     private $expressionClauseFilter;
 
@@ -200,10 +200,10 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function getExpressionClauseFilter(): ExpressionClauseFilterInterface
+    public function getExpressionClauseFilter(): CriteriaClauseFilterInterface
     {
         if ($this->expressionClauseFilter) {
-            $this->expressionClauseFilter = new MetaModelExpressionClauseFilter($this);
+            $this->expressionClauseFilter = new MetaModelCriteriaClauseFilter($this);
         }
 
         return $this->expressionClauseFilter;

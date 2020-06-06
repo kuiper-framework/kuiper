@@ -12,4 +12,6 @@ interface PoolInterface
     public function take();
 
     public function release($connection): void;
+
+    public function with(callable $callback);
 }

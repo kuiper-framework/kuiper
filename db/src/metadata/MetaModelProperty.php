@@ -108,7 +108,7 @@ class MetaModelProperty
         }
 
         return array_merge(...array_map(static function (MetaModelProperty $child) use ($propertyValue) {
-            return $$child->getColumnValues($child->property->getValue($propertyValue));
+            return $child->getColumnValues($child->property->getValue($propertyValue));
         }, array_values($this->children)));
     }
 

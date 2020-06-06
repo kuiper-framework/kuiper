@@ -7,10 +7,13 @@ namespace kuiper\db;
 use kuiper\swoole\coroutine\Coroutine;
 use kuiper\swoole\pool\PoolConfig;
 use kuiper\swoole\pool\PoolInterface;
+use kuiper\swoole\pool\PoolTrait;
 use kuiper\swoole\pool\SimplePool;
 
 class SwooleConnectionPool implements ConnectionPoolInterface
 {
+    use PoolTrait;
+
     /**
      * @var PoolInterface
      */
@@ -31,7 +34,7 @@ class SwooleConnectionPool implements ConnectionPoolInterface
     public function take(): ConnectionInterface
     {
         $coroutineId = Coroutine::getCoroutineId();
-        if (isset($this->connections[$coroutineId])) {
+        if (!isset($this->connections[$coroutineId])) {
             $this->connections[$coroutineId] = $this->pool->take();
         }
 

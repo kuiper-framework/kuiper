@@ -7,7 +7,7 @@ namespace kuiper\db\criteria;
 use kuiper\db\metadata\MetaModelInterface;
 use kuiper\db\metadata\MetaModelProperty;
 
-class MetaModelExpressionClauseFilter implements ExpressionClauseFilterInterface
+class MetaModelCriteriaClauseFilter implements CriteriaClauseFilterInterface
 {
     /**
      * @var MetaModelInterface

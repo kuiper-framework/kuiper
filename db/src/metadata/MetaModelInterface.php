@@ -6,7 +6,7 @@ namespace kuiper\db\metadata;
 
 use kuiper\db\annotation\Id;
 use kuiper\db\annotation\NaturalId;
-use kuiper\db\criteria\ExpressionClauseFilterInterface;
+use kuiper\db\criteria\CriteriaClauseFilterInterface;
 
 interface MetaModelInterface extends EntityMapperInterface
 {
@@ -60,5 +60,5 @@ interface MetaModelInterface extends EntityMapperInterface
      */
     public function getId($entity);
 
-    public function getExpressionClauseFilter(): ExpressionClauseFilterInterface;
+    public function getExpressionClauseFilter(): CriteriaClauseFilterInterface;
 }

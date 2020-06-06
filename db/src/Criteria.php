@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use kuiper\db\criteria\AndClause;
+use kuiper\db\criteria\CriteriaClauseFilterInterface;
 use kuiper\db\criteria\CriteriaClauseInterface;
 use kuiper\db\criteria\ExpressionClause;
-use kuiper\db\criteria\ExpressionClauseFilterInterface;
 use kuiper\db\criteria\LogicClause;
 use kuiper\db\criteria\NotClause;
 use kuiper\db\criteria\OrClause;
@@ -234,7 +234,7 @@ class Criteria
      * 过滤查询条件
      * $callback 接受三个参数 function($column, $value, $operator), 也必须返回这三个参数构成的数组。
      *
-     * @param ExpressionClauseFilterInterface|callable $filter the callback
+     * @param CriteriaClauseFilterInterface|callable $filter the callback
      *
      * @return Criteria
      */
@@ -356,7 +356,7 @@ class Criteria
         }
 
         if ($conditions instanceof ExpressionClause) {
-            if ($callback instanceof ExpressionClauseFilterInterface) {
+            if ($callback instanceof CriteriaClauseFilterInterface) {
                 return $callback->filter($conditions);
             }
 

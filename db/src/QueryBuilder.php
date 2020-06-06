@@ -31,9 +31,9 @@ class QueryBuilder implements QueryBuilderInterface
         if ($queryFactory) {
             $this->queryFactory = $queryFactory;
         } else {
-            $connection = $this->pool->take();
-            $this->queryFactory = new QueryFactory($connection->getAttribute(\PDO::ATTR_DRIVER_NAME));
-            $this->pool->release($connection);
+            $this->pool->with(function (ConnectionInterface $connection) {
+                $this->queryFactory = new QueryFactory($connection->getAttribute(\PDO::ATTR_DRIVER_NAME));
+            });
         }
     }
 

@@ -77,4 +77,12 @@ class RepositoryTest extends AbstractRepositoryTestCase
         $result = $repository->save($door);
         var_export($result);
     }
+
+    public function testFindById()
+    {
+        /** @var DoorRepository $repository */
+        $repository = $this->createRepository(DoorRepository::class);
+        $door = $repository->findById(new DoorId('a01'));
+        var_export($door);
+    }
 }

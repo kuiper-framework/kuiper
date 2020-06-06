@@ -11,6 +11,8 @@ use kuiper\swoole\coroutine\SplQueueChannel;
 
 class SimplePool implements PoolInterface
 {
+    use PoolTrait;
+
     /**
      * @var callable
      */
