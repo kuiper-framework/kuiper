@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use kuiper\db\criteria\AndClause;
-use kuiper\db\criteria\CriteriaClauseFilterInterface;
 use kuiper\db\criteria\CriteriaClauseInterface;
+use kuiper\db\criteria\CriteriaFilterInterface;
 use kuiper\db\criteria\ExpressionClause;
 use kuiper\db\criteria\LogicClause;
 use kuiper\db\criteria\NotClause;
@@ -34,7 +34,7 @@ class Criteria
     /**
      * @var CriteriaClauseInterface
      */
-    private $conditions;
+    private $clause;
 
     /**
      * @var int
@@ -127,8 +127,8 @@ class Criteria
 
     public function or(Criteria $criteria): self
     {
-        if ($criteria->getConditions()) {
-            $this->merge($criteria->getConditions(), false);
+        if ($criteria->getClause()) {
+            $this->merge($criteria->getClause(), false);
         }
 
         return $this;
@@ -136,8 +136,8 @@ class Criteria
 
     public function and(Criteria $criteria): self
     {
-        if ($criteria->getConditions()) {
-            $this->merge($criteria->getConditions());
+        if ($criteria->getClause()) {
+            $this->merge($criteria->getClause());
         }
 
         return $this;
@@ -145,8 +145,8 @@ class Criteria
 
     public function not(Criteria $criteria): self
     {
-        if ($criteria->conditions) {
-            $this->merge(new NotClause($criteria->getConditions()));
+        if ($criteria->clause) {
+            $this->merge(new NotClause($criteria->getClause()));
         }
 
         return $this;
@@ -154,11 +154,11 @@ class Criteria
 
     private function merge(CriteriaClauseInterface $clause, $and = true): self
     {
-        if ($this->conditions) {
-            $this->conditions = $and ? new AndClause($this->conditions, $clause)
-                : new OrClause($this->conditions, $clause);
+        if ($this->clause) {
+            $this->clause = $and ? new AndClause($this->clause, $clause)
+                : new OrClause($this->clause, $clause);
         } else {
-            $this->conditions = $clause;
+            $this->clause = $clause;
         }
 
         return $this;
@@ -191,9 +191,9 @@ class Criteria
         return $this->columns;
     }
 
-    public function getConditions(): ?CriteriaClauseInterface
+    public function getClause(): ?CriteriaClauseInterface
     {
-        return $this->conditions;
+        return $this->clause;
     }
 
     public function getLimit(): ?int
@@ -223,26 +223,26 @@ class Criteria
 
     public function getQuery(): array
     {
-        if (empty($this->conditions)) {
+        if (empty($this->clause)) {
             return ['1=1'];
         }
 
-        return $this->buildQuery($this->conditions);
+        return $this->buildQuery($this->clause);
     }
 
     /**
      * 过滤查询条件
      * $callback 接受三个参数 function($column, $value, $operator), 也必须返回这三个参数构成的数组。
      *
-     * @param CriteriaClauseFilterInterface|callable $filter the callback
+     * @param CriteriaFilterInterface|callable $filter the callback
      *
      * @return Criteria
      */
     public function filter($filter): self
     {
         $copy = clone $this;
-        if ($copy->conditions) {
-            $copy->conditions = $this->filterConditions($copy->conditions, $filter);
+        if ($copy->clause) {
+            $copy->clause = $this->filterClause($copy->clause, $filter);
         }
 
         return $copy;
@@ -303,77 +303,77 @@ class Criteria
         return $stmt;
     }
 
-    private function buildQuery(CriteriaClauseInterface $conditions): array
+    private function buildQuery(CriteriaClauseInterface $clause): array
     {
-        if ($conditions instanceof LogicClause) {
-            $left = $this->buildQuery($conditions->getLeft());
-            $right = $this->buildQuery($conditions->getLeft());
+        if ($clause instanceof LogicClause) {
+            $left = $this->buildQuery($clause->getLeft());
+            $right = $this->buildQuery($clause->getRight());
             $stmtLeft = array_shift($left);
             $stmtRight = array_shift($right);
             $bindValues = array_merge($left, $right);
-            $op = $conditions instanceof AndClause ? 'AND' : 'OR';
+            $op = $clause instanceof AndClause ? 'AND' : 'OR';
             $stmt = sprintf('(%s) %s (%s)', $stmtLeft, $op, $stmtRight);
             array_unshift($bindValues, $stmt);
 
             return $bindValues;
         }
-        if ($conditions instanceof ExpressionClause) {
-            $column = $columnAlias[$conditions->getColumn()] ?? $conditions->getColumn();
-            if (is_array($conditions->getValue())) {
-                if (!in_array($conditions->getOperator(), [self::OPERATOR_IN, self::OPERATOR_NOT_IN], true)) {
-                    throw new \InvalidArgumentException($conditions->getOperator().' does not support array value');
+        if ($clause instanceof ExpressionClause) {
+            $column = $clause->getColumn();
+            if (is_array($clause->getValue())) {
+                if (!in_array($clause->getOperator(), [self::OPERATOR_IN, self::OPERATOR_NOT_IN], true)) {
+                    throw new \InvalidArgumentException($clause->getOperator().' does not support array value');
                 }
                 $stmt = sprintf('%s %s (%s)',
                     $column,
-                    self::OPERATOR_NOT_IN === $conditions->getOperator() ? self::OPERATOR_NOT_IN : self::OPERATOR_IN,
-                    implode(',', array_fill(0, count($conditions->getValue()), '?')));
+                    self::OPERATOR_NOT_IN === $clause->getOperator() ? self::OPERATOR_NOT_IN : self::OPERATOR_IN,
+                    implode(',', array_fill(0, count($clause->getValue()), '?')));
 
-                return array_merge([$stmt], $conditions->getValue());
+                return array_merge([$stmt], $clause->getValue());
             }
 
-            $stmt = sprintf('%s %s ?', $column, $conditions->getOperator());
+            $stmt = sprintf('%s %s ?', $column, $clause->getOperator());
 
-            return [$stmt, $conditions->getValue()];
+            return [$stmt, $clause->getValue()];
         }
-        if ($conditions instanceof NotClause) {
-            $stmt = $this->buildQuery($conditions->getClause());
+        if ($clause instanceof NotClause) {
+            $stmt = $this->buildQuery($clause->getClause());
 
             return [sprintf('!(%s)', $stmt[0]), $stmt[1]];
         }
-        if ($conditions instanceof RawClause) {
-            return array_merge([$conditions->getExpression()], $conditions->getBindValues());
+        if ($clause instanceof RawClause) {
+            return array_merge([$clause->getExpression()], $clause->getBindValues());
         }
-        throw new \InvalidArgumentException('unknown conditions type '.get_class($conditions));
+        throw new \InvalidArgumentException('unknown conditions type '.get_class($clause));
     }
 
-    private function filterConditions(CriteriaClauseInterface $conditions, $callback): CriteriaClauseInterface
+    private function filterClause(CriteriaClauseInterface $clause, $callback): CriteriaClauseInterface
     {
-        if ($conditions instanceof LogicClause) {
-            $class = get_class($conditions);
+        if ($clause instanceof LogicClause) {
+            $class = get_class($clause);
 
-            return new $class($this->filterConditions($conditions->getLeft(), $callback),
-                $this->filterConditions($conditions->getRight(), $callback));
+            return new $class($this->filterClause($clause->getLeft(), $callback),
+                $this->filterClause($clause->getRight(), $callback));
         }
 
-        if ($conditions instanceof ExpressionClause) {
-            if ($callback instanceof CriteriaClauseFilterInterface) {
-                return $callback->filter($conditions);
+        if ($clause instanceof ExpressionClause) {
+            if ($callback instanceof CriteriaFilterInterface) {
+                return $callback->filter($clause);
             }
 
-            $ret = $callback($conditions);
+            $ret = $callback($clause);
             if ($ret instanceof CriteriaClauseInterface) {
                 return $ret;
             }
             throw new \InvalidArgumentException('invalid filter callback return value');
         }
 
-        if ($conditions instanceof NotClause) {
-            return new NotClause($this->filterConditions($conditions->getClause(), $callback));
+        if ($clause instanceof NotClause) {
+            return new NotClause($this->filterClause($clause->getClause(), $callback));
         }
 
-        if ($conditions instanceof RawClause) {
-            return $conditions;
+        if ($clause instanceof RawClause) {
+            return $clause;
         }
-        throw new \InvalidArgumentException('unknown conditions type '.get_class($conditions));
+        throw new \InvalidArgumentException('unknown conditions type '.get_class($clause));
     }
 }

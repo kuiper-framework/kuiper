@@ -39,10 +39,11 @@ class RepositoryTest extends AbstractRepositoryTestCase
     public function getConfig()
     {
         return [
-            sprintf('mysql:dbname=%s;host=%s;port=%d',
+            sprintf('mysql:dbname=%s;host=%s;port=%d;charset=%s',
                 getenv('DB_NAME') ?: 'test',
                 getenv('DB_HOST') ?: 'localhost',
-                getenv('DB_PORT') ?: 3306),
+                getenv('DB_PORT') ?: 3306,
+            getenv('DB_CHARSET') ?: 'utf8mb4'),
             getenv('DB_USER') ?: 'root',
             getenv('DB_PASS') ?: '',
         ];
@@ -67,7 +68,7 @@ class RepositoryTest extends AbstractRepositoryTestCase
         var_export($result);
     }
 
-    public function testSaveDor()
+    public function testSaveDoor()
     {
         /** @var DoorRepository $repository */
         $repository = $this->createRepository(DoorRepository::class);

@@ -212,12 +212,6 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     protected function buildStatement(StatementInterface $stmt, $condition): StatementInterface
     {
         if ($condition instanceof Criteria) {
-            $alias = [];
-            foreach ($this->metaModel->getColumns() as $column) {
-                $alias[$column->getPropertyPath()] = $column->getName();
-            }
-            $criteria = $condition->filter($this->metaModel->getExpressionClauseFilter())
-                ->alias($alias);
             $this->buildStatementByCriteria($stmt, $criteria);
         } elseif (is_array($condition)) {
             if (empty($condition)) {

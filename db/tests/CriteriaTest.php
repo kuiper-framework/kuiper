@@ -16,9 +16,9 @@ class CriteriaTest extends TestCase
 
     public function setUp(): void
     {
-        $connection = new Connection('', '', '');
-        $connection->setQueryFactory(new QueryFactory('mysql'));
-        $this->statement = $connection->from('article')
+        $pool = new ConnectionPool(new Connection('', '', ''));
+        $queryBuilder = new QueryBuilder($pool, new QueryFactory('mysql'), null);
+        $this->statement = $queryBuilder->from('article')
             ->select('*');
     }
 
@@ -32,6 +32,23 @@ FROM
     `article`
 WHERE
     id = :_1_', $query->getStatement());
+    }
+
+    public function testWhereMultipleFields(): void
+    {
+        $query = Criteria::create(['author' => 'john', 'tag' => 'a', 'category' => 'c'])
+            ->buildStatement($this->statement);
+        $this->assertEquals('SELECT
+    *
+FROM
+    `article`
+WHERE
+    ((author = :_1_) AND (tag = :_2_)) AND (category = :_3_)', $query->getStatement());
+        $this->assertEquals([
+            '_1_' => 'john',
+            '_2_' => 'a',
+            '_3_' => 'c',
+        ], $query->getBindValues());
     }
 
     public function testNot(): void

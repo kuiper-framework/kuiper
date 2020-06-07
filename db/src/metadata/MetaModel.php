@@ -8,8 +8,9 @@ use kuiper\db\annotation\CreationTimestamp;
 use kuiper\db\annotation\Id;
 use kuiper\db\annotation\NaturalId;
 use kuiper\db\annotation\UpdateTimestamp;
-use kuiper\db\criteria\CriteriaClauseFilterInterface;
-use kuiper\db\criteria\MetaModelCriteriaClauseFilter;
+use kuiper\db\Criteria;
+use kuiper\db\criteria\CriteriaFilterInterface;
+use kuiper\db\criteria\MetaModelCriteriaFilter;
 
 class MetaModel implements MetaModelInterface
 {
@@ -44,9 +45,14 @@ class MetaModel implements MetaModelInterface
     private $idProperty;
 
     /**
-     * @var MetaModelCriteriaClauseFilter
+     * @var MetaModelCriteriaFilter
      */
     private $expressionClauseFilter;
+
+    /**
+     * @var array
+     */
+    private $columnAlias;
 
     public function __construct(string $table, \ReflectionClass $entityClass, array $properties)
     {
@@ -186,7 +192,7 @@ class MetaModel implements MetaModelInterface
 
     public function getProperty(string $propertyPath): ?MetaModelProperty
     {
-        $parts = explode($propertyPath, '.', 2);
+        $parts = explode('.', $propertyPath, 2);
         if (!isset($this->properties[$parts[0]])) {
             return null;
         }
@@ -200,13 +206,10 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function getExpressionClauseFilter(): CriteriaClauseFilterInterface
+    public function filterCriteria(Criteria $criteria): Criteria
     {
-        if (!$this->expressionClauseFilter) {
-            $this->expressionClauseFilter = new MetaModelCriteriaClauseFilter($this);
-        }
-
-        return $this->expressionClauseFilter;
+        return $criteria->filter($this->getCriteriaFilter())
+            ->alias($this->getColumnAlias());
     }
 
     /**
@@ -234,5 +237,25 @@ class MetaModel implements MetaModelInterface
     protected function isNull($value): bool
     {
         return $value instanceof NullValue;
+    }
+
+    protected function getCriteriaFilter(): CriteriaFilterInterface
+    {
+        if (!$this->expressionClauseFilter) {
+            $this->expressionClauseFilter = new MetaModelCriteriaFilter($this);
+        }
+
+        return $this->expressionClauseFilter;
+    }
+
+    protected function getColumnAlias(): array
+    {
+        if (!$this->columnAlias) {
+            foreach ($this->getColumns() as $column) {
+                $this->columnAlias[$column->getPropertyPath()] = $column->getName();
+            }
+        }
+
+        return $this->columnAlias;
     }
 }
