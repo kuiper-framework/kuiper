@@ -212,7 +212,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     protected function buildStatement(StatementInterface $stmt, $condition): StatementInterface
     {
         if ($condition instanceof Criteria) {
-            $this->buildStatementByCriteria($stmt, $criteria);
+            $this->buildStatementByCriteria($stmt, $this->metaModel->filterCriteria($condition));
         } elseif (is_array($condition)) {
             if (empty($condition)) {
                 throw new InvalidArgumentException('Condition cannot be empty');
