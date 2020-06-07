@@ -28,6 +28,14 @@ class ComponentCollection
     }
 
     /**
+     * @return string[] all annotation objects
+     */
+    public static function getAnnotations(string $annotationClass): array
+    {
+        return array_values(self::$COMPONENTS[$annotationClass] ?? []);
+    }
+
+    /**
      * @return object|null the annotation object
      */
     public static function getAnnotation(string $class, string $annotationClass)
