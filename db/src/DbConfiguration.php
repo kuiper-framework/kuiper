@@ -62,13 +62,9 @@ class DbConfiguration implements DefinitionConfiguration
     public function connection(array $config): ConnectionInterface
     {
         return new Connection(
-            sprintf('mysql:dbname=%s;host=%s;port=%d;charset=%s',
-                $config['name'] ?? 'test',
-                $config['host'] ?: 'localhost',
-                $config['port'] ?: 3306,
-                $config['charset'] ?: 'utf8mb4'),
-            $config['user'] ?: 'root',
-            $config['password'] ?: ''
+            $this->buildDsn($config),
+            $config['user'] ?? 'root',
+            $config['password'] ?? ''
         );
     }
 
@@ -92,11 +88,7 @@ class DbConfiguration implements DefinitionConfiguration
         Arrays::assign($poolConfig, $config);
 
         return new SwooleConnectionPool($poolConfig,
-            sprintf('mysql:dbname=%s;host=%s;port=%d;charset=%s',
-                $config['name'] ?? 'test',
-                $config['host'] ?: 'localhost',
-                $config['port'] ?: 3306,
-                $config['charset'] ?: 'utf8mb4'),
+            $this->buildDsn($config),
             $config['user'] ?: 'root',
             $config['password'] ?: ''
         );
@@ -142,5 +134,14 @@ class DbConfiguration implements DefinitionConfiguration
     public function queryFactory(): QueryFactory
     {
         return new QueryFactory('mysql');
+    }
+
+    protected function buildDsn(array $config): string
+    {
+        return sprintf('mysql:dbname=%s;host=%s;port=%d;charset=%s',
+            $config['name'] ?? 'test',
+            $config['host'] ?? 'localhost',
+            $config['port'] ?? 3306,
+            $config['charset'] ?? 'utf8mb4');
     }
 }
