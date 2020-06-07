@@ -70,11 +70,6 @@ class Connection extends PDO implements ConnectionInterface
     protected $longRunning = true;
 
     /**
-     * @var bool
-     */
-    protected $profiling = true;
-
-    /**
      * @var int
      */
     protected $timeout = 300;
@@ -253,20 +248,20 @@ class Connection extends PDO implements ConnectionInterface
     public function exec($statement): int
     {
         $this->connect();
-        $this->profiling && $this->beforeQuery();
+        $this->beforeQuery();
         try {
-            $affected_rows = @$this->pdo->exec($statement);
+            $affectedRows = @$this->pdo->exec($statement);
         } catch (\PDOException $e) {
             if (self::isRetryableError($e)) {
                 $this->reconnect();
-                $affected_rows = $this->pdo->exec($statement);
+                $affectedRows = $this->pdo->exec($statement);
             } else {
                 throw $e;
             }
         }
         $this->dispatch(new SqlExecutedEvent($this, $statement));
 
-        return $affected_rows;
+        return $affectedRows;
     }
 
     /**
@@ -282,7 +277,7 @@ class Connection extends PDO implements ConnectionInterface
             unset($args[3]);
         }
 
-        $this->profiling && $this->beforeQuery();
+        $this->beforeQuery();
         try {
             $sth = @call_user_func_array([$this->pdo, 'query'], $args);
         } catch (\PDOException $e) {
@@ -304,7 +299,7 @@ class Connection extends PDO implements ConnectionInterface
     public function prepare($statement, $options = []): PDOStatement
     {
         $this->connect();
-        $this->profiling && $this->beforeQuery();
+        $this->beforeQuery();
         $sth = $this->pdo->prepare($statement, $options);
         $this->dispatch(new SqlPreparedEvent($this, $statement));
 
@@ -393,18 +388,6 @@ class Connection extends PDO implements ConnectionInterface
     public function getTimeout(): int
     {
         return $this->timeout;
-    }
-
-    public function setProfiling($profiling = true): self
-    {
-        $this->profiling = $profiling;
-
-        return $this;
-    }
-
-    public function isProfiling(): bool
-    {
-        return $this->profiling;
     }
 
     public function getLastQueryStart(): float

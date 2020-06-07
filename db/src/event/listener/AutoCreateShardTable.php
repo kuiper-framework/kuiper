@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace kuiper\db\event\listener;
 
 use kuiper\db\event\ShardTableNotExistEvent;
+use kuiper\event\annotation\EventListener;
 use kuiper\event\EventListenerInterface;
 
+/**
+ * @EventListener()
+ */
 class AutoCreateShardTable implements EventListenerInterface
 {
     /**
@@ -19,7 +23,7 @@ class AutoCreateShardTable implements EventListenerInterface
         $statement = $event->getStatement();
 
         $sql = sprintf('CREATE TABLE IF NOT EXISTS `%s` LIKE `%s`', $event->getTable(), $statement->getTable());
-        $statement->getPool()->exec($sql);
+        $statement->getConnection()->exec($sql);
         $event->setTableCreated(true);
     }
 
