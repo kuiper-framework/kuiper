@@ -13,8 +13,6 @@ class NotClause implements CriteriaClauseInterface
 
     /**
      * NotClause constructor.
-     *
-     * @param $clause
      */
     public function __construct(CriteriaClauseInterface $clause)
     {

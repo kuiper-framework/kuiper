@@ -202,7 +202,7 @@ class MetaModel implements MetaModelInterface
      */
     public function getExpressionClauseFilter(): CriteriaClauseFilterInterface
     {
-        if ($this->expressionClauseFilter) {
+        if (!$this->expressionClauseFilter) {
             $this->expressionClauseFilter = new MetaModelCriteriaClauseFilter($this);
         }
 

@@ -16,12 +16,6 @@ abstract class LogicClause implements CriteriaClauseInterface
      */
     private $right;
 
-    /**
-     * OrClause constructor.
-     *
-     * @param $left
-     * @param $right
-     */
     public function __construct(CriteriaClauseInterface $left, CriteriaClauseInterface $right)
     {
         $this->left = $left;

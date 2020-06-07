@@ -101,8 +101,8 @@ class ConfigurationDefinitionLoader
     }
 
     /**
-     * @param mixed $definition
-     * @param $name
+     * @param mixed  $definition
+     * @param string $name
      */
     private function normalizeDefinition($definition, $name): Definition
     {

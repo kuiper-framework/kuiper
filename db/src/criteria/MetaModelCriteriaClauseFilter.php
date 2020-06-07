@@ -22,7 +22,7 @@ class MetaModelCriteriaClauseFilter implements CriteriaClauseFilterInterface
     /**
      * {@inheritdoc}
      */
-    public function filter(ExpressionClause $expressionClause): CriteriaClauseInterface
+    public function filter(CriteriaClauseInterface $expressionClause): CriteriaClauseInterface
     {
         $property = $this->metaModel->getProperty($expressionClause->getColumn());
         if (!isset($property)) {
