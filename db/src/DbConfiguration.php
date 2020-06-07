@@ -48,7 +48,7 @@ class DbConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"application.database.table-prefix"})
+     * @Inject({"tablePrefix" = "application.database.table-prefix"})
      */
     public function namingStrategy(?string $tablePrefix): NamingStrategyInterface
     {
@@ -57,7 +57,7 @@ class DbConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"application.database"})
+     * @Inject({"config" = "application.database"})
      */
     public function connection(array $config): ConnectionInterface
     {
@@ -83,7 +83,7 @@ class DbConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"application.database"})
+     * @Inject({"config" = "application.database"})
      * @ConditionalOnClass(Channel::class)
      */
     public function swooleConnectionPool(array $config): ConnectionPoolInterface
