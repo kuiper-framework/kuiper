@@ -16,11 +16,17 @@ class PropertiesDefinitionSource implements DefinitionSource
     private $properties;
 
     /**
+     * @var string
+     */
+    private $prefix;
+
+    /**
      * PropertiesDefinitionSource constructor.
      */
-    public function __construct(PropertyResolverInterface $properties)
+    public function __construct(PropertyResolverInterface $properties, string $prefix = 'application.')
     {
         $this->properties = $properties;
+        $this->prefix = $prefix;
     }
 
     /**
@@ -29,7 +35,7 @@ class PropertiesDefinitionSource implements DefinitionSource
     public function getDefinition(string $name)
     {
         $value = $this->properties->get($name);
-        if (null !== $value) {
+        if (null !== $value || 0 === strpos($name, $this->prefix)) {
             return new ValueDefinition($value);
         }
 
