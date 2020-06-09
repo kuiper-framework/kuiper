@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\http;
 
+use function Laminas\Diactoros\normalizeUploadedFiles;
 use Laminas\Diactoros\ServerRequestFactory;
 use Laminas\Diactoros\Stream;
 use Psr\Http\Message\ServerRequestInterface;
 use Swoole\Http\Request;
-use function Laminas\Diactoros\normalizeUploadedFiles;
 
 class DiactorosSwooleRequestBridge implements SwooleRequestBridgeInterface
 {
@@ -32,7 +32,7 @@ class DiactorosSwooleRequestBridge implements SwooleRequestBridgeInterface
         );
         $body = $swooleRequest->rawContent();
         if (!empty($body)) {
-            $stream = new Stream('php://memory');
+            $stream = new Stream('php://memory', 'w');
             $stream->write($body);
             $serverRequest = $serverRequest->withBody($stream);
         }

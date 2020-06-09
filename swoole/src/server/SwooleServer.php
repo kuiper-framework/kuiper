@@ -272,9 +272,13 @@ class SwooleServer extends AbstractServer
                         ->createResponse(500), $response);
             }
         } catch (\Exception $e) {
-            $this->logger->error(static::TAG.'handle http request failed: '.$e->getMessage());
-            $this->getSwooleResponseBridge()->update($event->getResponse() ?? $this->getResponseFactory()
-                    ->createResponse(500), $response);
+            $this->logger->error(static::TAG.'handle http request failed: '.$e->getMessage()."\n"
+                .$e->getTraceAsString());
+            $psrResponse = $event && $event->getResponse()
+                ? $event->getResponse()
+                : $this->getResponseFactory()
+                    ->createResponse(500);
+            $this->getSwooleResponseBridge()->update($psrResponse, $response);
         }
     }
 }
