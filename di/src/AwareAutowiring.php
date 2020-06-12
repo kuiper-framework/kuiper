@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace kuiper\di;
 
 use DI\Definition\ObjectDefinition;
-use DI\Definition\Source\AnnotationBasedAutowiring;
 use DI\Definition\Source\Autowiring;
 use DI\Definition\Source\DefinitionSource;
-use DI\Definition\Source\ReflectionBasedAutowiring;
 
 class AwareAutowiring implements DefinitionSource, Autowiring
 {
@@ -30,9 +28,8 @@ class AwareAutowiring implements DefinitionSource, Autowiring
 
     public function add(AwareInjection $awareInjection, $ignoreExist = false): void
     {
-        if (!$ignoreExist && isset($this->awareInjections[$awareInjection->getInterfaceName()])
-            && $awareInjection->getBeanName() !== $this->awareInjections[$awareInjection->getInterfaceName()]->getBeanName()) {
-            throw new \InvalidArgumentException($awareInjection->getInterfaceName() . " is injected " . $awareInjection->getBeanName());
+        if (!$ignoreExist && isset($this->awareInjections[$awareInjection->getInterfaceName()])) {
+            throw new \InvalidArgumentException($awareInjection->getInterfaceName().' is injected');
         }
         $this->awareInjections[$awareInjection->getInterfaceName()] = $awareInjection;
     }

@@ -52,24 +52,26 @@
         "twig/twig": "Required to use twig template"
     },
     "replace": {
-        "kuiper/helper": "self.version",
         "kuiper/annotations": "self.version",
         "kuiper/db": "self.version",
         "kuiper/di": "self.version",
         "kuiper/event": "self.version",
-        "kuiper/web": "self.version",
+        "kuiper/helper": "self.version",
+        "kuiper/logger": "self.version",
+        "kuiper/reflection": "self.version",
         "kuiper/swoole": "self.version",
-        "kuiper/reflection": "self.version"
+        "kuiper/web": "self.version"
     },
     "autoload": {
         "psr-4": {
             "kuiper\\annotations\\": "annotations/src/",
             "kuiper\\db\\": "db/src/",
             "kuiper\\di\\": "di/src/",
+            "kuiper\\event\\": "event/src/",
             "kuiper\\helper\\": "helper/src/",
+            "kuiper\\logger\\": "logger/src/",
             "kuiper\\reflection\\": "reflection/src/",
             "kuiper\\swoole\\": "swoole/src/",
-            "kuiper\\event\\": "event/src/",
             "kuiper\\web\\": "web/src/"
         }
     },
@@ -78,6 +80,7 @@
             "kuiper\\db\\": "db/tests/",
             "kuiper\\di\\": "di/tests/",
             "kuiper\\helper\\": "helper/tests/",
+            "kuiper\\logger\\": "logger/tests/",
             "kuiper\\reflection\\": "reflection/tests/",
             "kuiper\\swoole\\": "swoole/tests/",
             "kuiper\\web\\": "web/tests/"

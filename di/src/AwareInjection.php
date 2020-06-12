@@ -16,30 +16,28 @@ class AwareInjection
     private $awareInterfaceName;
 
     /**
-     * @var MethodInjection
+     * @var string
      */
     private $setter;
 
     /**
+     * @var callable
+     */
+    private $methodInjectionFactory;
+
+    /**
      * AwareInterface constructor.
      */
-    public function __construct(string $awareInterfaceName, string $setter, string $beanName)
+    public function __construct(string $awareInterfaceName, string $setter, callable $methodInjectionFactory)
     {
         $this->awareInterfaceName = $awareInterfaceName;
-        $this->setter = new MethodInjection($setter, [new Reference($beanName)]);
+        $this->setter = $setter;
+        $this->methodInjectionFactory = $methodInjectionFactory;
     }
 
     public function getInterfaceName(): string
     {
         return $this->awareInterfaceName;
-    }
-
-    public function getBeanName(): string
-    {
-        /** @var Reference $param */
-        $param = $this->setter->getParameters()[0];
-
-        return $param->getTargetEntryName();
     }
 
     public function match(string $className): bool
@@ -50,34 +48,34 @@ class AwareInjection
     public function inject(ObjectDefinition $definition): void
     {
         foreach ($definition->getMethodInjections() as $injection) {
-            if ($injection->getMethodName() === $this->setter->getMethodName()) {
+            if ($injection->getMethodName() === $this->setter) {
                 return;
             }
         }
-        $definition->addMethodInjection($this->setter);
+        $definition->addMethodInjection(call_user_func($this->methodInjectionFactory, $definition));
     }
 
-    public static function create(string $awareInterfaceName, string $setter = null, string $beanName = null): AwareInjection
+    public static function create(string $awareInterfaceName): AwareInjection
     {
-        if (!isset($setter)) {
-            $reflectionClass = new \ReflectionClass($awareInterfaceName);
-            $methods = $reflectionClass->getMethods();
-            if (count($methods) > 1) {
-                throw new \InvalidArgumentException("$awareInterfaceName has more than one method");
-            }
-            $method = $methods[0];
-            $parameters = $method->getParameters();
-            if (count($parameters) > 1) {
-                throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} has more than one parameter");
-            }
-            $parameter = $parameters[0];
-            if ($parameter->getType()->isBuiltin()) {
-                throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} parameter {$parameter->getName()} should has class type");
-            }
-            $setter = $method->getName();
-            $beanName = $parameter->getType()->getName();
+        $reflectionClass = new \ReflectionClass($awareInterfaceName);
+        $methods = $reflectionClass->getMethods();
+        if (count($methods) > 1) {
+            throw new \InvalidArgumentException("$awareInterfaceName has more than one method");
         }
+        $method = $methods[0];
+        $parameters = $method->getParameters();
+        if (count($parameters) > 1) {
+            throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} has more than one parameter");
+        }
+        $parameter = $parameters[0];
+        if ($parameter->getType()->isBuiltin()) {
+            throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} parameter {$parameter->getName()} should has class type");
+        }
+        $setter = $method->getName();
+        $beanName = $parameter->getType()->getName();
 
-        return new self($awareInterfaceName, $setter, $beanName);
+        return new self($awareInterfaceName, $setter, function ($defintion) use ($setter, $beanName) {
+            return new MethodInjection($setter, [new Reference($beanName)]);
+        });
     }
 }
