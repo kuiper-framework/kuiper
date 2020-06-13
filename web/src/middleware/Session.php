@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\session;
+namespace kuiper\web\middleware;
 
 use kuiper\web\security\SecurityContext;
+use kuiper\web\session\SessionFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-class SessionMiddleware implements MiddlewareInterface
+class Session implements MiddlewareInterface
 {
     /**
      * @var SessionFactoryInterface
