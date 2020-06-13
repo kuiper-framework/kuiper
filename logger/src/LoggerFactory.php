@@ -40,6 +40,9 @@ class LoggerFactory implements LoggerFactoryInterface
     {
         $this->logger = $logger;
         $this->logLevels = self::createLogLevels($logLevels);
+        if (null === Logger::getLevel($rootLevel)) {
+            throw new \InvalidArgumentException("Invalid root log level '$rootLevel'");
+        }
         $this->rootLevel = $rootLevel;
     }
 
