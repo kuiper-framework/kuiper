@@ -18,14 +18,9 @@ class LoggerFactoryTest extends TestCase
     protected function setUp(): void
     {
         $this->factory = new LoggerFactory(new NullLogger(), [
-            LoggerFactory::ROOT => LogLevel::DEBUG,
-            'com' => [
-                LoggerFactory::ROOT => LogLevel::INFO,
-                'github' => [
-                    LoggerFactory::ROOT => LogLevel::ERROR,
-                ],
-            ],
-        ]);
+            'com' => LogLevel::INFO,
+            'com.github' => LogLevel::ERROR,
+        ], LogLevel::DEBUG);
     }
 
     public function dataProvider()

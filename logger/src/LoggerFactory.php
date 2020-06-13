@@ -22,7 +22,7 @@ class LoggerFactory implements LoggerFactoryInterface
     /**
      * @var string
      */
-    private $defaultLevel;
+    private $rootLevel;
 
     /**
      * level 配置:
@@ -36,11 +36,11 @@ class LoggerFactory implements LoggerFactoryInterface
      * ]
      * LoggerFactory constructor.
      */
-    public function __construct(LoggerInterface $logger, array $logLevels = [], string $defaultLevel = LogLevel::ERROR)
+    public function __construct(LoggerInterface $logger, array $logLevels = [], string $rootLevel = LogLevel::ERROR)
     {
         $this->logger = $logger;
-        $this->logLevels = $logLevels;
-        $this->defaultLevel = $defaultLevel;
+        $this->logLevels = self::createLogLevels($logLevels);
+        $this->rootLevel = $rootLevel;
     }
 
     /**
@@ -63,9 +63,60 @@ class LoggerFactory implements LoggerFactoryInterface
             ++$i;
         }
         if (is_array($logLevel)) {
-            $logLevel = $logLevel[self::ROOT] ?? '';
+            $logLevel = $logLevel[self::ROOT] ?? null;
         }
 
-        return Logger::getLevel($logLevel) ? $logLevel : $this->defaultLevel;
+        return is_string($logLevel) && Logger::getLevel($logLevel) ? $logLevel : $this->rootLevel;
+    }
+
+    public static function createLogLevels(array $config): array
+    {
+        $logLevels = [];
+        foreach ($config as $name => $level) {
+            if (!is_string($name)) {
+                throw new \InvalidArgumentException('Log level config should only contain string key');
+            }
+            if (is_array($level)) {
+                self::validateLogLevels($level, $name);
+                $logLevels[$name] = $level;
+            } else {
+                if (null === Logger::getLevel($level)) {
+                    throw new \InvalidArgumentException("Invalid log level '$level' for '$name'");
+                }
+                $logLevel = &$logLevels;
+                $parts = explode('.', $name);
+                while ($parts) {
+                    $first = array_shift($parts);
+                    if (self::ROOT === $first) {
+                        throw new \InvalidArgumentException("The namespace '$name' is invalid");
+                    }
+                    if (!isset($logLevel[$first])) {
+                        $logLevel[$first] = [];
+                    }
+                    $logLevel = &$logLevel[$first];
+                }
+                $logLevel[self::ROOT] = $level;
+            }
+        }
+
+        return $logLevels;
+    }
+
+    private static function validateLogLevels(array $logLevels, string $prefix): void
+    {
+        foreach ($logLevels as $item => $level) {
+            if (!is_string($item)) {
+                throw new \InvalidArgumentException('Log level config should only contain string key');
+            }
+            if (self::ROOT === $item) {
+                if (null === Logger::getLevel($level)) {
+                    throw new \InvalidArgumentException("Invalid log level '$level' for '$prefix.$item'");
+                }
+            } elseif (is_array($level)) {
+                self::validateLogLevels($level, $prefix.'.'.$item);
+            } else {
+                throw new \InvalidArgumentException('Invalid log level config');
+            }
+        }
     }
 }

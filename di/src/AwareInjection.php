@@ -52,7 +52,7 @@ class AwareInjection
                 return;
             }
         }
-        $definition->addMethodInjection(call_user_func($this->methodInjectionFactory, $definition));
+        $definition->addMethodInjection(new MethodInjection($this->setter, call_user_func($this->methodInjectionFactory, $definition)));
     }
 
     public static function create(string $awareInterfaceName): AwareInjection
@@ -74,8 +74,8 @@ class AwareInjection
         $setter = $method->getName();
         $beanName = $parameter->getType()->getName();
 
-        return new self($awareInterfaceName, $setter, function ($defintion) use ($setter, $beanName) {
-            return new MethodInjection($setter, [new Reference($beanName)]);
+        return new self($awareInterfaceName, $setter, function ($defintion) use ($beanName) {
+            return [new Reference($beanName)];
         });
     }
 }
