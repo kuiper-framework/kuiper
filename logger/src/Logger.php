@@ -33,7 +33,7 @@ class Logger extends AbstractLogger
 
     public function __construct(LoggerInterface $logger, string $logLevel)
     {
-        if (isset(self::$LEVELS[$logLevel])) {
+        if (!isset(self::$LEVELS[$logLevel])) {
             throw new \InvalidArgumentException("Unknown log level '$logLevel'");
         }
         $this->logger = $logger;
