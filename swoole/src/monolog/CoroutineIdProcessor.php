@@ -11,9 +11,11 @@ class CoroutineIdProcessor implements ProcessorInterface
 {
     public function __invoke(array $record): array
     {
-        $record['extra']['cid'] = Coroutine::isEnabled()
-            ? Coroutine::getCoroutineId()
-            : getmypid();
+        if (Coroutine::isEnabled()) {
+            $record['extra']['cid'] = Coroutine::getCoroutineId();
+        } else {
+            $record['extra']['pid'] = getmypid();
+        }
 
         return $record;
     }
