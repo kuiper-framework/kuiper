@@ -46,7 +46,7 @@ class SimplePool implements PoolInterface
             try {
                 ++$this->currentConnections;
 
-                return call_user_func($this->connectionFactory);
+                return call_user_func($this->connectionFactory, $this->currentConnections);
             } catch (\Exception $exception) {
                 --$this->currentConnections;
                 throw $exception;
