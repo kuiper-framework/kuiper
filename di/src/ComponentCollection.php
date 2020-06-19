@@ -14,13 +14,13 @@ class ComponentCollection
     /**
      * @param object $annotation
      */
-    public static function register(\ReflectionClass $class, $annotation): void
+    public static function register(string $componentId, $annotation): void
     {
-        self::$COMPONENTS[get_class($annotation)][$class->getName()] = $annotation;
+        self::$COMPONENTS[get_class($annotation)][$componentId] = $annotation;
     }
 
     /**
-     * @return string[] all class names with the annotation
+     * @return string[] all component names with the annotation
      */
     public static function getComponents(string $annotationClass): array
     {
@@ -38,10 +38,10 @@ class ComponentCollection
     /**
      * @return object|null the annotation object
      */
-    public static function getAnnotation(string $class, string $annotationClass)
+    public static function getAnnotation(string $componentId, string $annotationClass)
     {
         if (isset(self::$COMPONENTS[$annotationClass])) {
-            return self::$COMPONENTS[$annotationClass][$class] ?? null;
+            return self::$COMPONENTS[$annotationClass][$componentId] ?? null;
         }
 
         return null;

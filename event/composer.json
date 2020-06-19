@@ -23,8 +23,5 @@
         "psr-4": {
             "kuiper\\event\\": "tests/"
         }
-    },
-    "extra": {
-        "source" : "git@git.cuntutu.com:kuiper/event.git"
     }
 }

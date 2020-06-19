@@ -2,7 +2,9 @@
     "name": "kuiper/reflection",
     "type": "library",
     "description": "Php reflection utility",
-    "keywords": ["reflection"],
+    "keywords": [
+        "reflection"
+    ],
     "license": "MIT",
     "authors": [
         {
@@ -23,8 +25,5 @@
         "psr-4": {
             "kuiper\\reflection\\": "tests/"
         }
-    },
-    "extra": {
-        "source" : "git@git.cuntutu.com:kuiper/reflection.git"
     }
 }

@@ -11,9 +11,9 @@ class AttributeConverterRegistry
      */
     private $converters;
 
-    public function get(string $value): ?AttributeConverterInterface
+    public function get(string $name): ?AttributeConverterInterface
     {
-        return $this->converters[$value] ?? null;
+        return $this->converters[$name] ?? null;
     }
 
     public function register(string $name, AttributeConverterInterface $converter): void

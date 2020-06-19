@@ -29,8 +29,5 @@
         "psr-4": {
             "kuiper\\swoole\\": "tests/"
         }
-    },
-    "extra": {
-        "source" : "git@git.cuntutu.com:kuiper/swoole.git"
     }
 }

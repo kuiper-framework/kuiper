@@ -1,0 +1,45 @@
+#!/usr/bin/env php
+<?php
+
+foreach ([__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'] as $file) {
+    if (file_exists($file)) {
+        require $file;
+        break;
+    }
+}
+$baseDir = dirname(__DIR__);
+echo "base: ", $baseDir, "\n";
+
+$autoload = [];
+$autoloadDev = [];
+$componentConfig = [];
+foreach (glob($baseDir.'/*/composer.json') as $file) {
+    $component = basename(dirname($file));
+    echo "merge $component\n";
+    $composerJson = json_decode(file_get_contents($file), true);
+
+    foreach ($composerJson['autoload']['psr-4'] ?? [] as $ns => $dir) {
+        $autoload[$ns] = "{$component}/" . trim($dir, '/') . '/';
+    }
+    foreach ($composerJson['autoload-dev']['psr-4'] ?? [] as $ns => $dir) {
+        $autoloadDev[$ns] = "{$component}/" . trim($dir, '/') . '/';
+    }
+    if (isset($composerJson['extra']['kuiper']['configuration'])) {
+        $componentConfig[] = $composerJson['extra']['kuiper']['configuration'];
+    }
+}
+$configurations = empty($componentConfig) ? [] : array_unique(array_merge(...$componentConfig));
+
+ksort($autoload);
+ksort($autoloadDev);
+sort($configurations);
+
+$json = json_decode(file_get_contents($baseDir . '/composer.json'));
+$json->autoload->{'psr-4'} = $autoload;
+$json->{'autoload-dev'}->{'psr-4'} = $autoloadDev;
+@$json->extra->kuiper->configuration = $configurations;
+
+file_put_contents(
+    $baseDir . '/composer.json',
+    json_encode($json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . PHP_EOL
+);

@@ -14,10 +14,13 @@ trait ComponentTrait
      */
     protected $class;
 
+    /**
+     * @var string
+     */
+    protected $componentId;
+
     public function setTarget($class): void
     {
-        /* @var ReflectionClass $class */
-        ComponentCollection::register($class, $this);
         $this->class = $class;
     }
 
@@ -26,7 +29,18 @@ trait ComponentTrait
         return $this->class;
     }
 
+    public function setComponentId(string $componentId): string
+    {
+        return $this->componentId;
+    }
+
+    public function getComponentId(): string
+    {
+        return $this->componentId ?? $this->class->getName();
+    }
+
     public function handle(): void
     {
+        ComponentCollection::register($this->getComponentId(), $this);
     }
 }

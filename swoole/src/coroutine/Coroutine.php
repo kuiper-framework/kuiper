@@ -46,8 +46,6 @@ final class Coroutine
 
     public static function getContext(int $coroutineId = null): \ArrayObject
     {
-        error_log('get context: coroutine enabled '.self::isEnabled().' coid='.$coroutineId);
-
         if (self::isEnabled()) {
             return isset($coroutineId) ? SwooleCoroutine::getContext($coroutineId) : SwooleCoroutine::getContext();
         }

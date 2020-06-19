@@ -11,6 +11,8 @@ use kuiper\db\fixtures\DepartmentRepository;
 use kuiper\db\fixtures\Door;
 use kuiper\db\fixtures\DoorId;
 use kuiper\db\fixtures\DoorRepository;
+use kuiper\db\fixtures\User;
+use kuiper\db\fixtures\UserRepository;
 
 class MetaModelFactoryTest extends AbstractRepositoryTestCase
 {
@@ -82,5 +84,16 @@ class MetaModelFactoryTest extends AbstractRepositoryTestCase
 
         $this->assertEquals($door->getDoorId(), $metaModel->getId($door));
         $this->assertEquals(['door_code' => $door->getDoorId()->getValue()], $metaModel->getUniqueKey($door));
+    }
+
+    public function testDateAttribute()
+    {
+        $metaModel = $this->metaModelFactory->create(UserRepository::class);
+        $user = new User();
+        $user->setDob(Carbon::parse('2020-03-01'));
+        $row = $metaModel->freeze($user);
+        $this->assertEquals([
+            'dob' => '2020-03-01',
+        ], $row);
     }
 }

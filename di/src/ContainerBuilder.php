@@ -499,7 +499,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     public function getConfigurationDefinition(): ConfigurationDefinitionLoader
     {
         if (!$this->configurationDefinition) {
-            $this->configurationDefinition = new ConfigurationDefinitionLoader($this->getAnnotationReader());
+            $this->configurationDefinition = new ConfigurationDefinitionLoader($this, $this->getAnnotationReader());
         }
 
         return $this->configurationDefinition;

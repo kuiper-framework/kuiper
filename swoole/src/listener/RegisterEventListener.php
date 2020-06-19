@@ -11,7 +11,7 @@ use kuiper\swoole\event\BootstrapEvent;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class BootstrapEventListener implements EventListenerInterface
+class RegisterEventListener implements EventListenerInterface
 {
     /**
      * @var ContainerInterface
@@ -38,8 +38,8 @@ class BootstrapEventListener implements EventListenerInterface
     public function __invoke($event): void
     {
         /** @var EventListener $annotation */
-        foreach (ComponentCollection::getComponents(EventListener::class) as $annotation) {
-            $eventListener = $this->container->get($annotation->getTarget()->getName());
+        foreach (ComponentCollection::getAnnotations(EventListener::class) as $annotation) {
+            $eventListener = $this->container->get($annotation->getComponentId());
             $event = $annotation->value;
             if (!$event) {
                 if (!$eventListener instanceof EventListenerInterface) {

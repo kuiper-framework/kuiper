@@ -11,17 +11,23 @@ use DI\Definition\Helper\DefinitionHelper;
 use DI\Definition\ValueDefinition;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
+use kuiper\di\annotation\ComponentInterface;
 use kuiper\di\annotation\Conditional;
 
 class ConfigurationDefinitionLoader
 {
     /**
+     * @var ContainerBuilderInterface
+     */
+    private $containerBuilder;
+    /**
      * @var AnnotationReaderInterface
      */
     private $annotationReader;
 
-    public function __construct(AnnotationReaderInterface $annotationReader)
+    public function __construct(ContainerBuilderInterface $containerBuilder, AnnotationReaderInterface $annotationReader)
     {
+        $this->containerBuilder = $containerBuilder;
         $this->annotationReader = $annotationReader;
     }
 
@@ -89,6 +95,8 @@ class ConfigurationDefinitionLoader
                 $name = $method->getName();
             }
         }
+        $this->processComponentAnnotation($name, $method);
+
         /** @var Inject $annotation */
         $annotation = $this->annotationReader->getMethodAnnotation($method, Inject::class);
         if ($annotation) {
@@ -116,5 +124,24 @@ class ConfigurationDefinitionLoader
         }
 
         return $definition;
+    }
+
+    private function processComponentAnnotation(string $name, \ReflectionMethod $method): void
+    {
+        $returnType = $method->getReturnType();
+        if ($returnType && !$returnType->isBuiltin()) {
+            $className = $returnType->getName();
+            $reflectionClass = new \ReflectionClass($className);
+            foreach ($this->annotationReader->getClassAnnotations($reflectionClass) as $annotation) {
+                if ($annotation instanceof ComponentInterface) {
+                    $annotation->setTarget($reflectionClass);
+                    $annotation->setComponentId($name);
+                    if ($annotation instanceof ContainerBuilderAwareInterface) {
+                        $annotation->setContainerBuilder($this->containerBuilder);
+                    }
+                    $annotation->handle();
+                }
+            }
+        }
     }
 }

@@ -2,7 +2,9 @@
     "name": "kuiper/annotations",
     "type": "library",
     "description": "Annotations component",
-    "keywords": ["annotations"],
+    "keywords": [
+        "annotations"
+    ],
     "license": "MIT",
     "authors": [
         {

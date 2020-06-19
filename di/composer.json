@@ -26,8 +26,5 @@
         "psr-4": {
             "kuiper\\di\\": "tests/"
         }
-    },
-    "extra": {
-        "source" : "git@git.cuntutu.com:kuiper/di.git"
     }
 }

@@ -6,6 +6,7 @@ namespace kuiper\di\annotation;
 
 use DI\Definition\AutowireDefinition;
 use DI\Definition\Reference;
+use kuiper\di\ComponentCollection;
 use kuiper\di\ComponentDefinition;
 use kuiper\di\ContainerBuilderAwareInterface;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -40,6 +41,7 @@ class Component implements ComponentInterface, ContainerBuilderAwareInterface
                 $definition = new Reference($className);
             }
             $definitions[$name] = new ComponentDefinition($definition, $this);
+            ComponentCollection::register($name, $this);
         }
         $this->containerBuilder->addDefinitions($definitions);
     }
