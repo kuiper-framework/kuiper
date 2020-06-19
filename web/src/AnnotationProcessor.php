@@ -38,18 +38,18 @@ class AnnotationProcessor
 
     public function process(): void
     {
-        $controllers = ComponentCollection::getComponents(Controller::class);
-        foreach ($controllers as $controllerClass) {
-            $reflectionClass = new \ReflectionClass($controllerClass);
+        foreach (ComponentCollection::getAnnotations(Controller::class) as $annotation) {
             /** @var RequestMapping $requestMapping */
-            $requestMapping = $this->annotationReader->getClassAnnotation($reflectionClass, RequestMapping::class);
+            /** @var Controller $annotation */
+            $controllerClass = $annotation->getTarget();
+            $requestMapping = $this->annotationReader->getClassAnnotation($controllerClass, RequestMapping::class);
             if ($requestMapping) {
-                $routeGroup = $this->routeCollector->group($requestMapping->value, function (RouteCollectorProxyInterface $group) use ($reflectionClass) {
-                    $this->addMapping($group, $reflectionClass);
+                $routeGroup = $this->routeCollector->group($requestMapping->value, function (RouteCollectorProxyInterface $group) use ($controllerClass) {
+                    $this->addMapping($group, $controllerClass);
                 });
-                $this->addFilters($routeGroup, $this->annotationReader->getClassAnnotations($reflectionClass));
+                $this->addFilters($routeGroup, $this->annotationReader->getClassAnnotations($controllerClass));
             } else {
-                $this->addMapping($this->routeCollector, $reflectionClass);
+                $this->addMapping($this->routeCollector, $controllerClass);
             }
         }
     }
