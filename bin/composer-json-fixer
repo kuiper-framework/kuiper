@@ -17,6 +17,9 @@ foreach (glob($baseDir.'/*/composer.json') as $file) {
     $component = basename(dirname($file));
     echo "merge $component\n";
     $composerJson = json_decode(file_get_contents($file), true);
+    if (!$composerJson) {
+        throw new \InvalidArgumentException("Cannot read $file");
+    }
 
     foreach ($composerJson['autoload']['psr-4'] ?? [] as $ns => $dir) {
         $autoload[$ns] = "{$component}/" . trim($dir, '/') . '/';

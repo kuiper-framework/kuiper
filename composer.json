@@ -67,6 +67,7 @@
             "kuiper\\annotations\\": "annotations/src/",
             "kuiper\\db\\": "db/src/",
             "kuiper\\di\\": "di/src/",
+            "kuiper\\event\\": "event/src/",
             "kuiper\\helper\\": "helper/src/",
             "kuiper\\logger\\": "logger/src/",
             "kuiper\\reflection\\": "reflection/src/",
@@ -78,6 +79,7 @@
         "psr-4": {
             "kuiper\\db\\": "db/tests/",
             "kuiper\\di\\": "di/tests/",
+            "kuiper\\event\\": "event/tests/",
             "kuiper\\helper\\": "helper/tests/",
             "kuiper\\logger\\": "logger/tests/",
             "kuiper\\reflection\\": "reflection/tests/",
