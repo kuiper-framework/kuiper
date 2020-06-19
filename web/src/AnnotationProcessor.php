@@ -38,10 +38,15 @@ class AnnotationProcessor
 
     public function process(): void
     {
+        $seen = [];
         foreach (ComponentCollection::getAnnotations(Controller::class) as $annotation) {
             /** @var RequestMapping $requestMapping */
             /** @var Controller $annotation */
             $controllerClass = $annotation->getTarget();
+            if (isset($seen[$controllerClass->getName()])) {
+                continue;
+            }
+            $seen[$controllerClass->getName()] = true;
             $requestMapping = $this->annotationReader->getClassAnnotation($controllerClass, RequestMapping::class);
             if ($requestMapping) {
                 $routeGroup = $this->routeCollector->group($requestMapping->value, function (RouteCollectorProxyInterface $group) use ($controllerClass) {
