@@ -29,9 +29,9 @@ trait ComponentTrait
         return $this->class;
     }
 
-    public function setComponentId(string $componentId): string
+    public function setComponentId(string $componentId): void
     {
-        return $this->componentId;
+        $this->componentId = $componentId;
     }
 
     public function getComponentId(): string
