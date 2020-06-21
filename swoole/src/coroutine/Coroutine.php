@@ -11,7 +11,7 @@ final class Coroutine
 {
     private const NOT_COROUTINE_ID = 0;
 
-    private static $HOOK_FLAGS = SWOOLE_HOOK_ALL;
+    private static $HOOK_FLAGS = SWOOLE_HOOK_ALL | SWOOLE_HOOK_CURL;
 
     private static $CONTEXT;
 

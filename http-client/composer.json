@@ -1,0 +1,37 @@
+{
+    "name": "kuiper/http-client",
+    "license": "MIT",
+    "description": "Http client component for swoole coroutine",
+    "keywords": [
+        "http-client"
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "yewenbin@winwin-inc.com"
+        }
+    ],
+    "require": {
+        "php": "^7.0",
+        "guzzlehttp/guzzle": "^6.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\http\\client\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\http\\client\\": "tests/"
+        }
+    },
+    "extra": {
+        "kuiper": {
+            "configuration": [
+                "kuiper\\http\\client\\HttpClientConfiguration"
+            ]
+        }
+    }
+}
