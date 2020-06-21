@@ -7,19 +7,18 @@ namespace kuiper\db\sharding;
 use Aura\SqlQuery\QueryFactory;
 use Aura\SqlQuery\QueryInterface;
 use kuiper\db\ConnectionPoolInterface;
+use kuiper\event\EventDispatcherAwareInterface;
+use kuiper\event\EventDispatcherAwareTrait;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class Cluster implements ClusterInterface
+class Cluster implements ClusterInterface, EventDispatcherAwareInterface
 {
+    use EventDispatcherAwareTrait;
+
     /**
      * @var ConnectionPoolInterface[]
      */
     private $poolList;
-
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
 
     /**
      * @var QueryFactory
@@ -35,7 +34,7 @@ class Cluster implements ClusterInterface
     {
         $this->poolList = $poolList;
         $this->queryFactory = $queryFactory;
-        $this->eventDispatcher = $eventDispatcher;
+        $this->setEventDispatcher($eventDispatcher);
     }
 
     public function getQueryFactory(): QueryFactory

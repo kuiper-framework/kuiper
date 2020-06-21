@@ -26,12 +26,12 @@ use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\annotation\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
-use kuiper\helper\Arrays;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionFileFactoryInterface;
 use kuiper\reflection\ReflectionType;
-use kuiper\swoole\pool\PoolConfig;
+use kuiper\swoole\pool\PoolFactoryInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Swoole\Coroutine\Channel;
 
 /**
@@ -64,13 +64,16 @@ class DbConfiguration implements DefinitionConfiguration
      * @Bean()
      * @Inject({"config" = "application.database"})
      */
-    public function connection(array $config): ConnectionInterface
+    public function connection(EventDispatcherInterface $eventDispatcher, array $config): ConnectionInterface
     {
-        return new Connection(
+        $connection = new Connection(
             $this->buildDsn($config),
             $config['user'] ?? 'root',
             $config['password'] ?? ''
         );
+        $connection->setEventDispatcher($eventDispatcher);
+
+        return $connection;
     }
 
     /**
@@ -79,7 +82,7 @@ class DbConfiguration implements DefinitionConfiguration
      */
     public function connectionPool(ConnectionInterface $connection): ConnectionPoolInterface
     {
-        return new ConnectionPool($connection);
+        return new SingleConnectionPool($connection);
     }
 
     /**
@@ -87,16 +90,14 @@ class DbConfiguration implements DefinitionConfiguration
      * @Inject({"config" = "application.database"})
      * @ConditionalOnClass(Channel::class)
      */
-    public function swooleConnectionPool(array $config): ConnectionPoolInterface
+    public function swooleConnectionPool(
+        PoolFactoryInterface $poolFactory,
+        EventDispatcherInterface $eventDispatcher,
+        array $config): ConnectionPoolInterface
     {
-        $poolConfig = new PoolConfig();
-        Arrays::assign($poolConfig, $config);
-
-        return new SwooleConnectionPool($poolConfig,
-            $this->buildDsn($config),
-            $config['user'] ?: 'root',
-            $config['password'] ?: ''
-        );
+        return new ConnectionPool($poolFactory->create('db', function () use ($eventDispatcher, $config) {
+            return $this->connection($eventDispatcher, $config);
+        }));
     }
 
     /**

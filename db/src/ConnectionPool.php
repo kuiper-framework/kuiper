@@ -4,28 +4,22 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
-use kuiper\swoole\pool\PoolTrait;
+use kuiper\swoole\pool\PoolInterface;
 
 class ConnectionPool implements ConnectionPoolInterface
 {
-    use PoolTrait;
-
     /**
-     * @var ConnectionInterface
+     * @var PoolInterface
      */
-    private $connection;
+    private $pool;
 
-    public function __construct(ConnectionInterface $connection)
+    public function __construct(PoolInterface $pool)
     {
-        $this->connection = $connection;
+        $this->pool = $pool;
     }
 
     public function take(): ConnectionInterface
     {
-        return $this->connection;
-    }
-
-    public function release(ConnectionInterface $connection): void
-    {
+        return $this->pool->take();
     }
 }

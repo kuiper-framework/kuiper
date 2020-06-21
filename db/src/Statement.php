@@ -61,7 +61,6 @@ class Statement implements StatementInterface
             $this->pdoStatement = null;
         }
         if ($this->connection) {
-            $this->pool->release($this->connection);
             $this->connection = null;
         }
     }

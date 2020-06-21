@@ -39,8 +39,10 @@
         "mockery/mockery": "^1.3",
         "nesbot/carbon": "^2.34",
         "phpunit/phpunit": "^8.0",
+        "predis/predis": "^1.1",
         "slim/slim": "^4.5",
         "swoft/swoole-ide-helper": "^4.4",
+        "symfony/cache": "^5.1",
         "symfony/serializer": "^5.0",
         "twig/twig": "^3.0",
         "vlucas/phpdotenv": "^4.1",
@@ -54,6 +56,7 @@
     "replace": {
         "kuiper/annotations": "self.version",
         "kuiper/db": "self.version",
+        "kuiper/cache": "self.version",
         "kuiper/di": "self.version",
         "kuiper/event": "self.version",
         "kuiper/helper": "self.version",
@@ -65,10 +68,12 @@
     "autoload": {
         "psr-4": {
             "kuiper\\annotations\\": "annotations/src/",
+            "kuiper\\cache\\": "cache/src/",
             "kuiper\\db\\": "db/src/",
             "kuiper\\di\\": "di/src/",
             "kuiper\\event\\": "event/src/",
             "kuiper\\helper\\": "helper/src/",
+            "kuiper\\http\\client\\": "http-client/src/",
             "kuiper\\logger\\": "logger/src/",
             "kuiper\\reflection\\": "reflection/src/",
             "kuiper\\swoole\\": "swoole/src/",
@@ -77,10 +82,12 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "kuiper\\cache\\": "cache/tests/",
             "kuiper\\db\\": "db/tests/",
             "kuiper\\di\\": "di/tests/",
             "kuiper\\event\\": "event/tests/",
             "kuiper\\helper\\": "helper/tests/",
+            "kuiper\\http\\client\\": "http-client/tests/",
             "kuiper\\logger\\": "logger/tests/",
             "kuiper\\reflection\\": "reflection/tests/",
             "kuiper\\swoole\\": "swoole/tests/",
@@ -90,7 +97,9 @@
     "extra": {
         "kuiper": {
             "configuration": [
-                "kuiper\\db\\DbConfiguration"
+                "kuiper\\cache\\CacheConfiguration",
+                "kuiper\\db\\DbConfiguration",
+                "kuiper\\http\\client\\HttpClientConfiguration"
             ]
         }
     }

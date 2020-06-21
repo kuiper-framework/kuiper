@@ -6,5 +6,8 @@ namespace kuiper\swoole\pool;
 
 interface PoolFactoryInterface
 {
-    public function create(callable $connectionFactory): PoolInterface;
+    /**
+     * Create pool.
+     */
+    public function create(string $poolName, callable $connectionFactory): PoolInterface;
 }

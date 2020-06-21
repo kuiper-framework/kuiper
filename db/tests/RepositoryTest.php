@@ -52,7 +52,7 @@ class RepositoryTest extends AbstractRepositoryTestCase
     public function createRepository($repositoryClass): AbstractCrudRepository
     {
         return new $repositoryClass(
-            new QueryBuilder(new ConnectionPool($this->createConnection()), null, null),
+            new QueryBuilder(new SingleConnectionPool($this->createConnection()), null, null),
             new MetaModelFactory($this->createAttributeRegistry(), null, null, null),
             new DateTimeFactory(),
             new EventDispatcher());

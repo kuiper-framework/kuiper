@@ -11,13 +11,16 @@ use kuiper\db\event\SqlExecutedEvent;
 use kuiper\db\event\SqlPreparedEvent;
 use kuiper\db\event\SqlQueriedEvent;
 use kuiper\db\event\TimedOutEvent;
+use kuiper\event\EventDispatcherAwareInterface;
+use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\event\NullEventDispatcher;
 use PDO;
 use PDOStatement;
-use Psr\EventDispatcher\EventDispatcherInterface;
 
-class Connection extends PDO implements ConnectionInterface
+class Connection extends PDO implements ConnectionInterface, EventDispatcherAwareInterface
 {
+    use EventDispatcherAwareTrait;
+
     private static $GID = 1;
 
     /**
@@ -85,11 +88,6 @@ class Connection extends PDO implements ConnectionInterface
     protected $inTransaction = false;
 
     /**
-     * @var EventDispatcherInterface
-     */
-    protected $eventDispatcher;
-
-    /**
      * @var float
      */
     protected $lastQueryStart;
@@ -118,7 +116,7 @@ class Connection extends PDO implements ConnectionInterface
         $this->password = $password;
         $this->options = $options;
         $this->attributes = array_replace($this->attributes, $attributes);
-        $this->eventDispatcher = new NullEventDispatcher();
+        $this->setEventDispatcher(new NullEventDispatcher());
     }
 
     /**
@@ -398,13 +396,6 @@ class Connection extends PDO implements ConnectionInterface
     public function getLastQueryElapsed(): float
     {
         return $this->lastQueryStart ? microtime(true) - $this->lastQueryStart : 0;
-    }
-
-    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): self
-    {
-        $this->eventDispatcher = $eventDispatcher;
-
-        return $this;
     }
 
     protected function isTimeout(): bool

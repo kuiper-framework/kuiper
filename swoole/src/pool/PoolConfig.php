@@ -53,18 +53,22 @@ class PoolConfig
      *
      * @var float
      */
-    private $maxIdleTime = 60.0;
+    private $maxIdleTime = -1;
 
-    public function getMinConnections(): int
+    /**
+     * PoolConfig constructor.
+     * options:
+     *  - max-connections
+     *  - wait-timeout.
+     */
+    public function __construct(array $options = [])
     {
-        return $this->minConnections;
-    }
-
-    public function setMinConnections(int $minConnections): PoolConfig
-    {
-        $this->minConnections = $minConnections;
-
-        return $this;
+        if (isset($options['max-connections'])) {
+            $this->maxConnections = (int) $options['max-connections'];
+        }
+        if (isset($options['wait-timeout'])) {
+            $this->waitTimeout = (float) $options['wait-timeout'];
+        }
     }
 
     public function getMaxConnections(): int
@@ -72,58 +76,8 @@ class PoolConfig
         return $this->maxConnections;
     }
 
-    public function setMaxConnections(int $maxConnections): PoolConfig
-    {
-        $this->maxConnections = $maxConnections;
-
-        return $this;
-    }
-
-    public function getConnectTimeout(): float
-    {
-        return $this->connectTimeout;
-    }
-
-    public function setConnectTimeout(float $connectTimeout): PoolConfig
-    {
-        $this->connectTimeout = $connectTimeout;
-
-        return $this;
-    }
-
     public function getWaitTimeout(): float
     {
         return $this->waitTimeout;
-    }
-
-    public function setWaitTimeout(float $waitTimeout): PoolConfig
-    {
-        $this->waitTimeout = $waitTimeout;
-
-        return $this;
-    }
-
-    public function getHeartbeat(): float
-    {
-        return $this->heartbeat;
-    }
-
-    public function setHeartbeat(float $heartbeat): PoolConfig
-    {
-        $this->heartbeat = $heartbeat;
-
-        return $this;
-    }
-
-    public function getMaxIdleTime(): float
-    {
-        return $this->maxIdleTime;
-    }
-
-    public function setMaxIdleTime(float $maxIdleTime): PoolConfig
-    {
-        $this->maxIdleTime = $maxIdleTime;
-
-        return $this;
     }
 }

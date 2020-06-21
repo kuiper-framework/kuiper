@@ -6,12 +6,9 @@ namespace kuiper\db\sharding;
 
 use kuiper\db\ConnectionInterface;
 use kuiper\db\ConnectionPoolInterface;
-use kuiper\swoole\pool\PoolTrait;
 
 class ClusterConnectionPool implements ConnectionPoolInterface
 {
-    use PoolTrait;
-
     /**
      * @var ConnectionPoolInterface[]
      */
@@ -42,13 +39,5 @@ class ClusterConnectionPool implements ConnectionPoolInterface
         }
 
         return $this->poolList[$this->connectionId]->take();
-    }
-
-    public function release(ConnectionInterface $connection): void
-    {
-        if (!isset($this->connectionId)) {
-            throw new \InvalidArgumentException('connection id not set');
-        }
-        $this->poolList[$this->connectionId]->release($connection);
     }
 }

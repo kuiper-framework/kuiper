@@ -7,7 +7,7 @@ namespace kuiper\db\sharding;
 use Aura\SqlQuery\QueryInterface;
 use kuiper\db\constants\SqlState;
 use kuiper\db\event\ShardTableNotExistEvent;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 class Statement extends \kuiper\db\Statement implements StatementInterface
 {

@@ -64,4 +64,11 @@ final class Coroutine
         }
         self::$CONTEXT = null;
     }
+
+    public static function defer(callable $callback): void
+    {
+        if (self::isEnabled()) {
+            SwooleCoroutine::defer($callback);
+        }
+    }
 }

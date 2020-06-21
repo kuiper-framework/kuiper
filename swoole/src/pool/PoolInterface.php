@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use kuiper\swoole\exception\PoolTimeoutException;
+
 interface PoolInterface
 {
     /**
-     * @return mixed|false
+     * @return mixed the connection
+     *
+     * @throws PoolTimeoutException
      */
     public function take();
 
-    public function release($connection): void;
+    /**
+     * reset current connection.
+     */
+    public function reset(): void;
 
-    public function with(callable $callback);
+    public function getName(): string;
 }
