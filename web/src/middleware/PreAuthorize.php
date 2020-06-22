@@ -15,7 +15,7 @@ use Slim\Exception\HttpUnauthorizedException;
 
 class PreAuthorize implements MiddlewareInterface
 {
-    private static $SUPERUSER = 'Admin';
+    public const SUPERUSER = 'Admin';
 
     /**
      * @var AclInterface
@@ -26,6 +26,8 @@ class PreAuthorize implements MiddlewareInterface
      * @var string[]
      */
     private $authorities;
+
+    private static $SUPER_USER_ROLE = self::SUPERUSER;
 
     /**
      *  constructor.
@@ -54,7 +56,7 @@ class PreAuthorize implements MiddlewareInterface
             return false;
         }
 
-        if (in_array(self::$SUPERUSER, $roles, true)) {
+        if ($this->isSuperUser($roles)) {
             return true;
         }
 
@@ -94,6 +96,11 @@ class PreAuthorize implements MiddlewareInterface
 
     public static function setSuperUserRole(string $roleName): void
     {
-        self::$SUPERUSER = $roleName;
+        self::$SUPER_USER_ROLE = $roleName;
+    }
+
+    protected function isSuperUser(array $roles): bool
+    {
+        return in_array(self::$SUPER_USER_ROLE, $roles, true);
     }
 }
