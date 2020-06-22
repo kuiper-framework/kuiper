@@ -37,5 +37,13 @@
         "psr-4": {
             "kuiper\\web\\": "tests/"
         }
+    },
+    "extra": {
+        "kuiper": {
+            "configuration": [
+                "kuiper\\web\\WebConfiguration",
+                "kuiper\\web\\http\\DiactorosHttpMessageFactoryConfiguration"
+            ]
+        }
     }
 }

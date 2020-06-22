@@ -99,7 +99,9 @@
             "configuration": [
                 "kuiper\\cache\\CacheConfiguration",
                 "kuiper\\db\\DbConfiguration",
-                "kuiper\\http\\client\\HttpClientConfiguration"
+                "kuiper\\http\\client\\HttpClientConfiguration",
+                "kuiper\\web\\WebConfiguration",
+                "kuiper\\web\\http\\DiactorosHttpMessageFactoryConfiguration"
             ]
         }
     }

@@ -48,6 +48,11 @@ class SecurityContext
         return static::createComponent(AuthInterface::class, $this->session);
     }
 
+    public function getSession(): SessionInterface
+    {
+        return $this->session;
+    }
+
     public static function fromRequest(ServerRequestInterface $request): self
     {
         $session = $request->getAttribute(static::SESSION);
