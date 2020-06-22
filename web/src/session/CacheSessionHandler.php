@@ -24,7 +24,7 @@ class CacheSessionHandler implements \SessionHandlerInterface
     /**
      * @var string cache prefix
      */
-    private $prefix = 'session:';
+    private $prefix = 'session_';
 
     public function __construct(CacheItemPoolInterface $cache, array $options = [])
     {
@@ -55,7 +55,7 @@ class CacheSessionHandler implements \SessionHandlerInterface
      */
     public function create_sid()
     {
-        $len = ini_get('session.sid_length');
+        $len = (int) ini_get('session.sid_length');
         if (empty($len)) {
             $len = 48;
         }

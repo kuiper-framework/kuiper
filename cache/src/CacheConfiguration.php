@@ -6,7 +6,6 @@ namespace kuiper\cache;
 
 use DI\Annotation\Inject;
 use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\annotation\Configuration;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\swoole\pool\PoolInterface;
@@ -20,11 +19,11 @@ class CacheConfiguration
 {
     /**
      * @Bean("redisPool")
-     * @ConditionalOnProperty("application.redis")
      * @Inject({"redisConfig": "application.redis"})
      */
     public function redisPool(PoolFactoryInterface $poolFactory, ?array $redisConfig): PoolInterface
     {
+        $redisConfig = ($redisConfig ?? []);
         $dsn = sprintf('redis://%s%s:%d',
             isset($redisConfig['password']) ? $redisConfig['password'].'@' : '',
             $redisConfig['host'] ?? 'localhost',

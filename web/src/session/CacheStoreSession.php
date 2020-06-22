@@ -248,14 +248,14 @@ class CacheStoreSession implements SessionInterface
             }
             $httpOnly = ini_get('session.cookie_httponly');
             if ($httpOnly) {
-                $cookie = $cookie->withHttpOnly($httpOnly);
+                $cookie = $cookie->withHttpOnly((bool) $httpOnly);
             }
             if ($this->cookieLifetime > 0) {
                 $cookie = $cookie->withExpires(time() + $this->cookieLifetime);
             }
             $secure = ini_get('session.cookie_secure');
             if ($secure) {
-                $cookie = $cookie->withSecure($secure);
+                $cookie = $cookie->withSecure((bool) $secure);
             }
 
             return $cookies->with($cookie)

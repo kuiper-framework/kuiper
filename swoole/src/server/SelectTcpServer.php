@@ -47,6 +47,7 @@ class SelectTcpServer extends AbstractServer
             ServerSetting::SOCKET_BUFFER_SIZE => 8192,
             ServerSetting::MAX_CONN => 1000,
             ServerSetting::WORKER_NUM => 1,
+            ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
         ]);
         $this->masterPid = getmypid();
         $this->dispatch(Event::BOOTSTRAP, []);

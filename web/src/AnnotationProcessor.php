@@ -49,10 +49,9 @@ class AnnotationProcessor
             $seen[$controllerClass->getName()] = true;
             $requestMapping = $this->annotationReader->getClassAnnotation($controllerClass, RequestMapping::class);
             if ($requestMapping) {
-                $routeGroup = $this->routeCollector->group($requestMapping->value, function (RouteCollectorProxyInterface $group) use ($controllerClass) {
+                $this->routeCollector->group($requestMapping->value, function (RouteCollectorProxyInterface $group) use ($controllerClass) {
                     $this->addMapping($group, $controllerClass);
                 });
-                $this->addFilters($routeGroup, $this->annotationReader->getClassAnnotations($controllerClass));
             } else {
                 $this->addMapping($this->routeCollector, $controllerClass);
             }
@@ -71,7 +70,7 @@ class AnnotationProcessor
                     if ($mapping->name) {
                         $route->setName($mapping->name);
                     }
-                    $this->addFilters($route, $this->annotationReader->getMethodAnnotations($reflectionMethod));
+                    $this->addFilters($route, $reflectionMethod);
                 }
             }
         }
@@ -80,13 +79,19 @@ class AnnotationProcessor
     /**
      * @param RouteGroupInterface|RouteInterface $route
      */
-    private function addFilters($route, array $annotations): void
+    private function addFilters($route, \ReflectionMethod $method): void
     {
         /** @var FilterInterface[] $filters */
         $filters = [];
-        foreach ($annotations as $annotation) {
+        foreach ($this->annotationReader->getMethodAnnotations($method) as $annotation) {
             if ($annotation instanceof FilterInterface) {
-                $filters[] = $annotation;
+                $filters[get_class($annotation)] = $annotation;
+            }
+        }
+        foreach ($this->annotationReader->getClassAnnotations($method->getDeclaringClass()) as $annotation) {
+            if ($annotation instanceof FilterInterface
+                && !isset($filters[get_class($annotation)])) {
+                $filters[get_class($annotation)] = $annotation;
             }
         }
         if (!empty($filters)) {

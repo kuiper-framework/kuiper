@@ -27,7 +27,7 @@ class Auth implements AuthInterface
      *
      * @var array
      */
-    private $sessionData;
+    private $identity;
 
     /**
      * session 组件.
@@ -53,13 +53,13 @@ class Auth implements AuthInterface
         $this->session = $session;
         $this->sessionKey = $sessionKey;
         $this->lifetime = $lifetime;
-        $this->sessionData = $this->session->get($this->sessionKey);
-        if (isset($this->sessionData) && is_array($this->sessionData)) {
+        $this->identity = $this->session->get($this->sessionKey);
+        if (isset($this->identity) && is_array($this->identity)) {
             $now = time();
-            $discardTime = $this->sessionData[self::REGENERATE_AFTER] ?? $now;
+            $discardTime = $this->identity[self::REGENERATE_AFTER] ?? $now;
             $this->needRegenerate = ($now >= $discardTime);
         } else {
-            $this->sessionData = [];
+            $this->identity = [];
         }
     }
 
@@ -70,44 +70,44 @@ class Auth implements AuthInterface
 
     public function offsetExists($offset): bool
     {
-        return isset($this->sessionData[$offset]);
+        return isset($this->identity[$offset]);
     }
 
     public function offsetGet($offset)
     {
-        return $this->sessionData[$offset] ?? null;
+        return $this->identity[$offset] ?? null;
     }
 
     public function offsetSet($offset, $value): void
     {
-        $this->sessionData[$offset] = $value;
+        $this->identity[$offset] = $value;
     }
 
     public function offsetUnset($offset): void
     {
-        unset($this->sessionData[$offset]);
+        unset($this->identity[$offset]);
     }
 
     public function __get($name)
     {
-        return $this->sessionData[$name] ?? null;
+        return $this->identity[$name] ?? null;
     }
 
     public function __set($name, $value)
     {
-        if (isset($this->sessionData[$name])) {
-            $this->sessionData[$name] = $value;
+        if (isset($this->identity[$name])) {
+            $this->identity[$name] = $value;
         }
     }
 
     public function __isset($name)
     {
-        return isset($this->sessionData[$name]);
+        return isset($this->identity[$name]);
     }
 
     public function getIdentity(): array
     {
-        return $this->sessionData;
+        return $this->identity;
     }
 
     /**
@@ -121,11 +121,11 @@ class Auth implements AuthInterface
             $this->session->regenerateId(true);
         }
         foreach ($identity as $name => $val) {
-            $this->sessionData[$name] = $val;
+            $this->identity[$name] = $val;
         }
         $lifetime = $this->lifetime ?? (int) ini_get('session.cookie_lifetime');
-        $this->sessionData[self::REGENERATE_AFTER] = time() + $lifetime - min($lifetime * 0.2, 300);
-        $this->session->set($this->sessionKey, $this->sessionData);
+        $this->identity[self::REGENERATE_AFTER] = time() + $lifetime - min($lifetime * 0.2, 300);
+        $this->session->set($this->sessionKey, $this->identity);
     }
 
     /**
@@ -140,7 +140,7 @@ class Auth implements AuthInterface
         } else {
             $this->session->set($this->sessionKey, false);
         }
-        $this->sessionData = [];
+        $this->identity = [];
     }
 
     /**
@@ -148,7 +148,7 @@ class Auth implements AuthInterface
      */
     public function isGuest(): bool
     {
-        return empty($this->sessionData);
+        return empty($this->identity);
     }
 
     /**
