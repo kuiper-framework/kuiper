@@ -35,6 +35,11 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
      */
     protected $eventDispatcher;
 
+    /**
+     * @var StatementInterface
+     */
+    protected $lastStatement;
+
     public function __construct(QueryBuilderInterface $queryBuilder,
                                 MetaModelFactoryInterface $metaModelFactory,
                                 DateTimeFactoryInterface $dateTimeFactory,
@@ -117,7 +122,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     {
         $stmt = $this->buildQueryStatement($criteria);
 
-        return array_map([$this->metaModel, 'thaw'], $stmt->query()->fetchAll(PDO::FETCH_ASSOC));
+        return array_map([$this->metaModel, 'thaw'], $this->doQuery($stmt)->fetchAll(PDO::FETCH_ASSOC));
     }
 
     public function count($criteria = null): int
@@ -168,6 +173,11 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $this->doExecute($stmt);
     }
 
+    public function getLastStatement(): StatementInterface
+    {
+        return $this->lastStatement;
+    }
+
     /**
      * @param array|callable|Criteria $criteria
      */
@@ -175,7 +185,8 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     {
         return $this->buildStatement(
             $this->queryBuilder->from($this->getTableName())
-                ->select(...$this->metaModel->getColumnNames()), $criteria
+                ->select(...$this->metaModel->getColumnNames()),
+            $criteria
         );
     }
 
@@ -264,6 +275,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     protected function doExecute(StatementInterface $stmt): void
     {
+        $this->lastStatement = $stmt;
         $result = $stmt->execute();
         if (false === $result) {
             throw new ExecutionFailException('execution fail');
@@ -272,6 +284,8 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     protected function doQuery(StatementInterface $stmt): \PDOStatement
     {
+        $this->lastStatement = $stmt;
+
         return $stmt->query();
     }
 
