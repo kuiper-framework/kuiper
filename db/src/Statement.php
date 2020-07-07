@@ -204,7 +204,9 @@ class Statement implements StatementInterface
      */
     public function offset($offset): StatementInterface
     {
-        $this->query->offset($offset);
+        if (method_exists($this->query, 'offset')) {
+            $this->query->offset($offset);
+        }
 
         return $this;
     }

@@ -61,7 +61,7 @@ class ConditionalDefinitionSource implements DefinitionSource, ContainerAwareInt
             unset($this->resolving[$name]);
             $this->source->addDefinition($definition->getDefinition());
 
-            return $definition->getDefinition();
+            return $this->source->getDefinition($name);
         }
 
         return null;

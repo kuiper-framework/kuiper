@@ -289,7 +289,8 @@ class Criteria
             $stmt->select($this->getColumns());
         }
         if ($this->limit) {
-            $stmt->limit($this->getLimit())->offset($this->getOffset());
+            $stmt->limit($this->getLimit())
+                ->offset($this->getOffset());
         }
         if ($this->orderBy) {
             $stmt->orderBy(array_map(static function (Sort $sort) {
