@@ -144,6 +144,21 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $annotationReader;
 
     /**
+     * @var object[]
+     */
+    private $configurations;
+
+    /**
+     * @var array
+     */
+    private $scanNamespaces;
+
+    /**
+     * @var callable[]
+     */
+    private $deferCallbacks;
+
+    /**
      * @var Definition[]
      */
     private $definitions = [];
@@ -209,6 +224,7 @@ class ContainerBuilder implements ContainerBuilderInterface
      */
     public function build(): ContainerInterface
     {
+        $this->registerConfigurations();
         $source = $this->createDefinitionSource();
         $proxyFactory = new ProxyFactory($this->writeProxiesToFile, $this->proxyDirectory);
         $this->locked = true;
@@ -230,11 +246,23 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
 
         $container = new $containerClass($source, $proxyFactory, $this->wrapperContainer);
+        if (!empty($this->deferCallbacks)) {
+            foreach ($this->deferCallbacks as $deferCallback) {
+                $deferCallback($container);
+            }
+        }
         if ($this->conditionalDefinitionSource) {
             $this->conditionalDefinitionSource->setContainer($container);
         }
 
         return $container;
+    }
+
+    public function defer(callable $callback): self
+    {
+        $this->deferCallbacks[] = $callback;
+
+        return $this;
     }
 
     /**
@@ -470,12 +498,12 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
     }
 
-    public function addConfiguration($configuration, bool $ignoreCondition = false): self
+    public function addConfiguration($configuration): self
     {
         if ($configuration instanceof ContainerBuilderAwareInterface) {
             $configuration->setContainerBuilder($this);
         }
-        $this->addDefinitions($this->getConfigurationDefinition()->getDefinitions($configuration, $ignoreCondition));
+        $this->configurations[] = $configuration;
 
         return $this;
     }
@@ -566,7 +594,9 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function componentScan(array $namespaces): self
     {
-        $this->getComponentScanner()->scan($namespaces);
+        foreach ($namespaces as $namespace) {
+            $this->scanNamespaces[$namespace] = true;
+        }
 
         return $this;
     }
@@ -587,6 +617,18 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
 
         return $autowiring;
+    }
+
+    private function registerConfigurations(): void
+    {
+        if (!empty($this->scanNamespaces)) {
+            $this->getComponentScanner()->scan(array_keys($this->scanNamespaces));
+        }
+        if (!empty($this->configurations)) {
+            foreach ($this->configurations as $configuration) {
+                $this->addDefinitions($this->getConfigurationDefinition()->getDefinitions($configuration));
+            }
+        }
     }
 
     private function createDefinitionSource(): MutableDefinitionSource

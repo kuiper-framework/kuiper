@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\di;
 
 use DI\Definition\Source\DefinitionSource;
@@ -25,5 +27,15 @@ interface ContainerBuilderInterface
      */
     public function addConfiguration($configuration);
 
+    /**
+     * Add callback when container is ready.
+     *
+     * @return static
+     */
+    public function defer(callable $callback);
+
+    /**
+     * Create container.
+     */
     public function build(): ContainerInterface;
 }

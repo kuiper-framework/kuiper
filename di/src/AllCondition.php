@@ -44,7 +44,6 @@ class AllCondition implements Conditional
     public static function create(AnnotationReaderInterface $annotationReader, $reflector): ?AllCondition
     {
         $conditions = [];
-        $annotations = [];
         if ($reflector instanceof \ReflectionClass) {
             $annotations = $annotationReader->getClassAnnotations($reflector);
         } elseif ($reflector instanceof \ReflectionMethod) {

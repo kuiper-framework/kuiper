@@ -8,8 +8,6 @@ use function DI\autowire;
 use DI\Definition\FactoryDefinition;
 use DI\Definition\ObjectDefinition;
 use kuiper\di\fixtures\FooLoggerAware;
-use kuiper\logger\Logger;
-use kuiper\logger\LoggerFactory;
 use kuiper\logger\LoggerFactoryInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerAwareInterface;
@@ -18,6 +16,11 @@ use Psr\Log\NullLogger;
 
 class AwareAutowiringTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        \Mockery::close();
+    }
+
     public function testAware()
     {
         $builder = new ContainerBuilder();
@@ -39,8 +42,12 @@ class AwareAutowiringTest extends TestCase
     public function testFactory()
     {
         $builder = new ContainerBuilder();
+        $mock = \Mockery::mock(LoggerFactoryInterface::class);
+        $mock->shouldReceive('create')
+            ->andReturn(\Mockery::mock(LoggerInterface::class));
+
         $builder->addDefinitions([
-            LoggerFactoryInterface::class => new LoggerFactory(new NullLogger()),
+            LoggerFactoryInterface::class => $mock,
         ]);
         $builder->addAwareInjection(new AwareInjection(
             LoggerAwareInterface::class,
@@ -57,7 +64,8 @@ class AwareAutowiringTest extends TestCase
             }));
         $container = $builder->build();
         $foo = $container->get(FooLoggerAware::class);
-        // print_r($foo);
-        $this->assertInstanceOf(Logger::class, $foo->getLogger());
+        $logger = $foo->getLogger();
+        // print_r($logger);
+        $this->assertNotNull($logger);
     }
 }

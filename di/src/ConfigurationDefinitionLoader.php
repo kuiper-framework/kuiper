@@ -44,22 +44,29 @@ class ConfigurationDefinitionLoader
                 continue;
             }
             $definition = $this->createDefinition($beanAnnotation, $configuration, $method);
-            if ($ignoreCondition) {
-                $definitions[$definition->getName()] = $definition;
-                continue;
+            $condition = null;
+            if (!$ignoreCondition) {
+                /** @var AllCondition $condition */
+                $condition = AllCondition::create($this->annotationReader, $method);
+                if ($configurationCondition) {
+                    if ($condition) {
+                        $condition->addCondition($configurationCondition);
+                    } else {
+                        $condition = $configurationCondition;
+                    }
+                }
             }
-            /** @var AllCondition $condition */
-            $condition = AllCondition::create($this->annotationReader, $method);
 
             if ($condition) {
-                if ($configurationCondition) {
-                    $condition->addCondition($configurationCondition);
-                }
                 $definitions[] = new ConditionalDefinition($definition, $condition);
-            } elseif ($configurationCondition) {
-                $definitions[] = new ConditionalDefinition($definition, $configurationCondition);
+                $this->containerBuilder->defer(function ($container) use ($condition, $definition, $method) {
+                    if ($condition->match($container)) {
+                        $this->processComponentAnnotation($definition->getName(), $method);
+                    }
+                });
             } else {
                 $definitions[$definition->getName()] = $definition;
+                $this->processComponentAnnotation($definition->getName(), $method);
             }
         }
         if ($configuration instanceof DefinitionConfiguration) {
@@ -95,7 +102,6 @@ class ConfigurationDefinitionLoader
                 $name = $method->getName();
             }
         }
-        $this->processComponentAnnotation($name, $method);
 
         /** @var Inject $annotation */
         $annotation = $this->annotationReader->getMethodAnnotation($method, Inject::class);
