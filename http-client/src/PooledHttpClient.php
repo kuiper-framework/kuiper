@@ -6,8 +6,10 @@ namespace kuiper\http\client;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Promise\PromiseInterface;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 class PooledHttpClient implements ClientInterface
 {
@@ -32,7 +34,7 @@ class PooledHttpClient implements ClientInterface
     /**
      * {@inheritdoc}
      */
-    public function send(RequestInterface $request, array $options = [])
+    public function send(RequestInterface $request, array $options = []): ResponseInterface
     {
         return $this->httpClientPool->take()->send($request, $options);
     }
@@ -40,7 +42,7 @@ class PooledHttpClient implements ClientInterface
     /**
      * {@inheritdoc}
      */
-    public function sendAsync(RequestInterface $request, array $options = [])
+    public function sendAsync(RequestInterface $request, array $options = []): PromiseInterface
     {
         return $this->httpClientPool->take()->sendAsync($request, $options);
     }
@@ -48,7 +50,7 @@ class PooledHttpClient implements ClientInterface
     /**
      * {@inheritdoc}
      */
-    public function request($method, $uri, array $options = [])
+    public function request($method, $uri, array $options = []): ResponseInterface
     {
         return $this->httpClientPool->take()->request($method, $uri, $options);
     }
@@ -56,7 +58,7 @@ class PooledHttpClient implements ClientInterface
     /**
      * {@inheritdoc}
      */
-    public function requestAsync($method, $uri, array $options = [])
+    public function requestAsync($method, $uri, array $options = []): PromiseInterface
     {
         return $this->httpClientPool->take()->requestAsync($method, $uri, $options);
     }
@@ -64,7 +66,7 @@ class PooledHttpClient implements ClientInterface
     /**
      * {@inheritdoc}
      */
-    public function getConfig($option = null)
+    public function getConfig(?string $option = null)
     {
         return $this->httpClientPool->take()->getConfig($option);
     }
