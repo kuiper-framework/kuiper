@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\helper;
 
 class Arrays
@@ -212,8 +214,8 @@ class Arrays
                     if ($method->isStatic() || !$method->isPublic()) {
                         continue;
                     }
-                    if (preg_match('/^(get|is|has)(.+)/', $method->getName(), $matches)
-                        && 0 === $method->getNumberOfParameters()) {
+                    if (0 === $method->getNumberOfParameters()
+                        && preg_match('/^(get|is|has)(.+)/', $method->getName(), $matches)) {
                         $properties[lcfirst($matches[2])] = $method->invoke($bean);
                     }
                 }
@@ -300,6 +302,6 @@ class Arrays
      */
     public static function uncamelizeKeys(array $arr): array
     {
-        return self::mapKeys($arr, [Text::class, 'uncamelize']);
+        return self::mapKeys($arr, [Text::class, 'snakeCase']);
     }
 }
