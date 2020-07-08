@@ -124,7 +124,9 @@ class ConfigurationDefinitionLoader
             $definition = $definition->getDefinition($name);
         } elseif ($definition instanceof \Closure) {
             $definition = new FactoryDefinition($name, $definition);
-        } elseif (!$definition instanceof Definition) {
+        } elseif ($definition instanceof Definition) {
+            $definition->setName($name);
+        } else {
             $definition = new ValueDefinition($definition);
             $definition->setName($name);
         }
