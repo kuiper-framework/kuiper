@@ -41,13 +41,16 @@ class Arrays
      * Creates associated array.
      *
      * @param array|\Iterator $arr
-     * @param string          $name
+     * @param string|callable $name
      */
     public static function assoc($arr, $name): array
     {
         $ret = [];
+
         foreach ($arr as $elem) {
-            if (is_object($elem)) {
+            if (is_callable($name)) {
+                $ret[$name($elem)] = $elem;
+            } elseif (is_object($elem)) {
                 $method = 'get'.$name;
                 $ret[$elem->$method()] = $elem;
             } else {
@@ -60,9 +63,28 @@ class Arrays
 
     public static function assocByField($arr, $name): array
     {
+        return self::assoc($arr, static function ($item) use ($name) {
+            return $item->$name;
+        });
+    }
+
+    public static function toMap($arr, $name): array
+    {
+        return self::assoc($arr, $name);
+    }
+
+    public static function groupBy($arr, $groupBy): array
+    {
         $ret = [];
         foreach ($arr as $elem) {
-            $ret[$elem->$name] = $elem;
+            if (is_callable($groupBy)) {
+                $ret[$groupBy($elem)][] = $elem;
+            } elseif (is_object($elem)) {
+                $method = 'get'.$groupBy;
+                $ret[$elem->$method()][] = $elem;
+            } else {
+                $ret[$elem[$groupBy]][] = $elem;
+            }
         }
 
         return $ret;
