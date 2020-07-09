@@ -110,13 +110,21 @@ class Criteria
         return $this->where($column, $value, self::OPERATOR_NOT_LIKE);
     }
 
-    public function in(string $column, $value): self
+    public function in(string $column, array $value): self
     {
+        if (empty($value)) {
+            throw new \InvalidArgumentException('value expected not empty');
+        }
+
         return $this->where($column, $value, self::OPERATOR_IN);
     }
 
-    public function notIn(string $column, $value): self
+    public function notIn(string $column, array $value): self
     {
+        if (empty($value)) {
+            throw new \InvalidArgumentException('value expected not empty');
+        }
+
         return $this->where($column, $value, self::OPERATOR_NOT_IN);
     }
 

@@ -78,14 +78,16 @@
             "kuiper\\reflection\\": "reflection/src/",
             "kuiper\\swoole\\": "swoole/src/",
             "kuiper\\web\\": "web/src/"
-        }
+        },
+        "files": [
+            "helper/src/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
             "kuiper\\cache\\": "cache/tests/",
             "kuiper\\db\\": "db/tests/",
             "kuiper\\di\\": "di/tests/",
-            "kuiper\\event\\": "event/tests/",
             "kuiper\\helper\\": "helper/tests/",
             "kuiper\\http\\client\\": "http-client/tests/",
             "kuiper\\logger\\": "logger/tests/",
