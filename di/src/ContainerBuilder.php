@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace kuiper\di;
 
 use Composer\Autoload\ClassLoader;
-use DI\CompiledContainer;
-use DI\Compiler\Compiler;
 use DI\Container;
 use DI\Definition\DecoratorDefinition;
 use DI\Definition\Definition;
+use DI\Definition\FactoryDefinition;
+use DI\Definition\Helper\DefinitionHelper;
 use DI\Definition\Helper\FactoryDefinitionHelper;
 use DI\Definition\Source\AnnotationBasedAutowiring;
 use DI\Definition\Source\Autowiring;
@@ -21,6 +21,7 @@ use DI\Definition\Source\NoAutowiring;
 use DI\Definition\Source\ReflectionBasedAutowiring;
 use DI\Definition\Source\SourceCache;
 use DI\Definition\Source\SourceChain;
+use DI\Definition\ValueDefinition;
 use DI\Proxy\ProxyFactory;
 use InvalidArgumentException;
 use kuiper\annotations\AnnotationReader;
@@ -38,13 +39,6 @@ class ContainerBuilder implements ContainerBuilderInterface
      * @var string
      */
     private $containerClass;
-
-    /**
-     * Name of the container parent class, used on compiled container.
-     *
-     * @var string
-     */
-    private $containerParentClass;
 
     /**
      * If PHP-DI is wrapped in another container, this references the wrapper.
@@ -91,11 +85,6 @@ class ContainerBuilder implements ContainerBuilderInterface
      * @var string|null
      */
     private $proxyDirectory;
-
-    /**
-     * @var string|null
-     */
-    private $compileToDirectory;
 
     /**
      * @var DefinitionSource[]|string[]|array[]
@@ -159,9 +148,9 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $deferCallbacks;
 
     /**
-     * @var Definition[]
+     * @var array
      */
-    private $definitions = [];
+    private $definitions;
 
     /**
      * @var ConditionalDefinition[]
@@ -172,6 +161,11 @@ class ContainerBuilder implements ContainerBuilderInterface
      * @var DecoratorDefinition[]
      */
     private $decorateDefinitions = [];
+
+    /**
+     * @var DefinitionArray
+     */
+    private $mutableDefinitionSource;
 
     /**
      * Build a container configured for the dev environment.
@@ -229,23 +223,7 @@ class ContainerBuilder implements ContainerBuilderInterface
         $proxyFactory = new ProxyFactory($this->writeProxiesToFile, $this->proxyDirectory);
         $this->locked = true;
         $containerClass = $this->containerClass;
-        if ($this->compileToDirectory) {
-            $compiler = new Compiler($proxyFactory);
-            $compiledContainerFile = $compiler->compile(
-                $source,
-                $this->compileToDirectory,
-                $containerClass,
-                $this->containerParentClass,
-                $this->useAutowiring || $this->useAnnotations
-            );
-            // Only load the file if it hasn't been already loaded
-            // (the container can be created multiple times in the same process)
-            if (!class_exists($containerClass, false)) {
-                require $compiledContainerFile;
-            }
-        }
-
-        $container = new $containerClass($source, $proxyFactory, $this->wrapperContainer);
+        $this->container = $container = new $containerClass($source, $proxyFactory, $this->wrapperContainer);
         if (!empty($this->deferCallbacks)) {
             foreach ($this->deferCallbacks as $deferCallback) {
                 $deferCallback($container);
@@ -261,38 +239,6 @@ class ContainerBuilder implements ContainerBuilderInterface
     public function defer(callable $callback): self
     {
         $this->deferCallbacks[] = $callback;
-
-        return $this;
-    }
-
-    /**
-     * Compile the container for optimum performances.
-     *
-     * Be aware that the container is compiled once and never updated!
-     *
-     * Therefore:
-     *
-     * - in production you should clear that directory every time you deploy
-     * - in development you should not compile the container
-     *
-     * @see http://php-di.org/doc/performances.html
-     *
-     * @param string $directory            directory in which to put the compiled container
-     * @param string $containerClass       Name of the compiled class. Customize only if necessary.
-     * @param string $containerParentClass Name of the compiled container parent class. Customize only if necessary.
-     *
-     * @return static
-     */
-    public function enableCompilation(
-        string $directory,
-        string $containerClass = 'CompiledContainer',
-        string $containerParentClass = CompiledContainer::class
-    ): self {
-        $this->ensureNotLocked();
-
-        $this->compileToDirectory = $directory;
-        $this->containerClass = $containerClass;
-        $this->containerParentClass = $containerParentClass;
 
         return $this;
     }
@@ -414,7 +360,18 @@ class ContainerBuilder implements ContainerBuilderInterface
      */
     public function addDefinitions(...$definitions)
     {
-        $this->ensureNotLocked();
+        if ($this->locked) {
+            foreach ($definitions as $definition) {
+                if (!is_array($definition)) {
+                    throw new \InvalidArgumentException('Definitions must be an array, got '.gettype($definition));
+                }
+                foreach ($definition as $name => $value) {
+                    $this->addDefinition($name, $value);
+                }
+            }
+
+            return;
+        }
 
         foreach ($definitions as $definition) {
             if (!is_string($definition) && !is_array($definition) && !($definition instanceof DefinitionSource)) {
@@ -481,14 +438,6 @@ class ContainerBuilder implements ContainerBuilderInterface
         $this->sourceCacheNamespace = $cacheNamespace;
 
         return $this;
-    }
-
-    /**
-     * Are we building a compiled container?
-     */
-    public function isCompilationEnabled(): bool
-    {
-        return (bool) $this->compileToDirectory;
     }
 
     private function ensureNotLocked(): void
@@ -640,7 +589,7 @@ class ContainerBuilder implements ContainerBuilderInterface
             $sources[] = new DefinitionArray($this->decorateDefinitions, $autowiring);
         }
         if (!empty($this->definitions)) {
-            $sources[] = new DefinitionArray($this->definitions, $autowiring);
+            $sources[] = new DefinitionArray($this->definitions ?? [], $autowiring);
         }
         if (!empty($this->conditionalDefinitions)) {
             $sources[] = $this->conditionalDefinitionSource = new ConditionalDefinitionSource($this->conditionalDefinitions, $autowiring);
@@ -663,7 +612,7 @@ class ContainerBuilder implements ContainerBuilderInterface
         $source = new SourceChain($sources);
 
         // Mutable definition source
-        $source->setMutableDefinitionSource(new DefinitionArray([], $autowiring));
+        $source->setMutableDefinitionSource($this->mutableDefinitionSource = new DefinitionArray([], $autowiring));
 
         if ($this->sourceCache) {
             if (!SourceCache::isSupported()) {
@@ -674,5 +623,19 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
 
         return $source;
+    }
+
+    private function addDefinition($name, $value): void
+    {
+        if ($value instanceof DefinitionHelper) {
+            $value = $value->getDefinition($name);
+        } elseif ($value instanceof \Closure) {
+            $value = new FactoryDefinition($name, $value);
+        }
+        if (!$value instanceof Definition) {
+            $value = new ValueDefinition($value);
+        }
+        $value->setName($name);
+        $this->mutableDefinitionSource->addDefinition($value);
     }
 }
