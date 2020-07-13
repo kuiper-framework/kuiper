@@ -40,7 +40,7 @@ class ServerManager implements LoggerAwareInterface
         if (empty($masterPid)) {
             throw new ServerStateException('Server was not started');
         }
-        exec("kill -9 $masterPid", $output, $ret);
+        exec("kill -TERM $masterPid", $output, $ret);
         if (0 !== $ret) {
             throw new ServerStateException('Server was failed to stop');
         }
