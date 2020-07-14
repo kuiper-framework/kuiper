@@ -58,6 +58,11 @@ class LoggerFactory implements LoggerFactoryInterface
         return isset($logLevel) ? new Logger($logger, $logLevel) : $logger;
     }
 
+    public function getLoggers(): array
+    {
+        return array_values($this->loggers);
+    }
+
     private function getLogLevel(?string $className): ?string
     {
         if (!isset($className)) {
