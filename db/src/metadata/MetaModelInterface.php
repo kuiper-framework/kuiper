@@ -16,6 +16,11 @@ interface MetaModelInterface extends EntityMapperInterface
     public function getTable(): string;
 
     /**
+     * Gets the class.
+     */
+    public function getEntityClass(): \ReflectionClass;
+
+    /**
      * Gets the database column names.
      *
      * @return string[]

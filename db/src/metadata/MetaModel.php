@@ -83,11 +83,25 @@ class MetaModel implements MetaModelInterface
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getTable(): string
     {
         return $this->table;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getEntityClass(): \ReflectionClass
+    {
+        return $this->entityClass;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function freeze($entity): array
     {
         $columnValues = [];
@@ -126,28 +140,43 @@ class MetaModel implements MetaModelInterface
         return $this->columns[$columnName]->getValue($entity);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function setValue($entity, string $columnName, $value): void
     {
         $this->columns[$columnName]->setValue($entity, $value);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getCreationTimestamp(): ?string
     {
         return isset($this->annotatedColumns[CreationTimestamp::class])
             ? $this->annotatedColumns[CreationTimestamp::class]->getName() : null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getUpdateTimestamp(): ?string
     {
         return isset($this->annotatedColumns[UpdateTimestamp::class])
             ? $this->annotatedColumns[UpdateTimestamp::class]->getName() : null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function idToPrimaryKey($id): array
     {
         return $this->idProperty->getColumnValues($id);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getAutoIncrement(): ?string
     {
         /** @var Column[] $idColumns */
@@ -159,6 +188,9 @@ class MetaModel implements MetaModelInterface
         return null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getUniqueKey($entity): ?array
     {
         $idValue = $this->idProperty->getValue($entity);
@@ -172,6 +204,9 @@ class MetaModel implements MetaModelInterface
         return null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getId($entity)
     {
         return $this->idProperty->getValue($entity);
@@ -185,11 +220,17 @@ class MetaModel implements MetaModelInterface
         return array_keys($this->columns);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getColumns(): array
     {
         return array_values($this->columns);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getProperty(string $propertyPath): ?MetaModelProperty
     {
         $parts = explode('.', $propertyPath, 2);

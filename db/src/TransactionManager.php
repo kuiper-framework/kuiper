@@ -21,20 +21,19 @@ class TransactionManager implements TransactionManagerInterface
      */
     public function transaction(callable $callback)
     {
-        return $this->pool->with(static function (ConnectionInterface $connection) use ($callback) {
-            if ($connection->inTransaction()) {
-                return $callback($connection);
-            }
-            try {
-                $connection->beginTransaction();
-                $ret = $callback($connection);
-                $connection->commit();
+        $connection = $this->pool->take();
+        if ($connection->inTransaction()) {
+            return $callback($connection);
+        }
+        try {
+            $connection->beginTransaction();
+            $ret = $callback($connection);
+            $connection->commit();
 
-                return $ret;
-            } catch (\Throwable $e) {
-                $connection->rollback();
-                throw $e;
-            }
-        });
+            return $ret;
+        } catch (\Throwable $e) {
+            $connection->rollback();
+            throw $e;
+        }
     }
 }

@@ -53,6 +53,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     public function insert($entity)
     {
+        $this->checkEntityClassMatch($entity);
         $this->dispatch(new BeforePersistEvent($this, $entity));
         $stmt = $this->buildInsertStatement($entity);
         $this->doExecute($stmt);
@@ -71,6 +72,8 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     public function update($entity)
     {
+        $this->checkEntityClassMatch($entity);
+
         $stmt = $this->buildUpdateStatement($entity, $this->metaModel->getUniqueKey($entity));
         $this->doExecute($stmt);
 
@@ -79,6 +82,8 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     public function save($entity)
     {
+        $this->checkEntityClassMatch($entity);
+
         $uniqueKey = $this->metaModel->getUniqueKey($entity);
         if ($uniqueKey && $this->count($uniqueKey) > 0) {
             return $this->update($entity);
@@ -149,6 +154,8 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     public function delete($entity): void
     {
+        $this->checkEntityClassMatch($entity);
+
         $this->deleteAllBy($this->metaModel->getUniqueKey($entity));
     }
 
@@ -322,5 +329,12 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     protected function getTableName(): string
     {
         return $this->metaModel->getTable();
+    }
+
+    private function checkEntityClassMatch($entity): void
+    {
+        if (!$this->metaModel->getEntityClass()->isInstance($entity)) {
+            throw new \InvalidArgumentException('Expected entity instance of '.$this->metaModel->getEntityClass()->getName().', got '.get_class($entity));
+        }
     }
 }
