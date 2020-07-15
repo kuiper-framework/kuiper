@@ -10,22 +10,25 @@ use PHPUnit\Framework\TestCase;
 class StatementTest extends TestCase
 {
     /**
-     * @var ConnectionInterface
+     * @var QueryBuilderInterface
      */
     private $connection;
 
     public function setUp(): void
     {
-        $connection = new Connection('', '', '');
-        $connection->setQueryFactory(new QueryFactory('mysql'));
+        $connection = new QueryBuilder(
+            new SingleConnectionPool(new Connection('', '', '')),
+            new QueryFactory('mysql'),
+            null
+        );
         $this->connection = $connection;
     }
 
     public function testWhere(): void
     {
         $query = $this->connection->from('article')
-               ->select('*')
-               ->where(['id' => 1]);
+            ->select('*')
+            ->where(['id' => 1]);
         $this->assertEquals('SELECT
     *
 FROM
@@ -37,8 +40,8 @@ WHERE
     public function testInWhere(): void
     {
         $query = $this->connection->from('article')
-               ->select('*')
-               ->in('id', [1, 2]);
+            ->select('*')
+            ->in('id', [1, 2]);
         $this->assertEquals(
             'SELECT
     *
@@ -56,9 +59,9 @@ WHERE
     public function testOrInWhere(): void
     {
         $query = $this->connection->from('article')
-               ->select('*')
-               ->where('status=?', 'ok')
-               ->orIn('id', [1, 2]);
+            ->select('*')
+            ->where('status=?', 'ok')
+            ->orIn('id', [1, 2]);
         $this->assertEquals(
             'SELECT
     *
@@ -80,8 +83,7 @@ WHERE
         $stmt = $this->connection->from('article')
             ->select('*')
             ->orWhere(['name' => 'a', 'age' => 1])
-            ->orWhere(['name' => 'b', 'age' => 2])
-            ;
+            ->orWhere(['name' => 'b', 'age' => 2]);
         $this->assertEquals('SELECT
     *
 FROM
@@ -89,6 +91,18 @@ FROM
 WHERE
     (name=:_1_ AND age=:_2_)
     OR (name=:_3_ AND age=:_4_)',
+            $stmt->getStatement());
+    }
+
+    public function testUpdateCaseWhen(): void
+    {
+        $stmt = $this->connection->update('article')
+            ->set('value', 'case id '
+                .'when ? then ? '
+                .'when ? then ? end')
+            ->bindValues([1, 3, 2, 6])
+            ->in('id', [1, 2]);
+        $this->assertEquals('',
             $stmt->getStatement());
     }
 }

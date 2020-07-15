@@ -82,7 +82,7 @@ interface CrudRepositoryInterface
      *
      * @param array|callable|Criteria $criteria
      */
-    public function count($criteria = null): int;
+    public function count($criteria): int;
 
     /**
      * Finds the entity by id.
@@ -102,5 +102,5 @@ interface CrudRepositoryInterface
 
     public function deleteAll(array $entities): void;
 
-    public function deleteAllBy($criteria = null): void;
+    public function deleteAllBy($criteria): void;
 }

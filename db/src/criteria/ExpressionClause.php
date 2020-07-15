@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\db\criteria;
 
 use kuiper\db\Criteria;
+use kuiper\helper\Text;
 
 class ExpressionClause implements CriteriaClauseInterface
 {
@@ -56,8 +57,7 @@ class ExpressionClause implements CriteriaClauseInterface
 
     public function isLikeClause(): bool
     {
-        return Criteria::OPERATOR_LIKE === $this->operator
-            || Criteria::OPERATOR_NOT_LIKE === $this->operator;
+        return Text::endsWith(strtolower($this->operator), 'like');
     }
 
     public function isEqualClause(): bool

@@ -13,6 +13,7 @@ use kuiper\db\criteria\NotClause;
 use kuiper\db\criteria\OrClause;
 use kuiper\db\criteria\RawClause;
 use kuiper\db\criteria\Sort;
+use kuiper\helper\Arrays;
 
 class Criteria
 {
@@ -155,6 +156,41 @@ class Criteria
     {
         if ($criteria->clause) {
             $this->merge(new NotClause($criteria->getClause()));
+        }
+
+        return $this;
+    }
+
+    public function matches(array $naturalIds, array $columns): self
+    {
+        if (empty($naturalIds) || empty($columns)) {
+            return $this;
+        }
+        if (1 === count($columns)) {
+            return $this->in($columns[0], Arrays::pull($naturalIds, $columns[0]));
+        }
+        $column = array_shift($columns);
+        foreach ($naturalIds as $naturalId) {
+            $value = $naturalId[$column] ?? null;
+            if (!isset($value)) {
+                throw new \InvalidArgumentException("$column is required");
+            }
+            if (!is_scalar($value)) {
+                throw new \InvalidArgumentException("Support only scalar type, $column is ".(is_object($value) ? get_class($value) : gettype($value)));
+            }
+        }
+        foreach (Arrays::groupBy($naturalIds, $column) as $columnValue => $group) {
+            $criteria = self::create([$column => $columnValue]);
+            if (1 === count($columns)) {
+                if (1 === count($group)) {
+                    $criteria->where($columns[0], $group[0][$columns[0]]);
+                } else {
+                    $criteria->in($columns[0], Arrays::pull($group, $columns[0]));
+                }
+            } else {
+                $criteria->and(self::create()->matches($group, $columns));
+            }
+            $this->merge($criteria->getClause(), false);
         }
 
         return $this;

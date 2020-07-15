@@ -38,6 +38,11 @@ class Department
      */
     private $name;
 
+    /**
+     * @var string
+     */
+    private $departNo;
+
     public function getId(): int
     {
         return $this->id;
@@ -90,5 +95,15 @@ class Department
         $this->name = $name;
 
         return $this;
+    }
+
+    public function getDepartNo(): string
+    {
+        return $this->departNo;
+    }
+
+    public function setDepartNo(string $departNo): void
+    {
+        $this->departNo = $departNo;
     }
 }

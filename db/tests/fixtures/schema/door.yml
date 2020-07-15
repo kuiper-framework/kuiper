@@ -11,5 +11,6 @@ department:
     create_time: 'datetime notnull'
     update_time: 'datetime notnull'
     name: 'string'
+    depart_no: 'string'
   indexes:
     PRIMARY: 'PRIMARY KEY(id)'

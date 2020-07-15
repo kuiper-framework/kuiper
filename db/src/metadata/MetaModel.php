@@ -102,14 +102,14 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function freeze($entity): array
+    public function freeze($entity, bool $ignoreNull = true): array
     {
         $columnValues = [];
         foreach ($this->columns as $name => $column) {
             $value = $column->getValue($entity);
             if ($this->isNull($value)) {
                 $columnValues[$name] = null;
-            } elseif (isset($value)) {
+            } elseif (!$ignoreNull || isset($value)) {
                 $columnValues[$name] = $value;
             }
         }
@@ -233,7 +233,7 @@ class MetaModel implements MetaModelInterface
      */
     public function getProperty(string $propertyPath): ?MetaModelProperty
     {
-        $parts = explode('.', $propertyPath, 2);
+        $parts = explode(MetaModelProperty::PATH_SEPARATOR, $propertyPath, 2);
         if (!isset($this->properties[$parts[0]])) {
             return null;
         }

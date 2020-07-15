@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\db\criteria;
 
 use kuiper\db\Criteria;
+use kuiper\db\metadata\Column;
 use kuiper\db\metadata\MetaModelInterface;
 use kuiper\db\metadata\MetaModelProperty;
 
@@ -28,6 +29,7 @@ class MetaModelCriteriaFilter implements CriteriaFilterInterface
         if ($clause instanceof ExpressionClause) {
             return $this->filterExpressClause($clause);
         }
+
         return $clause;
     }
 
@@ -46,26 +48,33 @@ class MetaModelCriteriaFilter implements CriteriaFilterInterface
                     ->getClause();
             }
             if ($clause->isInClause()) {
+                $fields = array_map(static function (Column $column) {
+                    return $column->getName();
+                }, $columns);
+                $values = array_map(static function ($item) use ($property) {
+                    return $property->getColumnValues($item);
+                }, $clause->getValue());
 
+                return Criteria::create()
+                    ->matches($values, $fields)
+                    ->getClause();
             }
-            if (!$clause->isInClause() && !$clause->isEqualClause()) {
-                throw new \InvalidArgumentException('');
-            }
-        } else {
-            $column = current($columns);
-            $value = $clause->getValue();
-            if ($clause->isInClause()) {
-                $value = array_map(static function ($item) use ($property) {
-                    $columnValues = $property->getColumnValues($item);
-
-                    return current($columnValues);
-                }, $value);
-            } elseif (!$clause->isLikeClause()) {
-                $columnValues = $property->getColumnValues($value);
-                $value = current($columnValues);
-            }
-
-            return new ExpressionClause($column->getName(), $clause->getOperator(), $value);
+            throw new \InvalidArgumentException('only = or in can apply to '.$property->getEntityClass()->getName().'.'.$property->getPath());
         }
+
+        $column = current($columns);
+        $value = $clause->getValue();
+        if ($clause->isInClause()) {
+            $value = array_map(static function ($item) use ($property) {
+                $columnValues = $property->getColumnValues($item);
+
+                return current($columnValues);
+            }, $value);
+        } elseif (!$clause->isLikeClause()) {
+            $columnValues = $property->getColumnValues($value);
+            $value = current($columnValues);
+        }
+
+        return new ExpressionClause($column->getName(), $clause->getOperator(), $value);
     }
 }

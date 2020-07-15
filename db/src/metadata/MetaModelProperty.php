@@ -11,6 +11,8 @@ use kuiper\reflection\ReflectionTypeInterface;
 
 class MetaModelProperty
 {
+    public const PATH_SEPARATOR = '.';
+
     /**
      * @var \ReflectionProperty
      */
@@ -63,7 +65,7 @@ class MetaModelProperty
         $this->type = $type;
         $this->parent = $parent;
         $this->annotations = $annotations;
-        $this->path = ($parent ? $parent->getPath().'.' : '').$property->getName();
+        $this->path = ($parent ? $parent->getPath().self::PATH_SEPARATOR : '').$property->getName();
         $this->ancestors = $this->buildAncestors();
     }
 
@@ -169,7 +171,7 @@ class MetaModelProperty
 
     public function getSubProperty(string $path): ?MetaModelProperty
     {
-        $parts = explode($path, '.', 2);
+        $parts = explode(self::PATH_SEPARATOR, $path, 2);
         if (!isset($this->children[$parts[0]])) {
             return null;
         }

@@ -12,6 +12,8 @@ use kuiper\db\fixtures\Door;
 use kuiper\db\fixtures\DoorId;
 use kuiper\db\fixtures\DoorRepository;
 use kuiper\db\metadata\MetaModelFactory;
+use function kuiper\helper\env;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class RepositoryTest extends AbstractRepositoryTestCase
@@ -23,13 +25,9 @@ class RepositoryTest extends AbstractRepositoryTestCase
         }
     }
 
-    public function createConnection(): Connection
+    public function createConnection(EventDispatcherInterface $eventDispatcher): Connection
     {
         $config = $this->getConfig();
-        $eventDispatcher = new EventDispatcher();
-        $eventDispatcher->addListener(StatementQueriedEvent::class, function (StatementQueriedEvent $event) {
-            error_log($event->getStatement()->getStatement());
-        });
         $conn = new Connection($config[0], $config[1], $config[2]);
         $conn->setEventDispatcher($eventDispatcher);
 
@@ -38,24 +36,32 @@ class RepositoryTest extends AbstractRepositoryTestCase
 
     public function getConfig()
     {
-        return [
+        $config = [
             sprintf('mysql:dbname=%s;host=%s;port=%d;charset=%s',
-                getenv('DB_NAME') ?: 'test',
-                getenv('DB_HOST') ?: 'localhost',
-                getenv('DB_PORT') ?: 3306,
-            getenv('DB_CHARSET') ?: 'utf8mb4'),
-            getenv('DB_USER') ?: 'root',
-            getenv('DB_PASS') ?: '',
+                env('DB_NAME', 'test'),
+                env('DB_HOST', 'localhost'),
+                env('DB_PORT') ?: 3306,
+                env('DB_CHARSET', 'utf8mb4')),
+            env('DB_USER', 'root'),
+            env('DB_PASS', ''),
         ];
+
+        return $config;
     }
 
     public function createRepository($repositoryClass): AbstractCrudRepository
     {
+        $eventDispatcher = new EventDispatcher();
+
+        $eventDispatcher->addListener(StatementQueriedEvent::class, function (StatementQueriedEvent $event) {
+            error_log($event->getStatement()->getStatement());
+        });
+
         return new $repositoryClass(
-            new QueryBuilder(new SingleConnectionPool($this->createConnection()), null, null),
+            new QueryBuilder(new SingleConnectionPool($this->createConnection($eventDispatcher)), null, $eventDispatcher),
             new MetaModelFactory($this->createAttributeRegistry(), null, null, null),
             new DateTimeFactory(),
-            new EventDispatcher());
+            $eventDispatcher);
     }
 
     public function testSave()
@@ -66,6 +72,22 @@ class RepositoryTest extends AbstractRepositoryTestCase
         $department->setName('it');
         $result = $repository->save($department);
         var_export($result);
+    }
+
+    public function testBatchInsert()
+    {
+        $repository = $this->createRepository(DepartmentRepository::class);
+        $repository->deleteAllBy(Criteria::create());
+
+        $result = $repository->batchInsert([
+            self::department('it', '100'),
+            self::department('bi'),
+        ]);
+        var_export($result);
+        $result[0]->setDepartNo('99');
+        $result[1]->setDepartNo('98');
+
+        $repository->batchUpdate($result);
     }
 
     public function testSaveDoor()
@@ -85,5 +107,16 @@ class RepositoryTest extends AbstractRepositoryTestCase
         $repository = $this->createRepository(DoorRepository::class);
         $door = $repository->findById(new DoorId('a01'));
         var_export($door);
+    }
+
+    public static function department(string $name, ?string $departNo = null): Department
+    {
+        $department = new Department();
+        $department->setName($name);
+        if (isset($departNo)) {
+            $department->setDepartNo($departNo);
+        }
+
+        return $department;
     }
 }

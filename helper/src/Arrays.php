@@ -78,13 +78,17 @@ class Arrays
         $ret = [];
         foreach ($arr as $elem) {
             if (is_callable($groupBy)) {
-                $ret[$groupBy($elem)][] = $elem;
+                $key = $groupBy($elem);
             } elseif (is_object($elem)) {
                 $method = 'get'.$groupBy;
-                $ret[$elem->$method()][] = $elem;
+                $key = $elem->$method();
             } else {
-                $ret[$elem[$groupBy]][] = $elem;
+                $key = $elem[$groupBy];
             }
+            if (!is_scalar($key)) {
+                throw new \InvalidArgumentException("Cannot group by key '$groupBy', support only scalar type, got ".(is_object($key) ? get_class($key) : gettype($key)));
+            }
+            $ret[$key][] = $elem;
         }
 
         return $ret;

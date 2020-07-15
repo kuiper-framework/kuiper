@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use InvalidArgumentException;
-use kuiper\db\event\AfterPersistEvent;
-use kuiper\db\event\BeforePersistEvent;
 use kuiper\db\exception\ExecutionFailException;
 use kuiper\db\metadata\MetaModelFactoryInterface;
 use kuiper\db\metadata\MetaModelInterface;
@@ -54,7 +52,6 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     public function insert($entity)
     {
         $this->checkEntityClassMatch($entity);
-        $this->dispatch(new BeforePersistEvent($this, $entity));
         $stmt = $this->buildInsertStatement($entity);
         $this->doExecute($stmt);
 
@@ -65,9 +62,38 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
                 $this->metaModel->setValue($entity, $autoIncrementColumn, $stmt->getConnection()->lastInsertId());
             }
         }
-        $this->dispatch(new AfterPersistEvent($this, $entity));
 
         return $entity;
+    }
+
+    public function batchInsert(array $entities): array
+    {
+        if (empty($entities)) {
+            return [];
+        }
+        $stmt = $this->queryBuilder->insert($this->getTableName());
+        foreach ($entities as $entity) {
+            $this->checkEntityClassMatch($entity);
+
+            $this->setCreationTimestamp($entity);
+            $this->setUpdateTimestamp($entity);
+            $cols = $this->metaModel->freeze($entity, false);
+
+            $stmt->addRow($cols);
+        }
+        $stmt->execute();
+        $autoIncrementColumn = $this->metaModel->getAutoIncrement();
+        if ($autoIncrementColumn) {
+            $lastInsertId = $stmt->getConnection()->lastInsertId();
+            foreach ($entities as $entity) {
+                $value = $this->metaModel->getValue($entity, $autoIncrementColumn);
+                if (!$value) {
+                    $this->metaModel->setValue($entity, $autoIncrementColumn, $lastInsertId++);
+                }
+            }
+        }
+
+        return $entities;
     }
 
     public function update($entity)
@@ -78,6 +104,58 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $this->doExecute($stmt);
 
         return $entity;
+    }
+
+    public function batchUpdate(array $entities): array
+    {
+        $idValues = [];
+        $idColumn = '';
+        foreach ($entities as $i => $entity) {
+            $this->checkEntityClassMatch($entity);
+            $id = $this->metaModel->getId($entity);
+            if (!isset($id)) {
+                throw new \InvalidArgumentException('entity id should not empty');
+            }
+            $idColumns = $this->metaModel->idToPrimaryKey($id);
+            if (empty($idColumn)) {
+                if (1 !== count($idColumns)) {
+                    throw new \InvalidArgumentException('Cannot batch update for multiple key');
+                }
+                $idColumn = array_keys($idColumns)[0];
+            }
+            $idValues[$i] = $idColumns[$idColumn];
+        }
+        $stmt = $this->queryBuilder->update($this->getTableName());
+        $fields = [];
+        $rows = [];
+        $bindValues = [];
+        foreach ($entities as $i => $entity) {
+            $this->setUpdateTimestamp($entity);
+            $cols = $this->metaModel->freeze($entity);
+            unset($cols[$idColumn]);
+            if (empty($fields)) {
+                $fields = array_keys($cols);
+            }
+            $rows[$idValues[$i]] = $cols;
+        }
+
+        $i = 1;
+        foreach ($fields as $field) {
+            $caseExp = ["case `$idColumn`"];
+            foreach ($idValues as $idValue) {
+                $v1 = 'i'.($i++);
+                $v2 = 'i'.($i++);
+                $caseExp[] = sprintf('when :%s then :%s', $v1, $v2);
+                $bindValues[$v1] = $idValue;
+                $bindValues[$v2] = $rows[$idValue][$field] ?? null;
+            }
+            $stmt->set($field, implode(' ', $caseExp).' end');
+        }
+        $stmt->bindValues($bindValues);
+        $stmt->in($idColumn, $idValues);
+        $stmt->execute();
+
+        return $entities;
     }
 
     public function save($entity)
@@ -130,7 +208,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return array_map([$this->metaModel, 'thaw'], $this->doQuery($stmt)->fetchAll(PDO::FETCH_ASSOC));
     }
 
-    public function count($criteria = null): int
+    public function count($criteria): int
     {
         $stmt = $this->buildQueryStatement($criteria)
             ->select('count(*)')
@@ -172,7 +250,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $this->deleteAllById(array_map([$this->metaModel, 'getId'], $entities));
     }
 
-    public function deleteAllBy($criteria = null): void
+    public function deleteAllBy($criteria): void
     {
         $stmt = $this->buildStatement(
             $this->queryBuilder->delete($this->getTableName()), $criteria

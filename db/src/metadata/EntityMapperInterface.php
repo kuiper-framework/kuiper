@@ -13,7 +13,7 @@ interface EntityMapperInterface
      *
      * @return array the column values
      */
-    public function freeze($entity): array;
+    public function freeze($entity, bool $ignoreNull = true): array;
 
     /**
      * Converts database column values.
