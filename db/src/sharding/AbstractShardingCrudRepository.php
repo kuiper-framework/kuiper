@@ -8,6 +8,7 @@ use kuiper\db\AbstractCrudRepository;
 use kuiper\db\annotation\ShardKey;
 use kuiper\db\Criteria;
 use kuiper\db\DateTimeFactoryInterface;
+use kuiper\db\exception\MetaModelException;
 use kuiper\db\metadata\MetaModelFactoryInterface;
 use kuiper\db\StatementInterface;
 use kuiper\helper\Arrays;
@@ -37,6 +38,9 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
             if ($column->getProperty()->hasAnnotation(ShardKey::class)) {
                 $this->shardKeys[] = $column->getName();
             }
+        }
+        if (empty($this->shardKeys)) {
+            throw new MetaModelException($this->metaModel->getEntityClass()->getName().' does not contain any sharding columns, please annotate property with @'.ShardKey::class);
         }
     }
 
@@ -112,13 +116,10 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
 
         $missing = array_diff($this->shardKeys, array_keys($fields));
         if (!empty($missing)) {
-            throw new \InvalidArgumentException(sprintf('Shard fields %s are required for table %s', json_encode($missing), $this->tableMetadata->getTableName()));
+            throw new \InvalidArgumentException(sprintf('Shard fields %s are required for table %s', json_encode($missing), $this->getTableName()));
         }
     }
 
-    /**
-     * @param $entity
-     */
     protected function getShardFields($entity): array
     {
         $shard = [];

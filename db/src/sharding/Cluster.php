@@ -9,7 +9,7 @@ use Aura\SqlQuery\QueryInterface;
 use kuiper\db\ConnectionPoolInterface;
 use kuiper\event\EventDispatcherAwareInterface;
 use kuiper\event\EventDispatcherAwareTrait;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 class Cluster implements ClusterInterface, EventDispatcherAwareInterface
 {
