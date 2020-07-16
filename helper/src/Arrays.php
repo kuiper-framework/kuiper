@@ -120,21 +120,27 @@ class Arrays
 
     public static function flatten(array $arr, int $depth = 1, bool $keepKeys = false): array
     {
-        if (empty($arr)) {
-            return [];
+        if (empty($arr) || $depth < 1) {
+            return $arr;
         }
-        $items = [];
-        foreach ($arr as $item) {
-            if ($depth > 1) {
-                $items[] = self::flatten($item, $depth - 1, $keepKeys);
-            } elseif (is_array($item)) {
-                $items[] = $keepKeys ? $item : array_values($item);
-            } else {
-                throw new \InvalidArgumentException('element type is not array');
+        if (1 === $depth) {
+            foreach ($arr as $item) {
+                if (!is_array($item)) {
+                    throw new \InvalidArgumentException('element type is not array');
+                }
             }
-        }
 
-        return array_merge(...$items);
+            return $keepKeys
+                ? array_merge(...array_values($arr))
+                : array_merge(...array_map('array_values', array_values($arr)));
+        } else {
+            $items = [];
+            foreach ($arr as $item) {
+                $items[] = self::flatten($item, $depth - 1, $keepKeys);
+            }
+
+            return array_merge(...$items);
+        }
     }
 
     /**
