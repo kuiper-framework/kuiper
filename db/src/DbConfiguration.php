@@ -137,10 +137,11 @@ class DbConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
+     * @Inject({"driver":"application.database.driver"})
      */
-    public function queryFactory(): QueryFactory
+    public function queryFactory(?string $driver): QueryFactory
     {
-        return new QueryFactory('mysql');
+        return new QueryFactory($driver ?? 'mysql');
     }
 
     /**

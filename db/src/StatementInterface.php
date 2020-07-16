@@ -80,6 +80,11 @@ interface StatementInterface
     public function cols(array $values): StatementInterface;
 
     /**
+     * @return static
+     */
+    public function addRow(array $values): StatementInterface;
+
+    /**
      * Executes statement.
      */
     public function execute(): bool;

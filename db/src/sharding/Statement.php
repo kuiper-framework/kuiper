@@ -58,11 +58,18 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
 
     public function cols(array $fields): \kuiper\db\StatementInterface
     {
-        if (is_array($fields)) {
+        $this->shardBy = array_merge($this->shardBy, $fields);
+
+        return parent::cols($fields);
+    }
+
+    public function addRow(array $fields = []): \kuiper\db\StatementInterface
+    {
+        if (!empty($fields)) {
             $this->shardBy = array_merge($this->shardBy, $fields);
         }
 
-        return parent::cols($fields);
+        return parent::addRow($fields);
     }
 
     public function where($condition, ...$args): \kuiper\db\StatementInterface

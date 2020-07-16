@@ -68,7 +68,7 @@ interface CrudRepositoryInterface
      *
      * @param array|callable|Criteria $criteria
      */
-    public function findAllBy($criteria = null): array;
+    public function findAllBy($criteria): array;
 
     /**
      * Query with the given criteria.

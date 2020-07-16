@@ -1,16 +1,26 @@
-door:
+test_door:
   columns:
     door_code: 'string notnull'
     name: 'string'
   indexes:
     PRIMARY: 'PRIMARY KEY(door_code)'
 
-department:
+test_department:
   columns:
     id: 'bigint unsigned notnull autoincrement'
     create_time: 'datetime notnull'
     update_time: 'datetime notnull'
     name: 'string'
     depart_no: 'string'
+  indexes:
+    PRIMARY: 'PRIMARY KEY(id)'
+
+test_employee:
+  columns:
+    id: 'bigint unsigned notnull autoincrement'
+    create_time: 'datetime notnull'
+    update_time: 'datetime notnull'
+    name: 'string'
+    sharding: 'integer notnull'
   indexes:
     PRIMARY: 'PRIMARY KEY(id)'

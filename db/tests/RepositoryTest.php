@@ -12,6 +12,7 @@ use kuiper\db\fixtures\Door;
 use kuiper\db\fixtures\DoorId;
 use kuiper\db\fixtures\DoorRepository;
 use kuiper\db\metadata\MetaModelFactory;
+use kuiper\db\metadata\NamingStrategy;
 use function kuiper\helper\env;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -59,7 +60,7 @@ class RepositoryTest extends AbstractRepositoryTestCase
 
         return new $repositoryClass(
             new QueryBuilder(new SingleConnectionPool($this->createConnection($eventDispatcher)), null, $eventDispatcher),
-            new MetaModelFactory($this->createAttributeRegistry(), null, null, null),
+            new MetaModelFactory($this->createAttributeRegistry(), new NamingStrategy('test_'), null, null),
             new DateTimeFactory(),
             $eventDispatcher);
     }
@@ -71,7 +72,8 @@ class RepositoryTest extends AbstractRepositoryTestCase
         $department = new Department();
         $department->setName('it');
         $result = $repository->save($department);
-        var_export($result);
+        // var_export($result);
+        $this->assertNotEmpty($result->getId());
     }
 
     public function testBatchInsert()
@@ -83,11 +85,14 @@ class RepositoryTest extends AbstractRepositoryTestCase
             self::department('it', '100'),
             self::department('bi'),
         ]);
-        var_export($result);
+        $this->assertCount(2, $result);
+
+        // var_export($result);
         $result[0]->setDepartNo('99');
         $result[1]->setDepartNo('98');
 
-        $repository->batchUpdate($result);
+        $result = $repository->batchUpdate($result);
+        $this->assertCount(2, $result);
     }
 
     public function testSaveDoor()
@@ -98,15 +103,23 @@ class RepositoryTest extends AbstractRepositoryTestCase
         $door = new Door(new DoorId('a01'));
         $door->setName('it');
         $result = $repository->save($door);
-        var_export($result);
+        // var_export($result);
+        $this->assertNotNull($result);
     }
 
     public function testFindById()
     {
         /** @var DoorRepository $repository */
         $repository = $this->createRepository(DoorRepository::class);
+        $repository->deleteAllBy(Criteria::create());
+
+        $door = new Door(new DoorId('a01'));
+        $door->setName('it');
+        $repository->save($door);
+
         $door = $repository->findById(new DoorId('a01'));
-        var_export($door);
+        $this->assertNotNull($door);
+        // var_export($door);
     }
 
     public static function department(string $name, ?string $departNo = null): Department

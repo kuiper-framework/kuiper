@@ -192,6 +192,16 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
+    public function addRow(array $values): StatementInterface
+    {
+        $this->query->addRow($values);
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function limit($limit): StatementInterface
     {
         $this->query->limit($limit);

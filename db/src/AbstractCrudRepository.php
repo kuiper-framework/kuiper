@@ -71,6 +71,11 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         if (empty($entities)) {
             return [];
         }
+        if (1 === count($entities)) {
+            reset($entities);
+
+            return [$this->insert(current($entities))];
+        }
         $stmt = $this->queryBuilder->insert($this->getTableName());
         foreach ($entities as $entity) {
             $this->checkEntityClassMatch($entity);
@@ -111,52 +116,12 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         if (empty($entities)) {
             return [];
         }
-        $idValues = [];
-        $idColumn = '';
-        foreach ($entities as $i => $entity) {
-            $this->checkEntityClassMatch($entity);
-            $id = $this->metaModel->getId($entity);
-            if (!isset($id)) {
-                throw new \InvalidArgumentException('entity id should not empty');
-            }
-            $idColumns = $this->metaModel->idToPrimaryKey($id);
-            if (empty($idColumn)) {
-                if (1 !== count($idColumns)) {
-                    throw new \InvalidArgumentException('Cannot batch update for primary key that contain multiple columns');
-                }
-                $idColumn = array_keys($idColumns)[0];
-            }
-            $idValues[$i] = $idColumns[$idColumn];
-        }
-        $stmt = $this->queryBuilder->update($this->getTableName());
-        $fields = [];
-        $rows = [];
-        $bindValues = [];
-        foreach ($entities as $i => $entity) {
-            $this->setUpdateTimestamp($entity);
-            $cols = $this->metaModel->freeze($entity);
-            unset($cols[$idColumn]);
-            if (empty($fields)) {
-                $fields = array_keys($cols);
-            }
-            $rows[$idValues[$i]] = $cols;
-        }
+        if (1 === count($entities)) {
+            reset($entities);
 
-        $i = 1;
-        foreach ($fields as $field) {
-            $caseExp = ["case `$idColumn`"];
-            foreach ($idValues as $idValue) {
-                $v1 = 'i'.($i++);
-                $v2 = 'i'.($i++);
-                $caseExp[] = sprintf('when :%s then :%s', $v1, $v2);
-                $bindValues[$v1] = $idValue;
-                $bindValues[$v2] = $rows[$idValue][$field] ?? null;
-            }
-            $stmt->set($field, implode(' ', $caseExp).' end');
+            return [$this->update(current($entities))];
         }
-        $stmt->bindValues($bindValues);
-        $stmt->in($idColumn, $idValues);
-        $stmt->execute();
+        $this->doExecute($this->buildBatchUpdateStatement($entities));
 
         return $entities;
     }
@@ -204,7 +169,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $this->findAllBy($this->createCriteriaById($ids));
     }
 
-    public function findAllBy($criteria = null): array
+    public function findAllBy($criteria): array
     {
         $stmt = $this->buildQueryStatement($criteria);
 
@@ -412,10 +377,68 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $this->metaModel->getTable();
     }
 
-    private function checkEntityClassMatch($entity): void
+    protected function checkEntityClassMatch($entity): void
     {
         if (!$this->metaModel->getEntityClass()->isInstance($entity)) {
             throw new \InvalidArgumentException('Expected entity instance of '.$this->metaModel->getEntityClass()->getName().', got '.get_class($entity));
         }
+    }
+
+    protected function buildBatchUpdateStatement(array $entities): StatementInterface
+    {
+        [$idColumn, $idValues] = $this->extractIdValues($entities);
+        $stmt = $this->queryBuilder->update($this->getTableName());
+        $fields = [];
+        $rows = [];
+        $bindValues = [];
+        foreach ($entities as $i => $entity) {
+            $this->setUpdateTimestamp($entity);
+            $cols = $this->metaModel->freeze($entity);
+            unset($cols[$idColumn]);
+            if (empty($fields)) {
+                $fields = array_keys($cols);
+            }
+            $rows[$idValues[$i]] = $cols;
+        }
+
+        $i = 1;
+        foreach ($fields as $field) {
+            $caseExp = ["case `$idColumn`"];
+            foreach ($idValues as $idValue) {
+                $v1 = 'i'.($i++);
+                $v2 = 'i'.($i++);
+                $caseExp[] = sprintf('when :%s then :%s', $v1, $v2);
+                $bindValues[$v1] = $idValue;
+                $bindValues[$v2] = $rows[$idValue][$field] ?? null;
+            }
+            $stmt->set($field, implode(' ', $caseExp).' end');
+        }
+        $stmt->bindValues($bindValues);
+        $stmt->in($idColumn, $idValues);
+
+        return $stmt;
+    }
+
+    protected function extractIdValues(array $entities): array
+    {
+        $idValues = [];
+        $idColumn = '';
+        foreach ($entities as $i => $entity) {
+            $this->checkEntityClassMatch($entity);
+            $id = $this->metaModel->getId($entity);
+            if (!isset($id)) {
+                throw new \InvalidArgumentException('entity id should not empty');
+            }
+            $idColumns = $this->metaModel->idToPrimaryKey($id);
+            if (empty($idColumn)) {
+                if (1 !== count($idColumns)) {
+                    throw new \InvalidArgumentException('Cannot batch update for primary key that contain multiple columns');
+                }
+                $idColumn = array_keys($idColumns)[0];
+            }
+            $idValues[$i] = $idColumns[$idColumn];
+        }
+
+        return [$idColumn, $idValues];
     }
 }
