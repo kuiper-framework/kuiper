@@ -330,7 +330,7 @@ class Criteria
     {
         $stmt->where(...$this->getQuery());
         if ($this->columns) {
-            $stmt->select($this->getColumns());
+            $stmt->select(...$this->getColumns());
         }
         if ($this->limit) {
             $stmt->limit($this->getLimit())

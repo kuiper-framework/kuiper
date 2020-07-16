@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\helper;
 
 use kuiper\helper\fixtures\User;
@@ -149,5 +151,42 @@ class ArraysTest extends TestCase
         });
         $this->assertEquals(['foo_id' => 1], $arr);
         $this->assertEquals(['prefixed_foo_id' => 1], $ret);
+    }
+
+    public function testFlatten()
+    {
+        $this->assertEquals([1, 2, 3], Arrays::flatten([[1], [2, 3]]));
+
+        $this->assertEquals([1, 2, 3], Arrays::flatten([
+            'a' => ['a' => 1],
+            'b' => ['a' => 2, 'b' => 3],
+        ]));
+    }
+
+    public function testFlatten2DimArray()
+    {
+        $this->assertEquals([1, 2, 3], Arrays::flatten([[[1], [2]], [[3]]], 2));
+
+        $this->assertEquals([1, 2, 3], Arrays::flatten([
+            'a' => ['a' => [
+                'a' => 1,
+            ]],
+            'b' => ['a' => ['b' => 2], 'b' => ['c' => 3]],
+        ], 2));
+    }
+
+    public function testFlattenKeepKey()
+    {
+        $this->assertEquals(['a' => 2, 'b' => 3], Arrays::flatten([
+            'a' => ['a' => 1],
+            'b' => ['a' => 2, 'b' => 3],
+        ], 1, true));
+
+        $this->assertEquals(['a' => 2, 'c' => 3], Arrays::flatten([
+            'a' => ['a' => [
+                'a' => 1,
+            ]],
+            'b' => ['a' => ['a' => 2], 'b' => ['c' => 3]],
+        ], 2, true));
     }
 }

@@ -108,6 +108,9 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     public function batchUpdate(array $entities): array
     {
+        if (empty($entities)) {
+            return [];
+        }
         $idValues = [];
         $idColumn = '';
         foreach ($entities as $i => $entity) {
@@ -119,7 +122,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             $idColumns = $this->metaModel->idToPrimaryKey($id);
             if (empty($idColumn)) {
                 if (1 !== count($idColumns)) {
-                    throw new \InvalidArgumentException('Cannot batch update for multiple key');
+                    throw new \InvalidArgumentException('Cannot batch update for primary key that contain multiple columns');
                 }
                 $idColumn = array_keys($idColumns)[0];
             }

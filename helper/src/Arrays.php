@@ -118,6 +118,25 @@ class Arrays
         return $ret;
     }
 
+    public static function flatten(array $arr, int $dimension = 1, bool $keepKeys = false): array
+    {
+        if (empty($arr)) {
+            return [];
+        }
+        $items = [];
+        foreach ($arr as $item) {
+            if ($dimension > 1) {
+                $items[] = self::flatten($item, $dimension - 1, $keepKeys);
+            } elseif (is_array($item)) {
+                $items[] = $keepKeys ? $item : array_values($item);
+            } else {
+                throw new \InvalidArgumentException('element type is not array');
+            }
+        }
+
+        return array_merge(...$items);
+    }
+
     /**
      * Create array with given keys.
      *
