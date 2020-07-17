@@ -115,7 +115,7 @@ class RepositoryTest extends AbstractRepositoryTestCase
 
         $door = new Door(new DoorId('a01'));
         $door->setName('it');
-        $repository->save($door);
+        $repository->insert($door);
 
         $door = $repository->findById(new DoorId('a01'));
         $this->assertNotNull($door);

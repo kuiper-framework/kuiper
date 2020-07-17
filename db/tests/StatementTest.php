@@ -102,7 +102,11 @@ WHERE
                 .'when ? then ? end')
             ->bindValues([1, 3, 2, 6])
             ->in('id', [1, 2]);
-        $this->assertEquals('',
+        $this->assertEquals('UPDATE `article`
+SET
+    `value` = case id when ? then ? when ? then ? end
+WHERE
+    id IN (:_5_,:_6_)',
             $stmt->getStatement());
     }
 }

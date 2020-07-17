@@ -49,6 +49,9 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $this->eventDispatcher = $eventDispatcher;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function insert($entity)
     {
         $this->checkEntityClassMatch($entity);
@@ -66,6 +69,9 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $entity;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function batchInsert(array $entities): array
     {
         if (empty($entities)) {
@@ -101,16 +107,26 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $entities;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function update($entity)
     {
         $this->checkEntityClassMatch($entity);
 
-        $stmt = $this->buildUpdateStatement($entity, $this->metaModel->getUniqueKey($entity));
+        $uniqueKeys = $this->getUniqueKeyValues($entity);
+        if (!isset($uniqueKeys)) {
+            throw new \InvalidArgumentException('Unique key is not set');
+        }
+        $stmt = $this->buildUpdateStatement($entity, $uniqueKeys);
         $this->doExecute($stmt);
 
         return $entity;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function batchUpdate(array $entities): array
     {
         if (empty($entities)) {
@@ -126,28 +142,40 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $entities;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function save($entity)
     {
         $this->checkEntityClassMatch($entity);
 
-        $uniqueKey = $this->metaModel->getUniqueKey($entity);
-        if ($uniqueKey && $this->count($uniqueKey) > 0) {
+        $id = $this->metaModel->getId($entity);
+        if (isset($id)) {
             return $this->update($entity);
         }
 
         return $this->insert($entity);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function findById($id)
     {
         return $this->findFirstBy($this->metaModel->idToPrimaryKey($id));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function existsById($id): bool
     {
         return $this->count($this->metaModel->idToPrimaryKey($id)) > 0;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function findFirstBy($criteria)
     {
         $stmt = $this->buildQueryStatement($criteria)->limit(1)
@@ -160,6 +188,40 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function findByNaturalId($example)
+    {
+        $this->checkEntityClassMatch($example);
+
+        return $this->findFirstBy($this->metaModel->getNaturalIdValues($example));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findAllByNaturalId(array $examples): array
+    {
+        if (empty($examples)) {
+            return [];
+        }
+        $values = [];
+        foreach ($examples as $example) {
+            $this->checkEntityClassMatch($example);
+            $values[] = $this->metaModel->getNaturalIdValues($example);
+        }
+        // 不能直接使用 Criteria 对象，因为  criteria 对象会被 filterCriteria 进行值转换
+        return $this->findAllBy(static function ($stmt) use ($values) {
+            return Criteria::create()
+                ->matches($values, array_keys($values[0]))
+                ->buildStatement($stmt);
+        });
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function findAllById(array $ids): array
     {
         if (empty($ids)) {
@@ -169,6 +231,9 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $this->findAllBy($this->createCriteriaById($ids));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function findAllBy($criteria): array
     {
         $stmt = $this->buildQueryStatement($criteria);
@@ -176,6 +241,9 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return array_map([$this->metaModel, 'thaw'], $this->doQuery($stmt)->fetchAll(PDO::FETCH_ASSOC));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function count($criteria): int
     {
         $stmt = $this->buildQueryStatement($criteria)
@@ -187,24 +255,40 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return (int) $this->doQuery($stmt)->fetchColumn(0);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function query($criteria): array
     {
         return $this->doQuery($this->buildQueryStatement($criteria))
             ->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function deleteById($id): void
     {
         $this->deleteAllBy($this->metaModel->idToPrimaryKey($id));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function delete($entity): void
     {
         $this->checkEntityClassMatch($entity);
 
-        $this->deleteAllBy($this->metaModel->getUniqueKey($entity));
+        $uniqueKeys = $this->getUniqueKeyValues($entity);
+        if (!isset($uniqueKeys)) {
+            throw new \InvalidArgumentException('missing unique key');
+        }
+        $this->deleteAllBy($uniqueKeys);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function deleteAllById(array $ids): void
     {
         if (empty($ids)) {
@@ -213,11 +297,17 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $this->deleteAllBy($this->createCriteriaById($ids));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function deleteAll(array $entities): void
     {
         $this->deleteAllById(array_map([$this->metaModel, 'getId'], $entities));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function deleteAllBy($criteria): void
     {
         $stmt = $this->buildStatement(
@@ -370,6 +460,17 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         if ($column) {
             $this->metaModel->setValue($entity, $column, $this->currentTimeString());
         }
+    }
+
+    /**
+     * @param object $entity
+     *
+     * @return array
+     */
+    protected function getUniqueKeyValues($entity): ?array
+    {
+        return $this->metaModel->getIdValues($entity)
+            ?? $this->metaModel->getNaturalIdValues($entity);
     }
 
     protected function getTableName(): string

@@ -7,11 +7,11 @@ namespace kuiper\db\metadata;
 use Aura\SqlQuery\QueryFactory;
 use kuiper\db\AbstractRepositoryTestCase;
 use kuiper\db\Connection;
-use kuiper\db\ConnectionPool;
 use kuiper\db\Criteria;
 use kuiper\db\fixtures\DoorId;
 use kuiper\db\fixtures\DoorRepository;
 use kuiper\db\QueryBuilder;
+use kuiper\db\SingleConnectionPool;
 
 class MetaModelCriteriaFilterTest extends AbstractRepositoryTestCase
 {
@@ -26,7 +26,7 @@ class MetaModelCriteriaFilterTest extends AbstractRepositoryTestCase
 
     public function setUp(): void
     {
-        $pool = new ConnectionPool(new Connection('', '', ''));
+        $pool = new SingleConnectionPool(new Connection('', '', ''));
         $queryBuilder = new QueryBuilder($pool, new QueryFactory('mysql'), null);
         $metaModelFactory = new MetaModelFactory($this->createAttributeRegistry(), null, null, null);
 

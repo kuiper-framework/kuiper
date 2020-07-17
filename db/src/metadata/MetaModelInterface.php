@@ -54,7 +54,14 @@ interface MetaModelInterface extends EntityMapperInterface
      *
      * @param object $entity
      */
-    public function getUniqueKey($entity): ?array;
+    public function getIdValues($entity): ?array;
+
+    /**
+     * Gets the database column values that annotated with {@see NaturalId}.
+     *
+     * @param object $entity
+     */
+    public function getNaturalIdValues($entity): ?array;
 
     /**
      * Gets the property value annotated with {@see Id}.

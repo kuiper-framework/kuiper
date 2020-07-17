@@ -31,10 +31,11 @@ class MetaModelFactoryTest extends AbstractRepositoryTestCase
         $metaModel = $this->metaModelFactory->create(DepartmentRepository::class);
         self::assertEquals('department', $metaModel->getTable());
         self::assertEquals([
-            0 => 'id',
-            1 => 'create_time',
-            2 => 'update_time',
-            3 => 'name',
+            'id',
+            'create_time',
+            'update_time',
+            'name',
+            'depart_no',
         ], $metaModel->getColumnNames());
         $this->assertEquals('update_time', $metaModel->getUpdateTimestamp());
         $this->assertEquals('create_time', $metaModel->getCreationTimestamp());
@@ -59,7 +60,7 @@ class MetaModelFactoryTest extends AbstractRepositoryTestCase
         self::assertEquals($department->getId(), $model->getId());
 
         $this->assertEquals($department->getId(), $metaModel->getId($department));
-        $this->assertEquals(['id' => $department->getId()], $metaModel->getUniqueKey($department));
+        $this->assertEquals(['id' => $department->getId()], $metaModel->getIdValues($department));
     }
 
     public function testEmbedId()
@@ -83,7 +84,7 @@ class MetaModelFactoryTest extends AbstractRepositoryTestCase
         self::assertEquals($door->getDoorId(), $model->getDoorId());
 
         $this->assertEquals($door->getDoorId(), $metaModel->getId($door));
-        $this->assertEquals(['door_code' => $door->getDoorId()->getValue()], $metaModel->getUniqueKey($door));
+        $this->assertEquals(['door_code' => $door->getDoorId()->getValue()], $metaModel->getIdValues($door));
     }
 
     public function testDateAttribute()

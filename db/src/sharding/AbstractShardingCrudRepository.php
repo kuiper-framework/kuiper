@@ -44,6 +44,9 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function batchInsert(array $entities): array
     {
         if (empty($entities)) {
@@ -59,6 +62,9 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         return array_merge(...$result);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function batchUpdate(array $entities): array
     {
         if (empty($entities)) {
@@ -74,6 +80,29 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
                 $stmt = $this->buildBatchUpdateStatement($partEntities);
                 $stmt->shardBy($this->getShardFields($partEntities[0]));
                 $this->doExecute($stmt);
+            }
+            $result[] = $partEntities;
+        }
+
+        return array_merge(...$result);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findAllByNaturalId(array $examples): array
+    {
+        if (empty($examples)) {
+            return [];
+        }
+        $result = [];
+        foreach (Arrays::groupBy($examples, function ($entity) {
+            return $this->getShardingId($entity);
+        }) as $partEntities) {
+            if (1 === count($partEntities)) {
+                $result[] = [$this->findByNaturalId($partEntities[0])];
+            } else {
+                $result[] = parent::findAllByNaturalId($partEntities);
             }
             $result[] = $partEntities;
         }
@@ -124,7 +153,11 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
     {
         $shard = [];
         foreach ($this->shardKeys as $field) {
-            $shard[$field] = $this->metaModel->getValue($entity, $field);
+            $value = $this->metaModel->getValue($entity, $field);
+            if (!isset($value)) {
+                throw new \InvalidArgumentException("sharding column $field cannot be null");
+            }
+            $shard[$field] = $value;
         }
 
         return $shard;

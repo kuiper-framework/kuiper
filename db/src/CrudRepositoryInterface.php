@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+use kuiper\db\annotation\NaturalId;
+
 interface CrudRepositoryInterface
 {
     /**
@@ -16,6 +18,11 @@ interface CrudRepositoryInterface
     public function insert($entity);
 
     /**
+     * Batch insert entities.
+     */
+    public function batchInsert(array $entities): array;
+
+    /**
      * Saves the entity.
      *
      * @param object $entity
@@ -23,6 +30,11 @@ interface CrudRepositoryInterface
      * @return object the entity
      */
     public function update($entity);
+
+    /**
+     * Batch update entities.
+     */
+    public function batchUpdate(array $entities): array;
 
     /**
      * Saves the entity.
@@ -57,6 +69,22 @@ interface CrudRepositoryInterface
      * @return object|null the entity
      */
     public function findFirstBy($criteria);
+
+    /**
+     * Find the entity by fields annotated with @{@see NaturalId}.
+     *
+     * @param object $example
+     *
+     * @return object|null the entity
+     */
+    public function findByNaturalId($example);
+
+    /**
+     * Find all entities by fields annotated with @{@see NaturalId}.
+     *
+     * @return object[] the entity
+     */
+    public function findAllByNaturalId(array $examples): array;
 
     /**
      * Returns all instances of the type with the given IDs.

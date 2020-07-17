@@ -11,6 +11,7 @@ use kuiper\db\annotation\UpdateTimestamp;
 use kuiper\db\Criteria;
 use kuiper\db\criteria\CriteriaFilterInterface;
 use kuiper\db\criteria\MetaModelCriteriaFilter;
+use kuiper\helper\Arrays;
 
 class MetaModel implements MetaModelInterface
 {
@@ -188,20 +189,31 @@ class MetaModel implements MetaModelInterface
         return null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getUniqueKey($entity): ?array
+    public function getIdValues($entity): ?array
     {
-        $idValue = $this->idProperty->getValue($entity);
-        if (isset($idValue)) {
-            return $this->getColumnValues($entity, $this->annotatedColumns[Id::class]);
+        return $this->getUniqueKeyValues($entity, Id::class);
+    }
+
+    public function getNaturalIdValues($entity): ?array
+    {
+        return $this->getUniqueKeyValues($entity, NaturalId::class);
+    }
+
+    protected function getUniqueKeyValues($entity, string $idAnnotation): ?array
+    {
+        if (!isset($this->annotatedColumns[$idAnnotation])) {
+            return null;
         }
-        if (isset($this->annotatedColumns[NaturalId::class])) {
-            return $this->getColumnValues($entity, $this->annotatedColumns[NaturalId::class]);
+        $values = $this->getColumnValues($entity, $this->annotatedColumns[$idAnnotation]);
+        $nonNullValues = Arrays::filter($values);
+        if (empty($nonNullValues)) {
+            return null;
+        }
+        if (count($nonNullValues) !== count($values)) {
+            throw new \InvalidArgumentException('Entity contains null value in id column');
         }
 
-        return null;
+        return $values;
     }
 
     /**
@@ -257,7 +269,7 @@ class MetaModel implements MetaModelInterface
      * @param object   $entity
      * @param Column[] $columns
      */
-    protected function getColumnValues($entity, array $columns): array
+    protected function getColumnValues($entity, array $columns): ?array
     {
         $values = [];
         foreach ($columns as $column) {
