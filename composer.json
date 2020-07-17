@@ -96,6 +96,11 @@
             "kuiper\\web\\": "web/tests/"
         }
     },
+    "archive": {
+        "exclude": [
+            "*/tests/"
+        ]
+    },
     "extra": {
         "kuiper": {
             "configuration": [
