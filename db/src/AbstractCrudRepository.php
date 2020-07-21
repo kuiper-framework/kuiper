@@ -289,6 +289,18 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     /**
      * {@inheritdoc}
      */
+    public function deleteFirstBy($criteria): void
+    {
+        $stmt = $this->buildStatement(
+            $this->queryBuilder->delete($this->getTableName()), $criteria
+        );
+        $stmt->limit(1);
+        $this->doExecute($stmt);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function deleteAllById(array $ids): void
     {
         if (empty($ids)) {

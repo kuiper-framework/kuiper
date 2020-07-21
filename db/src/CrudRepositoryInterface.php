@@ -126,6 +126,14 @@ interface CrudRepositoryInterface
      */
     public function delete($entity): void;
 
+    /**
+     * Delete first entity matches criteria.
+     */
+    public function deleteFirstBy($criteria): void;
+
+    /**
+     * Delete all entity by id.
+     */
     public function deleteAllById(array $ids): void;
 
     public function deleteAll(array $entities): void;

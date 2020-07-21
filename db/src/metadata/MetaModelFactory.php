@@ -173,12 +173,12 @@ class MetaModelFactory implements MetaModelFactoryInterface
             $metaProperty->createColumn($columnName, $attributeConverter);
         } else {
             if (!$type->isClass()) {
-                throw new MetaModelException(sprintf('Unsupported type %s for %s property %s', $type->getName(), $metaProperty->getEntityClass(), $metaProperty->getPath()));
+                throw new MetaModelException(sprintf('Unsupported type %s for %s property %s', $type->getName(), $metaProperty->getEntityClass()->getName(), $metaProperty->getPath()));
             }
             $reflectionClass = new \ReflectionClass($type->getName());
             $isEmbeddable = $this->annotationReader->getClassAnnotation($reflectionClass, Embeddable::class);
             if (!$isEmbeddable) {
-                throw new MetaModelException(sprintf('%s property %s type class %s is not annotated with %s', $metaProperty->getEntityClass(), $metaProperty->getPath(), $type->getName(), Embeddable::class));
+                throw new MetaModelException(sprintf('%s property %s type class %s is not annotated with %s', $metaProperty->getEntityClass()->getName(), $metaProperty->getPath(), $type->getName(), Embeddable::class));
             }
 
             $metaProperty->setChildren($this->getProperties($reflectionClass, $metaProperty));
