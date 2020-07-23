@@ -157,6 +157,25 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $this->insert($entity);
     }
 
+    public function batchSave(array $entities): array
+    {
+        $inserts = [];
+        $updates = [];
+        foreach ($entities as $entity) {
+            $this->checkEntityClassMatch($entity);
+            $id = $this->metaModel->getId($entity);
+            if (isset($id)) {
+                $updates[] = $entity;
+            } else {
+                $inserts[] = $entity;
+            }
+        }
+        $this->batchInsert($inserts);
+        $this->batchUpdate($updates);
+
+        return $entities;
+    }
+
     /**
      * {@inheritdoc}
      */

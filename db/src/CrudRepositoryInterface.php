@@ -23,7 +23,7 @@ interface CrudRepositoryInterface
     public function batchInsert(array $entities): array;
 
     /**
-     * Saves the entity.
+     * Updates the entity.
      *
      * @param object $entity
      *
@@ -44,6 +44,11 @@ interface CrudRepositoryInterface
      * @return object the entity
      */
     public function save($entity);
+
+    /**
+     * Batch save entities.
+     */
+    public function batchSave(array $entities): array;
 
     /**
      * Finds the entity by id.
