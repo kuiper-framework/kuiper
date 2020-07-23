@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\orm\serializer;
+namespace kuiper\db\converter;
 
-use kuiper\db\converter\AttributeConverterInterface;
 use kuiper\db\metadata\Column;
 use Symfony\Component\Serializer\SerializerInterface;
 
