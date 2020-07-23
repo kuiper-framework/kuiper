@@ -10,8 +10,8 @@ use kuiper\db\annotation\Annotation;
 use kuiper\db\annotation\Column as ColumnAnnotation;
 use kuiper\db\annotation\Convert;
 use kuiper\db\annotation\Embeddable;
-use kuiper\db\annotation\Entity;
 use kuiper\db\annotation\Enumerated;
+use kuiper\db\annotation\Repository;
 use kuiper\db\annotation\Table;
 use kuiper\db\annotation\Transient;
 use kuiper\db\converter\AttributeConverterInterface;
@@ -59,32 +59,42 @@ class MetaModelFactory implements MetaModelFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function create(string $repositoryClass): MetaModelInterface
+    public function create(string $entityClass): MetaModelInterface
     {
-        $reflectionClass = new \ReflectionClass($repositoryClass);
-        $entityClass = $this->getEntityClass($reflectionClass);
+        return $this->createInterval(new \ReflectionClass($entityClass));
+    }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function createFromRepository(string $repositoryClass): MetaModelInterface
+    {
+        return $this->createInterval($this->getEntityClass(new \ReflectionClass($repositoryClass)));
+    }
+
+    private function createInterval(\ReflectionClass $entityClass): MetaModelInterface
+    {
         return new MetaModel($this->getTableName($entityClass), $entityClass,
             $this->getProperties($entityClass, null));
     }
 
     private function getEntityClass(\ReflectionClass $reflectionClass): \ReflectionClass
     {
-        /** @var Entity $annotation */
-        $annotation = $this->annotationReader->getClassAnnotation($reflectionClass, Entity::class);
+        /** @var Repository $annotation */
+        $annotation = $this->annotationReader->getClassAnnotation($reflectionClass, Repository::class);
         if (!$annotation) {
             foreach ($reflectionClass->getInterfaces() as $interface) {
-                $annotation = $this->annotationReader->getClassAnnotation($interface, Entity::class);
+                $annotation = $this->annotationReader->getClassAnnotation($interface, Repository::class);
                 if ($annotation) {
                     break;
                 }
             }
         }
         if (!$annotation) {
-            throw new \InvalidArgumentException($reflectionClass->getName().' should annotation with @'.Entity::class);
+            throw new \InvalidArgumentException($reflectionClass->getName().' should annotation with @'.Repository::class);
         }
 
-        return new \ReflectionClass($annotation->value);
+        return new \ReflectionClass($annotation->entityClass);
     }
 
     private function getTableName(\ReflectionClass $entityClass): string

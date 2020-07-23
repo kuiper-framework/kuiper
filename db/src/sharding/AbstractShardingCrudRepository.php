@@ -75,7 +75,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
             return $this->getShardingId($entity);
         }) as $partEntities) {
             if (1 === count($partEntities)) {
-                $result[] = [$this->update($partEntities[0])];
+                $this->update($partEntities[0]);
             } else {
                 $stmt = $this->buildBatchUpdateStatement($partEntities);
                 $stmt->shardBy($this->getShardFields($partEntities[0]));
@@ -100,11 +100,13 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
             return $this->getShardingId($entity);
         }) as $partEntities) {
             if (1 === count($partEntities)) {
-                $result[] = [$this->findByNaturalId($partEntities[0])];
+                $exist = $this->findByNaturalId($partEntities[0]);
+                if ($exist) {
+                    $result[] = [$exist];
+                }
             } else {
                 $result[] = parent::findAllByNaturalId($partEntities);
             }
-            $result[] = $partEntities;
         }
 
         return array_merge(...$result);

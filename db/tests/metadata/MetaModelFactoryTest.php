@@ -7,12 +7,9 @@ namespace kuiper\db\metadata;
 use Carbon\Carbon;
 use kuiper\db\AbstractRepositoryTestCase;
 use kuiper\db\fixtures\Department;
-use kuiper\db\fixtures\DepartmentRepository;
 use kuiper\db\fixtures\Door;
 use kuiper\db\fixtures\DoorId;
-use kuiper\db\fixtures\DoorRepository;
 use kuiper\db\fixtures\User;
-use kuiper\db\fixtures\UserRepository;
 
 class MetaModelFactoryTest extends AbstractRepositoryTestCase
 {
@@ -28,7 +25,7 @@ class MetaModelFactoryTest extends AbstractRepositoryTestCase
 
     public function testCreate()
     {
-        $metaModel = $this->metaModelFactory->create(DepartmentRepository::class);
+        $metaModel = $this->metaModelFactory->create(Department::class);
         self::assertEquals('department', $metaModel->getTable());
         self::assertEquals([
             'id',
@@ -65,7 +62,7 @@ class MetaModelFactoryTest extends AbstractRepositoryTestCase
 
     public function testEmbedId()
     {
-        $metaModel = $this->metaModelFactory->create(DoorRepository::class);
+        $metaModel = $this->metaModelFactory->create(Door::class);
         self::assertEquals('door', $metaModel->getTable());
         self::assertEquals([
             'door_code',
@@ -89,7 +86,7 @@ class MetaModelFactoryTest extends AbstractRepositoryTestCase
 
     public function testDateAttribute()
     {
-        $metaModel = $this->metaModelFactory->create(UserRepository::class);
+        $metaModel = $this->metaModelFactory->create(User::class);
         $user = new User();
         $user->setDob(Carbon::parse('2020-03-01'));
         $row = $metaModel->freeze($user);

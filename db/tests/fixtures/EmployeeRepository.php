@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace kuiper\db\fixtures;
 
-use kuiper\db\annotation\Entity;
+use kuiper\db\annotation\Repository;
 use kuiper\db\sharding\AbstractShardingCrudRepository;
 
 /**
- * @Entity(Employee::class)
+ * @Repository(entityClass=Employee::class)
  */
 class EmployeeRepository extends AbstractShardingCrudRepository
 {

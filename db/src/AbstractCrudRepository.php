@@ -45,7 +45,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     {
         $this->queryBuilder = $queryBuilder;
         $this->dateTimeFactory = $dateTimeFactory;
-        $this->metaModel = $metaModelFactory->create(get_class($this));
+        $this->metaModel = $metaModelFactory->createFromRepository(get_class($this));
         $this->eventDispatcher = $eventDispatcher;
     }
 

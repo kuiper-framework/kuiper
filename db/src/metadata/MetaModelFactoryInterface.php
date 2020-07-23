@@ -13,5 +13,10 @@ interface MetaModelFactoryInterface
      *
      * @throws MetaModelException if column not valid
      */
-    public function create(string $repositoryClass): MetaModelInterface;
+    public function create(string $entityClass): MetaModelInterface;
+
+    /**
+     * Creates the table metadata by repository.
+     */
+    public function createFromRepository(string $repositoryClass): MetaModelInterface;
 }

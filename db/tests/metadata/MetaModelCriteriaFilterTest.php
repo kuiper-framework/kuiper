@@ -8,8 +8,8 @@ use Aura\SqlQuery\QueryFactory;
 use kuiper\db\AbstractRepositoryTestCase;
 use kuiper\db\Connection;
 use kuiper\db\Criteria;
+use kuiper\db\fixtures\Door;
 use kuiper\db\fixtures\DoorId;
-use kuiper\db\fixtures\DoorRepository;
 use kuiper\db\QueryBuilder;
 use kuiper\db\SingleConnectionPool;
 
@@ -30,7 +30,7 @@ class MetaModelCriteriaFilterTest extends AbstractRepositoryTestCase
         $queryBuilder = new QueryBuilder($pool, new QueryFactory('mysql'), null);
         $metaModelFactory = new MetaModelFactory($this->createAttributeRegistry(), null, null, null);
 
-        $this->metaModel = $metaModelFactory->create(DoorRepository::class);
+        $this->metaModel = $metaModelFactory->create(Door::class);
         $this->statement = $queryBuilder->from('door')
             ->select('*');
     }

@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace kuiper\db\fixtures;
 
 use kuiper\db\AbstractCrudRepository;
-use kuiper\db\annotation\Entity;
-use kuiper\di\annotation\Repository;
+use kuiper\db\annotation\Repository;
 
 /**
- * @Entity(Department::class)
- * @Repository()
+ * @Repository(entityClass=Department::class)
  */
 class DepartmentRepository extends AbstractCrudRepository
 {
