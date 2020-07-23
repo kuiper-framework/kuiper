@@ -10,6 +10,8 @@ use kuiper\di\annotation\Configuration;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\swoole\pool\PoolInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\ChainAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 
 /**
@@ -36,6 +38,22 @@ class CacheConfiguration
 
     /**
      * @Bean()
+     * @Inject({"config": "application.cache.memory"})
+     */
+    public function arrayCache(?array $config): ArrayAdapter
+    {
+        $defaultLifetime = $config['lifetime'] ?? 2;
+
+        return new ArrayAdapter(
+            $defaultLifetime,
+            $config['serialize'] ?? true,
+            $config['max-lifetime'] ?? 2 * $defaultLifetime,
+            $config['max-items'] ?? 0
+        );
+    }
+
+    /**
+     * @Bean()
      * @Inject({"redisPool": "redisPool", "cacheConfig": "application.cache"})
      */
     public function cacheItemPool($redisPool, ?array $cacheConfig): CacheItemPoolInterface
@@ -43,6 +61,14 @@ class CacheConfiguration
         $namespace = $cacheConfig['namespace'] ?? '';
         $defaultLifeTime = $cacheConfig['lifetime'] ?? 0;
 
-        return new RedisPoolAdapter($redisPool, $namespace, $defaultLifeTime);
+        $redisAdapter = new RedisPoolAdapter($redisPool, $namespace, $defaultLifeTime);
+        if (isset($cacheConfig['memory'])) {
+            return new ChainAdapter([
+                $this->arrayCache($cacheConfig['memory']),
+                $redisAdapter,
+            ]);
+        }
+
+        return $redisAdapter;
     }
 }

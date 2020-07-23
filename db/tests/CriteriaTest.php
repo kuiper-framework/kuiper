@@ -78,7 +78,7 @@ WHERE
 FROM
     `article`
 WHERE
-    ((scope_id = :_1_) AND (((name = :_2_) AND (tags = :_3_)) OR ((name = :_4_) AND (tags = :_5_)))) OR ((scope_id = :_6_) AND ((name = :_7_) AND (tags = :_8_)))',
+    (tags = :_1_) AND (((scope_id = :_2_) AND (name IN (:_3_,:_4_))) OR ((scope_id = :_5_) AND (name = :_6_)))',
             $query->getStatement());
     }
 }

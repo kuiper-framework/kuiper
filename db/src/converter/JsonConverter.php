@@ -18,10 +18,10 @@ class JsonConverter implements AttributeConverterInterface
      */
     private $options;
 
-    public function __construct(bool $assoc = true, int $options = 0)
+    public function __construct(bool $assoc = true, ?int $options = null)
     {
         $this->assoc = $assoc;
-        $this->options = $options;
+        $this->options = $options ?? (JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /**

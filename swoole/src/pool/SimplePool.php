@@ -8,6 +8,7 @@ use kuiper\swoole\coroutine\Channel;
 use kuiper\swoole\coroutine\ChannelInterface;
 use kuiper\swoole\coroutine\Coroutine;
 use kuiper\swoole\exception\PoolTimeoutException;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -36,6 +37,10 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
      */
     private $channel;
     /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+    /**
      * @var array
      */
     private $connections;
@@ -47,12 +52,13 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     /**
      * Pool constructor.
      */
-    public function __construct(string $poolName, callable $connectionFactory, PoolConfig $config, LoggerInterface $logger = null)
+    public function __construct(string $poolName, callable $connectionFactory, PoolConfig $config, EventDispatcherInterface $eventDispatcher, LoggerInterface $logger = null)
     {
         $this->poolName = $poolName;
         $this->connectionFactory = $connectionFactory;
         $this->poolConfig = $config;
         $this->channel = new Channel($this->poolConfig->getMaxConnections());
+        $this->eventDispatcher = $eventDispatcher;
         $this->setLogger($logger ?? new NullLogger());
     }
 
@@ -102,6 +108,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
             if (isset($connection)) {
                 $this->logger->debug(self::TAG."release connection {$this->poolName}#{$connection[0]}");
                 $this->channel->push($connection);
+                $this->eventDispatcher->dispatch(new ConnectionReleaseEvent($this->poolName, $connection));
                 unset($this->connections[$coroutineId]);
             }
         });

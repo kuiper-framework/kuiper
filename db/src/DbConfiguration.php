@@ -19,6 +19,8 @@ use kuiper\db\metadata\MetaModelFactory;
 use kuiper\db\metadata\MetaModelFactoryInterface;
 use kuiper\db\metadata\NamingStrategy;
 use kuiper\db\metadata\NamingStrategyInterface;
+use kuiper\db\orm\serializer\JoinerConverter;
+use kuiper\db\orm\serializer\JsonConverter;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\ConditionalOnMissingClass;
@@ -113,6 +115,8 @@ class DbConfiguration implements DefinitionConfiguration
         }
         $registry->register(\DateTime::class, new DateTimeConverter($dateTimeFactory));
         $registry->register(DateConverter::class, new DateConverter($dateTimeFactory));
+        $registry->register(JsonConverter::class, new JsonConverter());
+        $registry->register(JoinerConverter::class, new JoinerConverter());
 
         return $registry;
     }

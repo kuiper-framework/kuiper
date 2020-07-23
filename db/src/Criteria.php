@@ -169,16 +169,34 @@ class Criteria
         if (1 === count($columns)) {
             return $this->in($columns[0], Arrays::pull($naturalIds, $columns[0]));
         }
-        $column = array_shift($columns);
-        foreach ($naturalIds as $naturalId) {
-            $value = $naturalId[$column] ?? null;
-            if (!isset($value)) {
-                throw new \InvalidArgumentException("$column is required");
-            }
-            if (!is_scalar($value)) {
-                throw new \InvalidArgumentException("Support only scalar type, $column is ".(is_object($value) ? get_class($value) : gettype($value)));
+        foreach ($columns as $column) {
+            foreach ($naturalIds as $naturalId) {
+                $value = $naturalId[$column] ?? null;
+                if (!isset($value)) {
+                    throw new \InvalidArgumentException("$column is required");
+                }
+                if (!is_scalar($value)) {
+                    throw new \InvalidArgumentException("Support only scalar type, $column is ".(is_object($value) ? get_class($value) : gettype($value)));
+                }
             }
         }
+
+        return $this->matchesInternal($naturalIds, $columns);
+    }
+
+    private function matchesInternal(array $naturalIds, array $columns): self
+    {
+        $groupCounts = [];
+        foreach ($columns as $column) {
+            $values = [];
+            foreach ($naturalIds as $naturalId) {
+                $values[$naturalId[$column]] = true;
+            }
+            $groupCounts[$column] = count($values);
+        }
+        asort($groupCounts);
+        $columns = array_keys($groupCounts);
+        $column = array_shift($columns);
         foreach (Arrays::groupBy($naturalIds, $column) as $columnValue => $group) {
             $criteria = self::create([$column => $columnValue]);
             if (1 === count($columns)) {
@@ -188,7 +206,7 @@ class Criteria
                     $criteria->in($columns[0], Arrays::pull($group, $columns[0]));
                 }
             } else {
-                $criteria->and(self::create()->matches($group, $columns));
+                $criteria->and(self::create()->matchesInternal($group, $columns));
             }
             $this->merge($criteria->getClause(), false);
         }

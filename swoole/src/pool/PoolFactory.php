@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\swoole\pool;
 
 use kuiper\swoole\coroutine\Coroutine;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -20,12 +21,18 @@ class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface
     private $poolConfigMap;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
      * PoolFactory constructor.
      *
      * @param PoolConfig[] $poolConfigMap
      */
-    public function __construct(array $poolConfigMap = [], LoggerInterface $logger = null)
+    public function __construct(EventDispatcherInterface $eventDispatcher, array $poolConfigMap = [], LoggerInterface $logger = null)
     {
+        $this->eventDispatcher = $eventDispatcher;
         foreach ($poolConfigMap as $poolName => $config) {
             $this->setPoolConfig($poolName, $config);
         }
@@ -47,7 +54,7 @@ class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface
     {
         $poolConfig = $this->poolConfigMap[$poolName] ?? new PoolConfig();
         if (Coroutine::isEnabled()) {
-            $pool = new SimplePool($poolName, $connectionFactory, $poolConfig, $this->logger);
+            $pool = new SimplePool($poolName, $connectionFactory, $poolConfig, $this->eventDispatcher, $this->logger);
         } else {
             $pool = new SingleConnectionPool($poolName, $connectionFactory, $this->logger);
         }
