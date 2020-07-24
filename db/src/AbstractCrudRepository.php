@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use kuiper\db\exception\ExecutionFailException;
 use kuiper\db\metadata\MetaModelFactoryInterface;
 use kuiper\db\metadata\MetaModelInterface;
+use kuiper\db\metadata\MetaModelProperty;
 use PDO;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
@@ -179,11 +180,28 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function updateBy($criteria, $updateCallback): void
+    public function updateBy($criteria, $update): void
     {
         $stmt = $this->queryBuilder->update($this->getTableName());
 
-        $stmt = $updateCallback($this->buildStatement($stmt, $criteria));
+        $stmt = $this->buildStatement($stmt, $criteria);
+        if (is_array($update)) {
+            $cols = [];
+            foreach ($update as $column => $value) {
+                /** @var MetaModelProperty $property */
+                $property = $this->metaModel->getProperty($column);
+                if ($property) {
+                    $cols = array_merge($cols, $property->getColumnValues($value));
+                } else {
+                    $cols[$column] = $value;
+                }
+            }
+            $stmt->cols($cols);
+        } elseif (is_callable($update)) {
+            $stmt = $update($stmt);
+        } else {
+            throw new \InvalidArgumentException('Expected array or callable, got '.gettype($update));
+        }
         $this->doExecute($stmt);
     }
 

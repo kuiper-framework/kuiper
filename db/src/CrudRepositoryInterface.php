@@ -55,9 +55,9 @@ interface CrudRepositoryInterface
      * Update by criteria.
      *
      * @param array|Criteria|callable $criteria
-     * @param callable                $updateCallback
+     * @param array|callable          $update
      */
-    public function updateBy($criteria, $updateCallback): void;
+    public function updateBy($criteria, $update): void;
 
     /**
      * Finds the entity by id.
