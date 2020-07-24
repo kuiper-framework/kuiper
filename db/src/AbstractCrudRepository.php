@@ -179,6 +179,17 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     /**
      * {@inheritdoc}
      */
+    public function updateBy($criteria, $updateCallback): void
+    {
+        $stmt = $this->queryBuilder->update($this->getTableName());
+
+        $stmt = $updateCallback($this->buildStatement($stmt, $criteria));
+        $this->doExecute($stmt);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function findById($id)
     {
         return $this->findFirstBy($this->metaModel->idToPrimaryKey($id));
@@ -350,6 +361,16 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     public function getLastStatement(): StatementInterface
     {
         return $this->lastStatement;
+    }
+
+    public function getQueryBuilder(): QueryBuilderInterface
+    {
+        return $this->queryBuilder;
+    }
+
+    public function getMetaModel(): MetaModelInterface
+    {
+        return $this->metaModel;
     }
 
     /**

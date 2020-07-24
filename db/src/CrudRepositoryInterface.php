@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use kuiper\db\annotation\NaturalId;
+use kuiper\db\metadata\MetaModelInterface;
 
 interface CrudRepositoryInterface
 {
@@ -49,6 +50,14 @@ interface CrudRepositoryInterface
      * Batch save entities.
      */
     public function batchSave(array $entities): array;
+
+    /**
+     * Update by criteria.
+     *
+     * @param array|Criteria|callable $criteria
+     * @param callable                $updateCallback
+     */
+    public function updateBy($criteria, $updateCallback): void;
 
     /**
      * Finds the entity by id.
@@ -144,4 +153,8 @@ interface CrudRepositoryInterface
     public function deleteAll(array $entities): void;
 
     public function deleteAllBy($criteria): void;
+
+    public function getQueryBuilder(): QueryBuilderInterface;
+
+    public function getMetaModel(): MetaModelInterface;
 }
