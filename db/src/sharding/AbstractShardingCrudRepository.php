@@ -59,7 +59,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
             $result[] = parent::batchInsert($partEntities);
         }
 
-        return array_merge(...$result);
+        return Arrays::flatten($result);
     }
 
     /**
@@ -84,7 +84,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
             $result[] = $partEntities;
         }
 
-        return array_merge(...$result);
+        return Arrays::flatten($result);
     }
 
     /**
@@ -109,7 +109,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
             }
         }
 
-        return array_merge(...$result);
+        return Arrays::flatten($result);
     }
 
     public function getShardingId($entity): string

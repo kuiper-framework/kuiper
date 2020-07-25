@@ -210,7 +210,10 @@ class MetaModel implements MetaModelInterface
             return null;
         }
         if (count($nonNullValues) !== count($values)) {
-            throw new \InvalidArgumentException('Entity contains null value in id column');
+            $nullKeys = array_filter(array_keys($values), function ($key) use ($values) {
+                return !isset($values[$key]);
+            });
+            throw new \InvalidArgumentException('Entity contains null value in unique key columns: '.implode(',', $nullKeys));
         }
 
         return $values;

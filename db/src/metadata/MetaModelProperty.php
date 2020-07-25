@@ -108,6 +108,12 @@ class MetaModelProperty
                 $this->column->getName() => $this->column->getConverter()->convertToDatabaseColumn($propertyValue, $this->column),
             ];
         }
+        if (!is_object($propertyValue)) {
+            throw new \InvalidArgumentException("Expected {$this->getFullName()} type of {$this->type}, got ".gettype($propertyValue));
+        }
+        if ($this->type->isClass() && !is_a($propertyValue, $this->type->getName())) {
+            throw new \InvalidArgumentException("Expected {$this->getFullName()} type of {$this->type}, got ".get_class($propertyValue));
+        }
 
         return array_merge(...array_map(static function (MetaModelProperty $child) use ($propertyValue) {
             return $child->getColumnValues($child->property->getValue($propertyValue));
@@ -116,6 +122,7 @@ class MetaModelProperty
 
     public function getValue($entity)
     {
+        $this->checkEntityMatch($entity);
         if ($this->parent) {
             $value = $this->parent->getValue($entity);
             if (!isset($value)) {
@@ -129,6 +136,7 @@ class MetaModelProperty
 
     public function setValue($entity, $value): void
     {
+        $this->checkEntityMatch($entity);
         $model = $entity;
         foreach ($this->ancestors as $path) {
             $propertyValue = $path->property->getValue($model);
@@ -167,6 +175,11 @@ class MetaModelProperty
     public function getPath(): string
     {
         return $this->path;
+    }
+
+    public function getFullName(): string
+    {
+        return $this->getEntityClass()->getName().'.'.$this->getPath();
     }
 
     public function getSubProperty(string $path): ?MetaModelProperty
@@ -213,5 +226,15 @@ class MetaModelProperty
         }
 
         return $ancestors;
+    }
+
+    /**
+     * @param $entity
+     */
+    protected function checkEntityMatch($entity): void
+    {
+        if (!$this->getEntityClass()->isInstance($entity)) {
+            throw new \InvalidArgumentException("Expected {$this->getEntityClass()->getName()}, got ".get_class($entity));
+        }
     }
 }

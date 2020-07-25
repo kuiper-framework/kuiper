@@ -243,7 +243,12 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     {
         $this->checkEntityClassMatch($example);
 
-        return $this->findFirstBy($this->metaModel->getNaturalIdValues($example));
+        $criteria = $this->metaModel->getNaturalIdValues($example);
+        if (!isset($criteria)) {
+            throw new \InvalidArgumentException('Cannot extract unique constraint from input');
+        }
+
+        return $this->findFirstBy($criteria);
     }
 
     /**
@@ -257,7 +262,10 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $values = [];
         foreach ($examples as $example) {
             $this->checkEntityClassMatch($example);
-            $values[] = $this->metaModel->getNaturalIdValues($example);
+            $criteria = $values[] = $this->metaModel->getNaturalIdValues($example);
+            if (!isset($criteria)) {
+                throw new \InvalidArgumentException('Cannot extract unique constraint from input');
+            }
         }
         // 不能直接使用 Criteria 对象，因为  criteria 对象会被 filterCriteria 进行值转换
         return $this->findAllBy(static function ($stmt) use ($values) {
