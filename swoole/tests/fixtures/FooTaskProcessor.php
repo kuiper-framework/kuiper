@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\swoole\fixtures;
 
 use kuiper\swoole\task\ProcessorInterface;
+use kuiper\swoole\task\Task;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 
@@ -14,12 +15,9 @@ class FooTaskProcessor implements ProcessorInterface, LoggerAwareInterface
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @param FooTask $task
-     */
-    public function process($task)
+    public function process(Task $task)
     {
-        $this->logger->info(static::TAG.'handle task', ['task' => $task]);
-        $task->incr();
+        $this->logger->info(static::TAG.'handle task', ['task' => $task->getPayload()]);
+        $task->getPayload()->incr();
     }
 }

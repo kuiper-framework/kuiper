@@ -28,7 +28,7 @@ class TaskEventListener implements EventListenerInterface
      */
     public function __invoke($event): void
     {
-        $this->taskDispatcher->dispatch($event->getData());
+        $this->taskDispatcher->dispatch($event);
     }
 
     public function getSubscribedEvent(): string

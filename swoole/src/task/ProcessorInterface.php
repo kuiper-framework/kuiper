@@ -9,9 +9,7 @@ interface ProcessorInterface
     /**
      * Processes task.
      *
-     * @param object $task
-     *
      * @return mixed
      */
-    public function process($task);
+    public function process(Task $task);
 }

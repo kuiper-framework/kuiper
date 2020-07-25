@@ -40,7 +40,7 @@ class QueueTest extends SwooleServerTestCase
                 $logger->info(self::TAG.'consume task', ['task' => $event->getData()]);
                 $this->assertInstanceOf(FooTask::class, $event->getData());
                 $this->assertEquals('foo', $event->getData()->getArg());
-                $queue->dispatch($event->getData());
+                $queue->dispatch($event);
             });
         });
         $eventDispatcher->addListener(StartEvent::class, function (StartEvent $event) use ($container, $logger, $eventDispatcher) {

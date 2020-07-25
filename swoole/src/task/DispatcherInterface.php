@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\task;
 
+use kuiper\swoole\event\TaskEvent;
+
 interface DispatcherInterface
 {
     /**
      * Dispatch task to processor.
-     *
-     * @param object $task
      */
-    public function dispatch($task): void;
+    public function dispatch(TaskEvent $task): void;
 }
