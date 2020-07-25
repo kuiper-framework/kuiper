@@ -7,9 +7,13 @@ namespace kuiper\swoole\listener;
 use kuiper\event\EventListenerInterface;
 use kuiper\swoole\event\TaskEvent;
 use kuiper\swoole\task\DispatcherInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
-class TaskEventListener implements EventListenerInterface
+class TaskEventListener implements EventListenerInterface, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+    protected const TAG = '['.__CLASS__.'] ';
     /**
      * @var DispatcherInterface
      */
@@ -28,6 +32,7 @@ class TaskEventListener implements EventListenerInterface
      */
     public function __invoke($event): void
     {
+        $this->logger->info(static::TAG.'dispatch task event');
         $this->taskDispatcher->dispatch($event);
     }
 

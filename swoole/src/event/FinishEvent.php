@@ -12,7 +12,7 @@ class FinishEvent extends AbstractServerEvent
     private $taskId;
 
     /**
-     * @var string
+     * @var ?string
      */
     private $result;
 
@@ -26,12 +26,12 @@ class FinishEvent extends AbstractServerEvent
         $this->taskId = $taskId;
     }
 
-    public function setResult(string $result): void
+    public function setResult(?string $result): void
     {
         $this->result = $result;
     }
 
-    public function getResult(): string
+    public function getResult(): ?string
     {
         return $this->result;
     }

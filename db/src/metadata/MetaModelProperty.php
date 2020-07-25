@@ -229,7 +229,7 @@ class MetaModelProperty
     }
 
     /**
-     * @param $entity
+     * @param object $entity
      */
     protected function checkEntityMatch($entity): void
     {

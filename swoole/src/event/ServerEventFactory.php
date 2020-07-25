@@ -37,6 +37,16 @@ class ServerEventFactory
         return new StartEvent();
     }
 
+    public function createBeforeReloadEvent(): BeforeReloadEvent
+    {
+        return new BeforeReloadEvent();
+    }
+
+    public function createAfterReloadEvent(): AfterReloadEvent
+    {
+        return new AfterReloadEvent();
+    }
+
     public function createShutdownEvent(): ShutdownEvent
     {
         return new ShutdownEvent();
@@ -141,7 +151,7 @@ class ServerEventFactory
         return $event;
     }
 
-    public function createFinishEvent(int $taskId, string $result): FinishEvent
+    public function createFinishEvent(int $taskId, ?string $result): FinishEvent
     {
         $event = new FinishEvent();
         $event->setTaskId($taskId);

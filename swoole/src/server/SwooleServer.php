@@ -109,7 +109,9 @@ class SwooleServer extends AbstractServer
      */
     public function reload(): void
     {
+        $this->dispatch(Event::BEFORE_RELOAD, []);
         $this->resource->reload();
+        $this->dispatch(Event::AFTER_RELOAD, []);
     }
 
     /**
@@ -223,7 +225,11 @@ class SwooleServer extends AbstractServer
     private function createEventHandler(string $eventName): callable
     {
         return function () use ($eventName) {
+            $this->logger->info(static::TAG.'receive event '.$eventName);
             $args = func_get_args();
+            if ('task' === strtolower($eventName)) {
+                $this->logger->info(static::TAG.'receive task event ', ['args' => array_slice($args, 1)]);
+            }
             if (Event::REQUEST === $eventName) {
                 $this->onRequest(...$args);
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use kuiper\event\NullEventDispatcher;
 use kuiper\swoole\coroutine\Coroutine;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -30,12 +31,13 @@ class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface
      *
      * @param PoolConfig[] $poolConfigMap
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, array $poolConfigMap = [], LoggerInterface $logger = null)
+    public function __construct(array $poolConfigMap = [], ?LoggerInterface $logger = null, ?EventDispatcherInterface $eventDispatcher = null)
     {
         $this->eventDispatcher = $eventDispatcher;
         foreach ($poolConfigMap as $poolName => $config) {
             $this->setPoolConfig($poolName, $config);
         }
+        $this->eventDispatcher = $eventDispatcher ?? new NullEventDispatcher();
         $this->setLogger($logger ?? new NullLogger());
     }
 

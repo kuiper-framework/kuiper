@@ -12,7 +12,6 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 class SimplePool implements PoolInterface, LoggerAwareInterface
 {
@@ -52,14 +51,14 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     /**
      * Pool constructor.
      */
-    public function __construct(string $poolName, callable $connectionFactory, PoolConfig $config, EventDispatcherInterface $eventDispatcher, LoggerInterface $logger = null)
+    public function __construct(string $poolName, callable $connectionFactory, PoolConfig $config, EventDispatcherInterface $eventDispatcher, LoggerInterface $logger)
     {
         $this->poolName = $poolName;
         $this->connectionFactory = $connectionFactory;
         $this->poolConfig = $config;
         $this->channel = new Channel($this->poolConfig->getMaxConnections());
         $this->eventDispatcher = $eventDispatcher;
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setLogger($logger);
     }
 
     public function take()

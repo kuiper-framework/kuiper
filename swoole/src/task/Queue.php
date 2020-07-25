@@ -77,7 +77,9 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
     {
         try {
             $task = $event->getData();
-            $result = $this->getProcessor($task)
+            $processor = $this->getProcessor($task);
+            $this->logger->error(static::TAG.'handle '.get_class($task).' by '.get_class($processor));
+            $result = $processor
                 ->process(new Task($event->getServer(), $event->getFromWorkerId(), $event->getTaskId(), $task));
             if (isset($result)) {
                 $this->server->finish($result);

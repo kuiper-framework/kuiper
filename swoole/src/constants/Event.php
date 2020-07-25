@@ -53,9 +53,15 @@ class Event extends Enum
 
     public const MANAGER_STOP = 'managerStop';
 
+    public const BEFORE_RELOAD = 'beforeReload';
+
+    public const AFTER_RELOAD = 'afterReload';
+
     protected static $PROPERTIES = [
         'non_swoole' => [
             self::BOOTSTRAP => true,
+            self::BEFORE_RELOAD => true,
+            self::AFTER_RELOAD => true,
         ],
     ];
 
