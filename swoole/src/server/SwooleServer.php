@@ -227,9 +227,6 @@ class SwooleServer extends AbstractServer
         return function () use ($eventName) {
             $this->logger->info(static::TAG.'receive event '.$eventName);
             $args = func_get_args();
-            if ('task' === strtolower($eventName)) {
-                $this->logger->info(static::TAG.'receive task event ', ['args' => array_slice($args, 1)]);
-            }
             if (Event::REQUEST === $eventName) {
                 $this->onRequest(...$args);
 

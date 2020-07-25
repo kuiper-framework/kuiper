@@ -32,7 +32,6 @@ class TaskEventListener implements EventListenerInterface, LoggerAwareInterface
      */
     public function __invoke($event): void
     {
-        $this->logger->info(static::TAG.'dispatch task event');
         $this->taskDispatcher->dispatch($event);
     }
 
