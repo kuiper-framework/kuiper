@@ -105,7 +105,22 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
                     $result[] = [$exist];
                 }
             } else {
-                $result[] = parent::findAllByNaturalId($partEntities);
+                $values = [];
+                foreach ($partEntities as $example) {
+                    $criteria = $values[] = $this->metaModel->getNaturalIdValues($example);
+                    if (!isset($criteria)) {
+                        throw new \InvalidArgumentException('Cannot extract unique constraint from input');
+                    }
+                }
+                $shardFields = $this->getShardFields($partEntities[0]);
+                // 不能直接使用 Criteria 对象，因为  criteria 对象会被 filterCriteria 进行值转换
+                $result[] = $this->findAllBy(static function ($stmt) use ($values, $shardFields) {
+                    $stmt->shardBy($shardFields);
+
+                    return Criteria::create()
+                        ->matches($values, array_keys($values[0]))
+                        ->buildStatement($stmt);
+                });
             }
         }
 
@@ -153,6 +168,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
 
     protected function getShardFields($entity): array
     {
+        $this->checkEntityClassMatch($entity);
         $shard = [];
         foreach ($this->shardKeys as $field) {
             $value = $this->metaModel->getValue($entity, $field);
