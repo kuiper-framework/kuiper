@@ -189,4 +189,11 @@ class ArraysTest extends TestCase
             'b' => ['a' => ['a' => 2], 'b' => ['c' => 3]],
         ], 2, true));
     }
+
+    public function testGroupWithNullKey()
+    {
+        $groups = Arrays::groupBy([['a' => null], ['a' => 'b']], 'a');
+        // var_export($groups);
+        $this->assertCount(2, $groups);
+    }
 }

@@ -85,10 +85,11 @@ class Arrays
             } else {
                 $key = $elem[$groupBy];
             }
-            if (!is_scalar($key)) {
+            if (is_null($key) || is_scalar($key)) {
+                $ret[$key][] = $elem;
+            } else {
                 throw new \InvalidArgumentException("Cannot group by key '$groupBy', support only scalar type, got ".(is_object($key) ? get_class($key) : gettype($key)));
             }
-            $ret[$key][] = $elem;
         }
 
         return $ret;
