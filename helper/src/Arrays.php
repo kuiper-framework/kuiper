@@ -20,7 +20,7 @@ class Arrays
                 $method = 'get'.$name;
                 $ret[] = $elem->$method();
             } else {
-                $ret[] = $elem[$name];
+                $ret[] = $elem[$name] ?? null;
             }
         }
 
@@ -54,7 +54,7 @@ class Arrays
                 $method = 'get'.$name;
                 $ret[$elem->$method()] = $elem;
             } else {
-                $ret[$elem[$name]] = $elem;
+                $ret[$elem[$name] ?? null] = $elem;
             }
         }
 
@@ -83,7 +83,7 @@ class Arrays
                 $method = 'get'.$groupBy;
                 $key = $elem->$method();
             } else {
-                $key = $elem[$groupBy];
+                $key = $elem[$groupBy] ?? null;
             }
             if (is_null($key) || is_scalar($key)) {
                 $ret[$key][] = $elem;
@@ -134,14 +134,14 @@ class Arrays
             return $keepKeys
                 ? array_merge(...array_values($arr))
                 : array_merge(...array_map('array_values', array_values($arr)));
-        } else {
-            $items = [];
-            foreach ($arr as $item) {
-                $items[] = self::flatten($item, $depth - 1, $keepKeys);
-            }
-
-            return array_merge(...$items);
         }
+
+        $items = [];
+        foreach ($arr as $item) {
+            $items[] = self::flatten($item, $depth - 1, $keepKeys);
+        }
+
+        return array_merge(...$items);
     }
 
     /**
@@ -276,7 +276,7 @@ class Arrays
             }
         }
         if ($uncamelizeKey) {
-            $properties = self::uncamelizeKeys($properties);
+            $properties = self::snakeCaseKeys($properties);
         }
         if ($recursive) {
             $properties = self::recursiveToArray($properties, $includeGetters, $uncamelizeKey);
@@ -342,7 +342,7 @@ class Arrays
     public static function mapKeys(array $arr, callable $callback): array
     {
         $result = [];
-        array_walk($arr, function (&$value, $key) use (&$result, $callback) {
+        array_walk($arr, static function (&$value, $key) use (&$result, $callback) {
             $result[$callback($key)] = $value;
         });
 
@@ -350,9 +350,14 @@ class Arrays
     }
 
     /**
-     * Uncamelize array keys.
+     * @deprecated {@see snakeCaseKeys}
      */
     public static function uncamelizeKeys(array $arr): array
+    {
+        return self::snakeCaseKeys($arr);
+    }
+
+    public static function snakeCaseKeys(array $arr): array
     {
         return self::mapKeys($arr, [Text::class, 'snakeCase']);
     }
