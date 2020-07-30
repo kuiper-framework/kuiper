@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-declare(ticks=1);
-
 namespace kuiper\swoole\server\workers;
 
 use kuiper\swoole\ConnectionInfo;
@@ -89,6 +87,7 @@ class SingleWorkerManager extends AbstractWorkerManager
             $this->sockets[(int) $socket] = $socket;
             $this->setErrorHandler();
             while (!$this->isStopped()) {
+                pcntl_signal_dispatch();
                 $this->select();
                 $this->triggerTick();
                 $this->dispatchTask();

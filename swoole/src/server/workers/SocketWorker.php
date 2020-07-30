@@ -76,7 +76,7 @@ class SocketWorker extends AbstractWorker
 
     protected function onStart(): void
     {
-        $this->resource = $this->master->getResource();
+        $this->resource = $this->manager->getResource();
         $this->sockets[(int) $this->resource] = $this->resource;
     }
 

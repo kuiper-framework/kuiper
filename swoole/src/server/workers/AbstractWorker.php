@@ -2,14 +2,11 @@
 
 declare(strict_types=1);
 
-declare(ticks=1);
-
 namespace kuiper\swoole\server\workers;
 
 use kuiper\helper\Properties;
 use kuiper\swoole\constants\Event;
 use kuiper\swoole\event\AbstractServerEvent;
-use kuiper\swoole\server\SelectTcpServer;
 use kuiper\swoole\ServerConfig;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -22,9 +19,9 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @var SelectTcpServer
+     * @var WorkerManagerInterface
      */
-    protected $master;
+    protected $manager;
 
     /**
      * @var int
@@ -59,9 +56,9 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
     /**
      * AbstractWorker constructor.
      */
-    public function __construct(SelectTcpServer $master, SocketChannel $channel, int $pid, int $workerId, LoggerInterface $logger)
+    public function __construct(WorkerManagerInterface $manager, SocketChannel $channel, int $pid, int $workerId, LoggerInterface $logger)
     {
-        $this->master = $master;
+        $this->manager = $manager;
         $this->workerId = $workerId;
         $this->channel = $channel;
         $this->setLogger($logger);
@@ -92,6 +89,7 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
         $this->onStart();
         $this->dispatch(Event::WORKER_START, [$this->workerId]);
         while (!$this->stopped) {
+            pcntl_signal_dispatch();
             $this->setErrorHandler();
             $this->work();
             $this->restoreErrorHandler();
@@ -131,7 +129,7 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
 
     protected function dispatch(string $event, array $args): ?AbstractServerEvent
     {
-        return $this->master->dispatch($event, $args);
+        return $this->manager->dispatch($event, $args);
     }
 
     private function installSignal(): void
@@ -158,12 +156,12 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
 
     protected function getSettings(): Properties
     {
-        return $this->master->getSettings();
+        return $this->manager->getSettings();
     }
 
     protected function getServerConfig(): ServerConfig
     {
-        return $this->master->getServerConfig();
+        return $this->manager->getServerConfig();
     }
 
     abstract protected function work(): void;

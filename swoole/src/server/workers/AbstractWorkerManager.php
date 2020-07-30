@@ -79,17 +79,17 @@ abstract class AbstractWorkerManager implements LoggerAwareInterface, WorkerMana
         pcntl_signal(SIGCHLD, [$this, 'signalHandler']);
     }
 
-    protected function dispatch(string $event, array $args): ?AbstractServerEvent
+    public function dispatch(string $event, array $args): ?AbstractServerEvent
     {
         return $this->server->dispatch($event, $args);
     }
 
-    protected function getServerConfig(): ServerConfig
+    public function getServerConfig(): ServerConfig
     {
         return $this->server->getServerConfig();
     }
 
-    protected function getSettings(): Properties
+    public function getSettings(): Properties
     {
         return $this->server->getSettings();
     }

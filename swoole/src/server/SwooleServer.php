@@ -225,7 +225,7 @@ class SwooleServer extends AbstractServer
     private function createEventHandler(string $eventName): callable
     {
         return function () use ($eventName) {
-            $this->logger->info(static::TAG.'receive event '.$eventName);
+            $this->logger->debug(static::TAG.'receive event '.$eventName);
             $args = func_get_args();
             if (Event::REQUEST === $eventName) {
                 $this->onRequest(...$args);
