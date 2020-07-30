@@ -50,7 +50,7 @@ final class Coroutine
             return isset($coroutineId) ? SwooleCoroutine::getContext($coroutineId) : SwooleCoroutine::getContext();
         }
 
-        if (isset(self::$CONTEXT)) {
+        if (!isset(self::$CONTEXT)) {
             self::$CONTEXT = new \ArrayObject();
         }
 
