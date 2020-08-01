@@ -149,7 +149,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
         if (!$docComment || !preg_match('/@var\s+(\S+)/', $docComment, $matches)) {
             return new MixedType();
         }
-        $typeName = $matches[1];
+        $typeName = str_replace('|null', '', $matches[1]);
         if (empty($typeName)) {
             throw new \InvalidArgumentException('Type cannot be empty');
         }
