@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection\filter;
 
 use kuiper\reflection\TypeFilterInterface;
@@ -25,6 +27,6 @@ class FloatTypeFilter implements TypeFilterInterface
      */
     public function sanitize($value)
     {
-        return filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        return (float) filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
     }
 }

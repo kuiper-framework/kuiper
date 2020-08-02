@@ -35,7 +35,7 @@ trait SessionTrait
 
     public function offsetUnset($offset)
     {
-        return $this->remove($offset);
+        $this->remove($offset);
     }
 
     public function __get($index)

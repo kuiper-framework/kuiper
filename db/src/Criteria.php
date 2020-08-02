@@ -197,6 +197,7 @@ class Criteria
         asort($groupCounts);
         $columns = array_keys($groupCounts);
         $column = array_shift($columns);
+        $match = self::create();
         foreach (Arrays::groupBy($naturalIds, $column) as $columnValue => $group) {
             $criteria = self::create([$column => $columnValue]);
             if (1 === count($columns)) {
@@ -208,10 +209,10 @@ class Criteria
             } else {
                 $criteria->and(self::create()->matchesInternal($group, $columns));
             }
-            $this->merge($criteria->getClause(), false);
+            $match->merge($criteria->getClause(), false);
         }
 
-        return $this;
+        return $this->merge($match->getClause());
     }
 
     private function merge(CriteriaClauseInterface $clause, $and = true): self

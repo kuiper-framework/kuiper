@@ -56,7 +56,7 @@ class CacheConfiguration
      * @Bean()
      * @Inject({"redisPool": "redisPool", "cacheConfig": "application.cache"})
      */
-    public function cacheItemPool($redisPool, ?array $cacheConfig): CacheItemPoolInterface
+    public function cacheItemPool(PoolInterface $redisPool, ?array $cacheConfig): CacheItemPoolInterface
     {
         $namespace = $cacheConfig['namespace'] ?? '';
         $defaultLifeTime = $cacheConfig['lifetime'] ?? 0;

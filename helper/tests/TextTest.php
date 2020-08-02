@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\helper;
 
 class TextTest extends TestCase
@@ -79,5 +81,19 @@ class TextTest extends TestCase
     public function testUpper()
     {
         $this->assertEquals('HELLO', Text::upper('hello'));
+    }
+
+    public function testIsEmpty()
+    {
+        $this->assertTrue(Text::isEmpty(null));
+        $this->assertTrue(Text::isEmpty(''));
+        $this->assertFalse(Text::isEmpty('0'));
+    }
+
+    public function testIsNotEmpty()
+    {
+        $this->assertFalse(Text::isNotEmpty(null));
+        $this->assertFalse(Text::isNotEmpty(''));
+        $this->assertTrue(Text::isNotEmpty('0'));
     }
 }

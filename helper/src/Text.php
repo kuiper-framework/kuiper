@@ -98,11 +98,8 @@ final class Text
      * <code>
      *    echo Text::lower("HELLO"); // hello
      * </code>
-     *
-     * @param string $str
-     * @param string $encoding
      */
-    public static function lower($str, $encoding = 'UTF-8'): string
+    public static function lower(string $str, string $encoding = 'UTF-8'): string
     {
         /*
          * 'lower' checks for the mbstring extension to make a correct lowercase transformation
@@ -121,12 +118,9 @@ final class Text
      *    echo Text::upper("hello"); // HELLO
      * </code>
      *
-     * @param string $str
-     * @param string $encoding
-     *
      * @return mixed|string
      */
-    public static function upper($str, $encoding = 'UTF-8')
+    public static function upper(string $str, string $encoding = 'UTF-8')
     {
         /*
          * 'upper' checks for the mbstring extension to make a correct lowercase transformation
@@ -145,10 +139,8 @@ final class Text
      *   echo Text::underscore('look behind'); // 'look_behind'
      *   echo Text::underscore('Awesome Phalcon'); // 'Awesome_Phalcon'
      * </code>
-     *
-     * @param string $text
      */
-    public static function underscore($text): string
+    public static function underscore(string $text): string
     {
         return preg_replace("#\s+#", '_', trim($text));
     }
@@ -160,11 +152,19 @@ final class Text
      *   echo Text::humanize('start-a-horse'); // 'start a horse'
      *   echo Text::humanize('five_cats'); // 'five cats'
      * </code>
-     *
-     * @param string $text
      */
-    public static function humanize($text): string
+    public static function humanize(string $text): string
     {
         return preg_replace('#[_-]+#', ' ', trim($text));
+    }
+
+    public static function isNotEmpty(?string $text): bool
+    {
+        return isset($text) && '' !== $text;
+    }
+
+    public static function isEmpty(?string $text): bool
+    {
+        return !isset($text) || '' === $text;
     }
 }

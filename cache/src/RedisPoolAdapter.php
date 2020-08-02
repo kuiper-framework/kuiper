@@ -30,7 +30,7 @@ class RedisPoolAdapter extends AbstractAdapter
      * @param string        $namespace       The default namespace
      * @param int           $defaultLifetime The default lifetime
      */
-    public function __construct($redisPool, string $namespace = '', int $defaultLifetime = 0, MarshallerInterface $marshaller = null)
+    public function __construct(PoolInterface $redisPool, string $namespace = '', int $defaultLifetime = 0, MarshallerInterface $marshaller = null)
     {
         parent::__construct($namespace, $defaultLifetime);
 
@@ -46,7 +46,7 @@ class RedisPoolAdapter extends AbstractAdapter
      */
     protected function doFetch(array $ids)
     {
-        if (!$ids) {
+        if (0 === count($ids)) {
             return [];
         }
         $redis = $this->redisPool->take();
@@ -146,7 +146,7 @@ class RedisPoolAdapter extends AbstractAdapter
         $redis = $this->redisPool->take();
 
         if ($redis instanceof ClientInterface && $redis->getConnection() instanceof ClusterInterface) {
-            $this->pipeline(static function () use ($ids) {
+            $this->pipeline(static function () use ($ids): \Generator {
                 foreach ($ids as $id) {
                     yield 'del' => [$id];
                 }
@@ -168,7 +168,7 @@ class RedisPoolAdapter extends AbstractAdapter
         }
         $redis = $this->redisPool->take();
 
-        $results = $this->pipeline(static function () use ($values, $lifetime) {
+        $results = $this->pipeline(static function () use ($values, $lifetime): \Generator {
             foreach ($values as $id => $value) {
                 if (0 >= $lifetime) {
                     yield 'set' => [$id, $value];

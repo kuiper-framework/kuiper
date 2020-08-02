@@ -1,0 +1,15 @@
+parameters:
+  level: 1
+  paths:
+    - annotations/src
+    - cache/src
+    - db/src
+    - di/src
+    - event/src
+    - helper/src
+    - http-client/src
+    - logger/src
+    - reflection/src
+    - swoole/src
+    - web/src
+  checkMissingIterableValueType: false

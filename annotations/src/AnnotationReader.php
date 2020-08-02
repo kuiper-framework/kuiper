@@ -10,7 +10,7 @@ use Doctrine\Common\Annotations\Reader;
 class AnnotationReader implements AnnotationReaderInterface
 {
     /**
-     * @var AnnotationReaderInterface
+     * @var AnnotationReaderInterface|null
      */
     private static $INSTANCE;
 
@@ -34,7 +34,7 @@ class AnnotationReader implements AnnotationReaderInterface
 
     public static function getInstance(): AnnotationReaderInterface
     {
-        if (!self::$INSTANCE) {
+        if (null === self::$INSTANCE) {
             AnnotationRegistry::registerLoader('class_exists');
             self::$INSTANCE = new self(new \Doctrine\Common\Annotations\AnnotationReader());
         }

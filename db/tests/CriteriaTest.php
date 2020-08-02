@@ -81,4 +81,22 @@ WHERE
     (tags = :_1_) AND (((scope_id = :_2_) AND (name IN (:_3_,:_4_))) OR ((scope_id = :_5_) AND (name = :_6_)))',
             $query->getStatement());
     }
+
+    public function testMatchesAndOtherCriteria()
+    {
+        $query = Criteria::create(['sharding' => 1])
+            ->matches([
+                ['scope_id' => 'a1', 'name' => 'count', 'tags' => ''],
+                ['scope_id' => 'a2', 'name' => 'count', 'tags' => ''],
+                ['scope_id' => 'a1', 'name' => 'amount', 'tags' => ''],
+            ], ['scope_id', 'name', 'tags'])
+            ->buildStatement($this->statement);
+        $this->assertEquals('SELECT
+    *
+FROM
+    `article`
+WHERE
+    (sharding = :_1_) AND ((tags = :_2_) AND (((scope_id = :_3_) AND (name IN (:_4_,:_5_))) OR ((scope_id = :_6_) AND (name = :_7_))))',
+            $query->getStatement());
+    }
 }

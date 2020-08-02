@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection\filter;
 
 use kuiper\reflection\TypeFilterInterface;
@@ -25,6 +27,6 @@ class IntegerTypeFilter implements TypeFilterInterface
      */
     public function sanitize($value)
     {
-        return intval($value);
+        return (int) $value;
     }
 }

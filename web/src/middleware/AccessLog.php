@@ -83,7 +83,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
         $statusCode = isset($response) ? $response->getStatusCode() : 500;
         $responseBodySize = isset($response) ? $response->getBody()->getSize() : 0;
         $message = strtr($this->format, [
-            '$remote_addr' => isset($ipList[0]) ? $ipList[0] : '-',
+            '$remote_addr' => $ipList[0] ?? '-',
             '$remote_user' => $request->getUri()->getUserInfo() ?: '-',
             '$time_local' => strftime('%d/%b/%Y:%H:%M:%S %z'),
             '$request' => strtoupper($request->getMethod())
@@ -93,7 +93,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
             '$body_bytes_sent' => $responseBodySize,
             '$http_referer' => $request->getHeaderLine('Referer'),
             '$http_user_agent' => $request->getHeaderLine('User-Agent'),
-            '$http_x_forwarded_for' => isset($ipList) ? implode(',', $ipList) : '',
+            '$http_x_forwarded_for' => implode(',', $ipList),
             '$request_time' => $time,
         ]);
         $extra = [];
