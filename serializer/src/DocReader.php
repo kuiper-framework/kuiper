@@ -64,7 +64,7 @@ class DocReader implements DocReaderInterface
                 if (method_exists($parameter, 'hasType')
                     && $parameter->hasType()) {
                     // detected from php 7.0 ReflectionType
-                    $parameterTypes[$parameter->getName()] = ReflectionType::forName($parameter->getType());
+                    $parameterTypes[$parameter->getName()] = ReflectionType::forName((string) $parameter->getType());
                 } else {
                     $parameterTypes[$parameter->getName()] = ReflectionType::forName('mixed');
                 }
@@ -109,7 +109,7 @@ class DocReader implements DocReaderInterface
             if (method_exists($method, 'hasReturnType')
                 && $method->hasReturnType()) {
                 // detected from php 7.0 ReflectionType
-                $type = ReflectionType::forName($method->getReturnType());
+                $type = ReflectionType::forName((string) $method->getReturnType());
                 if (!$type->isUnknown()) {
                     return $type;
                 }
