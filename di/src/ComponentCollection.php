@@ -20,7 +20,7 @@ class ComponentCollection
     }
 
     /**
-     * @return string[] all annotation objects
+     * @return object[] all annotation objects
      */
     public static function getAnnotations(string $annotationClass): array
     {

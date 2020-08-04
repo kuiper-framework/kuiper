@@ -107,6 +107,7 @@ class SingleWorkerManager extends AbstractWorkerManager
     private function select(): void
     {
         $read = $this->sockets;
+        $write = $except = null;
         if (stream_select($read, $write, $except, 0, 200000)) {
             foreach ($read as $socket) {
                 if ($socket === $this->getResource()) {

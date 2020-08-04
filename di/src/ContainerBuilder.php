@@ -223,7 +223,7 @@ class ContainerBuilder implements ContainerBuilderInterface
         $proxyFactory = new ProxyFactory($this->writeProxiesToFile, $this->proxyDirectory);
         $this->locked = true;
         $containerClass = $this->containerClass;
-        $this->container = $container = new $containerClass($source, $proxyFactory, $this->wrapperContainer);
+        $container = new $containerClass($source, $proxyFactory, $this->wrapperContainer);
         if (!empty($this->deferCallbacks)) {
             foreach ($this->deferCallbacks as $deferCallback) {
                 $deferCallback($container);

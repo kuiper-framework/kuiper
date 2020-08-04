@@ -42,6 +42,7 @@ class SocketWorker extends AbstractWorker
     protected function work(): void
     {
         $read = $this->sockets;
+        $write = $except = null;
         if (stream_select($read, $write, $except, 0)) {
             foreach ($read as $socket) {
                 if ($socket === $this->resource) {

@@ -50,6 +50,7 @@ class FswatchWatcher implements FileWatcherInterface
             $this->open();
         }
         $read = [$this->pipe];
+        $write = $expect = null;
         $select = stream_select($read, $write, $expect, 0);
         if ($select) {
             $content = fread($this->pipe, 8912);

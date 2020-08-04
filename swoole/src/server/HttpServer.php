@@ -107,7 +107,7 @@ class HttpServer extends SelectTcpServer
 
     private function onReceive(int $clientId, int $reactorId, string $data): void
     {
-        if (!isset($this->requstParsers[$clientId])) {
+        if (!isset($this->requestParsers[$clientId])) {
             $this->requestParsers[$clientId] = new RequestParser($this, $clientId);
         }
         $requestParser = $this->requestParsers[$clientId];

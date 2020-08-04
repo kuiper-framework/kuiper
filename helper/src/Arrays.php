@@ -6,6 +6,16 @@ namespace kuiper\helper;
 
 class Arrays
 {
+    public static function isEmpty($arr): bool
+    {
+        return !isset($arr) || 0 === count($arr);
+    }
+
+    public static function isNotEmpty($arr): bool
+    {
+        return isset($arr) && count($arr) > 0;
+    }
+
     /**
      * Collects value from array.
      *

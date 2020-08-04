@@ -64,6 +64,7 @@
         "kuiper/helper": "self.version",
         "kuiper/logger": "self.version",
         "kuiper/reflection": "self.version",
+        "kuiper/serializer": "self.version",
         "kuiper/swoole": "self.version",
         "kuiper/web": "self.version"
     },
@@ -78,6 +79,7 @@
             "kuiper\\http\\client\\": "http-client/src/",
             "kuiper\\logger\\": "logger/src/",
             "kuiper\\reflection\\": "reflection/src/",
+            "kuiper\\serializer\\": "serializer/src/",
             "kuiper\\swoole\\": "swoole/src/",
             "kuiper\\web\\": "web/src/"
         },
@@ -95,6 +97,7 @@
             "kuiper\\logger\\": "logger/tests/",
             "kuiper\\reflection\\": "reflection/tests/",
             "kuiper\\swoole\\": "swoole/tests/",
+            "kuiper\\serializer\\": "serializer/tests/",
             "kuiper\\web\\": "web/tests/"
         }
     },

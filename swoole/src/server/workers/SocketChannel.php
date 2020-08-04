@@ -137,6 +137,7 @@ class SocketChannel
                 $read[$i] = $channel->socket;
             }
         }
+        $write = $except = null;
         if ($read && stream_select($read, $write, $except, $timeout) && $read) {
             $ready = [];
             foreach ($read as $i => $fd) {

@@ -64,7 +64,7 @@ class Criteria
 
     public static function create(array $conditions = []): self
     {
-        $criteria = new static();
+        $criteria = new self();
         foreach ($conditions as $name => $value) {
             $criteria->where($name, $value);
         }

@@ -10,6 +10,7 @@ parameters:
     - http-client/src
     - logger/src
     - reflection/src
+    - serializer/src
     - swoole/src
     - web/src
   checkMissingIterableValueType: false

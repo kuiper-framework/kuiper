@@ -22,7 +22,7 @@ class DiactorosSwooleRequestBridge implements SwooleRequestBridgeInterface
         foreach ($headers as $key => $val) {
             $server['HTTP_'.str_replace('-', '_', strtoupper($key))] = $val;
         }
-        $server['HTTP_COOKIE'] = isset($request->cookie) ? $this->cookieString($swooleRequest->cookie) : '';
+        $server['HTTP_COOKIE'] = isset($swooleRequest->cookie) ? $this->cookieString($swooleRequest->cookie) : '';
         $serverRequest = ServerRequestFactory::fromGlobals(
             $server,
             $swooleRequest->get,
