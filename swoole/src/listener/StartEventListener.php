@@ -39,7 +39,7 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
         $server = $event->getServer();
         try {
             $this->writePidFile($serverConfig->getMasterPidFile(), $server->getMasterPid());
-            $this->logger->info(static::TAG.'Listening on %s:%s'.$port);
+            $this->logger->info(static::TAG.'Listening on '.$port);
         } catch (\RuntimeException $e) {
             $this->logger->error(static::TAG.'Cannot write pid file: '.$e->getMessage());
             $server->stop();
