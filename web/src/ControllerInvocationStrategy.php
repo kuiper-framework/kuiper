@@ -18,8 +18,8 @@ class ControllerInvocationStrategy implements RequestHandlerInvocationStrategyIn
         if (is_array($callable) && $callable[0] instanceof ControllerInterface) {
             /** @var ControllerInterface $controller */
             $controller = $callable[0];
-            $controller->setRequest($request);
-            $controller->setResponse($response);
+            $controller = $controller->withRequest($request)
+                ->withResponse($response);
             $initResult = $controller->initialize();
             if (isset($initResult)) {
                 if (false === $initResult) {
@@ -32,7 +32,7 @@ class ControllerInvocationStrategy implements RequestHandlerInvocationStrategyIn
 
                 throw new \BadMethodCallException(get_class($controller).'::initialize should return false or '.ResponseInterface::class.', got '.gettype($initResult));
             }
-            $result = $callable(...array_values($routeArguments));
+            $result = call_user_func_array([$controller, $callable[1]], array_values($routeArguments));
             if (!isset($result)) {
                 return $controller->getResponse();
             }

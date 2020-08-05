@@ -31,9 +31,12 @@ abstract class AbstractController implements ControllerInterface
     /**
      * {@inheritdoc}
      */
-    public function setRequest(ServerRequestInterface $request): void
+    public function withRequest(ServerRequestInterface $request)
     {
-        $this->request = $request;
+        $new = clone $this;
+        $new->request = $request;
+
+        return $new;
     }
 
     /**
@@ -47,9 +50,12 @@ abstract class AbstractController implements ControllerInterface
     /**
      * {@inheritdoc}
      */
-    public function setResponse(ResponseInterface $response): void
+    public function withResponse(ResponseInterface $response)
     {
-        $this->response = $response;
+        $new = clone $this;
+        $new->response = $response;
+
+        return $new;
     }
 
     /**

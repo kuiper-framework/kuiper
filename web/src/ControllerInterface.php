@@ -20,13 +20,17 @@ interface ControllerInterface
 
     /**
      * Sets request.
+     *
+     * @return static
      */
-    public function setRequest(ServerRequestInterface $request): void;
+    public function withRequest(ServerRequestInterface $request);
 
     /**
      * Sets response.
+     *
+     * @return static
      */
-    public function setResponse(ResponseInterface $response): void;
+    public function withResponse(ResponseInterface $response);
 
     /**
      * Gets the response.
