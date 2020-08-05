@@ -6,6 +6,7 @@ namespace kuiper\web;
 
 use DI\Annotation\Inject;
 use function DI\get;
+use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\annotation\Configuration;
@@ -15,6 +16,7 @@ use kuiper\logger\LoggerFactoryInterface;
 use kuiper\web\handler\DefaultLoginUrlBuilder;
 use kuiper\web\handler\ErrorHandler;
 use kuiper\web\handler\IncludeStacktrace;
+use kuiper\web\handler\LogErrorRenderer;
 use kuiper\web\handler\LoginUrlBuilderInterface;
 use kuiper\web\handler\UnauthorizedErrorHandler;
 use kuiper\web\http\MediaType;
@@ -34,6 +36,7 @@ use Slim\Error\Renderers\PlainTextErrorRenderer;
 use Slim\Error\Renderers\XmlErrorRenderer;
 use Slim\Exception\HttpUnauthorizedException;
 use Slim\Interfaces\ErrorHandlerInterface;
+use Slim\Interfaces\ErrorRendererInterface;
 use Slim\Middleware\ErrorMiddleware;
 
 /**
@@ -70,11 +73,14 @@ class WebConfiguration implements DefinitionConfiguration
     /**
      * @Bean()
      */
-    public function requestHandler(App $app, ContainerInterface $container): RequestHandlerInterface
+    public function requestHandler(App $app, ContainerInterface $container, AnnotationProcessorInterface $annotationProcessor): RequestHandlerInterface
     {
+        $annotationProcessor->process();
         $middlewares = $container->get('application.web.middleware');
         if (is_array($middlewares)) {
-            foreach ($middlewares as $middleware) {
+            // 数组前面的先运行
+            ksort($middlewares);
+            foreach (array_reverse($middlewares) as $middleware) {
                 $app->add($container->get($middleware));
             }
         }
@@ -84,19 +90,28 @@ class WebConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"webConfig": "application.web", "errorHandlers": "webErrorHandlers"})
+     * @Inject({"contextUrl": "application.web.context-url"})
+     */
+    public function annotationProcessor(ContainerInterface $container, AnnotationReaderInterface $annotationReader, App $app, ?string $contextUrl): AnnotationProcessorInterface
+    {
+        return new AnnotationProcessor($container, $annotationReader, $app, $contextUrl);
+    }
+
+    /**
+     * @Bean()
+     * @Inject({"errorConfig": "application.web.error", "errorHandlers": "webErrorHandlers"})
      */
     public function errorMiddleware(
         App $app,
         LoggerFactoryInterface $loggerFactory,
         ErrorHandlerInterface $defaultErrorHandler,
         array $errorHandlers,
-        array $webConfig): ErrorMiddleware
+        ?array $errorConfig): ErrorMiddleware
     {
         $errorMiddleware = new ErrorMiddleware($app->getCallableResolver(),
             $app->getResponseFactory(),
-            (bool) ($webConfig['display-error'] ?? false),
-            (bool) ($webConfig['log-error'] ?? false),
+            (bool) ($errorConfig['display-error'] ?? false),
+            (bool) ($errorConfig['log-error'] ?? false),
             false,
             $loggerFactory->create(ErrorMiddleware::class));
         foreach ($errorHandlers as $type => $errorHandler) {
@@ -109,19 +124,31 @@ class WebConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"errorRenderers": "webErrorRenderers", "includeStacktrace": "application.web.include-stacktrace"})
+     * @Inject({
+     *     "errorRenderers": "webErrorRenderers",
+     *     "includeStacktrace": "application.web.error.include-stacktrace"
+     * })
      */
     public function defaultErrorHandler(
         ResponseFactoryInterface $responseFactory,
         LoggerFactoryInterface $loggerFactory,
+        ErrorRendererInterface $logErrorRenderer,
         array $errorRenderers,
         ?string $includeStacktrace): ErrorHandlerInterface
     {
         $logger = $loggerFactory->create(ErrorHandler::class);
-        $errorHandler = new ErrorHandler($responseFactory, $errorRenderers, $logger);
+        $errorHandler = new ErrorHandler($responseFactory, $errorRenderers, $logErrorRenderer, $logger);
         $errorHandler->setIncludeStacktraceStrategy($includeStacktrace ?? IncludeStacktrace::NEVER);
 
         return $errorHandler;
+    }
+
+    /**
+     * @Bean()
+     */
+    public function logErrorRenderer(): ErrorRendererInterface
+    {
+        return new LogErrorRenderer();
     }
 
     /**
@@ -149,7 +176,7 @@ class WebConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"loginUrl": "application.web.login-url", "redirectParam": "application.web.redirect-param"})
+     * @Inject({"loginUrl": "application.web.login.url", "redirectParam": "application.web.login.redirect-param"})
      */
     public function loginUrlBuilder(?string $loginUrl, ?string $redirectParam): LoginUrlBuilderInterface
     {

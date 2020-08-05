@@ -14,7 +14,7 @@ use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Interfaces\RouteGroupInterface;
 use Slim\Interfaces\RouteInterface;
 
-class AnnotationProcessor
+class AnnotationProcessor implements AnnotationProcessorInterface
 {
     /**
      * @var ContainerInterface
@@ -29,11 +29,17 @@ class AnnotationProcessor
      */
     private $routeCollector;
 
-    public function __construct(ContainerInterface $container, AnnotationReaderInterface $annotationReader, RouteCollectorProxyInterface $routeCollector)
+    /**
+     * @var string|null
+     */
+    private $contextUrl;
+
+    public function __construct(ContainerInterface $container, AnnotationReaderInterface $annotationReader, RouteCollectorProxyInterface $routeCollector, ?string $contextUrl = null)
     {
         $this->container = $container;
         $this->annotationReader = $annotationReader;
         $this->routeCollector = $routeCollector;
+        $this->contextUrl = $contextUrl;
     }
 
     public function process(): void
@@ -47,13 +53,18 @@ class AnnotationProcessor
                 continue;
             }
             $seen[$controllerClass->getName()] = true;
+            $prefix = $this->contextUrl;
             $requestMapping = $this->annotationReader->getClassAnnotation($controllerClass, RequestMapping::class);
             if ($requestMapping) {
-                $this->routeCollector->group($requestMapping->value, function (RouteCollectorProxyInterface $group) use ($controllerClass) {
-                    $this->addMapping($group, $controllerClass);
-                });
-            } else {
+                $prefix .= $requestMapping->value;
+            }
+            if (null === $prefix || '' === $prefix) {
                 $this->addMapping($this->routeCollector, $controllerClass);
+            } else {
+                $self = $this;
+                $this->routeCollector->group($prefix, function (RouteCollectorProxyInterface $group) use ($self, $controllerClass) {
+                    $self->addMapping($group, $controllerClass);
+                });
             }
         }
     }

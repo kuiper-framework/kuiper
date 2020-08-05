@@ -154,7 +154,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
             }
             if (!is_array($value) || !isset($this[$key]) || !$this[$key] instanceof self) {
                 $this[$key] = $this->createItem($value);
-            } elseif (isset($value[0])) {
+            } elseif ($this->isIndexBasedArray($value)) {
                 if ($append) {
                     foreach ($value as $item) {
                         $this[$key]->append($this->createItem($item));
@@ -220,5 +220,16 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
     private function createItem($value)
     {
         return is_array($value) ? static::fromArray($value) : $value;
+    }
+
+    private function isIndexBasedArray(array $value): bool
+    {
+        foreach (range(0, count($value) - 1) as $i) {
+            if (!array_key_exists($i, $value)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

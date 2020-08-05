@@ -51,6 +51,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
     public function __construct(
         ResponseFactoryInterface $responseFactory,
         array $errorRenderers,
+        ?ErrorRendererInterface $logErrorRenderer,
         ?LoggerInterface $logger,
         string $defaultContentType = MediaType::TEXT_HTML,
         $includeStacktraceStrategy = IncludeStacktrace::NEVER)
@@ -59,9 +60,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         $this->errorRenderers = $errorRenderers;
         $this->defaultContentType = $defaultContentType;
         $this->includeStacktraceStrategy = $includeStacktraceStrategy;
-        if (isset($errorRenderers[MediaType::TEXT_PLAIN])) {
-            $this->logErrorRenderer = $errorRenderers[MediaType::TEXT_PLAIN];
-        }
+        $this->logErrorRenderer = $logErrorRenderer ?? $errorRenderers[MediaType::TEXT_PLAIN] ?? null;
         if (!isset($errorRenderers[$this->defaultContentType])) {
             throw new \InvalidArgumentException("error renderer for {$this->defaultContentType} not found");
         }

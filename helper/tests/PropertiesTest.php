@@ -145,4 +145,92 @@ class PropertiesTest extends TestCase
         $p->set('app.foo[0].bar', 'bar_value');
         $this->assertEquals($p->get('app'), ['foo' => [['bar' => 'bar_value'], 'two']]);
     }
+
+    public function testMergeIndexBasedArray()
+    {
+        $properties = Properties::create([
+            'middleware' => [
+                'a',
+            ],
+        ]);
+        $properties->merge([
+            'middleware' => [
+                'b',
+            ],
+        ]);
+        $this->assertEquals(['a', 'b'], $properties->get('middleware'));
+    }
+
+    public function testMergeAssocArray()
+    {
+        $properties = Properties::create([
+            'middleware' => [
+                'a',
+            ],
+        ]);
+        $properties->merge([
+            'middleware' => [
+                -1 => 'c',
+                100 => 'b',
+            ],
+        ]);
+        $middleware = $properties->get('middleware');
+        // var_export($middleware);
+        $this->assertEquals(['a', 'c', 'b'], array_values($middleware));
+        ksort($middleware);
+        $this->assertEquals(['c', 'a', 'b'], array_values($middleware));
+    }
+
+    public function testMergeMixedArray()
+    {
+        $properties = Properties::create([
+            'middleware' => [
+                'a',
+            ],
+        ]);
+        $properties->merge([
+            'middleware' => [
+                'd',
+                -1 => 'c',
+                100 => 'b',
+                'e',
+            ],
+        ]);
+        $middleware = $properties->get('middleware');
+        // var_export($middleware);
+        $this->assertEquals([
+            0 => 'd',
+            -1 => 'c',
+            100 => 'b',
+            101 => 'e',
+        ], $middleware);
+        $this->assertEquals(['d', 'c', 'b', 'e'], array_values($middleware));
+        ksort($middleware);
+        $this->assertEquals(['c', 'd', 'b', 'e'], array_values($middleware));
+    }
+
+    public function testMergeToAssocArray()
+    {
+        $properties = Properties::create([
+            'middleware' => [
+                1000 => 'a',
+            ],
+        ]);
+        $properties->merge([
+            'middleware' => [
+                1 => 'b',
+            ],
+        ]);
+        $middleware = $properties->get('middleware');
+        var_export($middleware);
+        $this->assertEquals([
+            0 => 'd',
+            -1 => 'c',
+            100 => 'b',
+            101 => 'e',
+        ], $middleware);
+        $this->assertEquals(['d', 'c', 'b', 'e'], array_values($middleware));
+        ksort($middleware);
+        $this->assertEquals(['c', 'd', 'b', 'e'], array_values($middleware));
+    }
 }
