@@ -32,13 +32,14 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
     public function __invoke($event): void
     {
         $serverConfig = $event->getServer()->getServerConfig();
-        @cli_set_process_title(sprintf('%s: %s process', $serverConfig->getServerName(), ProcessType::MASTER));
+        $port = $serverConfig->getPort();
+        @cli_set_process_title(sprintf('%s: %s process %s',
+            $serverConfig->getServerName(), ProcessType::MASTER, $port));
 
         $server = $event->getServer();
         try {
             $this->writePidFile($serverConfig->getMasterPidFile(), $server->getMasterPid());
-            $port = $serverConfig->getPort();
-            $this->logger->info(static::TAG.'Listening on '.$port);
+            $this->logger->info(static::TAG.'Listening on %s:%s'.$port);
         } catch (\RuntimeException $e) {
             $this->logger->error(static::TAG.'Cannot write pid file: '.$e->getMessage());
             $server->stop();
