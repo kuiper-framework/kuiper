@@ -13,8 +13,10 @@ use kuiper\di\annotation\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\web\exception\HttpRedirectException;
 use kuiper\web\handler\DefaultLoginUrlBuilder;
 use kuiper\web\handler\ErrorHandler;
+use kuiper\web\handler\HttpRedirectHandler;
 use kuiper\web\handler\IncludeStacktrace;
 use kuiper\web\handler\LogErrorRenderer;
 use kuiper\web\handler\LoginUrlBuilderInterface;
@@ -50,6 +52,7 @@ class WebConfiguration implements DefinitionConfiguration
     {
         return [
             'webErrorHandlers' => [
+                HttpRedirectException::class => get(HttpRedirectHandler::class),
                 HttpUnauthorizedException::class => get(UnauthorizedErrorHandler::class),
             ],
             'webErrorRenderers' => [
