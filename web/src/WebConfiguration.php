@@ -8,7 +8,8 @@ use DI\Annotation\Inject;
 use function DI\get;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnProperty;
+use kuiper\di\annotation\ConditionalOnClass;
+use kuiper\di\annotation\ConditionalOnMissingClass;
 use kuiper\di\annotation\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -26,6 +27,7 @@ use kuiper\web\session\CacheSessionHandler;
 use kuiper\web\session\CacheStoreSessionFactory;
 use kuiper\web\session\SessionFactoryInterface;
 use kuiper\web\view\PhpView;
+use kuiper\web\view\TwigView;
 use kuiper\web\view\ViewInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
@@ -40,6 +42,9 @@ use Slim\Exception\HttpUnauthorizedException;
 use Slim\Interfaces\ErrorHandlerInterface;
 use Slim\Interfaces\ErrorRendererInterface;
 use Slim\Middleware\ErrorMiddleware;
+use Twig\Environment as Twig;
+use Twig\Loader\FilesystemLoader;
+use Twig\Loader\LoaderInterface;
 
 /**
  * @Configuration()
@@ -156,12 +161,32 @@ class WebConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @ConditionalOnProperty("application.web.view.path")
-     * @Inject({"viewPath": "application.web.view.path"})
+     * @Inject({"options": "application.web.view"})
+     * @ConditionalOnMissingClass(Twig::class)
      */
-    public function phpView(string $viewPath): ViewInterface
+    public function phpView(?array $options): ViewInterface
     {
-        return new PhpView($viewPath);
+        return new PhpView($options['path'] ?? getcwd(), $options['extension'] ?? '.php');
+    }
+
+    /**
+     * @Bean()
+     * @Inject({"options": "application.web.view"})
+     * @ConditionalOnClass(Twig::class)
+     */
+    public function twigView(LoaderInterface $twigLoader, ?array $options): ViewInterface
+    {
+        return new TwigView(new Twig($twigLoader, $options));
+    }
+
+    /**
+     * @Bean()
+     * @Inject({"options": "application.web.view"})
+     * @ConditionalOnClass(Twig::class)
+     */
+    public function twigLoader(?array $options): LoaderInterface
+    {
+        return new FilesystemLoader($options['path'] ?? getcwd());
     }
 
     /**
