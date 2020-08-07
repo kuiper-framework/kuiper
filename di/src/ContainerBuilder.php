@@ -224,13 +224,13 @@ class ContainerBuilder implements ContainerBuilderInterface
         $this->locked = true;
         $containerClass = $this->containerClass;
         $container = new $containerClass($source, $proxyFactory, $this->wrapperContainer);
+        if ($this->conditionalDefinitionSource) {
+            $this->conditionalDefinitionSource->setContainer($container);
+        }
         if (!empty($this->deferCallbacks)) {
             foreach ($this->deferCallbacks as $deferCallback) {
                 $deferCallback($container);
             }
-        }
-        if ($this->conditionalDefinitionSource) {
-            $this->conditionalDefinitionSource->setContainer($container);
         }
 
         return $container;
