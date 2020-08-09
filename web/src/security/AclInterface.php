@@ -7,7 +7,7 @@ namespace kuiper\web\security;
 interface AclInterface
 {
     /**
-     * Check whether a role is allowed to access an action from a resource.
+     * Check whether a role is allowed to access the resource.
      */
-    public function isAllowed(string $role, string $authority): bool;
+    public function isAllowed(string $role, string $resource): bool;
 }

@@ -4,31 +4,36 @@ declare(strict_types=1);
 
 namespace kuiper\web\security;
 
-interface AuthInterface extends \ArrayAccess
+interface AuthInterface
 {
     /**
      * make current user logged in.
      *
-     * @param array $identity the user identity info
+     * @param UserIdentity $identity the user identity info
      */
-    public function login(array $identity): void;
+    public function login(UserIdentity $identity): void;
 
-    public function getIdentity(): array;
+    /**
+     * Gets the user identity.
+     */
+    public function getIdentity(): UserIdentity;
 
     /**
      * make current user logged out.
      *
      * @param bool $destroySession trigger destroy session
      */
-    public function logout($destroySession = true): void;
+    public function logout(bool $destroySession = true): void;
 
     /**
      * whether current user is logged in.
+     *
+     * @return
      */
     public function isGuest(): bool;
 
     /**
-     * whether current user is required to login.
+     * whether current user is logged in.
      */
-    public function isNeedLogin(): bool;
+    public function isAuthorized(): bool;
 }

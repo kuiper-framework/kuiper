@@ -14,7 +14,8 @@ use kuiper\di\annotation\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
-use kuiper\web\exception\HttpRedirectException;
+use kuiper\web\exception\RedirectException;
+use kuiper\web\exception\UnauthorizedException;
 use kuiper\web\handler\DefaultLoginUrlBuilder;
 use kuiper\web\handler\ErrorHandler;
 use kuiper\web\handler\HttpRedirectHandler;
@@ -57,7 +58,8 @@ class WebConfiguration implements DefinitionConfiguration
     {
         return [
             'webErrorHandlers' => [
-                HttpRedirectException::class => get(HttpRedirectHandler::class),
+                RedirectException::class => get(HttpRedirectHandler::class),
+                UnauthorizedException::class => get(UnauthorizedErrorHandler::class),
                 HttpUnauthorizedException::class => get(UnauthorizedErrorHandler::class),
             ],
             'webErrorRenderers' => [
@@ -176,7 +178,14 @@ class WebConfiguration implements DefinitionConfiguration
      */
     public function twigView(LoaderInterface $twigLoader, ?array $options): ViewInterface
     {
-        return new TwigView(new Twig($twigLoader, $options));
+        $twig = new Twig($twigLoader, $options);
+        if (!empty($options['globals'])) {
+            foreach ($options['globals'] as $name => $value) {
+                $twig->addGlobal($name, $value);
+            }
+        }
+
+        return new TwigView($twig);
     }
 
     /**
@@ -186,7 +195,15 @@ class WebConfiguration implements DefinitionConfiguration
      */
     public function twigLoader(?array $options): LoaderInterface
     {
-        return new FilesystemLoader($options['path'] ?? getcwd());
+        $loader = new FilesystemLoader($options['path'] ?? getcwd());
+
+        if (!empty($options['alias'])) {
+            foreach ($options['alias'] as $alias => $path) {
+                $loader->addPath($path, $alias);
+            }
+        }
+
+        return $loader;
     }
 
     /**

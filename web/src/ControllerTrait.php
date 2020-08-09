@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\web;
 
 use DI\Annotation\Inject;
-use kuiper\web\exception\HttpRedirectException;
+use kuiper\web\exception\RedirectException;
 use kuiper\web\security\SecurityContext;
 use kuiper\web\session\FlashInterface;
 use kuiper\web\session\SessionInterface;
@@ -42,7 +42,7 @@ trait ControllerTrait
 
     protected function redirect(string $url, int $code = 302): void
     {
-        throw new HttpRedirectException($url, $code);
+        throw new RedirectException($url, $code);
     }
 
     protected function urlFor(string $routeName, array $data = [], array $queryParams = []): string

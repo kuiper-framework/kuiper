@@ -15,8 +15,6 @@ use Slim\Exception\HttpUnauthorizedException;
 
 class PreAuthorize implements MiddlewareInterface
 {
-    public const SUPERUSER = 'Admin';
-
     /**
      * @var AclInterface
      */
@@ -27,7 +25,7 @@ class PreAuthorize implements MiddlewareInterface
      */
     private $authorities;
 
-    private static $SUPER_USER_ROLE = self::SUPERUSER;
+    private static $SUPER_USER_ROLE = 'admin';
 
     /**
      *  constructor.
@@ -37,38 +35,27 @@ class PreAuthorize implements MiddlewareInterface
     public function __construct(AclInterface $acl, array $authorities)
     {
         $this->acl = $acl;
-        $this->setAuthorities($authorities);
+        $this->authorities = $authorities;
     }
 
-    public function setAuthorities(array $authorities): void
-    {
-        foreach ($authorities as $authority) {
-            if (false === strpos($authority, ':')) {
-                throw new \InvalidArgumentException("Acl resource should in format 'resource:action'");
-            }
-            $this->authorities[] = explode(':', $authority, 2);
-        }
-    }
-
-    public function check(array $roles): bool
+    public function isAllowed(array $roles): bool
     {
         if (empty($roles)) {
             return false;
         }
 
-        if ($this->isSuperUser($roles)) {
+        if (empty($this->authorities) || $this->isSuperUser($roles)) {
             return true;
         }
 
         foreach ($this->authorities as $authority) {
             $allow = false;
             foreach ($roles as $role) {
-                if ($this->acl->isAllowed($role, ...$authority)) {
+                if ($this->acl->isAllowed($role, $authority)) {
                     $allow = true;
                     break;
                 }
             }
-
             if (!$allow) {
                 return false;
             }
@@ -84,16 +71,19 @@ class PreAuthorize implements MiddlewareInterface
     {
         $auth = SecurityContext::fromRequest($request)->getAuth();
 
-        if ($auth->isGuest()) {
+        if (!$auth->isAuthorized()) {
             throw new HttpUnauthorizedException($request);
         }
-        if (!$this->check($auth['roles'] ?? [])) {
+        if (!$this->isAllowed($auth->getIdentity()->getAuthorities())) {
             throw new HttpForbiddenException($request);
         }
 
         return $handler->handle($request);
     }
 
+    /**
+     * The super user role name.
+     */
     public static function setSuperUserRole(string $roleName): void
     {
         self::$SUPER_USER_ROLE = $roleName;

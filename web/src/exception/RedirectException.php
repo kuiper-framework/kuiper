@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\exception;
 
-class HttpRedirectException extends \RuntimeException
+class RedirectException extends \RuntimeException
 {
     /**
      * @var string

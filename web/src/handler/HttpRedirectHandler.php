@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\handler;
 
-use kuiper\web\exception\HttpRedirectException;
+use kuiper\web\exception\RedirectException;
 use kuiper\web\http\MediaType;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -45,7 +45,7 @@ class HttpRedirectHandler implements ErrorHandlerInterface
                 MediaType::APPLICATION_JSON,
             ]) ?? MediaType::TEXT_HTML;
         if (MediaType::TEXT_HTML === $contentType) {
-            /* @var HttpRedirectException $exception */
+            /* @var RedirectException $exception */
             return $this->responseFactory->createResponse($exception->getCode())
                 ->withHeader('Location', $exception->getUrl());
         }

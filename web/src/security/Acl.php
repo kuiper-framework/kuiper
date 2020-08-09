@@ -8,18 +8,26 @@ class Acl implements AclInterface
 {
     private $allows = [];
 
+    /**
+     * Add resource to the role.
+     *
+     * @param string $rule the resource or the pattern to match the resource
+     */
     public function allow(string $role, string $rule): void
     {
         $this->allows[$role][$rule] = true;
     }
 
-    public function isAllowed(string $role, string $authority): bool
+    /**
+     * {@inheritdoc}
+     */
+    public function isAllowed(string $role, string $resource): bool
     {
-        if (isset($this->allows[$role][$authority])) {
+        if (isset($this->allows[$role][$resource])) {
             return true;
         }
         foreach ($this->allows[$role] as $rule) {
-            if ($this->matches($rule, $authority)) {
+            if ($this->matches($rule, $resource)) {
                 return true;
             }
         }
@@ -27,8 +35,8 @@ class Acl implements AclInterface
         return false;
     }
 
-    private function matches(string $rule, string $authority): bool
+    private function matches(string $rule, string $resource): bool
     {
-        return fnmatch($rule, $authority);
+        return fnmatch($rule, $resource);
     }
 }
