@@ -37,7 +37,7 @@ trait ControllerTrait
         $response = $this->getResponse();
         $response->getBody()->write(json_encode($data));
 
-        return $response;
+        return $response->withHeader('content-type', 'application/json');
     }
 
     protected function redirect(string $url, int $code = 302): void
