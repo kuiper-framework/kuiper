@@ -22,7 +22,7 @@ class LoginOnly extends AbstractFilter
     /**
      * {@inheritdoc}
      */
-    public function createMiddleware(ContainerInterface $container): MiddlewareInterface
+    public function createMiddleware(ContainerInterface $container): ?MiddlewareInterface
     {
         return new LoginOnlyMiddleware();
     }

@@ -17,5 +17,5 @@ interface FilterInterface
     /**
      * Creates the middleware.
      */
-    public function createMiddleware(ContainerInterface $container): MiddlewareInterface;
+    public function createMiddleware(ContainerInterface $container): ?MiddlewareInterface;
 }

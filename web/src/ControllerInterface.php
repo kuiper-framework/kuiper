@@ -11,10 +11,9 @@ interface ControllerInterface
 {
     /**
      * Initialize controller.
-     * if return false, stop execute action
      * if return ResponseInterface, stop execute action and return the response.
      *
-     * @return false|ResponseInterface|null
+     * @return ResponseInterface|void|null
      */
     public function initialize();
 

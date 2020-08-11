@@ -110,7 +110,10 @@ class AnnotationProcessor implements AnnotationProcessorInterface
                 return $a->getPriority() - $b->getPriority();
             });
             foreach ($filters as $filter) {
-                $route->add($filter->createMiddleware($this->container));
+                $middleware = $filter->createMiddleware($this->container);
+                if (null !== $middleware) {
+                    $route->add($middleware);
+                }
             }
         }
     }

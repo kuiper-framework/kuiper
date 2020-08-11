@@ -23,7 +23,7 @@ class PreAuthorize extends AbstractFilter
     /**
      * {@inheritdoc}
      */
-    public function createMiddleware(ContainerInterface $container): MiddlewareInterface
+    public function createMiddleware(ContainerInterface $container): ?MiddlewareInterface
     {
         return new PreAuthorizeMiddleware($container->get(AclInterface::class), $this->value);
     }
