@@ -45,9 +45,6 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
      */
     private $includeStacktraceStrategy;
 
-    /**
-     * ErrorHandler constructor.
-     */
     public function __construct(
         ResponseFactoryInterface $responseFactory,
         array $errorRenderers,
@@ -113,7 +110,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         $this->logger->error($error);
     }
 
-    private function getIncludeStacktrace(ServerRequestInterface $request)
+    private function getIncludeStacktrace(ServerRequestInterface $request): bool
     {
         switch ($this->includeStacktraceStrategy) {
             case IncludeStacktrace::ALWAYS:
@@ -156,7 +153,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         );
         $count = count($selectedContentTypes);
 
-        if ($count) {
+        if ($count > 0) {
             $current = current($selectedContentTypes);
 
             /*

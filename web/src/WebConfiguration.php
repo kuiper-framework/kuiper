@@ -11,6 +11,7 @@ use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\ConditionalOnMissingClass;
 use kuiper\di\annotation\Configuration;
+use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
@@ -57,11 +58,6 @@ class WebConfiguration implements DefinitionConfiguration
     public function getDefinitions(): array
     {
         return [
-            'webErrorHandlers' => [
-                RedirectException::class => get(HttpRedirectHandler::class),
-                UnauthorizedException::class => get(UnauthorizedErrorHandler::class),
-                HttpUnauthorizedException::class => get(UnauthorizedErrorHandler::class),
-            ],
             'webErrorRenderers' => [
                 MediaType::APPLICATION_JSON => get(JsonErrorRenderer::class),
                 MediaType::APPLICATION_XML => get(XmlErrorRenderer::class),
@@ -109,23 +105,35 @@ class WebConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"errorConfig": "application.web.error", "errorHandlers": "webErrorHandlers"})
+     * @Inject({"errorConfig": "application.web.error"})
      */
     public function errorMiddleware(
+        ContainerInterface $container,
         App $app,
         LoggerFactoryInterface $loggerFactory,
         ErrorHandlerInterface $defaultErrorHandler,
-        array $errorHandlers,
         ?array $errorConfig): ErrorMiddleware
     {
         $errorMiddleware = new ErrorMiddleware($app->getCallableResolver(),
             $app->getResponseFactory(),
             (bool) ($errorConfig['display-error'] ?? false),
-            (bool) ($errorConfig['log-error'] ?? false),
+            (bool) ($errorConfig['log-error'] ?? true),
             false,
             $loggerFactory->create(ErrorMiddleware::class));
+        $errorHandlers = ($errorConfig['handlers'] ?? []) + [
+            RedirectException::class => HttpRedirectHandler::class,
+            UnauthorizedException::class => UnauthorizedErrorHandler::class,
+            HttpUnauthorizedException::class => UnauthorizedErrorHandler::class,
+        ];
         foreach ($errorHandlers as $type => $errorHandler) {
-            $errorMiddleware->setErrorHandler($type, $errorHandler);
+            $errorMiddleware->setErrorHandler($type, $container->get($errorHandler));
+        }
+        foreach (ComponentCollection::getAnnotations(annotation\ErrorHandler::class) as $annotation) {
+            /** @var annotation\ErrorHandler $annotation */
+            $errorHandler = $container->get($annotation->getComponentId());
+            foreach ((array) $annotation->value as $type) {
+                $errorMiddleware->setErrorHandler($type, $errorHandler);
+            }
         }
         $errorMiddleware->setDefaultErrorHandler($defaultErrorHandler);
 

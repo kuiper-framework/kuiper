@@ -80,7 +80,7 @@ class MetaModel implements MetaModelInterface
             }
         }
         if (!isset($this->idProperty)) {
-            throw new \InvalidArgumentException($entityClass.' does not contain id');
+            throw new \InvalidArgumentException($entityClass->getName().' does not contain id');
         }
     }
 

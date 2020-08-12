@@ -26,7 +26,7 @@ class Acl implements AclInterface
         if (isset($this->allows[$role][$resource])) {
             return true;
         }
-        foreach ($this->allows[$role] as $rule) {
+        foreach ($this->allows[$role] as $rule => $allow) {
             if ($this->matches($rule, $resource)) {
                 return true;
             }

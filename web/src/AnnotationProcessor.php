@@ -46,7 +46,6 @@ class AnnotationProcessor implements AnnotationProcessorInterface
     {
         $seen = [];
         foreach (ComponentCollection::getAnnotations(Controller::class) as $annotation) {
-            /** @var RequestMapping $requestMapping */
             /** @var Controller $annotation */
             $controllerClass = $annotation->getTarget();
             if (isset($seen[$controllerClass->getName()])) {
@@ -54,6 +53,7 @@ class AnnotationProcessor implements AnnotationProcessorInterface
             }
             $seen[$controllerClass->getName()] = true;
             $prefix = $this->contextUrl;
+            /** @var RequestMapping $requestMapping */
             $requestMapping = $this->annotationReader->getClassAnnotation($controllerClass, RequestMapping::class);
             if ($requestMapping) {
                 $prefix .= $requestMapping->value;
