@@ -6,6 +6,7 @@ namespace kuiper\cache;
 
 use DI\Annotation\Inject;
 use kuiper\di\annotation\Bean;
+use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\annotation\Configuration;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\swoole\pool\PoolInterface;
@@ -16,6 +17,7 @@ use Symfony\Component\Cache\Adapter\RedisAdapter;
 
 /**
  * @Configuration()
+ * @ConditionalOnProperty("application.redis")
  */
 class CacheConfiguration
 {

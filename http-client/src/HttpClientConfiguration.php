@@ -7,11 +7,13 @@ namespace kuiper\http\client;
 use DI\Annotation\Inject;
 use GuzzleHttp\ClientInterface;
 use kuiper\di\annotation\Bean;
+use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\Configuration;
 use kuiper\swoole\pool\PoolFactoryInterface;
 
 /**
  * @Configuration()
+ * @ConditionalOnClass(ClientInterface::class)
  */
 class HttpClientConfiguration
 {
