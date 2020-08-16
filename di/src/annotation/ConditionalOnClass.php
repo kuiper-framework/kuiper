@@ -19,6 +19,6 @@ class ConditionalOnClass implements Conditional
 
     public function match(ContainerInterface $container): bool
     {
-        return class_exists($this->value);
+        return class_exists($this->value) || interface_exists($this->value);
     }
 }

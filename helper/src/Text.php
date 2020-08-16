@@ -167,4 +167,13 @@ final class Text
     {
         return !isset($text) || '' === $text;
     }
+
+    public static function truncate(string $value, int $maxLength, string $suffix = '...'): string
+    {
+        if (strlen($value) <= $maxLength) {
+            return $value;
+        }
+
+        return substr($value, 0, $maxLength - strlen($suffix)).$suffix;
+    }
 }
