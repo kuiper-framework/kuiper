@@ -195,7 +195,7 @@ class WebConfiguration implements DefinitionConfiguration
             }
         }
 
-        return new TwigView($twig);
+        return new TwigView($twig, $options['extension'] ?? null);
     }
 
     /**

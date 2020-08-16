@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\view;
 
+use kuiper\helper\Text;
 use kuiper\web\exception\ViewException;
 use Twig\Environment;
 use Twig\Error\Error;
@@ -15,9 +16,15 @@ class TwigView implements ViewInterface
      */
     private $twig;
 
-    public function __construct(Environment $twig)
+    /**
+     * @var string|null
+     */
+    private $extension;
+
+    public function __construct(Environment $twig, ?string $extension = '.html')
     {
         $this->twig = $twig;
+        $this->extension = $extension;
     }
 
     public function getTwig(): Environment
@@ -28,6 +35,12 @@ class TwigView implements ViewInterface
     public function render(string $name, array $context = []): string
     {
         try {
+            if (null !== $this->extension
+                && !Text::endsWith($name, $this->extension)
+                && '' === pathinfo($name, PATHINFO_EXTENSION)) {
+                $name .= $this->extension;
+            }
+
             return $this->twig->render($name, $context);
         } catch (Error $exception) {
             throw new ViewException($exception->getMessage(), $exception->getCode(), $exception);
