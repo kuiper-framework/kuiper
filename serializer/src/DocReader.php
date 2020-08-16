@@ -207,19 +207,12 @@ class DocReader implements DocReaderInterface
             return new ArrayType($valueType, $type->getDimension());
         } elseif ($type->isComposite()) {
             $types = [];
-            $hasClassType = false;
             /** @var CompositeType $type */
             foreach ($type->getTypes() as $subType) {
-                if ($subType->isClass()) {
-                    $hasClassType = true;
-                    $types[] = $this->resolveFqcn($subType, $declaringClass);
-                } else {
-                    $types[] = $subType;
-                }
+                $types[] = $this->resolveFqcn($subType, $declaringClass);
             }
-            if ($hasClassType) {
-                return new CompositeType($types);
-            }
+
+            return new CompositeType($types);
         } elseif ($type->isClass()) {
             $name = $type->getName();
             if ('\\' !== $name[0] && $declaringClass->getFileName()) {

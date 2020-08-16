@@ -114,7 +114,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         } elseif ($type->isComposite()) {
             /** @var CompositeType $type */
             foreach ($type->getTypes() as $subtype) {
-                if ($subtype->isValid($value)) {
+                if (($subtype->isArray() && is_array($value)) || $subtype->isValid($value)) {
                     return $this->toType($value, $subtype);
                 }
             }
