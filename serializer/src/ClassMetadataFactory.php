@@ -136,6 +136,7 @@ class ClassMetadataFactory
                 if ($getter->getType()->isUnknown()) {
                     $getter->setType($field->getType());
                 }
+                $getter->setSerializeName($field->getSerializeName());
             } else {
                 $metadata->addGetter($field);
             }
@@ -144,6 +145,7 @@ class ClassMetadataFactory
                 if ($setter->getType()->isUnknown()) {
                     $setter->setType($field->getType());
                 }
+                $setter->setSerializeName($field->getSerializeName());
             } else {
                 $metadata->addSetter($field);
             }

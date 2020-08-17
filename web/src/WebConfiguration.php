@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace kuiper\web;
 
 use DI\Annotation\Inject;
-use function DI\get;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnClass;
@@ -13,8 +12,6 @@ use kuiper\di\annotation\ConditionalOnMissingClass;
 use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\annotation\Configuration;
 use kuiper\di\ComponentCollection;
-use kuiper\di\ContainerBuilderAwareTrait;
-use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\web\exception\RedirectException;
 use kuiper\web\exception\UnauthorizedException;
@@ -53,23 +50,8 @@ use Twig\Loader\LoaderInterface;
  * @Configuration()
  * @ConditionalOnProperty("application.web")
  */
-class WebConfiguration implements DefinitionConfiguration
+class WebConfiguration
 {
-    use ContainerBuilderAwareTrait;
-
-    public function getDefinitions(): array
-    {
-        return [
-            'webErrorRenderers' => [
-                MediaType::APPLICATION_JSON => get(JsonErrorRenderer::class),
-                MediaType::APPLICATION_XML => get(XmlErrorRenderer::class),
-                MediaType::TEXT_XML => get(XmlErrorRenderer::class),
-                MediaType::TEXT_HTML => get(HtmlErrorRenderer::class),
-                MediaType::TEXT_PLAIN => get(PlainTextErrorRenderer::class),
-            ],
-        ];
-    }
-
     /**
      * @Bean
      */
@@ -123,10 +105,10 @@ class WebConfiguration implements DefinitionConfiguration
             false,
             $loggerFactory->create(ErrorMiddleware::class));
         $errorHandlers = ($errorConfig['handlers'] ?? []) + [
-            RedirectException::class => HttpRedirectHandler::class,
-            UnauthorizedException::class => UnauthorizedErrorHandler::class,
-            HttpUnauthorizedException::class => UnauthorizedErrorHandler::class,
-        ];
+                RedirectException::class => HttpRedirectHandler::class,
+                UnauthorizedException::class => UnauthorizedErrorHandler::class,
+                HttpUnauthorizedException::class => UnauthorizedErrorHandler::class,
+            ];
         foreach ($errorHandlers as $type => $errorHandler) {
             $errorMiddleware->setErrorHandler($type, $container->get($errorHandler));
         }
@@ -140,6 +122,20 @@ class WebConfiguration implements DefinitionConfiguration
         $errorMiddleware->setDefaultErrorHandler($defaultErrorHandler);
 
         return $errorMiddleware;
+    }
+
+    /**
+     * @Bean("webErrorRenderers")
+     */
+    public function webErrorRenders(ContainerInterface $container): array
+    {
+        return [
+            MediaType::APPLICATION_JSON => $container->get(JsonErrorRenderer::class),
+            MediaType::APPLICATION_XML => $container->get(XmlErrorRenderer::class),
+            MediaType::TEXT_XML => $container->get(XmlErrorRenderer::class),
+            MediaType::TEXT_HTML => $container->get(HtmlErrorRenderer::class),
+            MediaType::TEXT_PLAIN => $container->get(PlainTextErrorRenderer::class),
+        ];
     }
 
     /**

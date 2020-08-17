@@ -110,7 +110,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         $this->logger->error($error);
     }
 
-    private function getIncludeStacktrace(ServerRequestInterface $request): bool
+    protected function getIncludeStacktrace(ServerRequestInterface $request): bool
     {
         switch ($this->includeStacktraceStrategy) {
             case IncludeStacktrace::ALWAYS:

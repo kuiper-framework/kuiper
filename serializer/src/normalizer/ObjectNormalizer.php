@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\normalizer;
 
+use kuiper\helper\Text;
 use kuiper\serializer\ClassMetadataFactory;
 use kuiper\serializer\NormalizerInterface;
 
@@ -57,10 +58,12 @@ class ObjectNormalizer implements NormalizerInterface
         $class = new \ReflectionClass($className);
         $object = $class->newInstanceWithoutConstructor();
         foreach ($metadata->getSetters() as $setter) {
-            if (!isset($data[$setter->getSerializeName()])) {
-                continue;
+            foreach ([$setter->getSerializeName(), Text::snakeCase($setter->getSerializeName())] as $key) {
+                if (isset($data[$key])) {
+                    $setter->setValue($object, $this->serializer->denormalize($data[$key], $setter->getType()));
+                    break;
+                }
             }
-            $setter->setValue($object, $this->serializer->denormalize($data[$setter->getSerializeName()], $setter->getType()));
         }
 
         return $object;
