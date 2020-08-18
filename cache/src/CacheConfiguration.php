@@ -11,9 +11,11 @@ use kuiper\di\annotation\Configuration;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\swoole\pool\PoolInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\ChainAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\Cache\Psr16Cache;
 
 /**
  * @Configuration()
@@ -72,5 +74,13 @@ class CacheConfiguration
         }
 
         return $redisAdapter;
+    }
+
+    /**
+     * @Bean()
+     */
+    public function simpleCache(CacheItemPoolInterface $cacheItemPool): CacheInterface
+    {
+        return new Psr16Cache($cacheItemPool);
     }
 }

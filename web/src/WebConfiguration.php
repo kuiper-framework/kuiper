@@ -9,7 +9,6 @@ use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\ConditionalOnMissingClass;
-use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\annotation\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\logger\LoggerFactoryInterface;
@@ -48,7 +47,7 @@ use Twig\Loader\LoaderInterface;
 
 /**
  * @Configuration()
- * @ConditionalOnProperty("application.web")
+ * @ConditionalOnClass(App::class)
  */
 class WebConfiguration
 {
