@@ -73,15 +73,21 @@ class AnnotationProcessor implements AnnotationProcessorInterface
     {
         $controller = $this->container->get($controllerClass->getName());
         foreach ($controllerClass->getMethods() as $reflectionMethod) {
-            if ($reflectionMethod->isPublic() && !$reflectionMethod->isStatic()) {
-                /** @var RequestMapping $mapping */
-                $mapping = $this->annotationReader->getMethodAnnotation($reflectionMethod, RequestMapping::class);
-                if ($mapping) {
-                    $route = $routeCollector->map($mapping->method, $mapping->value, [$controller, $reflectionMethod->getName()]);
+            if (!$reflectionMethod->isPublic() || $reflectionMethod->isStatic()) {
+                continue;
+            }
+            /** @var RequestMapping $mapping */
+            $mapping = $this->annotationReader->getMethodAnnotation($reflectionMethod, RequestMapping::class);
+            if ($mapping) {
+                foreach ((array) $mapping->value as $pattern) {
+                    $route = $routeCollector->map($mapping->method, $pattern, [$controller, $reflectionMethod->getName()]);
+                    $this->addFilters($route, $reflectionMethod);
                     if ($mapping->name) {
+                        if (is_array($mapping->value)) {
+                            throw new \InvalidArgumentException('Cannot set route name when there multiple routes for method '.$reflectionMethod->getDeclaringClass().'::'.$reflectionMethod->getName());
+                        }
                         $route->setName($mapping->name);
                     }
-                    $this->addFilters($route, $reflectionMethod);
                 }
             }
         }
