@@ -17,19 +17,6 @@ class Arrays
     }
 
     /**
-     * 在实际使用过程中出现 null coalesce ( ?? 运算符) 错误的情况，数组中没有该元素，但是还是能获取到值
-     *
-     * @param array $arr
-     * @param mixed $default
-     *
-     * @return mixed|null
-     */
-    public static function fetch($arr, string $key, $default = null)
-    {
-        return isset($arr[$key]) ? $arr[$key] : $default;
-    }
-
-    /**
      * Collects value from array.
      *
      * @param array|\Iterator $arr
