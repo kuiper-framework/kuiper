@@ -168,6 +168,11 @@ final class Text
         return !isset($text) || '' === $text;
     }
 
+    public static function isInteger(?string $text): bool
+    {
+        return preg_match('/^\d+$/', $text);
+    }
+
     public static function truncate(string $value, int $maxLength, string $suffix = '...'): string
     {
         if (strlen($value) <= $maxLength) {

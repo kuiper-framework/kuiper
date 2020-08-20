@@ -17,6 +17,19 @@ class Arrays
     }
 
     /**
+     * 在实际使用过程中出现 null coalesce ( ?? 运算符) 错误的情况，数组中没有该元素，但是还是能获取到值
+     *
+     * @param array $arr
+     * @param mixed $default
+     *
+     * @return mixed|null
+     */
+    public static function fetch($arr, string $key, $default = null)
+    {
+        return isset($arr[$key]) ? $arr[$key] : $default;
+    }
+
+    /**
      * Collects value from array.
      *
      * @param array|\Iterator $arr
@@ -95,7 +108,7 @@ class Arrays
             } else {
                 $key = $elem[$groupBy] ?? null;
             }
-            if (is_null($key) || is_scalar($key)) {
+            if (null === $key || is_scalar($key)) {
                 $ret[$key][] = $elem;
             } else {
                 throw new \InvalidArgumentException("Cannot group by key '$groupBy', support only scalar type, got ".(is_object($key) ? get_class($key) : gettype($key)));
@@ -352,9 +365,9 @@ class Arrays
     public static function mapKeys(array $arr, callable $callback): array
     {
         $result = [];
-        array_walk($arr, static function (&$value, $key) use (&$result, $callback) {
+        foreach ($arr as $key => $value) {
             $result[$callback($key)] = $value;
-        });
+        }
 
         return $result;
     }

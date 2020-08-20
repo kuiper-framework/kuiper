@@ -34,6 +34,21 @@ WHERE
     id = :_1_', $query->getStatement());
     }
 
+    public function testInWhere(): void
+    {
+        $query = Criteria::create()
+            ->in('id', [2 => 1])
+            ->buildStatement($this->statement);
+        $this->assertEquals('SELECT
+    *
+FROM
+    `article`
+WHERE
+    id IN (:_1_)', $query->getStatement());
+        //$bindValues = $query->getBindValues();
+        //var_export($bindValues);
+    }
+
     public function testWhereMultipleFields(): void
     {
         $query = Criteria::create(['author' => 'john', 'tag' => 'a', 'category' => 'c'])

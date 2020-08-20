@@ -317,13 +317,13 @@ class Criteria
 
         if ($this->columns) {
             $copy->columns = array_map(static function (string $column) use ($columnAlias) {
-                return $columnAlias[$column] ?? $column;
+                return Arrays::fetch($columnAlias, $column, $column);
             }, $this->columns);
         }
 
         if ($this->groupBy) {
             $copy->groupBy = array_map(static function (string $column) use ($columnAlias) {
-                return $columnAlias[$column] ?? $column;
+                return Arrays::fetch($columnAlias, $column, $column);
             }, $this->groupBy);
         }
 
@@ -338,7 +338,7 @@ class Criteria
         if ($this->bindValues) {
             $copy->bindValues = [];
             foreach ($this->bindValues as $name => $value) {
-                $copy->bindValues[$columnAlias[$name] ?? $name] = $value;
+                $copy->bindValues[Arrays::fetch($columnAlias, $name, $name)] = $value;
             }
         }
 
