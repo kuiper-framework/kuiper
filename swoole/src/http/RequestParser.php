@@ -226,6 +226,7 @@ class RequestParser
 
     private function parseBody(): void
     {
+        $this->request = $this->request->withBody($this->httpServer->getStreamFactory()->createStream($this->body));
         $contentType = $this->request->getHeaderLine('Content-Type');
         $pos = stripos($contentType, 'boundary=');
         if (false !== $pos) {
