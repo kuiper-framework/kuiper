@@ -62,6 +62,10 @@ class Criteria
      */
     private $bindValues = [];
 
+    private function __construct()
+    {
+    }
+
     public static function create(array $conditions = []): self
     {
         $criteria = new self();
