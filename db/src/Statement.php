@@ -42,6 +42,11 @@ class Statement implements StatementInterface
      */
     protected $pdoStatement;
 
+    /**
+     * @var string|null
+     */
+    protected $tableAlias;
+
     public function __construct(ConnectionPoolInterface $pool, QueryInterface $query, EventDispatcherInterface $eventDispatcher)
     {
         $this->pool = $pool;
@@ -68,7 +73,7 @@ class Statement implements StatementInterface
     public function table(string $table): StatementInterface
     {
         if ($this->query instanceof SelectInterface || $this->query instanceof DeleteInterface) {
-            $this->query->from($table);
+            $this->query->from($table.($this->tableAlias ? ' as '.$this->tableAlias : ''));
         } elseif ($this->query instanceof UpdateInterface) {
             $this->query->table($table);
         } elseif ($this->query instanceof InsertInterface) {
@@ -76,6 +81,13 @@ class Statement implements StatementInterface
         } else {
             throw new \InvalidArgumentException('unknown query type '.get_class($this->query));
         }
+
+        return $this;
+    }
+
+    public function tableAlias(string $alias): StatementInterface
+    {
+        $this->tableAlias = $alias;
 
         return $this;
     }

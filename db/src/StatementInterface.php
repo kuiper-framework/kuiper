@@ -7,6 +7,11 @@ namespace kuiper\db;
 interface StatementInterface
 {
     /**
+     * Sets table alias.
+     */
+    public function tableAlias(string $alias): StatementInterface;
+
+    /**
      * @param array $columns
      *
      * @return static
