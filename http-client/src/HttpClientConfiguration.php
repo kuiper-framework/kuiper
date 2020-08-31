@@ -5,50 +5,35 @@ declare(strict_types=1);
 namespace kuiper\http\client;
 
 use DI\Annotation\Inject;
+use function DI\autowire;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\MessageFormatter;
-use GuzzleHttp\Middleware;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\Configuration;
-use kuiper\logger\LoggerFactoryInterface;
-use kuiper\swoole\pool\PoolFactoryInterface;
+use kuiper\di\ContainerBuilderAwareTrait;
+use kuiper\di\DefinitionConfiguration;
 
 /**
  * @Configuration()
  * @ConditionalOnClass(ClientInterface::class)
  */
-class HttpClientConfiguration
+class HttpClientConfiguration implements DefinitionConfiguration
 {
-    /**
-     * @Bean()
-     * @Inject({"options": "application.http-client"})
-     */
-    public function httpClient(HttpClientFactoryInterface $httpClientFactory, LoggerFactoryInterface $loggerFactory, ?array $options): ClientInterface
-    {
-        if (!isset($options['handler'])) {
-            $options['handler'] = HandlerStack::create();
-        }
-        if (!empty($options['logging'])) {
-            $logger = $loggerFactory->create(ClientInterface::class);
-            $format = strtoupper($options['log-format'] ?? 'clf');
-            if (defined(MessageFormatter::class.'::'.$format)) {
-                $format = constant(MessageFormatter::class.'::'.$format);
-            }
-            $formatter = new MessageFormatter($format);
-            $middleware = Middleware::log($logger, $formatter, strtolower($options['log-level'] ?? 'info'));
-            $options['handler']->push($middleware);
-        }
+    use ContainerBuilderAwareTrait;
 
-        return $httpClientFactory->create($options);
+    public function getDefinitions(): array
+    {
+        return [
+            HttpClientFactoryInterface::class => autowire(HttpClientFactory::class),
+        ];
     }
 
     /**
      * @Bean()
+     * @Inject({"options": "application.http-client"})
      */
-    public function httpClientFactory(PoolFactoryInterface $poolFactory): HttpClientFactoryInterface
+    public function httpClient(HttpClientFactoryInterface $httpClientFactory, ?array $options): ClientInterface
     {
-        return new HttpClientFactory($poolFactory);
+        return $httpClientFactory->create($options ?? []);
     }
 }

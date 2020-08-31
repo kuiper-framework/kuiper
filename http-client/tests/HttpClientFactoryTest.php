@@ -21,9 +21,11 @@ class HttpClientFactoryTest extends TestCase
     {
         $logger = new Logger('', [new ErrorLogHandler()], [new CoroutineIdProcessor()]);
         $httpClientFactory = new HttpClientFactory(new PoolFactory());
-        $handlerStack = HandlerStack::create();
-        $handlerStack->push(Middleware::log($logger, new MessageFormatter()));
-        $httpClient = $httpClientFactory->create(['handler' => $handlerStack]);
+        $httpClientFactory->setLogger($logger);
+        $httpClient = $httpClientFactory->create([
+            'logging' => true,
+            'log-format' => 'debug',
+        ]);
         $response = $httpClient->get('http://baidu.com');
         // print_r($response);
         self::assertInstanceOf(ResponseInterface::class, $response);
