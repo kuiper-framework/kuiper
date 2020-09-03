@@ -51,7 +51,7 @@ class ConditionalDefinitionSource implements DefinitionSource, ContainerAwareInt
         }
         $this->resolving[$name] = true;
         $conditionDefs = $this->definitions[$name];
-        foreach ($conditionDefs as $definition) {
+        foreach (array_reverse($conditionDefs) as $definition) {
             if (!$definition instanceof ConditionalDefinition) {
                 throw new \InvalidArgumentException("Definition '$name' is not ConditionalDefinition");
             }
