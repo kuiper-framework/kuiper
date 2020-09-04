@@ -44,7 +44,7 @@ class LoggerFactory implements LoggerFactoryInterface
         }
         $this->createLoggers($loggingConfig['loggers']);
         $this->logLevels = self::createLogConfig($loggingConfig['level'] ?? [], [$this, 'validateLogLevels']);
-        $this->logNames = self::createLogConfig($loggingConfig['config'] ?? [], [$this, 'validateLogNames']);
+        $this->logNames = self::createLogConfig($loggingConfig['logger'] ?? [], [$this, 'validateLogNames']);
     }
 
     /**
