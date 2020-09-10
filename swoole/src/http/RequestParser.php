@@ -57,6 +57,7 @@ class RequestParser
      */
     public function receive(string $data): void
     {
+        $this->completed = false;
         if (null === $this->body) {
             $this->addHead($data);
         } else {
@@ -244,12 +245,12 @@ class RequestParser
         $files = [];
 
         $formParts = explode($boundary, $this->body);
-        $last = array_pop($formParts);
+        $last = trim(array_pop($formParts));
         if ('--' !== $last) {
             throw new BadHttpRequestException('form data is invalid');
         }
         foreach ($formParts as $paramData) {
-            $parts = explode(self::END_OF_HEAD, trim($paramData), 2);
+            $parts = explode(self::END_OF_HEAD, $paramData, 2);
             $headers = [];
             foreach (explode(self::END_OF_LINE, $parts[0]) as $headLine) {
                 $header = self::parseHeaderLine($headLine);

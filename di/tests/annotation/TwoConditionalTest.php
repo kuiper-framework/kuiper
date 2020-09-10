@@ -43,7 +43,7 @@ class TwoConditionalTest extends TestCase
         $this->assertEquals('bar', $foo->getName());
     }
 
-    public function testFirstCondtionWin()
+    public function testLastConditionWin()
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new TwoConditionConfiguration());
@@ -56,6 +56,6 @@ class TwoConditionalTest extends TestCase
         $container = $builder->build();
         $this->assertTrue($container->has(Foo::class));
         $foo = $container->get(Foo::class);
-        $this->assertEquals('foo', $foo->getName());
+        $this->assertEquals('bar', $foo->getName());
     }
 }

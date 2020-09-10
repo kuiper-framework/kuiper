@@ -18,12 +18,19 @@ class DecorateTest extends TestCase
         ]);
         $containerBuilder->addDefinitions([
             'foo' => decorate(function ($value) {
+                //error_log("call double");
                 return $value * 2;
+            }),
+        ]);
+        $containerBuilder->addDefinitions([
+            'foo' => decorate(function ($value) {
+                //error_log("call pow");
+                return $value ** 2;
             }),
         ]);
         $container = $containerBuilder->build();
 
-        $this->assertEquals(84, $container->get('foo'));
+        $this->assertEquals(7056, $container->get('foo'));
     }
 
     public function testDIDecorate()
@@ -34,11 +41,18 @@ class DecorateTest extends TestCase
         ]);
         $containerBuilder->addDefinitions([
             'foo' => decorate(function ($value) {
+                //error_log("call double");
                 return $value * 2;
+            }),
+        ]);
+        $containerBuilder->addDefinitions([
+            'foo' => decorate(function ($value) {
+                // error_log("call pow");
+                return $value ** 2;
             }),
         ]);
         $container = $containerBuilder->build();
 
-        $this->assertEquals(84, $container->get('foo'));
+        $this->assertEquals(7056, $container->get('foo'));
     }
 }

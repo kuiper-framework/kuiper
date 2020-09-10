@@ -6,11 +6,9 @@ namespace kuiper\di;
 
 use Composer\Autoload\ClassLoader;
 use DI\Container;
-use DI\Definition\DecoratorDefinition;
 use DI\Definition\Definition;
 use DI\Definition\FactoryDefinition;
 use DI\Definition\Helper\DefinitionHelper;
-use DI\Definition\Helper\FactoryDefinitionHelper;
 use DI\Definition\Source\AnnotationBasedAutowiring;
 use DI\Definition\Source\Autowiring;
 use DI\Definition\Source\DefinitionArray;
@@ -148,19 +146,9 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $deferCallbacks;
 
     /**
-     * @var array
-     */
-    private $definitions;
-
-    /**
      * @var ConditionalDefinition[]
      */
     private $conditionalDefinitions = [];
-
-    /**
-     * @var DecoratorDefinition[]
-     */
-    private $decorateDefinitions = [];
 
     /**
      * @var DefinitionArray
@@ -378,6 +366,7 @@ class ContainerBuilder implements ContainerBuilderInterface
                 throw new InvalidArgumentException(sprintf('%s parameter must be a string, an array or a DefinitionSource object, %s given', 'ContainerBuilder::addDefinitions()', is_object($definition) ? get_class($definition) : gettype($definition)));
             }
             if (is_array($definition)) {
+                $simpleDefinition = [];
                 foreach ($definition as $key => $def) {
                     if ($def instanceof ComponentDefinition) {
                         /** @var Conditional $condition */
@@ -390,16 +379,12 @@ class ContainerBuilder implements ContainerBuilderInterface
                     }
                     if ($def instanceof ConditionalDefinition) {
                         $this->conditionalDefinitions[$def->getName()][] = $def;
-                    } elseif ($def instanceof FactoryDefinitionHelper) {
-                        $def = $def->getDefinition($key);
-                        if ($def instanceof DecoratorDefinition) {
-                            $this->decorateDefinitions[$key] = $def;
-                        } else {
-                            $this->definitions[$key] = $def;
-                        }
                     } else {
-                        $this->definitions[$key] = $def;
+                        $simpleDefinition[$key] = $def;
                     }
+                }
+                if (!empty($simpleDefinition)) {
+                    $this->definitionSources[] = $simpleDefinition;
                 }
             } else {
                 $this->definitionSources[] = $definition;
@@ -585,16 +570,13 @@ class ContainerBuilder implements ContainerBuilderInterface
         $sources = array_reverse($this->definitionSources);
 
         $autowiring = $this->getAutowiring();
-        if (!empty($this->decorateDefinitions)) {
-            $sources[] = new DefinitionArray($this->decorateDefinitions, $autowiring);
-        }
-        if (!empty($this->definitions)) {
-            $sources[] = new DefinitionArray($this->definitions ?? [], $autowiring);
-        }
         if (!empty($this->conditionalDefinitions)) {
             $sources[] = $this->conditionalDefinitionSource = new ConditionalDefinitionSource($this->conditionalDefinitions, $autowiring);
         }
         $sources = array_map(static function ($definitions) use ($autowiring) {
+            if (is_array($definitions)) {
+                return new DefinitionArray($definitions, $autowiring);
+            }
             if (is_string($definitions)) {
                 // File
                 return new DefinitionFile($definitions, $autowiring);
