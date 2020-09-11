@@ -9,7 +9,7 @@ interface ProcessorInterface
     /**
      * Processes task.
      *
-     * @return mixed
+     * @return mixed|void
      */
     public function process(Task $task);
 }
