@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 use kuiper\reflection\type\ArrayType;
@@ -100,6 +102,11 @@ abstract class ReflectionType implements ReflectionTypeInterface
         throw new \InvalidArgumentException("Expected an type string, got '{$type}'");
     }
 
+    public static function fromPhpType(\ReflectionType $type): ReflectionTypeInterface
+    {
+        return static::forName(($type->allowsNull() ? '?' : '').$type);
+    }
+
     /**
      * Parses type string to type objects.
      *
@@ -121,9 +128,16 @@ abstract class ReflectionType implements ReflectionTypeInterface
     public static function parse(string $typeString): ReflectionTypeInterface
     {
         if (false !== strpos($typeString, '|')) {
+            $parts = explode('|', $typeString);
+            if (2 === count($parts) && in_array('null', $parts, true)) {
+                $typeString = str_replace(['|null', 'null|'], '', $typeString);
+
+                return static::forName('?'.$typeString);
+            }
+
             return new CompositeType(array_map(static function ($typeString) {
                 return static::forName($typeString);
-            }, explode('|', $typeString)));
+            }, $parts));
         }
 
         return static::forName($typeString);
@@ -141,7 +155,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
             return get_class($value);
         }
 
-        if (in_array($type, ['array', 'resource', 'unknown type'])) {
+        if (in_array($type, ['array', 'resource', 'unknown type'], true)) {
             return $type;
         }
 
