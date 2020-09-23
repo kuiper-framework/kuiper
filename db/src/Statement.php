@@ -59,6 +59,11 @@ class Statement implements StatementInterface
         $this->close();
     }
 
+    public function __toString()
+    {
+        return $this->getStatement();
+    }
+
     public function close(): void
     {
         if ($this->pdoStatement) {
@@ -115,6 +120,16 @@ class Statement implements StatementInterface
         } else {
             throw new \InvalidArgumentException('Expected array or string, got '.gettype($condition));
         }
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function bindValue(string $name, $value): StatementInterface
+    {
+        $this->query->bindValue($name, $value);
 
         return $this;
     }

@@ -27,6 +27,11 @@ interface StatementInterface
     public function where($condition, ...$args): StatementInterface;
 
     /**
+     * @param mixed $value
+     */
+    public function bindValue(string $name, $value): StatementInterface;
+
+    /**
      * @param string|array $condition
      * @param array        $args
      *

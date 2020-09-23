@@ -9,7 +9,6 @@ use Dotenv\Dotenv;
 use kuiper\db\event\listener\AutoCreateShardTable;
 use kuiper\db\event\ShardTableNotExistEvent;
 use kuiper\db\event\StatementQueriedEvent;
-use kuiper\db\fixtures\DoorRepository;
 use kuiper\db\fixtures\Employee;
 use kuiper\db\fixtures\EmployeeRepository;
 use kuiper\db\metadata\MetaModelFactory;
@@ -122,7 +121,7 @@ class ShardingRepositoryTest extends AbstractRepositoryTestCase
 
     public function testFindBy()
     {
-        /** @var DoorRepository $repository */
+        /** @var EmployeeRepository $repository */
         $repository = $this->createRepository(EmployeeRepository::class);
         $repository->deleteAllBy(Criteria::create(['sharding' => 1]));
         $repository->save(self::employee(1, 'john'));
@@ -130,5 +129,28 @@ class ShardingRepositoryTest extends AbstractRepositoryTestCase
         $employee = $repository->findFirstBy(Criteria::create(['sharding' => 1, 'name' => 'john']));
         // var_export($employee);
         $this->assertNotNull($employee);
+    }
+
+    public function testUnionQuery()
+    {
+        /** @var EmployeeRepository $repository */
+        $repository = $this->createRepository(EmployeeRepository::class);
+        $repository->query(function ($stmt) use ($repository) {
+            $stmt->shardBy(['sharding' => 1]);
+            $stmt->unionAll();
+            $stmt->shardBy(['sharding' => 2]);
+            $stmt->select(...$repository->getMetaModel()->getColumnNames());
+            $stmt2 = $repository->getQueryBuilder()->from($repository->getMetaModel()->getTable());
+            $stmt2->shardBy(['sharding' => 1]);
+            $stmt2->resetTables();
+            $stmt2->fromRaw(
+                '('.$stmt->getStatement().') as t'
+            );
+            $stmt2->select('*');
+
+            echo $stmt2->getStatement(), "\n";
+
+            return $stmt2;
+        });
     }
 }

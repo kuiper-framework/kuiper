@@ -109,4 +109,21 @@ WHERE
     id IN (:_5_,:_6_)',
             $stmt->getStatement());
     }
+
+    public function testUnionQuery(): void
+    {
+        $stmt = $this->connection->from('article1')
+            ->select('author', 'count(1) count')
+            ->groupBy(['author'])
+            ->unionAll()
+            ->from('article2')
+            ->select('author', 'count(1) count')
+            ->groupBy(['author']);
+        $stmt = $this->connection->from('article')
+            ->resetTables()
+            ->fromRaw('('.$stmt->getStatement().') as t')
+            ->select('author', 'sum(count) as count')
+            ->groupBy(['author']);
+        $this->assertEquals('', $stmt->getStatement());
+    }
 }

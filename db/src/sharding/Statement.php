@@ -26,9 +26,15 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
      */
     private $shardBy = [];
 
+    /**
+     * @var ClusterConnectionPool
+     */
+    private $cluster;
+
     public function __construct(ClusterConnectionPool $cluster, QueryInterface $query, string $table, StrategyInterface $strategy, EventDispatcherInterface $eventDispatcher)
     {
         parent::__construct($cluster, $query, $eventDispatcher);
+        $this->cluster = $cluster;
         $this->table = $table;
         $this->strategy = $strategy;
     }
@@ -49,6 +55,17 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
     public function shardBy(array $fields): void
     {
         $this->shardBy = $fields;
+        $this->setTable();
+    }
+
+    protected function setTable(): void
+    {
+        $connectionId = $this->strategy->getDb($this->shardBy);
+        if ($this->cluster->hasConnection() && $connectionId !== $this->cluster->getConnectionId()) {
+            throw new \InvalidArgumentException('connection not consist with previous');
+        }
+        $this->cluster->setConnectionId($connectionId);
+        $this->table($this->getTableName());
     }
 
     public function getShardBy(): array
@@ -85,20 +102,25 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
         return parent::where($condition, ...$args);
     }
 
+    protected function getTableName(): string
+    {
+        return $this->strategy->getTable($this->shardBy, $this->table);
+    }
+
     protected function doQuery(): bool
     {
         if (empty($this->shardBy)) {
             throw new \InvalidArgumentException('Sharding fields are empty');
         }
-        $this->pool->setConnectionId($this->strategy->getDb($this->shardBy));
-        $table = $this->strategy->getTable($this->shardBy, $this->table);
-        $this->table($table);
+        if (!$this->cluster->hasConnection()) {
+            $this->setTable();
+        }
         try {
             return parent::doQuery();
         } catch (\PDOException $e) {
             if (SqlState::BAD_TABLE === $e->getCode()) {
                 /** @var ShardTableNotExistEvent $event */
-                $event = $this->eventDispatcher->dispatch(new ShardTableNotExistEvent($this, $table));
+                $event = $this->eventDispatcher->dispatch(new ShardTableNotExistEvent($this, $this->getTableName()));
                 if ($event->isTableCreated()) {
                     return parent::doQuery();
                 }

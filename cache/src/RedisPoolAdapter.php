@@ -50,7 +50,6 @@ class RedisPoolAdapter extends AbstractAdapter
             return [];
         }
         $redis = $this->redisPool->take();
-
         $result = [];
 
         if ($redis instanceof ClientInterface && $redis->getConnection() instanceof ClusterInterface) {

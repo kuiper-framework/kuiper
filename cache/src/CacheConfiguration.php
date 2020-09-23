@@ -8,6 +8,7 @@ use DI\Annotation\Inject;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\annotation\Configuration;
+use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\swoole\pool\PoolInterface;
 use Psr\Cache\CacheItemPoolInterface;
@@ -60,12 +61,13 @@ class CacheConfiguration
      * @Bean()
      * @Inject({"redisPool": "redisPool", "cacheConfig": "application.cache"})
      */
-    public function cacheItemPool(PoolInterface $redisPool, ?array $cacheConfig): CacheItemPoolInterface
+    public function cacheItemPool(LoggerFactoryInterface $loggerFactory, PoolInterface $redisPool, ?array $cacheConfig): CacheItemPoolInterface
     {
         $namespace = $cacheConfig['namespace'] ?? '';
         $defaultLifeTime = $cacheConfig['lifetime'] ?? 0;
 
         $redisAdapter = new RedisPoolAdapter($redisPool, $namespace, $defaultLifeTime);
+        $redisAdapter->setLogger($loggerFactory->create(RedisPoolAdapter::class));
         if (isset($cacheConfig['memory'])) {
             return new ChainAdapter([
                 $this->arrayCache($cacheConfig['memory']),

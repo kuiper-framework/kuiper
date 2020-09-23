@@ -15,13 +15,23 @@ class ClusterConnectionPool implements ConnectionPoolInterface
     private $poolList;
 
     /**
-     * @var int
+     * @var int|null
      */
     private $connectionId;
 
     public function __construct(array $poolList)
     {
         $this->poolList = $poolList;
+    }
+
+    public function hasConnection(): bool
+    {
+        return isset($this->connectionId);
+    }
+
+    public function getConnectionId(): ?int
+    {
+        return $this->connectionId;
     }
 
     public function setConnectionId(int $connectionId): void
