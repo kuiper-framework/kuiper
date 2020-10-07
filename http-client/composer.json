@@ -15,6 +15,8 @@
     ],
     "require": {
         "php": "^7.0",
+        "laminas/laminas-code": "^3.4",
+        "kuiper/serialier": "^0.5",
         "guzzlehttp/guzzle": "^7.0"
     },
     "autoload": {
