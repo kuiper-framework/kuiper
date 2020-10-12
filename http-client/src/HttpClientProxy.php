@@ -20,12 +20,18 @@ class HttpClientProxy
     private $methodMetadataFactory;
 
     /**
+     * @var ResponseParser
+     */
+    private $parser;
+
+    /**
      * HttpClientProxy constructor.
      */
-    public function __construct(ClientInterface $httpClient, MethodMetadataFactory $methodMetadataFactory)
+    public function __construct(ClientInterface $httpClient, MethodMetadataFactory $methodMetadataFactory, ResponseParser $parser)
     {
         $this->httpClient = $httpClient;
         $this->methodMetadataFactory = $methodMetadataFactory;
+        $this->parser = $parser;
     }
 
     public function call(string $clientClass, string $method, ...$args)
@@ -38,9 +44,9 @@ class HttpClientProxy
                 $methodMetadata->getOptions()
             );
 
-            return $methodMetadata->deserialize($response);
+            return $this->parser->parse($methodMetadata, $response);
         } catch (RequestException $e) {
-            return $methodMetadata->handleError($e);
+            return $this->parser->handleError($methodMetadata, $e);
         }
     }
 }

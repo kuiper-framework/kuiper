@@ -14,8 +14,14 @@ class HttpClient
      * @var string
      */
     public $url;
+
     /**
      * @var string
      */
     public $path;
+
+    /**
+     * @var string
+     */
+    public $parser;
 }

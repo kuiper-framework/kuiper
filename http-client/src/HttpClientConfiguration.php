@@ -25,6 +25,7 @@ class HttpClientConfiguration implements DefinitionConfiguration
     {
         return [
             HttpClientFactoryInterface::class => autowire(HttpClientFactory::class),
+            ProxyGenerator::class => autowire(ProxyGeneratorImpl::class),
         ];
     }
 

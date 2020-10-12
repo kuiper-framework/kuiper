@@ -44,7 +44,7 @@ class MethodMetadataFactory
     public function create(string $clientClass, string $method, array $args): MethodMetadata
     {
         $reflectionMethod = new \ReflectionMethod($clientClass, $method);
-        $methodMetadata = new MethodMetadata($reflectionMethod, $this->normalizer);
+        $methodMetadata = new MethodMetadata($reflectionMethod);
         /** @var HttpClient $classAnnotation */
         $classAnnotation = $this->annotationReader->getClassAnnotation($reflectionMethod->getDeclaringClass(), HttpClient::class);
         $parameters = [];
@@ -70,7 +70,8 @@ class MethodMetadataFactory
         foreach (array_merge($this->annotationReader->getClassAnnotations($reflectionMethod->getDeclaringClass()),
             $this->annotationReader->getMethodAnnotations($reflectionMethod)) as $annotation) {
             if ($annotation instanceof RequestHeader) {
-                $headers[] = preg_replace_callback($placeholderRe, $replacePlaceholder, $annotation->value);
+                [$name, $value] = explode(':', preg_replace_callback($placeholderRe, $replacePlaceholder, $annotation->value));
+                $headers[trim($name)] = trim($value);
             }
         }
 

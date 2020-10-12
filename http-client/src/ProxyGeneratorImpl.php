@@ -61,7 +61,9 @@ class ProxyGeneratorImpl implements ProxyGenerator
             addslashes($reflectionMethod->getDeclaringClass()->getName()),
             (0 === count($parameters) ? '' : ', '.$this->buildParameters($parameters)));
 
-        if (null !== $reflectionMethod->getReturnType() || false !== strpos($reflectionMethod->getDocComment(), '@return')) {
+        $returnType = $reflectionMethod->getReturnType();
+        if ((null !== $returnType && 'void' !== $returnType->getName())
+            || false !== strpos($reflectionMethod->getDocComment(), '@return')) {
             $body = 'return '.$body;
         }
 

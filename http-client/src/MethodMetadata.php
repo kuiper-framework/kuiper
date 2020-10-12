@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\http\client;
 
-use GuzzleHttp\Exception\RequestException;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\reflection\type\VoidType;
-use kuiper\serializer\NormalizerInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class MethodMetadata
@@ -38,17 +36,11 @@ class MethodMetadata
     private $method;
 
     /**
-     * @var NormalizerInterface
-     */
-    private $normalizer;
-
-    /**
      * MethodMetadata constructor.
      */
-    public function __construct(\ReflectionMethod $method, NormalizerInterface $normalizer)
+    public function __construct(\ReflectionMethod $method)
     {
         $this->method = $method;
-        $this->normalizer = $normalizer;
     }
 
     public function getHttpMethod(): string
@@ -91,33 +83,14 @@ class MethodMetadata
         $this->returnType = $returnType;
     }
 
-    public function deserialize(ResponseInterface $response)
-    {
-        if ($this->willNotDeserialize()) {
-            return $response;
-        }
-        $contentType = $response->getHeaderLine('content-type');
-        if (false !== stripos($contentType, 'application/json')) {
-            return $this->normalizer->denormalize(json_decode($response->getBody(), true), $this->returnType);
-        } else {
-            throw new \InvalidArgumentException("{$this->getMethodName()} should not declare return type");
-        }
-    }
-
-    private function getMethodName(): string
+    public function getMethodName(): string
     {
         return sprintf('%s::%s', $this->method->getDeclaringClass()->getName(), $this->method->getName());
     }
 
-    public function handleError(RequestException $e)
+    public function hasReturnType(): bool
     {
-        throw $e;
-    }
-
-    private function willNotDeserialize(): bool
-    {
-        return $this->returnType->isUnknown()
-            || $this->returnType instanceof VoidType
-            || ($this->returnType->isClass() && ResponseInterface::class === $this->returnType->getName());
+        return !($this->returnType instanceof VoidType)
+            && !($this->returnType->isClass() && ResponseInterface::class === $this->returnType->getName());
     }
 }

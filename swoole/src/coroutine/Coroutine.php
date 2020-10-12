@@ -69,6 +69,8 @@ final class Coroutine
     {
         if (self::isEnabled()) {
             SwooleCoroutine::defer($callback);
+        } else {
+            register_shutdown_function($callback);
         }
     }
 }

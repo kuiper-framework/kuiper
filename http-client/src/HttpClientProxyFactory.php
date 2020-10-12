@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace kuiper\http\client;
 
+use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\http\client\annotation\HttpClient;
+use Psr\Container\ContainerInterface;
+
 class HttpClientProxyFactory
 {
     /**
@@ -22,9 +26,14 @@ class HttpClientProxyFactory
     private $proxyGenerator;
 
     /**
-     * @var array
+     * @var AnnotationReaderInterface
      */
-    private $options;
+    private $annotationReader;
+
+    /**
+     * @var ContainerInterface
+     */
+    private $container;
 
     /**
      * HttpClientProxyFactory constructor.
@@ -33,19 +42,25 @@ class HttpClientProxyFactory
         HttpClientFactoryInterface $httpClientFactory,
         MethodMetadataFactory $methodMetadataFactory,
         ProxyGenerator $proxyGenerator,
-        array $options
+        AnnotationReaderInterface $annotationReader,
+        ContainerInterface $container
     ) {
         $this->httpClientFactory = $httpClientFactory;
         $this->methodMetadataFactory = $methodMetadataFactory;
         $this->proxyGenerator = $proxyGenerator;
-        $this->options = $options;
+        $this->annotationReader = $annotationReader;
+        $this->container = $container;
     }
 
-    public function create(string $clientClass): object
+    public function create(string $clientClass, array $options): object
     {
+        /** @var HttpClient $httpClientAnnotation */
+        $httpClientAnnotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($clientClass), HttpClient::class);
+        $parser = $this->container->get($httpClientAnnotation->parser ?? DefaultResponseParser::class);
         $httpClientProxy = new HttpClientProxy(
-            $this->httpClientFactory->create($this->options),
-            $this->methodMetadataFactory
+            $this->httpClientFactory->create($options),
+            $this->methodMetadataFactory,
+            $parser
         );
         $proxyClass = $this->proxyGenerator->generate($clientClass);
 
