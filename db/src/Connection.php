@@ -271,7 +271,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
 
         // remove empty constructor params list if it exists
         $args = func_get_args();
-        if (4 === count($args) && $args[3] === []) {
+        if (4 === count($args) && [] === $args[3]) {
             unset($args[3]);
         }
 
@@ -294,7 +294,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     /**
      * {@inheritdoc}
      */
-    public function prepare($statement, $options = []): PDOStatement
+    public function prepare($statement, $options = [])
     {
         $this->connect();
         $this->beforeQuery();

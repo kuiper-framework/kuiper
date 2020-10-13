@@ -14,7 +14,7 @@ interface AttributeConverterInterface
      *
      * @param mixed $attribute the entity attribute value to be converted
      *
-     * @return string|int|null the converted data to be stored in the database column
+     * @return string|float|int|null the converted data to be stored in the database column
      */
     public function convertToDatabaseColumn($attribute, Column $column);
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\db\converter;
 
 use kuiper\db\metadata\Column;
+use kuiper\reflection\ReflectionType;
 use kuiper\reflection\ReflectionTypeInterface;
 
 class PrimitiveConverter implements AttributeConverterInterface
@@ -24,6 +25,10 @@ class PrimitiveConverter implements AttributeConverterInterface
      */
     public function convertToDatabaseColumn($attribute, Column $column)
     {
+        if (isset($attribute) && !is_scalar($attribute)) {
+            throw new \InvalidArgumentException(sprintf('Cannot convert %s to %s', ReflectionType::describe($attribute), $this->type->getName()));
+        }
+
         return $attribute;
     }
 

@@ -54,7 +54,7 @@ class MethodMetadataFactory
                 'parameter' => $parameter,
             ];
         }
-        $replacePlaceholder = function (array $matches) use (&$parameters, $clientClass, $method) {
+        $replacePlaceholder = static function (array $matches) use (&$parameters, $clientClass, $method) {
             if (array_key_exists($matches[1], $parameters)) {
                 $value = $parameters[$matches[1]];
                 unset($parameters[$matches[1]]);
@@ -71,7 +71,7 @@ class MethodMetadataFactory
             $this->annotationReader->getMethodAnnotations($reflectionMethod)) as $annotation) {
             if ($annotation instanceof RequestHeader) {
                 [$name, $value] = explode(':', preg_replace_callback($placeholderRe, $replacePlaceholder, $annotation->value));
-                $headers[trim($name)] = trim($value);
+                $headers[strtolower(trim($name))] = trim($value);
             }
         }
 
@@ -101,7 +101,7 @@ class MethodMetadataFactory
         return $methodMetadata;
     }
 
-    private function getParameterOption(string $method, ?string $contentType, array $parameters): array
+    private function getParameterOption(string $method, string $contentType, array $parameters): array
     {
         $params = [];
         $hasResource = false;
@@ -148,15 +148,8 @@ class MethodMetadataFactory
         return ['form_params' => $params];
     }
 
-    private function getContentType(array $headers): ?string
+    private function getContentType(array $headers): string
     {
-        foreach (array_reverse($headers) as $header) {
-            $pos = stripos($header, 'content-type:');
-            if (false !== $pos) {
-                return strtolower(trim(substr($header, $pos)));
-            }
-        }
-
-        return null;
+        return $headers['content-type'] ?? '';
     }
 }

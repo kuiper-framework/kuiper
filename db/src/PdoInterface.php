@@ -87,8 +87,10 @@ interface PdoInterface
      *                          PDOStatement
      *
      * @see http://php.net/manual/en/pdo.prepare.php
+     *
+     * @return \PDOStatement|false
      */
-    public function prepare($statement, $options = []): PDOStatement;
+    public function prepare($statement, $options = []);
 
     /**
      * Queries the database and returns a PDOStatement.
