@@ -38,22 +38,22 @@ class ServerFactory implements LoggerAwareInterface
     private $phpServerEnabled = false;
 
     /**
-     * @var EventDispatcherInterface
+     * @var EventDispatcherInterface|null
      */
     private $eventDispatcher;
 
     /**
-     * @var HttpMessageFactoryHolder
+     * @var HttpMessageFactoryHolder|null
      */
     private $httpMessageFactoryHolder;
 
     /**
-     * @var SwooleRequestBridgeInterface
+     * @var SwooleRequestBridgeInterface|null
      */
     private $swooleRequestBridge;
 
     /**
-     * @var SwooleResponseBridgeInterface
+     * @var SwooleResponseBridgeInterface|null
      */
     private $swooleResponseBridge;
 
@@ -79,7 +79,7 @@ class ServerFactory implements LoggerAwareInterface
 
     public function getEventDispatcher(): EventDispatcherInterface
     {
-        if (!$this->eventDispatcher) {
+        if (null === $this->eventDispatcher) {
             $this->checkSymfonyEventDispatcher();
             $this->eventDispatcher = new EventDispatcher();
         }
@@ -94,6 +94,12 @@ class ServerFactory implements LoggerAwareInterface
         return $this;
     }
 
+    /**
+     * @param EventListenerInterface|string $event
+     * @param callable|null                 $listener
+     *
+     * @return $this
+     */
     public function addEventListener($event, $listener = null): self
     {
         /** @var EventDispatcher $eventDispatcher */
@@ -109,7 +115,7 @@ class ServerFactory implements LoggerAwareInterface
 
     public function getHttpMessageFactoryHolder(): HttpMessageFactoryHolder
     {
-        if (!$this->httpMessageFactoryHolder) {
+        if (null === $this->httpMessageFactoryHolder) {
             $this->checkLaminasDiactoros();
             $this->httpMessageFactoryHolder = new HttpMessageFactoryHolder(
                 new ServerRequestFactory(),
@@ -132,7 +138,7 @@ class ServerFactory implements LoggerAwareInterface
 
     public function getSwooleRequestBridge(): SwooleRequestBridgeInterface
     {
-        if (!$this->swooleRequestBridge) {
+        if (null === $this->swooleRequestBridge) {
             $this->checkLaminasDiactoros();
             $this->swooleRequestBridge = new DiactorosSwooleRequestBridge();
         }
@@ -149,7 +155,7 @@ class ServerFactory implements LoggerAwareInterface
 
     public function getSwooleResponseBridge(): SwooleResponseBridgeInterface
     {
-        if (!$this->swooleResponseBridge) {
+        if (null === $this->swooleResponseBridge) {
             $this->swooleResponseBridge = new SwooleResponseBridge();
         }
 

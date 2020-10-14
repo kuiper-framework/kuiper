@@ -89,6 +89,9 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
         return parent::addRow($fields);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function where($condition, ...$args): \kuiper\db\StatementInterface
     {
         if (is_array($condition)) {

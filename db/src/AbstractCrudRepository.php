@@ -8,7 +8,6 @@ use InvalidArgumentException;
 use kuiper\db\exception\ExecutionFailException;
 use kuiper\db\metadata\MetaModelFactoryInterface;
 use kuiper\db\metadata\MetaModelInterface;
-use kuiper\db\metadata\MetaModelProperty;
 use PDO;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
@@ -60,9 +59,9 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $this->doExecute($stmt);
 
         $autoIncrementColumn = $this->metaModel->getAutoIncrement();
-        if ($autoIncrementColumn) {
+        if (null !== $autoIncrementColumn) {
             $value = $this->metaModel->getValue($entity, $autoIncrementColumn);
-            if (!$value) {
+            if (null === $value) {
                 $this->metaModel->setValue($entity, $autoIncrementColumn, $stmt->getConnection()->lastInsertId());
             }
         }
@@ -95,11 +94,11 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         }
         $stmt->execute();
         $autoIncrementColumn = $this->metaModel->getAutoIncrement();
-        if ($autoIncrementColumn) {
+        if (null !== $autoIncrementColumn) {
             $lastInsertId = $stmt->getConnection()->lastInsertId();
             foreach ($entities as $entity) {
                 $value = $this->metaModel->getValue($entity, $autoIncrementColumn);
-                if (!$value) {
+                if (null === $value) {
                     $this->metaModel->setValue($entity, $autoIncrementColumn, $lastInsertId++);
                 }
             }
@@ -188,7 +187,6 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         if (is_array($update)) {
             $cols = [];
             foreach ($update as $column => $value) {
-                /** @var MetaModelProperty $property */
                 $property = $this->metaModel->getProperty($column);
                 if ($property) {
                     $cols = array_merge($cols, $property->getColumnValues($value));
@@ -229,7 +227,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $stmt = $this->buildQueryStatement($criteria)->limit(1)
             ->offset(0);
         $row = $this->doQuery($stmt)->fetch(PDO::FETCH_ASSOC);
-        if ($row) {
+        if (!empty($row)) {
             return $this->metaModel->thaw($row);
         }
 
@@ -268,7 +266,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             }
         }
         // 不能直接使用 Criteria 对象，因为  criteria 对象会被 filterCriteria 进行值转换
-        return $this->findAllBy(static function ($stmt) use ($values) {
+        return $this->findAllBy(static function ($stmt) use ($values): StatementInterface {
             return Criteria::create()
                 ->matches($values, array_keys($values[0]))
                 ->buildStatement($stmt);
@@ -491,7 +489,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     protected function dispatch($event): void
     {
-        $this->eventDispatcher && $this->eventDispatcher->dispatch($event);
+        $this->eventDispatcher->dispatch($event);
     }
 
     protected function doExecute(StatementInterface $stmt): void
@@ -521,7 +519,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     protected function setCreationTimestamp($entity): void
     {
         $column = $this->metaModel->getCreationTimestamp();
-        if ($column) {
+        if (null !== $column) {
             $value = $this->metaModel->getValue($entity, $column);
             if (!isset($value)) {
                 $this->metaModel->setValue($entity, $column, $this->currentTimeString());
@@ -535,7 +533,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     protected function setUpdateTimestamp($entity): void
     {
         $column = $this->metaModel->getUpdateTimestamp();
-        if ($column) {
+        if (null !== $column) {
             $this->metaModel->setValue($entity, $column, $this->currentTimeString());
         }
     }
@@ -556,6 +554,9 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $this->metaModel->getTable();
     }
 
+    /**
+     * @param object $entity
+     */
     protected function checkEntityClassMatch($entity): void
     {
         if (!$this->metaModel->getEntityClass()->isInstance($entity)) {

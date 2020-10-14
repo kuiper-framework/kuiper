@@ -53,7 +53,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
             return [];
         }
         $result = [];
-        foreach (Arrays::groupBy($entities, function ($entity) {
+        foreach (Arrays::groupBy($entities, function ($entity): string {
             return $this->getShardingId($entity);
         }) as $partEntities) {
             $result[] = parent::batchInsert($partEntities);
@@ -71,13 +71,14 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
             return [];
         }
         $result = [];
-        foreach (Arrays::groupBy($entities, function ($entity) {
+        foreach (Arrays::groupBy($entities, function ($entity): string {
             return $this->getShardingId($entity);
         }) as $partEntities) {
             if (1 === count($partEntities)) {
                 $this->update($partEntities[0]);
             } else {
                 $stmt = $this->buildBatchUpdateStatement($partEntities);
+                /* @var \kuiper\db\sharding\StatementInterface $stmt */
                 $stmt->shardBy($this->getShardFields($partEntities[0]));
                 $this->doExecute($stmt);
             }
@@ -96,7 +97,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
             return [];
         }
         $result = [];
-        foreach (Arrays::groupBy($examples, function ($entity) {
+        foreach (Arrays::groupBy($examples, function ($entity): string {
             return $this->getShardingId($entity);
         }) as $partEntities) {
             if (1 === count($partEntities)) {
@@ -114,7 +115,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
                 }
                 $shardFields = $this->getShardFields($partEntities[0]);
                 // 不能直接使用 Criteria 对象，因为  criteria 对象会被 filterCriteria 进行值转换
-                $result[] = $this->findAllBy(static function ($stmt) use ($values, $shardFields) {
+                $result[] = $this->findAllBy(static function ($stmt) use ($values, $shardFields): StatementInterface {
                     $stmt->shardBy($shardFields);
 
                     return Criteria::create()
@@ -127,6 +128,9 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         return Arrays::flatten($result);
     }
 
+    /**
+     * @param object $entity
+     */
     public function getShardingId($entity): string
     {
         $strategy = $this->cluster->getTableStrategy($this->getTableName());
@@ -166,6 +170,9 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         }
     }
 
+    /**
+     * @param object $entity
+     */
     protected function getShardFields($entity): array
     {
         $this->checkEntityClassMatch($entity);

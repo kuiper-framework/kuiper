@@ -10,39 +10,28 @@ interface CsrfTokenInterface
 {
     /**
      * Gets key to be used as input's name in a CSRF check.
-     *
-     * @return string
      */
-    public function getTokenKey();
+    public function getTokenKey(): string;
 
     /**
      * Gets token value to be used as input's value in a CSRF check.
-     *
-     * @return string
      */
-    public function getToken();
+    public function getToken(): string;
 
     /**
      * Regenerate the CSRF token value.
      */
-    public function regenerateToken();
+    public function regenerateToken(): string;
 
     /**
      * Check if the CSRF token is the same that the current in session.
-     *
-     * @param string $tokenValue
-     * @param bool   $destroyIfValid
-     *
-     * @return bool
      */
-    public function checkToken($tokenValue, $destroyIfValid = true);
+    public function checkToken(?string $tokenValue, bool $destroyIfValid = true): bool;
 
     /**
      * Check if the CSRF token sent in the request is the same that the current in session.
      *
      * @param bool $destroyIfValid
-     *
-     * @return bool
      */
-    public function check(ServerRequestInterface $request, $destroyIfValid = true);
+    public function check(ServerRequestInterface $request, $destroyIfValid = true): bool;
 }

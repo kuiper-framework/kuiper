@@ -11,8 +11,14 @@ final class Coroutine
 {
     private const NOT_COROUTINE_ID = 0;
 
+    /**
+     * @var int
+     */
     private static $HOOK_FLAGS = SWOOLE_HOOK_ALL | SWOOLE_HOOK_CURL;
 
+    /**
+     * @var \ArrayObject|null
+     */
     private static $CONTEXT;
 
     public static function isEnabled(): bool
@@ -50,7 +56,7 @@ final class Coroutine
             return isset($coroutineId) ? SwooleCoroutine::getContext($coroutineId) : SwooleCoroutine::getContext();
         }
 
-        if (!isset(self::$CONTEXT)) {
+        if (null === self::$CONTEXT) {
             self::$CONTEXT = new \ArrayObject();
         }
 

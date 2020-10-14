@@ -9,6 +9,7 @@ use kuiper\swoole\event\TaskEvent;
 use kuiper\swoole\task\DispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Webmozart\Assert\Assert;
 
 class TaskEventListener implements EventListenerInterface, LoggerAwareInterface
 {
@@ -28,10 +29,12 @@ class TaskEventListener implements EventListenerInterface, LoggerAwareInterface
     }
 
     /**
-     * @param TaskEvent $event
+     * {@inheritdoc}
      */
     public function __invoke($event): void
     {
+        Assert::isInstanceOf($event, TaskEvent::class);
+        /* @var TaskEvent $event */
         $this->taskDispatcher->dispatch($event);
     }
 

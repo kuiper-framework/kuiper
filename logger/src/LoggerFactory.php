@@ -92,6 +92,7 @@ class LoggerFactory implements LoggerFactoryInterface
             $logConfig = $logConfig[$parts[$i]];
             ++$i;
         }
+        /** @var mixed|null $logConfig */
         if (is_array($logConfig)) {
             $logConfig = $logConfig[self::ROOT] ?? null;
         }
@@ -172,7 +173,7 @@ class LoggerFactory implements LoggerFactoryInterface
             try {
                 $this->loggers[$name] = $this->createLogger($logConfig);
             } catch (\InvalidArgumentException $e) {
-                throw new \InvalidArgumentException("invalid logger config for '$name'", $e);
+                throw new \InvalidArgumentException("invalid logger config for '$name'", 0, $e);
             }
         }
     }
@@ -235,6 +236,11 @@ class LoggerFactory implements LoggerFactoryInterface
         return $handler;
     }
 
+    /**
+     * @param string|array $definition
+     *
+     * @return object
+     */
     private function createObject($definition)
     {
         if (is_string($definition)) {

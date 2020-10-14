@@ -23,6 +23,9 @@ class ServerType extends Enum
     public const TCP = 'tcp';
     public const UDP = 'udp';
 
+    /**
+     * @var array
+     */
     protected static $PROPERTIES = [
         'server' => [
             self::HTTP => HttpServer::class,

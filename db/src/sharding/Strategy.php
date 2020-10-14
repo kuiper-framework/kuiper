@@ -23,7 +23,7 @@ class Strategy implements StrategyInterface
      */
     private $tableRule;
 
-    public function __construct($tableFormat = '%s_%02d')
+    public function __construct(string $tableFormat = '%s_%02d')
     {
         $this->tableFormat = $tableFormat;
     }

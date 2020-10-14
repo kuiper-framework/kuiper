@@ -37,6 +37,6 @@ class ObjectConverter implements AttributeConverterInterface
      */
     public function convertToEntityAttribute($dbData, Column $column)
     {
-        $this->serializer->deserialize($dbData, $column->getType()->getName(), $this->format);
+        return $this->serializer->deserialize($dbData, $column->getType()->getName(), $this->format);
     }
 }

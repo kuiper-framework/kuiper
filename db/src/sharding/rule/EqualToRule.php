@@ -11,7 +11,7 @@ class EqualToRule implements RuleInterface
      */
     private $field;
 
-    public function __construct($field)
+    public function __construct(string $field)
     {
         $this->field = $field;
     }

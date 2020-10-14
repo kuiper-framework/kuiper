@@ -1,15 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 interface ReflectionFileFactoryInterface
 {
     /**
      * Creates ReflectionFileInterface instance.
-     *
-     * @param string $file
-     *
-     * @return ReflectionFileInterface
      */
-    public function create($file): ReflectionFileInterface;
+    public function create(string $file): ReflectionFileInterface;
 }

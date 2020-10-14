@@ -9,7 +9,7 @@ use Psr\Cache\CacheItemPoolInterface;
 /**
  * Use cache component as session storage.
  */
-class CacheSessionHandler implements \SessionHandlerInterface
+class CacheSessionHandler implements \SessionHandlerInterface, \SessionIdInterface
 {
     /**
      * @var CacheItemPoolInterface
@@ -53,7 +53,7 @@ class CacheSessionHandler implements \SessionHandlerInterface
      *
      * @SuppressWarnings("CamelCaseMethodName")
      */
-    public function create_sid()
+    public function create_sid(): string
     {
         $len = (int) ini_get('session.sid_length');
         if (empty($len)) {
@@ -70,7 +70,7 @@ class CacheSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function close()
+    public function close(): bool
     {
         return true;
     }
@@ -80,7 +80,7 @@ class CacheSessionHandler implements \SessionHandlerInterface
      */
     public function read($sessionId)
     {
-        return $this->cache->getItem($this->prefix.$sessionId)->get() ?: '';
+        return $this->cache->getItem($this->prefix.$sessionId)->get() ?? '';
     }
 
     /**

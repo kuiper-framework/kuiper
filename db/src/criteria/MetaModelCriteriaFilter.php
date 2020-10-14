@@ -48,10 +48,10 @@ class MetaModelCriteriaFilter implements CriteriaFilterInterface
                     ->getClause();
             }
             if ($clause->isInClause()) {
-                $fields = array_map(static function (Column $column) {
+                $fields = array_map(static function (Column $column): string {
                     return $column->getName();
                 }, $columns);
-                $values = array_map(static function ($item) use ($property) {
+                $values = array_map(static function ($item) use ($property): array {
                     return $property->getColumnValues($item);
                 }, $clause->getValue());
 

@@ -20,14 +20,17 @@ class CompositeType extends ReflectionType
         $this->types = $types;
     }
 
-    public function getTypes()
+    /**
+     * @return ReflectionTypeInterface[]
+     */
+    public function getTypes(): array
     {
         return $this->types;
     }
 
     public function getName(): string
     {
-        return implode('|', array_map(static function (ReflectionTypeInterface $type) {
+        return implode('|', array_map(static function (ReflectionTypeInterface $type): string {
             return $type->getName();
         }, $this->types));
     }

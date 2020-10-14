@@ -35,6 +35,11 @@ interface ContainerBuilderInterface
     public function defer(callable $callback);
 
     /**
+     * @return static
+     */
+    public function addAwareInjection(AwareInjection $awareInjection);
+
+    /**
      * Create container.
      */
     public function build(): ContainerInterface;

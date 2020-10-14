@@ -7,6 +7,7 @@ namespace kuiper\web;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Controller;
 use kuiper\di\ComponentCollection;
+use kuiper\helper\Text;
 use kuiper\web\annotation\filter\FilterInterface;
 use kuiper\web\annotation\RequestMapping;
 use Psr\Container\ContainerInterface;
@@ -53,16 +54,16 @@ class AnnotationProcessor implements AnnotationProcessorInterface
             }
             $seen[$controllerClass->getName()] = true;
             $prefix = $this->contextUrl;
-            /** @var RequestMapping $requestMapping */
+            /** @var RequestMapping|null $requestMapping */
             $requestMapping = $this->annotationReader->getClassAnnotation($controllerClass, RequestMapping::class);
-            if ($requestMapping) {
+            if (null !== $requestMapping) {
                 $prefix .= $requestMapping->value;
             }
             if (null === $prefix || '' === $prefix) {
                 $this->addMapping($this->routeCollector, $controllerClass);
             } else {
                 $self = $this;
-                $this->routeCollector->group($prefix, function (RouteCollectorProxyInterface $group) use ($self, $controllerClass) {
+                $this->routeCollector->group($prefix, function (RouteCollectorProxyInterface $group) use ($self, $controllerClass): void {
                     $self->addMapping($group, $controllerClass);
                 });
             }
@@ -76,13 +77,13 @@ class AnnotationProcessor implements AnnotationProcessorInterface
             if (!$reflectionMethod->isPublic() || $reflectionMethod->isStatic()) {
                 continue;
             }
-            /** @var RequestMapping $mapping */
+            /** @var RequestMapping|null $mapping */
             $mapping = $this->annotationReader->getMethodAnnotation($reflectionMethod, RequestMapping::class);
-            if ($mapping) {
+            if (null !== $mapping) {
                 foreach ((array) $mapping->value as $pattern) {
                     $route = $routeCollector->map($mapping->method, $pattern, [$controller, $reflectionMethod->getName()]);
                     $this->addFilters($route, $reflectionMethod);
-                    if ($mapping->name) {
+                    if (Text::isNotEmpty($mapping->name)) {
                         if (is_array($mapping->value)) {
                             throw new \InvalidArgumentException('Cannot set route name when there multiple routes for method '.$reflectionMethod->getDeclaringClass().'::'.$reflectionMethod->getName());
                         }
@@ -112,7 +113,7 @@ class AnnotationProcessor implements AnnotationProcessorInterface
             }
         }
         if (!empty($filters)) {
-            usort($filters, static function (FilterInterface $a, FilterInterface $b) {
+            usort($filters, static function (FilterInterface $a, FilterInterface $b): int {
                 return $a->getPriority() - $b->getPriority();
             });
             foreach ($filters as $filter) {

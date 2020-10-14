@@ -30,7 +30,7 @@ trait SessionTrait
 
     public function offsetSet($offset, $value)
     {
-        return $this->set($offset, $value);
+        $this->set($offset, $value);
     }
 
     public function offsetUnset($offset)

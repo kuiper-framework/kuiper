@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 use kuiper\reflection\exception\FileNotFoundException;
@@ -17,36 +19,33 @@ class ReflectionFile implements ReflectionFileInterface
     /**
      * @var string[]
      */
-    private $namespaces;
+    private $namespaces = [];
 
     /**
      * @var string[]
      */
-    private $classes;
+    private $classes = [];
 
     /**
      * @var string[]
      */
-    private $traits;
+    private $traits = [];
 
     /**
      * @var array
      */
-    private $imports;
+    private $imports = [];
 
     /**
      * @var string
      */
-    private $currentNamespace;
+    private $currentNamespace = '';
 
     /**
      * @var bool
      */
-    private $hasMultipleClasses;
+    private $hasMultipleClasses = false;
 
-    /**
-     * @param string $file
-     */
     public function __construct(string $file)
     {
         $this->file = $file;
@@ -162,13 +161,13 @@ class ReflectionFile implements ReflectionFileInterface
                     case T_INTERFACE:
                         $this->classes[] = $this->matchClass($tokens);
                         if (!$this->hasMultipleClasses) {
-                            throw new TokenStoppedException("no more token");
+                            throw new TokenStoppedException('no more token');
                         }
                         break;
                     case T_TRAIT:
                         $this->traits[] = $this->matchClass($tokens);
                         if (!$this->hasMultipleClasses) {
-                            throw new TokenStoppedException("no more token");
+                            throw new TokenStoppedException('no more token');
                         }
                         break;
                     case T_DOUBLE_COLON:
@@ -179,16 +178,11 @@ class ReflectionFile implements ReflectionFileInterface
             }
         } catch (TokenStoppedException $e) {
         } catch (InvalidTokenException $e) {
-            throw new SyntaxErrorException(sprintf(
-                '%s, got %s in %s on line %d',
-                $e->getMessage(), $tokens->describe($tokens->current()), $this->file, $tokens->getLine()
-            ), 0, $e);
+            throw new SyntaxErrorException(sprintf('%s, got %s in %s on line %d', $e->getMessage(), $tokens->describe($tokens->current()), $this->file, $tokens->getLine()), 0, $e);
         }
     }
 
     /**
-     * @param TokenStream $tokens
-     *
      * @return string
      *
      * @throws InvalidTokenException
@@ -207,10 +201,6 @@ class ReflectionFile implements ReflectionFileInterface
     }
 
     /**
-     * @param TokenStream $tokens
-     *
-     * @return string
-     *
      * @throws InvalidTokenException
      * @throws TokenStoppedException
      */
@@ -223,12 +213,12 @@ class ReflectionFile implements ReflectionFileInterface
             $tokens->matchParentheses();
         }
 
-        return $this->currentNamespace ? $this->currentNamespace . ReflectionNamespaceInterface::NAMESPACE_SEPARATOR . $class : $class;
+        return '' !== $this->currentNamespace
+            ? $this->currentNamespace.ReflectionNamespaceInterface::NAMESPACE_SEPARATOR.$class
+            : $class;
     }
 
     /**
-     * @param TokenStream $tokens
-     *
      * @throws InvalidTokenException
      * @throws TokenStoppedException
      */
@@ -244,10 +234,7 @@ class ReflectionFile implements ReflectionFileInterface
             $prev = $imports[$type];
             foreach ($stmtImports as $alias => $name) {
                 if (isset($prev[$alias])) {
-                    throw new InvalidTokenException(sprintf(
-                        "Duplicated import alias '%s' for '%s', previous '%s'",
-                        $name, $alias, $prev[$alias]
-                    ));
+                    throw new InvalidTokenException(sprintf("Duplicated import alias '%s' for '%s', previous '%s'", $name, $alias, $prev[$alias]));
                 }
             }
             $imports[$type] = array_merge($prev, $stmtImports);
@@ -256,12 +243,6 @@ class ReflectionFile implements ReflectionFileInterface
         }
     }
 
-    /**
-     * @param string $namespace
-     * @param int $type
-     *
-     * @return array
-     */
     private function getImported(string $namespace, int $type): array
     {
         if (isset($this->imports[$namespace][$type])) {
@@ -273,7 +254,6 @@ class ReflectionFile implements ReflectionFileInterface
 
     /**
      * @param string $code
-     * @return bool
      */
     private function detectMultipleClasses($code): bool
     {

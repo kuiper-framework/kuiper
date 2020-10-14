@@ -69,6 +69,9 @@ class ServerSetting extends Enum
     public const SSL_VERIFY_PEER = 'ssl_verify_peer';
     public const MAX_WAIT_TIME = 'max_wait_time';
 
+    /**
+     * @var array
+     */
     protected static $PROPERTIES = [
         'type' => [
             self::REACTOR_NUM => 'int',

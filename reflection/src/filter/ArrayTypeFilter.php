@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection\filter;
 
 use kuiper\reflection\ReflectionTypeInterface;
@@ -43,7 +45,10 @@ class ArrayTypeFilter implements TypeFilterInterface
         return $this->sanitizeArray($value, $this->type->getValueType(), $this->type->getDimension());
     }
 
-    private function validateArray($value, ReflectionTypeInterface $valueType, $dimension): bool
+    /**
+     * @param mixed $value
+     */
+    private function validateArray($value, ReflectionTypeInterface $valueType, int $dimension): bool
     {
         if (!is_array($value)) {
             return false;
@@ -65,7 +70,10 @@ class ArrayTypeFilter implements TypeFilterInterface
         return true;
     }
 
-    private function sanitizeArray($value, ReflectionTypeInterface $valueType, $dimension): array
+    /**
+     * @param mixed $value
+     */
+    private function sanitizeArray($value, ReflectionTypeInterface $valueType, int $dimension): array
     {
         $result = [];
         $value = (array) $value;

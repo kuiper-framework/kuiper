@@ -9,7 +9,7 @@ use Composer\Autoload\ClassLoader;
 class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 {
     /**
-     * @var ReflectionNamespaceFactory
+     * @var ReflectionNamespaceFactory|null
      */
     private static $INSTANCE;
 
@@ -40,7 +40,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 
     public static function getInstance(): ReflectionNamespaceFactoryInterface
     {
-        if (!isset(self::$INSTANCE)) {
+        if (null === self::$INSTANCE) {
             self::createInstance(ReflectionFileFactory::getInstance());
         }
 
@@ -49,7 +49,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 
     private function __construct(ReflectionFileFactoryInterface $factory = null)
     {
-        $this->reflectionFileFactory = $factory ?: ReflectionFileFactory::getInstance();
+        $this->reflectionFileFactory = $factory ?? ReflectionFileFactory::getInstance();
     }
 
     /**
@@ -76,10 +76,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
             = new ReflectionNamespace($namespace, $dirs, $this->extensions, $this->reflectionFileFactory);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function clearCache($namespace = null): void
+    public function clearCache(string $namespace = null): void
     {
         if (isset($namespace)) {
             unset($this->namespaces[$this->normalizeNamespace($namespace)]);

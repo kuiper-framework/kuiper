@@ -143,7 +143,7 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
         pcntl_signal(SIGUSR1, [$this, 'signalHandler']);
     }
 
-    public function signalHandler($signal): void
+    public function signalHandler(int $signal): void
     {
         switch ($signal) {
             // Stop.

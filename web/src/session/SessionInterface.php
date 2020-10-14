@@ -29,7 +29,7 @@ interface SessionInterface extends \ArrayAccess, \Iterator
      * @param string $index
      * @param mixed  $value
      */
-    public function set($index, $value);
+    public function set($index, $value): void;
 
     /**
      * Check whether a session variable is set in an application context.

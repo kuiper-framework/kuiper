@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\middleware;
 
+use kuiper\helper\Text;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -47,9 +48,9 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
         $this->bodyMaxSize = $bodyMaxSize;
     }
 
-    public function getJwtPayload($tokenHeader)
+    public function getJwtPayload(?string $tokenHeader): ?array
     {
-        if ($tokenHeader && 0 === strpos($tokenHeader, 'Bearer ')) {
+        if (Text::isNotEmpty($tokenHeader) && 0 === strpos($tokenHeader, 'Bearer ')) {
             $parts = explode('.', substr($tokenHeader, 7));
             if (isset($parts[1])) {
                 return json_decode(base64_decode($parts[1], true), true);
@@ -84,7 +85,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
         $responseBodySize = isset($response) ? $response->getBody()->getSize() : 0;
         $message = strtr($this->format, [
             '$remote_addr' => $ipList[0] ?? '-',
-            '$remote_user' => $request->getUri()->getUserInfo() ?: '-',
+            '$remote_user' => $request->getUri()->getUserInfo() ?? '-',
             '$time_local' => strftime('%d/%b/%Y:%H:%M:%S %z'),
             '$request' => strtoupper($request->getMethod())
                 .' '.$request->getUri()->getPath()

@@ -6,11 +6,14 @@ namespace kuiper\db\metadata;
 
 final class NullValue
 {
+    /**
+     * @var NullValue|null
+     */
     private static $INSTANCE;
 
     public static function instance(): NullValue
     {
-        if (!self::$INSTANCE) {
+        if (null === self::$INSTANCE) {
             self::$INSTANCE = new self();
         }
 

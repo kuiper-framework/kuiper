@@ -33,7 +33,7 @@ class HttpServer extends SelectTcpServer
     private $httpMessageFactoryHolder;
 
     /**
-     * @var ResponseBuilder
+     * @var ResponseBuilder|null
      */
     private $responseBuilder;
 
@@ -79,7 +79,7 @@ class HttpServer extends SelectTcpServer
 
     public function getResponseBuilder(): ResponseBuilder
     {
-        if (!$this->responseBuilder) {
+        if (null === $this->responseBuilder) {
             $this->responseBuilder = new ResponseBuilder($this->getSettings(), $this->logger);
         }
 

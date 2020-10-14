@@ -59,7 +59,7 @@ class HttpClientFactory implements HttpClientFactoryInterface, LoggerAwareInterf
 
     public function createRetryCallback(int $maxRetries): callable
     {
-        return static function ($retries, RequestInterface $req, ResponseInterface $resp = null, \Exception $e = null) use ($maxRetries) {
+        return static function ($retries, RequestInterface $req, ResponseInterface $resp = null, \Exception $e = null) use ($maxRetries): bool {
             if ($retries >= $maxRetries) {
                 return false;
             }

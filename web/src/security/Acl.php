@@ -6,6 +6,9 @@ namespace kuiper\web\security;
 
 class Acl implements AclInterface
 {
+    /**
+     * @var array
+     */
     private $allows = [];
 
     /**

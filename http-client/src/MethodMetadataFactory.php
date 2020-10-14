@@ -38,14 +38,11 @@ class MethodMetadataFactory
         $this->normalizer = $normalizer;
     }
 
-    /**
-     * @return array [method, uri, options]
-     */
     public function create(string $clientClass, string $method, array $args): MethodMetadata
     {
         $reflectionMethod = new \ReflectionMethod($clientClass, $method);
         $methodMetadata = new MethodMetadata($reflectionMethod);
-        /** @var HttpClient $classAnnotation */
+        /** @var HttpClient|null $classAnnotation */
         $classAnnotation = $this->annotationReader->getClassAnnotation($reflectionMethod->getDeclaringClass(), HttpClient::class);
         $parameters = [];
         foreach ($reflectionMethod->getParameters() as $i => $parameter) {

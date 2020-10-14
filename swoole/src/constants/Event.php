@@ -9,7 +9,7 @@ use kuiper\helper\Enum;
 /**
  * Class Event.
  *
- * @property bool non_swoole
+ * @property bool $non_swoole
  */
 class Event extends Enum
 {
@@ -57,6 +57,9 @@ class Event extends Enum
 
     public const AFTER_RELOAD = 'afterReload';
 
+    /**
+     * @var array
+     */
     protected static $PROPERTIES = [
         'non_swoole' => [
             self::BOOTSTRAP => true,

@@ -10,6 +10,9 @@ use Psr\Log\LogLevel;
 
 class Logger extends AbstractLogger
 {
+    /**
+     * @var int[]
+     */
     private static $LEVELS = [
         LogLevel::EMERGENCY => 1,
         LogLevel::ALERT => 2,

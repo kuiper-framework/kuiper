@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 use kuiper\reflection\exception\ReflectionException;
@@ -31,7 +33,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
      */
     private $classes;
 
-    public function __construct($namespace, array $dirs, array $extensions, ReflectionFileFactoryInterface $reflectionFileFactory)
+    public function __construct(string $namespace, array $dirs, array $extensions, ReflectionFileFactoryInterface $reflectionFileFactory)
     {
         $this->namespace = trim($namespace, self::NAMESPACE_SEPARATOR);
         $this->dirs = $dirs;

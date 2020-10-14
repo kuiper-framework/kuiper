@@ -47,7 +47,7 @@ abstract class AbstractServer implements ServerInterface, LoggerAwareInterface
     {
         array_unshift($args, $this);
         $event = $this->serverEventFactory->create($eventName, $args);
-        if ($event) {
+        if (null !== $event) {
             $this->logger->debug(static::TAG."dispatch event $eventName using ".get_class($event));
 
             /* @noinspection PhpIncompatibleReturnTypeInspection */

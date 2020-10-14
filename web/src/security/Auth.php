@@ -23,7 +23,7 @@ class Auth implements AuthInterface
      */
     private $session;
 
-    public function __construct(SessionInterface $session, $sessionKey = 'auth')
+    public function __construct(SessionInterface $session, string $sessionKey = 'auth')
     {
         $this->session = $session;
         $this->sessionKey = $sessionKey;

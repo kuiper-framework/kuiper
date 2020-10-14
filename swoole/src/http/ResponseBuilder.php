@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\swoole\http;
 
 use kuiper\helper\Properties;
+use kuiper\helper\Text;
 use kuiper\swoole\constants\HttpHeaderName;
 use kuiper\swoole\constants\HttpServerSetting;
 use kuiper\swoole\server\HttpServer;
@@ -74,7 +75,7 @@ class ResponseBuilder implements LoggerAwareInterface
         }
 
         $connection = $response->getHeaderLine(HttpHeaderName::CONNECTION);
-        $isKeepAlive = $connection ? 0 !== strcasecmp($connection, 'close')
+        $isKeepAlive = Text::isNotEmpty($connection) ? 0 !== strcasecmp($connection, 'close')
             : $this->options->getBool(HttpServerSetting::KEEPALIVE);
         $headers[HttpHeaderName::KEEPALIVE] = [$isKeepAlive ? 'on' : 'off'];
         $headers[HttpHeaderName::CONNECTION] = [$isKeepAlive ? 'keep-alive' : 'close'];

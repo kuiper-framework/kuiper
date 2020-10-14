@@ -13,6 +13,9 @@ class SecurityContext
 {
     public const SESSION = '__session__';
 
+    /**
+     * @var string[]
+     */
     protected static $COMPONENTS = [
         SecurityContext::class => SecurityContext::class,
         FlashInterface::class => SessionFlash::class,
@@ -56,13 +59,16 @@ class SecurityContext
     public static function fromRequest(ServerRequestInterface $request): self
     {
         $session = $request->getAttribute(static::SESSION);
-        if (!$session) {
+        if (null === $session) {
             throw new \BadMethodCallException('SessionMiddleware not enabled');
         }
 
         return static::createComponent(SecurityContext::class, $session);
     }
 
+    /**
+     * @return mixed
+     */
     private static function createComponent(string $component, SessionInterface $session)
     {
         $class = static::$COMPONENTS[$component];

@@ -73,6 +73,13 @@ interface MetaModelInterface extends EntityMapperInterface
     public function getId($entity);
 
     /**
+     * Gets the property.
+     *
+     * @return MetaModelProperty
+     */
+    public function getProperty(string $propertyPath): ?MetaModelProperty;
+
+    /**
      * Filters the criteria.
      */
     public function filterCriteria(Criteria $criteria): Criteria;

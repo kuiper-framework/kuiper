@@ -11,6 +11,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Webmozart\Assert\Assert;
 
 class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInterface
 {
@@ -27,10 +28,12 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
     }
 
     /**
-     * @param WorkerStartEvent $event
+     * {@inheritdoc}
      */
     public function __invoke($event): void
     {
+        Assert::isInstanceOf($event, WorkerStartEvent::class);
+        /* @var WorkerStartEvent $event */
         $this->changeProcessTitle($event);
         $this->seedRandom();
     }

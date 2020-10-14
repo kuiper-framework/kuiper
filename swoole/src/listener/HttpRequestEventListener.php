@@ -11,6 +11,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Webmozart\Assert\Assert;
 
 class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInterface
 {
@@ -30,12 +31,14 @@ class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInt
     }
 
     /**
-     * @param RequestEvent $event
+     * {@inheritdoc}
      */
     public function __invoke($event): void
     {
+        Assert::isInstanceOf($event, RequestEvent::class);
         try {
             $this->logger->debug(static::TAG.'receive request');
+            /* @var RequestEvent $event */
             $event->setResponse($this->requestHandler->handle($event->getRequest()));
         } catch (\Exception $e) {
             $this->logger->error(static::TAG.'Uncaught exception: '.get_class($e).': '.$e->getMessage()."\n"

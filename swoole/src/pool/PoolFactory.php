@@ -46,6 +46,9 @@ class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface
         $this->setLogger($logger ?? new NullLogger());
     }
 
+    /**
+     * @param array|PoolConfig|mixed $poolConfig
+     */
     public function setPoolConfig(string $poolName, $poolConfig): void
     {
         if (is_array($poolConfig)) {

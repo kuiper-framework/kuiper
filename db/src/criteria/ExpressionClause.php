@@ -24,6 +24,11 @@ class ExpressionClause implements CriteriaClauseInterface
      */
     private $value;
 
+    /**
+     * ExpressionClause constructor.
+     *
+     * @param mixed $value
+     */
     public function __construct(string $column, string $operator, $value)
     {
         $this->column = $column;

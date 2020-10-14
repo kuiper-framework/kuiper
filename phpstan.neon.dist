@@ -1,5 +1,5 @@
 parameters:
-  level: 1
+  level: 6
   paths:
     - annotations/src
     - cache/src
@@ -14,3 +14,6 @@ parameters:
     - swoole/src
     - web/src
   checkMissingIterableValueType: false
+  checkGenericClassInNonGenericObjectType: false
+  ignoreErrors:
+    - '#Construct empty\(\) is not allowed#'

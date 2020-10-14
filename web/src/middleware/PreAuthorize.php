@@ -25,6 +25,9 @@ class PreAuthorize implements MiddlewareInterface
      */
     private $authorities;
 
+    /**
+     * @var string
+     */
     private static $SUPER_USER_ROLE = 'admin';
 
     /**

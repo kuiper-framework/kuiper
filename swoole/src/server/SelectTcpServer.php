@@ -88,11 +88,17 @@ class SelectTcpServer extends AbstractServer
         }
     }
 
-    public function task($data, $taskWorkerId = -1, $onFinish = null)
+    /**
+     * {@inheritdoc}
+     */
+    public function task($data, $taskWorkerId = -1, $onFinish = null): void
     {
         $this->workerManager->task($data, $taskWorkerId, $onFinish);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function finish($data): void
     {
         $this->workerManager->finish($data);

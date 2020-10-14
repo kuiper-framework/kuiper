@@ -27,8 +27,6 @@ interface AuthInterface
 
     /**
      * whether current user is logged in.
-     *
-     * @return
      */
     public function isGuest(): bool;
 

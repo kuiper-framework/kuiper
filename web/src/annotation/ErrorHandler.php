@@ -18,6 +18,8 @@ class ErrorHandler implements ComponentInterface
 
     /**
      * Exception class name, can be string or string[].
+     *
+     * @var mixed
      */
     public $value;
 }

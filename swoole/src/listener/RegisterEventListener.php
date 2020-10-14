@@ -7,6 +7,7 @@ namespace kuiper\swoole\listener;
 use kuiper\di\ComponentCollection;
 use kuiper\event\annotation\EventListener;
 use kuiper\event\EventListenerInterface;
+use kuiper\helper\Text;
 use kuiper\swoole\event\BootstrapEvent;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -41,7 +42,7 @@ class RegisterEventListener implements EventListenerInterface
         foreach (ComponentCollection::getAnnotations(EventListener::class) as $annotation) {
             $eventListener = $this->container->get($annotation->getComponentId());
             $event = $annotation->value;
-            if (!$event) {
+            if (Text::isNotEmpty($event)) {
                 if (!$eventListener instanceof EventListenerInterface) {
                     throw new \InvalidArgumentException(sprintf('EventListener %s should implements %s', get_class($eventListener), EventListenerInterface::class));
                 }

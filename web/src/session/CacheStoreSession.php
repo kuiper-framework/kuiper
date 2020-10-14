@@ -14,7 +14,7 @@ class CacheStoreSession implements SessionInterface
     use SessionTrait;
 
     /**
-     * @var \SessionHandlerInterface
+     * @var \SessionHandlerInterface|\SessionIdInterface
      */
     private $sessionHandler;
     /**
@@ -35,7 +35,7 @@ class CacheStoreSession implements SessionInterface
     private $request;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $sessionId;
 
@@ -101,12 +101,10 @@ class CacheStoreSession implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function set($index, $value)
+    public function set($index, $value): void
     {
         $this->checkStart();
         $this->sessionData[$index] = $value;
-
-        return $this;
     }
 
     /**
@@ -166,6 +164,9 @@ class CacheStoreSession implements SessionInterface
         return true;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function current()
     {
         $this->checkStart();
@@ -173,6 +174,9 @@ class CacheStoreSession implements SessionInterface
         return current($this->sessionData);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function next()
     {
         $this->checkStart();
@@ -180,6 +184,9 @@ class CacheStoreSession implements SessionInterface
         return next($this->sessionData);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function key()
     {
         $this->checkStart();
@@ -187,25 +194,36 @@ class CacheStoreSession implements SessionInterface
         return key($this->sessionData);
     }
 
-    public function valid()
+    /**
+     * {@inheritdoc}
+     */
+    public function valid(): bool
     {
         $this->checkStart();
 
         return null !== key($this->sessionData);
     }
 
-    public function rewind()
+    /**
+     * {@inheritdoc}
+     */
+    public function rewind(): void
     {
         $this->checkStart();
 
-        return reset($this->sessionData);
+        reset($this->sessionData);
     }
 
-    protected function validateSessionId($sid)
+    protected function validateSessionId(string $sid): bool
     {
-        return preg_match('/^[0-9a-zA-Z]+$/', $sid);
+        return (bool) preg_match('/^[0-9a-zA-Z]+$/', $sid);
     }
 
+    /**
+     * @param string $data
+     *
+     * @return array|mixed
+     */
     protected function decode($data)
     {
         if ($this->compatibleMode) {
@@ -214,11 +232,14 @@ class CacheStoreSession implements SessionInterface
 
             return $_SESSION;
         } else {
-            return @unserialize($data) ?: [];
+            return @unserialize($data) ?? [];
         }
     }
 
-    protected function encode($session)
+    /**
+     * @param mixed $session
+     */
+    protected function encode($session): string
     {
         if ($this->compatibleMode) {
             $_SESSION = $session;
@@ -237,7 +258,7 @@ class CacheStoreSession implements SessionInterface
         $cookies = SetCookies::fromResponse($response);
         if ($this->isStarted()) {
             $sid = $this->getId();
-            if ($this->sessionData) {
+            if (!empty($this->sessionData)) {
                 $this->sessionHandler->write($sid, $this->encode($this->sessionData));
             }
             $cookie = SetCookie::create($this->cookieName, $sid)

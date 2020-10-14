@@ -8,24 +8,31 @@ use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Promise\PromiseInterface;
 use kuiper\swoole\pool\PoolFactoryInterface;
+use kuiper\swoole\pool\PoolInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class PooledHttpClient implements ClientInterface
 {
     /**
-     * @var \kuiper\swoole\pool\PoolInterface
+     * @var PoolInterface
      */
     private $httpClientPool;
 
     public function __construct(PoolFactoryInterface $poolFactory, array $options = [])
     {
         $this->httpClientPool = $poolFactory->create($options['pool'] ?? 'http-client',
-            static function () use ($options) {
+            static function () use ($options): Client {
                 return new Client($options);
             });
     }
 
+    /**
+     * @param string $method
+     * @param array  $args
+     *
+     * @return mixed
+     */
     public function __call($method, $args)
     {
         return $this->httpClientPool->take()->$method(...$args);

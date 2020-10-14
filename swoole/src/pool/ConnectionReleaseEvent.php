@@ -15,6 +15,9 @@ class ConnectionReleaseEvent implements StoppableEventInterface
      */
     private $poolName;
 
+    /**
+     * @var mixed
+     */
     private $connection;
 
     public function __construct(string $poolName, $connection)

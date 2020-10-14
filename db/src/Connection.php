@@ -21,6 +21,9 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
 {
     use EventDispatcherAwareTrait;
 
+    /**
+     * @var int
+     */
     private static $GID = 1;
 
     /**
@@ -63,7 +66,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     /**
      * The PDO connection itself.
      *
-     * @var \PDO
+     * @var \PDO|null
      */
     protected $pdo;
 
@@ -125,7 +128,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     public function connect(): void
     {
         // don't connect twice
-        if ($this->pdo) {
+        if (null !== $this->pdo) {
             if (!$this->isTimeout()) {
                 return;
             }
@@ -171,7 +174,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
      */
     public function setAttribute($attribute, $value): bool
     {
-        if ($this->pdo) {
+        if (null !== $this->pdo) {
             return $this->pdo->setAttribute($attribute, $value);
         }
 
@@ -229,12 +232,12 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
 
         // non-array quoting
         if (!is_array($value)) {
-            return $this->pdo->quote($value, $parameter_type);
+            return $this->pdo->quote((string) $value, $parameter_type);
         }
 
         // quote array values, not keys, then combine with commas
         foreach ($value as $k => $v) {
-            $value[$k] = $this->pdo->quote($v, $parameter_type);
+            $value[$k] = $this->pdo->quote((string) $v, $parameter_type);
         }
 
         return implode(', ', $value);
@@ -410,7 +413,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         return time() - $this->connectedAt > $this->timeout;
     }
 
-    protected function beforeQuery()
+    protected function beforeQuery(): void
     {
         $this->lastQueryStart = microtime(true);
     }

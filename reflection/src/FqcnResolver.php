@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 /**
@@ -20,12 +22,7 @@ class FqcnResolver
     /**
      * Resolves class name to Full Qualified Class Name.
      *
-     * @param string $name
-     * @param string $namespace
-     *
-     * @return string
-     *
-     * @throws \InvalidArgumentException if $name is not valid class name, or namespace not in the file
+     * @throws \InvalidArgumentException       if $name is not valid class name, or namespace not in the file
      * @throws exception\FileNotFoundException
      * @throws exception\SyntaxErrorException
      */
@@ -45,16 +42,16 @@ class FqcnResolver
         $parts = explode(ReflectionNamespaceInterface::NAMESPACE_SEPARATOR, $name);
         $alias = array_shift($parts);
         if (isset($imports[$alias])) {
-            $className = $imports[$alias] . (empty($parts) ? '' : ReflectionNamespaceInterface::NAMESPACE_SEPARATOR
-                    . implode(ReflectionNamespaceInterface::NAMESPACE_SEPARATOR, $parts));
+            $className = $imports[$alias].(empty($parts) ? '' : ReflectionNamespaceInterface::NAMESPACE_SEPARATOR
+                    .implode(ReflectionNamespaceInterface::NAMESPACE_SEPARATOR, $parts));
         } else {
-            $className = $namespace . ReflectionNamespaceInterface::NAMESPACE_SEPARATOR . $name;
+            $className = $namespace.ReflectionNamespaceInterface::NAMESPACE_SEPARATOR.$name;
         }
 
         return ltrim($className, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR);
     }
 
-    private function isFqcn($name): bool
+    private function isFqcn(string $name): bool
     {
         return ReflectionNamespaceInterface::NAMESPACE_SEPARATOR === $name[0];
     }

@@ -46,12 +46,12 @@ class MetaModel implements MetaModelInterface
     private $idProperty;
 
     /**
-     * @var MetaModelCriteriaFilter
+     * @var MetaModelCriteriaFilter|null
      */
     private $expressionClauseFilter;
 
     /**
-     * @var array
+     * @var array|null
      */
     private $columnAlias;
 
@@ -189,16 +189,25 @@ class MetaModel implements MetaModelInterface
         return null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getIdValues($entity): ?array
     {
         return $this->getUniqueKeyValues($entity, Id::class);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getNaturalIdValues($entity): ?array
     {
         return $this->getUniqueKeyValues($entity, NaturalId::class);
     }
 
+    /**
+     * @param object $entity
+     */
     protected function getUniqueKeyValues($entity, string $idAnnotation): ?array
     {
         if (!isset($this->annotatedColumns[$idAnnotation])) {
@@ -210,7 +219,7 @@ class MetaModel implements MetaModelInterface
             return null;
         }
         if (count($nonNullValues) !== count($values)) {
-            $nullKeys = array_filter(array_keys($values), function ($key) use ($values) {
+            $nullKeys = array_filter(array_keys($values), static function ($key) use ($values): bool {
                 return !isset($values[$key]);
             });
             throw new \InvalidArgumentException('Entity contains null value in unique key columns: '.implode(',', $nullKeys));
@@ -297,7 +306,7 @@ class MetaModel implements MetaModelInterface
 
     protected function getCriteriaFilter(): CriteriaFilterInterface
     {
-        if (!$this->expressionClauseFilter) {
+        if (null === $this->expressionClauseFilter) {
             $this->expressionClauseFilter = new MetaModelCriteriaFilter($this);
         }
 
@@ -306,7 +315,8 @@ class MetaModel implements MetaModelInterface
 
     protected function getColumnAlias(): array
     {
-        if (!$this->columnAlias) {
+        if (null === $this->columnAlias) {
+            $this->columnAlias = [];
             foreach ($this->getColumns() as $column) {
                 $this->columnAlias[$column->getPropertyPath()] = $column->getName();
             }

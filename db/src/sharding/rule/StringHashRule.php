@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace kuiper\db\sharding\rule;
 
-use Webmozart\Assert\Assert;
-
 class StringHashRule extends AbstractRule
 {
     /**
@@ -18,7 +16,12 @@ class StringHashRule extends AbstractRule
      */
     protected $hashFunction;
 
-    public function __construct($field, $bucket, $hashFunction = 'crc32')
+    /**
+     * StringHashRule constructor.
+     *
+     * @param string|callable $hashFunction
+     */
+    public function __construct(string $field, int $bucket, $hashFunction = 'crc32')
     {
         parent::__construct($field);
         $this->bucket = $bucket;

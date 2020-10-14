@@ -56,7 +56,7 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
             $tempFile = tempnam(sys_get_temp_dir(), 'swoole-tmp-body');
             file_put_contents($tempFile, (string) $body);
             $swooleResponse->sendfile($tempFile);
-            $this->defer(static function () use ($tempFile) {
+            $this->defer(static function () use ($tempFile): void {
                 @unlink($tempFile);
             }, $this->tempFileDelay);
         } else {
@@ -68,7 +68,7 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
         }
     }
 
-    private function defer($callback, int $milliseconds): void
+    private function defer(callable $callback, int $milliseconds): void
     {
         Timer::after($milliseconds, $callback);
     }

@@ -65,7 +65,7 @@ class MetaModelProperty
         $this->type = $type;
         $this->parent = $parent;
         $this->annotations = $annotations;
-        $this->path = ($parent ? $parent->getPath().self::PATH_SEPARATOR : '').$property->getName();
+        $this->path = (null !== $parent ? $parent->getPath().self::PATH_SEPARATOR : '').$property->getName();
         $this->ancestors = $this->buildAncestors();
     }
 
@@ -92,18 +92,21 @@ class MetaModelProperty
      */
     public function getColumns(): array
     {
-        if ($this->column) {
+        if (null !== $this->column) {
             return [$this->column];
         }
 
-        return array_merge(...array_map(static function (MetaModelProperty $property) {
+        return array_merge(...array_map(static function (MetaModelProperty $property): array {
             return $property->getColumns();
         }, array_values($this->children)));
     }
 
+    /**
+     * @param mixed $propertyValue
+     */
     public function getColumnValues($propertyValue): array
     {
-        if ($this->column) {
+        if (null !== $this->column) {
             return [
                 $this->column->getName() => $this->column->getConverter()->convertToDatabaseColumn($propertyValue, $this->column),
             ];
@@ -115,15 +118,20 @@ class MetaModelProperty
             throw new \InvalidArgumentException("Expected {$this->getFullName()} type of {$this->type}, got ".get_class($propertyValue));
         }
 
-        return array_merge(...array_map(static function (MetaModelProperty $child) use ($propertyValue) {
+        return array_merge(...array_map(static function (MetaModelProperty $child) use ($propertyValue): array {
             return $child->getColumnValues($child->property->getValue($propertyValue));
         }, array_values($this->children)));
     }
 
+    /**
+     * @param object $entity
+     *
+     * @return mixed|null
+     */
     public function getValue($entity)
     {
         $this->checkEntityMatch($entity);
-        if ($this->parent) {
+        if (null !== $this->parent) {
             $value = $this->parent->getValue($entity);
             if (!isset($value)) {
                 return null;
@@ -134,6 +142,10 @@ class MetaModelProperty
         return $this->property->getValue($entity);
     }
 
+    /**
+     * @param object $entity
+     * @param mixed  $value
+     */
     public function setValue($entity, $value): void
     {
         $this->checkEntityMatch($entity);
@@ -158,7 +170,7 @@ class MetaModelProperty
             }
         }
 
-        return $this->parent ? $this->parent->getAnnotation($annotationName) : null;
+        return null !== $this->parent ? $this->parent->getAnnotation($annotationName) : null;
     }
 
     public function hasAnnotation(string $annotationName): bool
@@ -168,7 +180,8 @@ class MetaModelProperty
 
     public function getEntityClass(): \ReflectionClass
     {
-        return $this->parent ? $this->parent->getEntityClass()
+        return null !== $this->parent
+            ? $this->parent->getEntityClass()
             : $this->property->getDeclaringClass();
     }
 
@@ -214,7 +227,7 @@ class MetaModelProperty
     {
         $ancestors = [];
         $metaProperty = $this->parent;
-        while ($metaProperty) {
+        while (null !== $metaProperty) {
             if (!$metaProperty->modelClass) {
                 if (!$metaProperty->type->isClass()) {
                     throw new MetaModelException($metaProperty->type.' not class');

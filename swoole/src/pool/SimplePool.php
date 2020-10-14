@@ -44,8 +44,14 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
      */
     private $connections;
 
+    /**
+     * @var int
+     */
     private $currentConnections = 0;
 
+    /**
+     * @var int
+     */
     private static $CONNECTION_ID = 1;
 
     /**
@@ -99,10 +105,16 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         }
     }
 
+    /**
+     * @param int   $coroutineId
+     * @param array $connection
+     *
+     * @return mixed
+     */
     private function deferReleaseConnection($coroutineId, $connection)
     {
         $this->connections[$coroutineId] = $connection;
-        Coroutine::defer(function () use ($coroutineId) {
+        Coroutine::defer(function () use ($coroutineId): void {
             $connection = $this->connections[$coroutineId] ?? null;
             if (isset($connection)) {
                 $this->logger->debug(self::TAG."release connection {$this->poolName}#{$connection[0]}");
@@ -121,7 +133,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         return $this->poolName;
     }
 
-    private function createConnection()
+    private function createConnection(): array
     {
         $connectionId = self::$CONNECTION_ID++;
         $this->logger->info(self::TAG.sprintf('create connection %s#%d', $this->poolName, $connectionId));

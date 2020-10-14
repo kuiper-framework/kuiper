@@ -34,6 +34,13 @@ class HttpClientProxy
         $this->parser = $parser;
     }
 
+    /**
+     * @param mixed ...$args
+     *
+     * @return mixed
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function call(string $clientClass, string $method, ...$args)
     {
         $methodMetadata = $this->methodMetadataFactory->create($clientClass, $method, $args);

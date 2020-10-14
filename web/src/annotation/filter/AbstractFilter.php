@@ -6,6 +6,9 @@ namespace kuiper\web\annotation\filter;
 
 abstract class AbstractFilter implements FilterInterface
 {
+    /**
+     * @var int
+     */
     public $priority = 1024;
 
     /**

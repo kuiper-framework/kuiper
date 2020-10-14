@@ -23,6 +23,9 @@ class DefaultResponseParser implements ResponseParser
         $this->normalizer = $normalizer;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function parse(MethodMetadata $metadata, ResponseInterface $response)
     {
         if ($metadata->hasReturnType()) {
@@ -42,6 +45,9 @@ class DefaultResponseParser implements ResponseParser
         return $response;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function handleError(MethodMetadata $metadata, RequestException $e)
     {
         throw $e;

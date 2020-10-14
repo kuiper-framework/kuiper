@@ -36,7 +36,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
     private $defaultContentType;
 
     /**
-     * @var ErrorRendererInterface
+     * @var ErrorRendererInterface|null
      */
     private $logErrorRenderer;
 
@@ -51,7 +51,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         ?ErrorRendererInterface $logErrorRenderer,
         ?LoggerInterface $logger,
         string $defaultContentType = MediaType::TEXT_HTML,
-        $includeStacktraceStrategy = IncludeStacktrace::NEVER)
+        string $includeStacktraceStrategy = IncludeStacktrace::NEVER)
     {
         $this->responseFactory = $responseFactory;
         $this->errorRenderers = $errorRenderers;
@@ -74,7 +74,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         bool $logErrors,
         bool $logErrorDetails): ResponseInterface
     {
-        if ($logErrors && $this->logErrorRenderer) {
+        if ($logErrors && null !== $this->logErrorRenderer) {
             $this->writeToErrorLog($request, $exception);
         }
 

@@ -24,7 +24,7 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
      */
     private $connectionFactory;
     /**
-     * @var object
+     * @var object|null
      */
     private $connection;
     /**

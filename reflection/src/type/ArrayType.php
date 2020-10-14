@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection\type;
 
 use kuiper\reflection\ReflectionType;
@@ -17,7 +19,7 @@ class ArrayType extends ReflectionType
      */
     private $dimension;
 
-    public function __construct(ReflectionTypeInterface $valueType, int $dimension = 1, $allowsNull = false)
+    public function __construct(ReflectionTypeInterface $valueType, int $dimension = 1, bool $allowsNull = false)
     {
         parent::__construct($allowsNull);
         $this->valueType = $valueType;
@@ -41,7 +43,7 @@ class ArrayType extends ReflectionType
 
     protected function getDisplayString(): string
     {
-        return 1 == $this->dimension && $this->valueType instanceof MixedType ? 'array' : $this->getName();
+        return 1 === $this->dimension && $this->valueType instanceof MixedType ? 'array' : $this->getName();
     }
 
     public function isArray(): bool

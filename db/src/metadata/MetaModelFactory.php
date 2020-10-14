@@ -18,6 +18,7 @@ use kuiper\db\converter\AttributeConverterInterface;
 use kuiper\db\converter\AttributeConverterRegistry;
 use kuiper\db\converter\EnumConverter;
 use kuiper\db\exception\MetaModelException;
+use kuiper\helper\Text;
 use kuiper\reflection\FqcnResolver;
 use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionFileFactoryInterface;
@@ -51,9 +52,9 @@ class MetaModelFactory implements MetaModelFactoryInterface
                                 ?ReflectionFileFactoryInterface $reflectionFileFactory)
     {
         $this->attributeConverterRegistry = $attributeConverterRegistry;
-        $this->namingStrategy = $namingStrategy ?: new NamingStrategy();
-        $this->annotationReader = $annotationReader ?: AnnotationReader::getInstance();
-        $this->reflectionFileFactory = $reflectionFileFactory ?: ReflectionFileFactory::getInstance();
+        $this->namingStrategy = $namingStrategy ?? new NamingStrategy();
+        $this->annotationReader = $annotationReader ?? AnnotationReader::getInstance();
+        $this->reflectionFileFactory = $reflectionFileFactory ?? ReflectionFileFactory::getInstance();
     }
 
     /**
@@ -80,9 +81,9 @@ class MetaModelFactory implements MetaModelFactoryInterface
 
     private function getEntityClass(\ReflectionClass $reflectionClass): \ReflectionClass
     {
-        /** @var Repository $annotation */
+        /** @var Repository|null $annotation */
         $annotation = $this->annotationReader->getClassAnnotation($reflectionClass, Repository::class);
-        if (!$annotation) {
+        if (null === $annotation) {
             foreach ($reflectionClass->getInterfaces() as $interface) {
                 $annotation = $this->annotationReader->getClassAnnotation($interface, Repository::class);
                 if ($annotation) {
@@ -90,7 +91,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
                 }
             }
         }
-        if (!$annotation) {
+        if (null === $annotation) {
             throw new \InvalidArgumentException($reflectionClass->getName().' should annotation with @'.Repository::class);
         }
 
@@ -100,10 +101,10 @@ class MetaModelFactory implements MetaModelFactoryInterface
     private function getTableName(\ReflectionClass $entityClass): string
     {
         $context = new NamingContext();
-        /** @var Table $annotation */
+        /** @var Table|null $annotation */
         $annotation = $this->annotationReader->getClassAnnotation($entityClass, Table::class);
         $context->setEntityClass($entityClass);
-        if ($annotation && $annotation->name) {
+        if (null !== $annotation && Text::isNotEmpty($annotation->name)) {
             $context->setAnnotationValue($annotation->name);
         }
 
@@ -118,7 +119,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
                 continue;
             }
             $annotations = $this->annotationReader->getPropertyAnnotations($property);
-            if ($annotations && $this->hasAnnotation($annotations, Transient::class)) {
+            if (!empty($annotations) && $this->hasAnnotation($annotations, Transient::class)) {
                 continue;
             }
             $metaProperties[] = $this->createProperty($property, $annotations, $parent);
@@ -164,17 +165,23 @@ class MetaModelFactory implements MetaModelFactoryInterface
         return $type;
     }
 
-    private function createProperty(\ReflectionProperty $property, $annotations, ?MetaModelProperty $parent): MetaModelProperty
+    /**
+     * @param ColumnAnnotation[] $annotations
+     *
+     * @throws MetaModelException
+     * @throws \ReflectionException
+     */
+    private function createProperty(\ReflectionProperty $property, array $annotations, ?MetaModelProperty $parent): MetaModelProperty
     {
         $type = $this->getPropertyType($property);
         $metaProperty = new MetaModelProperty($property, $type, $parent, $annotations);
         $attributeConverter = $this->getAttributeConverter($metaProperty);
         if ($attributeConverter) {
-            /** @var ColumnAnnotation $columnAnnotation */
+            /** @var ColumnAnnotation|null $columnAnnotation */
             $columnAnnotation = $this->getAnnotation($annotations, ColumnAnnotation::class);
             $namingContext = new NamingContext();
             $namingContext->setEntityClass($metaProperty->getEntityClass());
-            if ($columnAnnotation && $columnAnnotation->name) {
+            if (null !== $columnAnnotation && Text::isNotEmpty($columnAnnotation->name)) {
                 $namingContext->setAnnotationValue($columnAnnotation->name);
             }
             $namingContext->setPropertyName($property->getName());
@@ -186,8 +193,9 @@ class MetaModelFactory implements MetaModelFactoryInterface
                 throw new MetaModelException(sprintf('Unsupported type %s for %s property %s', $type->getName(), $metaProperty->getEntityClass()->getName(), $metaProperty->getPath()));
             }
             $reflectionClass = new \ReflectionClass($type->getName());
+            /** @var Embeddable|null $isEmbeddable */
             $isEmbeddable = $this->annotationReader->getClassAnnotation($reflectionClass, Embeddable::class);
-            if (!$isEmbeddable) {
+            if (null === $isEmbeddable) {
                 throw new MetaModelException(sprintf('%s property %s type class %s is not annotated with %s', $metaProperty->getEntityClass()->getName(), $metaProperty->getPath(), $type->getName(), Embeddable::class));
             }
 
@@ -199,14 +207,14 @@ class MetaModelFactory implements MetaModelFactoryInterface
 
     private function getAttributeConverter(MetaModelProperty $metaProperty): ?AttributeConverterInterface
     {
-        /** @var Convert $annotation */
+        /** @var Convert|null $annotation */
         $annotation = $metaProperty->getAnnotation(Convert::class);
-        if ($annotation) {
+        if (null !== $annotation) {
             return $this->attributeConverterRegistry->get($annotation->value);
         }
-        /** @var Enumerated $enumerated */
+        /** @var Enumerated|null $enumerated */
         $enumerated = $metaProperty->getAnnotation(Enumerated::class);
-        if ($enumerated) {
+        if (null !== $enumerated) {
             return new EnumConverter(Enumerated::ORDINAL === $enumerated->value);
         }
 

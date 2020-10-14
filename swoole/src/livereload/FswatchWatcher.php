@@ -6,6 +6,9 @@ namespace kuiper\swoole\livereload;
 
 class FswatchWatcher implements FileWatcherInterface
 {
+    /**
+     * @var string
+     */
     private $fswatch = 'fswatch';
 
     /**
@@ -14,12 +17,12 @@ class FswatchWatcher implements FileWatcherInterface
     private $pathList;
 
     /**
-     * @var resource
+     * @var resource|null
      */
     private $process;
 
     /**
-     * @var resource
+     * @var resource|null
      */
     private $pipe;
 
@@ -46,7 +49,7 @@ class FswatchWatcher implements FileWatcherInterface
 
     public function getChangedPaths(): array
     {
-        if (!$this->process) {
+        if (null === $this->process) {
             $this->open();
         }
         $read = [$this->pipe];
@@ -68,7 +71,7 @@ class FswatchWatcher implements FileWatcherInterface
 
     public function close(): void
     {
-        if ($this->process) {
+        if (null !== $this->process) {
             proc_terminate($this->process);
             unset($this->process, $this->pipe);
         }
@@ -83,7 +86,7 @@ class FswatchWatcher implements FileWatcherInterface
         ];
         $path = implode(' ', array_map('escapeshellarg', $this->pathList));
         $this->process = proc_open($this->fswatch." -0 $path", $desc, $pipes);
-        if (!$this->process) {
+        if (false === $this->process) {
             throw new \InvalidArgumentException('Cannot start fswatch');
         }
         fclose($pipes[0]);

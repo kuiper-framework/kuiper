@@ -16,6 +16,9 @@ abstract class ReflectionType implements ReflectionTypeInterface
 {
     public const CLASS_NAME_REGEX = '/^\\\\?([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\\\\)*[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/';
 
+    /**
+     * @var string[]
+     */
     private static $TYPES = [
         'bool' => type\BooleanType::class,
         'false' => type\BooleanType::class,
@@ -37,6 +40,9 @@ abstract class ReflectionType implements ReflectionTypeInterface
         'iterable' => type\IterableType::class,
     ];
 
+    /**
+     * @var string[]
+     */
     private static $FILTERS = [
         type\ArrayType::class => filter\ArrayTypeFilter::class,
         type\BooleanType::class => filter\BooleanTypeFilter::class,
@@ -54,6 +60,9 @@ abstract class ReflectionType implements ReflectionTypeInterface
         type\VoidType::class => filter\NullTypeFilter::class,
     ];
 
+    /**
+     * @var ReflectionTypeInterface[]
+     */
     private static $SINGLETONS = [];
 
     /**
@@ -135,7 +144,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
                 return static::forName('?'.$typeString);
             }
 
-            return new CompositeType(array_map(static function ($typeString) {
+            return new CompositeType(array_map(static function ($typeString): ReflectionTypeInterface {
                 return static::forName($typeString);
             }, $parts));
         }
@@ -162,7 +171,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
         return json_encode($value);
     }
 
-    private static function getSingletonType($typeName, $allowsNull)
+    private static function getSingletonType(string $typeName, bool $allowsNull): ReflectionTypeInterface
     {
         if (!isset(self::$SINGLETONS[$typeName][$allowsNull])) {
             if ('array' === $typeName) {
@@ -191,7 +200,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
         }
         $filter = self::createFilter($this);
 
-        return $filter ? $filter->isValid($value) : true;
+        return null !== $filter ? $filter->isValid($value) : true;
     }
 
     /**
@@ -208,7 +217,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
         }
         $filter = self::createFilter($this);
 
-        return $filter ? $filter->sanitize($value) : $value;
+        return null !== $filter ? $filter->sanitize($value) : $value;
     }
 
     /**

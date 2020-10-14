@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 use kuiper\reflection\exception\InvalidTokenException;
@@ -207,8 +209,8 @@ class TokenStream
             $this->next();
             $imports = $this->matchImportList('}', false);
             $prefix = $name;
-            foreach ($imports as $alias => $name) {
-                $imports[$alias] = $prefix.$name;
+            foreach ($imports as $alias => $fqcn) {
+                $imports[$alias] = $prefix.$fqcn;
             }
         } else {
             $this->skipWhitespaceAndCommentMaybe();
@@ -255,7 +257,7 @@ class TokenStream
         }
     }
 
-    private function getSimpleName($name)
+    private function getSimpleName(string $name): string
     {
         $parts = explode(ReflectionNamespaceInterface::NAMESPACE_SEPARATOR, $name);
 

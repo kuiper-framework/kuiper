@@ -6,6 +6,8 @@ namespace kuiper\swoole\event;
 
 use kuiper\swoole\server\ServerInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Swoole\Http\Request;
+use Swoole\Http\Response;
 use Swoole\WebSocket\Frame;
 
 class ServerEventFactory
@@ -141,6 +143,9 @@ class ServerEventFactory
         return $event;
     }
 
+    /**
+     * @param mixed $data
+     */
     public function createTaskEvent(int $taskId, int $fromWorkerId, $data): TaskEvent
     {
         $event = new TaskEvent();
@@ -169,6 +174,9 @@ class ServerEventFactory
         return $event;
     }
 
+    /**
+     * @param Request $request
+     */
     public function createOpenEvent($request): OpenEvent
     {
         $event = new OpenEvent();
@@ -177,6 +185,10 @@ class ServerEventFactory
         return $event;
     }
 
+    /**
+     * @param Request  $request
+     * @param Response $response
+     */
     public function createHandShakeEvent($request, $response): HandShakeEvent
     {
         $event = new HandShakeEvent();

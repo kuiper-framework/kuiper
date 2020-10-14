@@ -45,7 +45,7 @@ class DiactorosSwooleRequestBridge implements SwooleRequestBridgeInterface
      */
     private function cookieString(array $cookie): string
     {
-        return implode('; ', array_map(static function ($key, $value) {
+        return implode('; ', array_map(static function ($key, $value): string {
             return $key.'='.$value;
         }, array_keys($cookie), array_values($cookie)));
     }

@@ -19,6 +19,9 @@ class CsrfToken implements CsrfTokenInterface
      */
     private $options;
 
+    /**
+     * @var array
+     */
     private static $DEFAULT_OPTIONS = [
         'tokenParamKey' => '_token',
         'tokenValueSessionId' => 'csrf:val',
@@ -34,7 +37,7 @@ class CsrfToken implements CsrfTokenInterface
     /**
      * {@inheritdoc}
      */
-    public function getTokenKey()
+    public function getTokenKey(): string
     {
         return $this->options['tokenParamKey'];
     }
@@ -42,10 +45,10 @@ class CsrfToken implements CsrfTokenInterface
     /**
      * {@inheritdoc}
      */
-    public function getToken()
+    public function getToken(): string
     {
         $token = $this->getSessionTokenValue();
-        if (!$token) {
+        if (null === $token) {
             $token = $this->regenerateToken();
         }
 
@@ -55,17 +58,19 @@ class CsrfToken implements CsrfTokenInterface
     /**
      * @return string
      */
-    public function getSessionTokenValue()
+    public function getSessionTokenValue(): ?string
     {
-        return $this->session->get($this->options['tokenValueSessionId']);
+        $value = $this->session->get($this->options['tokenValueSessionId']);
+
+        return is_string($value) ? $value : null;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function checkToken($tokenValue, $destroyIfValid = true)
+    public function checkToken(?string $tokenValue, bool $destroyIfValid = true): bool
     {
-        $valid = $this->getSessionTokenValue() == $tokenValue;
+        $valid = null !== $tokenValue && $this->getSessionTokenValue() === $tokenValue;
         if ($valid && $destroyIfValid) {
             $this->session->remove($this->options['tokenValueSessionId']);
         }
@@ -76,17 +81,17 @@ class CsrfToken implements CsrfTokenInterface
     /**
      * {@inheritdoc}
      */
-    public function check(ServerRequestInterface $request, $destroyIfValid = true)
+    public function check(ServerRequestInterface $request, $destroyIfValid = true): bool
     {
         $post = $request->getParsedBody();
         $tokenValue = isset($post[$this->getTokenKey()])
             ? $post[$this->getTokenKey()]
             : $request->getHeaderLine('x-csrf-token');
 
-        return $tokenValue && $this->checkToken($tokenValue, $destroyIfValid);
+        return null !== $tokenValue && $this->checkToken($tokenValue, $destroyIfValid);
     }
 
-    protected function generateRandomString($bytes)
+    protected function generateRandomString(int $bytes): string
     {
         if (!function_exists('openssl_random_pseudo_bytes')) {
             throw new \RuntimeException('openssl extension must be loaded');
@@ -99,7 +104,7 @@ class CsrfToken implements CsrfTokenInterface
     /**
      * Regenerate the CSRF token value.
      */
-    public function regenerateToken()
+    public function regenerateToken(): string
     {
         $token = $this->generateRandomString($this->options['tokenValueLength']);
         $this->session->set($this->options['tokenValueSessionId'], $token);

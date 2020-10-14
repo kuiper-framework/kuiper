@@ -42,7 +42,7 @@ class PhpSession implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function set($index, $value)
+    public function set($index, $value): void
     {
         $this->checkStart();
         $_SESSION[$index] = $value;

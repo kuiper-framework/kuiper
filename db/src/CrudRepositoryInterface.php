@@ -142,6 +142,8 @@ interface CrudRepositoryInterface
 
     /**
      * Delete first entity matches criteria.
+     *
+     * @param Criteria|callable $criteria
      */
     public function deleteFirstBy($criteria): void;
 
@@ -152,6 +154,11 @@ interface CrudRepositoryInterface
 
     public function deleteAll(array $entities): void;
 
+    /**
+     * Delete all matched.
+     *
+     * @param Criteria|callable $criteria
+     */
     public function deleteAllBy($criteria): void;
 
     public function getQueryBuilder(): QueryBuilderInterface;

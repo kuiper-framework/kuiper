@@ -16,7 +16,7 @@ class ServerConfig
     private $serverName;
 
     /**
-     * @var array
+     * @var Properties
      */
     private $settings;
 

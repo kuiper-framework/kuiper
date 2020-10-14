@@ -17,11 +17,11 @@ class SessionFlash implements FlashInterface
     private $sessionKey;
 
     /**
-     * @var array
+     * @var array|null
      */
     private $messages;
 
-    public function __construct(SessionInterface $session, $key = '_flashMessages')
+    public function __construct(SessionInterface $session, string $key = '_flashMessages')
     {
         $this->session = $session;
         $this->sessionKey = $key;
@@ -88,7 +88,7 @@ class SessionFlash implements FlashInterface
     public function getMessages(): array
     {
         if (null === $this->messages) {
-            $this->messages = $this->session->get($this->sessionKey) ?: [];
+            $this->messages = $this->session->get($this->sessionKey) ?? [];
             $this->session->remove($this->sessionKey);
         }
 
