@@ -17,24 +17,24 @@ class ReflectionFile implements ReflectionFileInterface
     private $file;
 
     /**
-     * @var string[]
+     * @var string[]|null
      */
-    private $namespaces = [];
+    private $namespaces;
 
     /**
-     * @var string[]
+     * @var string[]|null
      */
-    private $classes = [];
+    private $classes;
 
     /**
-     * @var string[]
+     * @var string[]|null
      */
-    private $traits = [];
+    private $traits;
 
     /**
-     * @var array
+     * @var array|null
      */
-    private $imports = [];
+    private $imports;
 
     /**
      * @var string
