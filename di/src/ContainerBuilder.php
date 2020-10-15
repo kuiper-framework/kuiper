@@ -7,8 +7,10 @@ namespace kuiper\di;
 use Composer\Autoload\ClassLoader;
 use DI\Container;
 use DI\Definition\Definition;
+use DI\Definition\ExtendsPreviousDefinition;
 use DI\Definition\FactoryDefinition;
 use DI\Definition\Helper\DefinitionHelper;
+use DI\Definition\Helper\FactoryDefinitionHelper;
 use DI\Definition\Source\AnnotationBasedAutowiring;
 use DI\Definition\Source\Autowiring;
 use DI\Definition\Source\DefinitionArray;
@@ -83,6 +85,11 @@ class ContainerBuilder implements ContainerBuilderInterface
      * @var string|null
      */
     private $proxyDirectory;
+
+    /**
+     * @var array
+     */
+    private $definitions;
 
     /**
      * @var DefinitionSource[]|string[]|array[]
@@ -376,9 +383,13 @@ class ContainerBuilder implements ContainerBuilderInterface
                         } else {
                             $def = $def->getDefinition();
                         }
+                    } elseif ($def instanceof FactoryDefinitionHelper) {
+                        $def = $def->getDefinition($key);
                     }
                     if ($def instanceof ConditionalDefinition) {
                         $this->conditionalDefinitions[$def->getName()][] = $def;
+                    } elseif (!($def instanceof ExtendsPreviousDefinition)) {
+                        $this->definitions[$key] = $def;
                     } else {
                         $simpleDefinition[$key] = $def;
                     }
@@ -568,6 +579,9 @@ class ContainerBuilder implements ContainerBuilderInterface
     private function createDefinitionSource(): MutableDefinitionSource
     {
         $sources = array_reverse($this->definitionSources);
+        if (!empty($this->definitions)) {
+            $sources[] = $this->definitions;
+        }
 
         $autowiring = $this->getAutowiring();
         if (!empty($this->conditionalDefinitions)) {

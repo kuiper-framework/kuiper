@@ -14,6 +14,11 @@ class Channel implements ChannelInterface
     private $channel;
 
     /**
+     * @var \SplQueue
+     */
+    private $queue;
+
+    /**
      * @var float
      */
     private $timeout;
@@ -24,6 +29,7 @@ class Channel implements ChannelInterface
     public function __construct(int $size, float $timeout = 0)
     {
         $this->channel = new SwooleChannel($size);
+        $this->queue = new \SplQueue();
         $this->timeout = $timeout;
     }
 
@@ -32,7 +38,13 @@ class Channel implements ChannelInterface
      */
     public function push($data, float $timeout = null): bool
     {
-        return $this->channel->push($data, $timeout ?? $this->timeout);
+        if (Coroutine::isEnabled()) {
+            return $this->channel->push($data, $timeout ?? $this->timeout);
+        } else {
+            $this->queue->push($data);
+
+            return true;
+        }
     }
 
     /**
@@ -40,11 +52,23 @@ class Channel implements ChannelInterface
      */
     public function pop(float $timeout = null)
     {
-        return $this->channel->pop($timeout ?? $this->timeout);
+        if (Coroutine::isEnabled()) {
+            return $this->channel->pop($timeout ?? $this->timeout);
+        } else {
+            if (0 === $this->queue->count()) {
+                return false;
+            }
+
+            return $this->queue->shift();
+        }
     }
 
     public function size(): int
     {
-        return $this->channel->length();
+        if (Coroutine::isEnabled()) {
+            return $this->channel->length();
+        } else {
+            return $this->queue->count();
+        }
     }
 }
