@@ -14,7 +14,7 @@ final class Coroutine
     /**
      * @var int
      */
-    private static $HOOK_FLAGS = SWOOLE_HOOK_ALL | SWOOLE_HOOK_CURL;
+    private static $HOOK_FLAGS = SWOOLE_HOOK_ALL;
 
     /**
      * @var \ArrayObject|null
