@@ -102,7 +102,7 @@ interface StatementInterface
     /**
      * Executes query statement.
      */
-    public function query(): \PDOStatement;
+    public function query(): StatementInterface;
 
     /**
      * Gets affected rows.
@@ -118,4 +118,10 @@ interface StatementInterface
      * Gets the db connection.
      */
     public function getConnection(): ?ConnectionInterface;
+
+    public function fetch(int $fetchStyle = null);
+
+    public function fetchColumn(int $columnNumber = 0);
+
+    public function fetchAll(int $fetchStyle = null);
 }

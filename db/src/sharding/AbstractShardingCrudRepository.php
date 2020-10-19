@@ -12,7 +12,6 @@ use kuiper\db\exception\MetaModelException;
 use kuiper\db\metadata\MetaModelFactoryInterface;
 use kuiper\db\StatementInterface;
 use kuiper\helper\Arrays;
-use PDOStatement;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
@@ -146,7 +145,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         parent::doExecute($stmt);
     }
 
-    protected function doQuery(StatementInterface $stmt): PDOStatement
+    protected function doQuery(StatementInterface $stmt): StatementInterface
     {
         $this->checkShardFields($stmt);
 

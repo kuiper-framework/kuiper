@@ -38,7 +38,7 @@ class Statement implements StatementInterface
     protected $connection;
 
     /**
-     * @var \PDOStatement
+     * @var \PDOStatement|null
      */
     protected $pdoStatement;
 
@@ -287,11 +287,11 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function query(): \PDOStatement
+    public function query(): StatementInterface
     {
         $this->doQuery();
 
-        return $this->pdoStatement;
+        return $this;
     }
 
     public function __call($method, $args)
@@ -311,6 +311,13 @@ class Statement implements StatementInterface
         return (string) $this->query->getStatement();
     }
 
+    public function getPdoStatement(): \PDOStatement
+    {
+        $this->checkPdoStatement();
+
+        return $this->pdoStatement;
+    }
+
     public function getBindValues(): array
     {
         return $this->query->getBindValues();
@@ -321,7 +328,30 @@ class Statement implements StatementInterface
      */
     public function rowCount(): int
     {
-        return $this->pdoStatement ? $this->pdoStatement->rowCount() : 0;
+        $this->checkPdoStatement();
+
+        return $this->pdoStatement->rowCount();
+    }
+
+    public function fetch(int $fetchStyle = null)
+    {
+        $this->checkPdoStatement();
+
+        return $this->pdoStatement->fetch($fetchStyle);
+    }
+
+    public function fetchColumn(int $columnNumber = 0)
+    {
+        $this->checkPdoStatement();
+
+        return $this->pdoStatement->fetchColumn($columnNumber);
+    }
+
+    public function fetchAll(int $fetchStyle = null)
+    {
+        $this->checkPdoStatement();
+
+        return $this->pdoStatement->fetchAll($fetchStyle);
     }
 
     protected function doQuery(): bool
@@ -387,5 +417,11 @@ class Statement implements StatementInterface
         }
 
         return $this;
+    }
+
+    protected function checkPdoStatement(): void
+    {
+        if (null === $this->pdoStatement) {
+        }
     }
 }

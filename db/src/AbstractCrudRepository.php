@@ -501,7 +501,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         }
     }
 
-    protected function doQuery(StatementInterface $stmt): \PDOStatement
+    protected function doQuery(StatementInterface $stmt): StatementInterface
     {
         $this->lastStatement = $stmt;
 
