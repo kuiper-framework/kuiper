@@ -37,13 +37,13 @@ final class Text
      */
     public static function snakeCase(string $str, string $delimiter = null): string
     {
-        preg_match_all('/([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)/', $str, $matches);
-        $ret = $matches[0];
-        foreach ($ret as &$match) {
-            $match = $match === strtoupper($match) ? strtolower($match) : lcfirst($match);
+        if (!ctype_lower($str)) {
+            $str = preg_replace('/\s+/u', '', ucwords($str));
+
+            $str = strtolower(preg_replace('/(.)(?=[A-Z])/u', '$1'.($delimiter ?? '_'), $str));
         }
 
-        return implode($delimiter ?? '_', $ret);
+        return $str;
     }
 
     /**

@@ -31,11 +31,19 @@ class TextTest extends TestCase
         $this->assertEquals($expect, Text::snakeCase($str, $delimiter));
     }
 
+    public function notestUncamelizeSingle()
+    {
+        echo Text::snakeCase('orders_1y');
+    }
+
     public function uncamelizeCase()
     {
         return [
             ['CocoBongo', null, 'coco_bongo'],
             ['CocoBongo', '-', 'coco-bongo'],
+            ['orders1y', null, 'orders1y'],
+            ['coco_bongo', null, 'coco_bongo'],
+            ['orders_1y', null, 'orders_1y'],
         ];
     }
 

@@ -23,9 +23,8 @@ class NamingStrategy implements NamingStrategyInterface
      */
     public function toTableName(NamingContext $context): string
     {
-        $tableName = $context->getAnnotationValue() ?? $context->getEntityClassShortName();
-
-        return $this->tablePrefix.Text::snakeCase($tableName);
+        return $this->tablePrefix.
+            ($context->getAnnotationValue() ?? Text::snakeCase($context->getEntityClassShortName()));
     }
 
     /**
@@ -33,6 +32,6 @@ class NamingStrategy implements NamingStrategyInterface
      */
     public function toColumnName(NamingContext $context): string
     {
-        return Text::snakeCase($context->getAnnotationValue() ?? $context->getPropertyName());
+        return $context->getAnnotationValue() ?? Text::snakeCase($context->getPropertyName());
     }
 }
