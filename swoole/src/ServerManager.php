@@ -44,6 +44,9 @@ class ServerManager implements LoggerAwareInterface
         if (0 !== $ret) {
             throw new ServerStateException('Server was failed to stop');
         }
+        if (file_exists($this->serverConfig->getMasterPidFile())) {
+            @unlink($this->serverConfig->getMasterPidFile());
+        }
     }
 
     public function getMasterPid(): int
