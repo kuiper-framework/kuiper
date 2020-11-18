@@ -232,15 +232,11 @@ class SwooleServer extends AbstractServer
 
                 return;
             }
+            $server = clone $this;
             if ($args[0] instanceof Server) {
-                $this->setWorker(array_shift($args));
+                $server->setWorker(array_shift($args));
             }
-
-            try {
-                $this->dispatch($eventName, $args);
-            } finally {
-                $this->setWorker(null);
-            }
+            $server->dispatch($eventName, $args);
         };
     }
 
