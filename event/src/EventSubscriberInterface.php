@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\event;
 
-interface EventListenerInterface
+interface EventSubscriberInterface
 {
     /**
      * @param object $event
@@ -13,6 +13,8 @@ interface EventListenerInterface
 
     /**
      * Returns the event name this event listener wants to listen to.
+     *
+     * @return string[]
      */
-    public function getSubscribedEvent(): string;
+    public function getSubscribedEvents(): array;
 }
