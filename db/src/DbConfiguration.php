@@ -50,7 +50,6 @@ class DbConfiguration implements DefinitionConfiguration
             ReflectionFileFactoryInterface::class => factory([ReflectionFileFactory::class, 'getInstance']),
             QueryBuilderInterface::class => autowire(QueryBuilder::class),
             MetaModelFactoryInterface::class => autowire(MetaModelFactory::class),
-            TransactionManagerInterface::class => autowire(TransactionManager::class),
         ];
     }
 

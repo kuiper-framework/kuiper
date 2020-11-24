@@ -189,7 +189,9 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             foreach ($update as $column => $value) {
                 $property = $this->metaModel->getProperty($column);
                 if ($property) {
-                    $cols = array_merge($cols, $property->getColumnValues($value));
+                    foreach ($property->getColumnValues($value) as $name => $columnValue) {
+                        $cols[$name] = $columnValue;
+                    }
                 } else {
                     $cols[$column] = $value;
                 }

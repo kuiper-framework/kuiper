@@ -301,8 +301,12 @@ class Statement implements StatementInterface
         return $this;
     }
 
-    public function getConnection(): ?ConnectionInterface
+    public function getConnection(): ConnectionInterface
     {
+        if (null === $this->connection) {
+            $this->connection = $this->pool->take();
+        }
+
         return $this->connection;
     }
 
@@ -356,7 +360,6 @@ class Statement implements StatementInterface
 
     protected function doQuery(): bool
     {
-        $this->connection = $this->pool->take();
         try {
             $result = $this->doQueryOnce();
         } catch (\PDOException $e) {
@@ -375,7 +378,7 @@ class Statement implements StatementInterface
 
     protected function doQueryOnce(): bool
     {
-        $this->pdoStatement = $this->connection->prepare($this->query->getStatement());
+        $this->pdoStatement = $this->getConnection()->prepare($this->query->getStatement());
 
         return @$this->pdoStatement->execute($this->query->getBindValues());
     }
@@ -422,6 +425,7 @@ class Statement implements StatementInterface
     protected function checkPdoStatement(): void
     {
         if (null === $this->pdoStatement) {
+            throw new \BadMethodCallException('statement is not available');
         }
     }
 }

@@ -36,6 +36,11 @@ class QueryBuilder implements QueryBuilderInterface
         }
     }
 
+    public function getConnectionPool(): ConnectionPoolInterface
+    {
+        return $this->pool;
+    }
+
     public function getQueryFactory(): QueryFactory
     {
         return $this->queryFactory;

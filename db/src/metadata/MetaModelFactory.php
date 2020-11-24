@@ -46,6 +46,11 @@ class MetaModelFactory implements MetaModelFactoryInterface
      */
     private $reflectionFileFactory;
 
+    /**
+     * @var MetaModelInterface[]
+     */
+    private $cache;
+
     public function __construct(AttributeConverterRegistry $attributeConverterRegistry,
                                 ?NamingStrategyInterface $namingStrategy,
                                 ?AnnotationReaderInterface $annotationReader,
@@ -75,8 +80,12 @@ class MetaModelFactory implements MetaModelFactoryInterface
 
     private function createInterval(\ReflectionClass $entityClass): MetaModelInterface
     {
-        return new MetaModel($this->getTableName($entityClass), $entityClass,
-            $this->getProperties($entityClass, null));
+        if (isset($this->cache[$entityClass->getName()])) {
+            return $this->cache[$entityClass->getName()];
+        }
+
+        return $this->cache[$entityClass->getName()] = new MetaModel(
+            $this->getTableName($entityClass), $entityClass, $this->getProperties($entityClass, null));
     }
 
     private function getEntityClass(\ReflectionClass $reflectionClass): \ReflectionClass

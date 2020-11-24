@@ -37,6 +37,15 @@ class Cluster implements ClusterInterface, EventDispatcherAwareInterface
         $this->setEventDispatcher($eventDispatcher);
     }
 
+    public function getConnectionPool(int $connectionId): ConnectionPoolInterface
+    {
+        if (!isset($this->poolList[$connectionId])) {
+            throw new \InvalidArgumentException("unknown connection $connectionId");
+        }
+
+        return $this->poolList[$connectionId];
+    }
+
     public function getQueryFactory(): QueryFactory
     {
         return $this->queryFactory;

@@ -117,7 +117,6 @@ class SocketWorker extends AbstractWorker
 
     public function send(int $clientId, string $data): void
     {
-        // TODO 写异常使用 ERROR 事件
         if (!isset($this->sockets[$clientId]) || $clientId === (int) $this->resource) {
             return;
         }

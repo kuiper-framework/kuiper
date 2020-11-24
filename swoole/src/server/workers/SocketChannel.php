@@ -72,7 +72,6 @@ class SocketChannel
         while (true) {
             $sent = fwrite($this->socket, $buffer);
             if (empty($sent)) {
-                // @todo handle error?
                 //$error = socket_strerror(socket_last_error());
                 break;
             }
