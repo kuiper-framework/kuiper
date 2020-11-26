@@ -124,6 +124,26 @@ WHERE
             ->fromRaw('('.$stmt->getStatement().') as t')
             ->select('author', 'sum(count) as count')
             ->groupBy(['author']);
-        $this->assertEquals('', $stmt->getStatement());
+        $this->assertEquals('SELECT
+    author,
+    sum(count) AS `count`
+FROM
+    (SELECT
+    author,
+    count(1) AS `count`
+FROM
+    `article1`
+GROUP BY
+    author
+UNION ALL
+SELECT
+    author,
+    count(1) AS `count`
+FROM
+    `article2`
+GROUP BY
+    author) as t
+GROUP BY
+    author', $stmt->getStatement());
     }
 }

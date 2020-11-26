@@ -101,10 +101,21 @@ class MetaModel implements MetaModelInterface
     }
 
     /**
+     * @param object $entity
+     */
+    protected function checkEntityMatch($entity): void
+    {
+        if (!$this->getEntityClass()->isInstance($entity)) {
+            throw new \InvalidArgumentException("Expected {$this->getEntityClass()->getName()}, got ".get_class($entity));
+        }
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function freeze($entity, bool $ignoreNull = true): array
     {
+        $this->checkEntityMatch($entity);
         $columnValues = [];
         foreach ($this->columns as $name => $column) {
             $value = $column->getValue($entity);
@@ -138,6 +149,8 @@ class MetaModel implements MetaModelInterface
      */
     public function getValue($entity, string $columnName)
     {
+        $this->checkEntityMatch($entity);
+
         return $this->columns[$columnName]->getValue($entity);
     }
 
@@ -146,6 +159,7 @@ class MetaModel implements MetaModelInterface
      */
     public function setValue($entity, string $columnName, $value): void
     {
+        $this->checkEntityMatch($entity);
         $this->columns[$columnName]->setValue($entity, $value);
     }
 
@@ -194,6 +208,8 @@ class MetaModel implements MetaModelInterface
      */
     public function getIdValues($entity): ?array
     {
+        $this->checkEntityMatch($entity);
+
         return $this->getUniqueKeyValues($entity, Id::class);
     }
 
@@ -202,7 +218,23 @@ class MetaModel implements MetaModelInterface
      */
     public function getNaturalIdValues($entity): ?array
     {
+        $this->checkEntityMatch($entity);
+
         return $this->getUniqueKeyValues($entity, NaturalId::class);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getUniqueKey($entity, string $joiner = "\0x1"): string
+    {
+        $this->checkEntityMatch($entity);
+        $values = $this->getUniqueKeyValues($entity, NaturalId::class);
+        if (null === $values) {
+            throw new \InvalidArgumentException($this->getEntityClass()->getName().' does not has natural id');
+        }
+
+        return implode($joiner, $values);
     }
 
     /**
@@ -233,6 +265,8 @@ class MetaModel implements MetaModelInterface
      */
     public function getId($entity)
     {
+        $this->checkEntityMatch($entity);
+
         return $this->idProperty->getValue($entity);
     }
 

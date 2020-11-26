@@ -131,7 +131,6 @@ class MetaModelProperty
      */
     public function getValue($entity)
     {
-        $this->checkEntityMatch($entity);
         if (null !== $this->parent) {
             $value = $this->parent->getValue($entity);
             if (!isset($value)) {
@@ -149,7 +148,6 @@ class MetaModelProperty
      */
     public function setValue($entity, $value): void
     {
-        $this->checkEntityMatch($entity);
         $model = $entity;
         foreach ($this->ancestors as $path) {
             $propertyValue = $path->property->getValue($model);
@@ -240,15 +238,5 @@ class MetaModelProperty
         }
 
         return $ancestors;
-    }
-
-    /**
-     * @param object $entity
-     */
-    protected function checkEntityMatch($entity): void
-    {
-        if (!$this->getEntityClass()->isInstance($entity)) {
-            throw new \InvalidArgumentException("Expected {$this->getEntityClass()->getName()}, got ".get_class($entity));
-        }
     }
 }

@@ -64,6 +64,13 @@ interface MetaModelInterface extends EntityMapperInterface
     public function getNaturalIdValues($entity): ?array;
 
     /**
+     * Gets the unique key by join natural id values.
+     *
+     * @param object $entity
+     */
+    public function getUniqueKey($entity, string $joiner = "\x01"): string;
+
+    /**
      * Gets the property value annotated with {@see Id}.
      *
      * @param object $entity

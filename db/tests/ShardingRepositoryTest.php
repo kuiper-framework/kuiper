@@ -135,7 +135,7 @@ class ShardingRepositoryTest extends AbstractRepositoryTestCase
     {
         /** @var EmployeeRepository $repository */
         $repository = $this->createRepository(EmployeeRepository::class);
-        $repository->query(function ($stmt) use ($repository) {
+        $ret = $repository->query(function ($stmt) use ($repository) {
             $stmt->shardBy(['sharding' => 1]);
             $stmt->unionAll();
             $stmt->shardBy(['sharding' => 2]);
@@ -148,9 +148,10 @@ class ShardingRepositoryTest extends AbstractRepositoryTestCase
             );
             $stmt2->select('*');
 
-            echo $stmt2->getStatement(), "\n";
+            // echo $stmt2->getStatement(), "\n";
 
             return $stmt2;
         });
+        $this->assertTrue(null !== $ret);
     }
 }
