@@ -4,6 +4,16 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+/**
+ * Interface StatementInterface.
+ *
+ * @method leftJoin(string $table, string $cond): StatementInterface
+ * @method bindValues(array $bindValues): StatementInterface
+ * @method getStatement(): string
+ * @method getBindValues(): array
+ * @method union(): StatementInterface
+ * @method unionAll(): StatementInterface
+ */
 interface StatementInterface
 {
     /**
