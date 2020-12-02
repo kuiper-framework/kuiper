@@ -16,7 +16,7 @@ interface StatementInterface extends \kuiper\db\StatementInterface
     /**
      * Gets the original name of the table.
      */
-    public function getTable(): string;
+    public function getBaseTable(): string;
 
     /**
      * Gets the sharding strategy.

@@ -24,3 +24,12 @@ test_employee:
     sharding: 'integer notnull'
   indexes:
     PRIMARY: 'PRIMARY KEY(id)'
+
+test_item:
+  columns:
+    id: 'bigint unsigned notnull autoincrement'
+    sharding: 'integer notnull'
+    item_no: 'string notnull'
+  indexes:
+    PRIMARY: 'PRIMARY KEY(id)'
+    uk_item: 'UNIQUE KEY(item_no)'

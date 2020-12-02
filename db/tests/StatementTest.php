@@ -146,4 +146,21 @@ GROUP BY
 GROUP BY
     author', $stmt->getStatement());
     }
+
+    public function testUseIndex(): void
+    {
+        $stmt = $this->connection->from('article')
+            ->select('author')
+            ->where(['category' => 'fiction'])
+            ->in('author', ['john'])
+            ->resetTables()
+            ->fromRaw('article use index(uk_author)');
+        $this->assertEquals('SELECT
+    author
+FROM
+    article use index(uk_author)
+WHERE
+    (category=:_1_)
+    AND author IN (:_2_)', $stmt->getStatement());
+    }
 }

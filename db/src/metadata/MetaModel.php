@@ -55,6 +55,11 @@ class MetaModel implements MetaModelInterface
      */
     private $columnAlias;
 
+    /**
+     * @var string|null
+     */
+    private $naturalIdIndex;
+
     public function __construct(string $table, \ReflectionClass $entityClass, array $properties)
     {
         $this->table = $table;
@@ -64,6 +69,13 @@ class MetaModel implements MetaModelInterface
             $this->properties[$property->getName()] = $property;
             if ($property->hasAnnotation(Id::class)) {
                 $this->idProperty = $property;
+            }
+            if ($property->hasAnnotation(NaturalId::class)) {
+                /** @var NaturalId $naturalIdAnnotation */
+                $naturalIdAnnotation = $property->getAnnotation(NaturalId::class);
+                if (!empty($naturalIdAnnotation->value)) {
+                    $this->naturalIdIndex = $naturalIdAnnotation->value;
+                }
             }
             foreach ($property->getColumns() as $column) {
                 $this->columns[$column->getName()] = $column;
@@ -179,6 +191,14 @@ class MetaModel implements MetaModelInterface
     {
         return isset($this->annotatedColumns[UpdateTimestamp::class])
             ? $this->annotatedColumns[UpdateTimestamp::class]->getName() : null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getNaturalIdIndex(): ?string
+    {
+        return $this->naturalIdIndex;
     }
 
     /**

@@ -114,8 +114,12 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
                 }
                 $shardFields = $this->getShardFields($partEntities[0]);
                 // 不能直接使用 Criteria 对象，因为  criteria 对象会被 filterCriteria 进行值转换
-                $result[] = $this->findAllBy(static function ($stmt) use ($values, $shardFields): StatementInterface {
+                $result[] = $this->findAllBy(function ($stmt) use ($values, $shardFields): StatementInterface {
                     $stmt->shardBy($shardFields);
+                    $naturalIdIndex = $this->metaModel->getNaturalIdIndex();
+                    if (null !== $naturalIdIndex) {
+                        $stmt->useIndex($naturalIdIndex);
+                    }
 
                     return Criteria::create()
                         ->matches($values, array_keys($values[0]))

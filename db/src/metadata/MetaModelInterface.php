@@ -50,6 +50,11 @@ interface MetaModelInterface extends EntityMapperInterface
     public function getAutoIncrement(): ?string;
 
     /**
+     * Gets the unique key index name.
+     */
+    public function getNaturalIdIndex(): ?string;
+
+    /**
      * Gets the database column values that annotated with {@see Id} or {@see NaturalId}.
      *
      * @param object $entity

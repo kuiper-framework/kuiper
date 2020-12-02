@@ -12,6 +12,14 @@ use Aura\SqlQuery\QueryInterface;
 use kuiper\db\event\StatementQueriedEvent;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
+/**
+ * Interface StatementInterface.
+ *
+ * @method leftJoin(string $table, string $cond): StatementInterface
+ * @method bindValues(array $bindValues): StatementInterface
+ * @method union(): StatementInterface
+ * @method unionAll(): StatementInterface
+ */
 class Statement implements StatementInterface
 {
     private const OPERATOR_OR = 'OR';
@@ -41,6 +49,11 @@ class Statement implements StatementInterface
      * @var \PDOStatement|null
      */
     protected $pdoStatement;
+
+    /**
+     * @var string|null
+     */
+    protected $table;
 
     /**
      * @var string|null
@@ -77,6 +90,7 @@ class Statement implements StatementInterface
 
     public function table(string $table): StatementInterface
     {
+        $this->table = $table;
         if ($this->query instanceof SelectInterface || $this->query instanceof DeleteInterface) {
             $this->query->from($table.($this->tableAlias ? ' as '.$this->tableAlias : ''));
         } elseif ($this->query instanceof UpdateInterface) {
@@ -86,6 +100,23 @@ class Statement implements StatementInterface
         } else {
             throw new \InvalidArgumentException('unknown query type '.get_class($this->query));
         }
+
+        return $this;
+    }
+
+    protected function getTableName(): string
+    {
+        return $this->table;
+    }
+
+    public function useIndex(string $indexName): StatementInterface
+    {
+        if (!$this->query instanceof SelectInterface) {
+            throw new \InvalidArgumentException('Cannot not call use index for '.get_class($this->query));
+        }
+        $this->query->resetTables();
+        $this->query->fromRaw($this->getTableName().($this->tableAlias ? ' as '.$this->tableAlias : '')
+            ." use index ({$indexName})");
 
         return $this;
     }

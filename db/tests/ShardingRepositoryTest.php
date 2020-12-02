@@ -11,6 +11,8 @@ use kuiper\db\event\ShardTableNotExistEvent;
 use kuiper\db\event\StatementQueriedEvent;
 use kuiper\db\fixtures\Employee;
 use kuiper\db\fixtures\EmployeeRepository;
+use kuiper\db\fixtures\Item;
+use kuiper\db\fixtures\ShardItemRepository;
 use kuiper\db\metadata\MetaModelFactory;
 use kuiper\db\metadata\NamingStrategy;
 use kuiper\db\sharding\AbstractShardingCrudRepository;
@@ -85,6 +87,7 @@ class ShardingRepositoryTest extends AbstractRepositoryTestCase
         $cluster = new Cluster([new SingleConnectionPool($this->createConnection($eventDispatcher))], new QueryFactory('mysql'), $eventDispatcher);
         $tablePrefix = 'test_';
         $cluster->setTableStrategy($tablePrefix.'employee', self::strategy(new IdentityRule(0), new EqualToRule('sharding')));
+        $cluster->setTableStrategy($tablePrefix.'item', self::strategy(new IdentityRule(0), new EqualToRule('sharding')));
 
         return new $repositoryClass(
             $cluster,
@@ -153,5 +156,20 @@ class ShardingRepositoryTest extends AbstractRepositoryTestCase
             return $stmt2;
         });
         $this->assertTrue(null !== $ret);
+    }
+
+    public function testFindAllByNaturalId()
+    {
+        $repository = $this->createRepository(ShardItemRepository::class);
+        $factory = function (string $itemNo) {
+            $item = new Item();
+            $item->setSharding(1);
+            $item->setItemNo($itemNo);
+
+            return $item;
+        };
+        $examples[] = $factory('01');
+        $examples[] = $factory('02');
+        $repository->findAllByNaturalId($examples);
     }
 }

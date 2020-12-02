@@ -11,6 +11,8 @@ use kuiper\db\fixtures\DepartmentRepository;
 use kuiper\db\fixtures\Door;
 use kuiper\db\fixtures\DoorId;
 use kuiper\db\fixtures\DoorRepository;
+use kuiper\db\fixtures\Item;
+use kuiper\db\fixtures\ItemRepository;
 use kuiper\db\metadata\MetaModelFactory;
 use kuiper\db\metadata\NamingStrategy;
 use function kuiper\helper\env;
@@ -120,6 +122,20 @@ class RepositoryTest extends AbstractRepositoryTestCase
         $door = $repository->findById(new DoorId('a01'));
         $this->assertNotNull($door);
         // var_export($door);
+    }
+
+    public function testFindAllByNaturalId()
+    {
+        $repository = $this->createRepository(ItemRepository::class);
+        $factory = function (string $itemNo) {
+            $item = new Item();
+            $item->setItemNo($itemNo);
+
+            return $item;
+        };
+        $examples[] = $factory('01');
+        $examples[] = $factory('02');
+        $repository->findAllByNaturalId($examples);
     }
 
     public static function department(string $name, ?string $departNo = null): Department

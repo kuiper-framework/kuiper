@@ -12,11 +12,6 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 class Statement extends \kuiper\db\Statement implements StatementInterface
 {
     /**
-     * @var string
-     */
-    private $table;
-
-    /**
      * @var StrategyInterface
      */
     private $strategy;
@@ -31,17 +26,22 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
      */
     private $cluster;
 
+    /**
+     * @var string
+     */
+    private $baseTable;
+
     public function __construct(ClusterConnectionPool $cluster, QueryInterface $query, string $table, StrategyInterface $strategy, EventDispatcherInterface $eventDispatcher)
     {
         parent::__construct($cluster, $query, $eventDispatcher);
         $this->cluster = $cluster;
-        $this->table = $table;
+        $this->baseTable = $table;
         $this->strategy = $strategy;
     }
 
-    public function getTable(): string
+    public function getBaseTable(): string
     {
-        return $this->table;
+        return $this->baseTable;
     }
 
     public function getTableStrategy(): StrategyInterface
@@ -60,6 +60,9 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
 
     protected function setTable(): void
     {
+        if (empty($this->shardBy)) {
+            throw new \InvalidArgumentException('Sharding fields are empty');
+        }
         $connectionId = $this->strategy->getDb($this->shardBy);
         if ($this->cluster->hasConnection() && $connectionId !== $this->cluster->getConnectionId()) {
             throw new \InvalidArgumentException('connection not consist with previous');
@@ -107,14 +110,15 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
 
     protected function getTableName(): string
     {
-        return $this->strategy->getTable($this->shardBy, $this->table);
+        if (empty($this->shardBy)) {
+            throw new \InvalidArgumentException('Sharding fields are empty');
+        }
+
+        return $this->strategy->getTable($this->shardBy, $this->baseTable);
     }
 
     protected function doQuery(): bool
     {
-        if (empty($this->shardBy)) {
-            throw new \InvalidArgumentException('Sharding fields are empty');
-        }
         if (!$this->cluster->hasConnection()) {
             $this->setTable();
         }

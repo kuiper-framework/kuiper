@@ -268,7 +268,12 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             }
         }
         // 不能直接使用 Criteria 对象，因为  criteria 对象会被 filterCriteria 进行值转换
-        return $this->findAllBy(static function ($stmt) use ($values): StatementInterface {
+        return $this->findAllBy(function ($stmt) use ($values): StatementInterface {
+            $naturalIdIndex = $this->metaModel->getNaturalIdIndex();
+            if (null !== $naturalIdIndex) {
+                $stmt->useIndex($naturalIdIndex);
+            }
+
             return Criteria::create()
                 ->matches($values, array_keys($values[0]))
                 ->buildStatement($stmt);
