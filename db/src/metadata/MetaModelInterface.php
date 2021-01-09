@@ -73,7 +73,7 @@ interface MetaModelInterface extends EntityMapperInterface
      *
      * @param object $entity
      */
-    public function getUniqueKey($entity, string $joiner = "\x01"): string;
+    public function getUniqueKey($entity, string $joiner = "\x01", bool $ignoreCase = true): string;
 
     /**
      * Gets the property value annotated with {@see Id}.

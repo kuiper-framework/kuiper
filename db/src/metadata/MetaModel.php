@@ -246,7 +246,7 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function getUniqueKey($entity, string $joiner = "\0x1"): string
+    public function getUniqueKey($entity, string $joiner = "\0x1", bool $ignoreCase = true): string
     {
         $this->checkEntityMatch($entity);
         $values = $this->getUniqueKeyValues($entity, NaturalId::class);
@@ -254,7 +254,9 @@ class MetaModel implements MetaModelInterface
             throw new \InvalidArgumentException($this->getEntityClass()->getName().' does not has natural id');
         }
 
-        return implode($joiner, $values);
+        $key = implode($joiner, $values);
+
+        return $ignoreCase ? strtolower($key) : $key;
     }
 
     /**
