@@ -162,7 +162,8 @@ class DbConfiguration implements DefinitionConfiguration
 
     protected function buildDsn(array $config): string
     {
-        return sprintf('mysql:dbname=%s;host=%s;port=%d;charset=%s',
+        return sprintf('%s:dbname=%s;host=%s;port=%d;charset=%s',
+            $config['driver'] ?? 'mysql',
             $config['name'] ?? 'test',
             $config['host'] ?? 'localhost',
             $config['port'] ?? 3306,
