@@ -40,7 +40,7 @@ class DocReader implements DocReaderInterface
     public function getPropertyType(\ReflectionProperty $property): ReflectionTypeInterface
     {
         return $this->getCached($property, function () use ($property) {
-            return $this->parseTypeFromDocBlock($property->getDocComment(), $property->getDeclaringClass(), 'var');
+            return $this->parseTypeFromDocBlock($property->getDocComment(), $this->getPropertyDeclaringClass($property), 'var');
         }, 'property:');
     }
 
@@ -271,5 +271,16 @@ class DocReader implements DocReaderInterface
             return;
         }
         throw new ClassNotFoundException("Class '{$className}' does not exist");
+    }
+
+    protected function getPropertyDeclaringClass(\ReflectionProperty $property): \ReflectionClass
+    {
+        foreach ($property->getDeclaringClass()->getTraits() as $trait) {
+            if ($trait->hasProperty($property->getName())) {
+                return $trait;
+            }
+        }
+
+        return $property->getDeclaringClass();
     }
 }
