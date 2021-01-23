@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\middleware;
 
+use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -22,6 +23,11 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
     /**
      * @var string
      */
+    private $dateFormat;
+
+    /**
+     * @var string|callable
+     */
     private $format;
 
     /**
@@ -35,17 +41,28 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
      * @var int
      */
     private $bodyMaxSize;
+    /**
+     * @var callable|null
+     */
+    private $requestFilter;
 
     /**
      * AccessLog constructor.
      *
      * @param string[] $extra
      */
-    public function __construct(string $format = self::MAIN, array $extra = ['query', 'body'], int $bodyMaxSize = 4096)
+    public function __construct(
+        $format = self::MAIN,
+        array $extra = ['query', 'body'],
+        int $bodyMaxSize = 4096,
+        string $dateFormat = '%d/%b/%Y:%H:%M:%S %z',
+        ?callable $requestFilter = null)
     {
         $this->format = $format;
         $this->extra = $extra;
         $this->bodyMaxSize = $bodyMaxSize;
+        $this->requestFilter = $requestFilter;
+        $this->dateFormat = $dateFormat;
     }
 
     public function getJwtPayload(?string $tokenHeader): ?array
@@ -72,31 +89,47 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
 
             return $response;
         } finally {
-            $this->writeLog($request, $response, (microtime(true) - $start) * 1000);
+            if (null === $this->requestFilter || call_user_func($this->requestFilter, $request, $response)) {
+                $responseTime = (microtime(true) - $start) * 1000;
+                $this->format($this->prepareMessageContext($request, $response, $responseTime));
+            }
         }
     }
 
-    private function writeLog(ServerRequestInterface $request, ?ResponseInterface $response, float $responseTime): void
+    protected function format(array $messageContext): void
     {
-        $time = sprintf('%.2f', $responseTime);
+        if (is_string($this->format)) {
+            $this->logger->info(strtr($this->format, Arrays::mapKeys($messageContext, function ($key) {
+                return '$'.$key;
+            })), $messageContext['extra'] ?? []);
+        } elseif (is_callable($this->format)) {
+            $this->logger->info(call_user_func($this->format, $messageContext));
+        }
+    }
+
+    protected function prepareMessageContext(ServerRequestInterface $request, ?ResponseInterface $response, float $responseTime): array
+    {
+        $time = round($responseTime, 2);
 
         $ipList = RemoteAddress::getAll($request);
         $statusCode = isset($response) ? $response->getStatusCode() : 500;
         $responseBodySize = isset($response) ? $response->getBody()->getSize() : 0;
-        $message = strtr($this->format, [
-            '$remote_addr' => $ipList[0] ?? '-',
-            '$remote_user' => $request->getUri()->getUserInfo() ?? '-',
-            '$time_local' => strftime('%d/%b/%Y:%H:%M:%S %z'),
-            '$request' => strtoupper($request->getMethod())
+        $messageContext = [
+            'remote_addr' => $ipList[0] ?? '-',
+            'remote_user' => $request->getUri()->getUserInfo() ?? '-',
+            'time_local' => strftime($this->dateFormat),
+            'request_method' => $request->getMethod(),
+            'request_uri' => (string) $request->getUri(),
+            'request' => strtoupper($request->getMethod())
                 .' '.$request->getUri()->getPath()
                 .' '.strtoupper($request->getUri()->getScheme()).'/'.$request->getProtocolVersion(),
-            '$status' => $statusCode,
-            '$body_bytes_sent' => $responseBodySize,
-            '$http_referer' => $request->getHeaderLine('Referer'),
-            '$http_user_agent' => $request->getHeaderLine('User-Agent'),
-            '$http_x_forwarded_for' => implode(',', $ipList),
-            '$request_time' => $time,
-        ]);
+            'status' => $statusCode,
+            'body_bytes_sent' => $responseBodySize,
+            'http_referer' => $request->getHeaderLine('Referer'),
+            'http_user_agent' => $request->getHeaderLine('User-Agent'),
+            'http_x_forwarded_for' => implode(',', $ipList),
+            'request_time' => $time,
+        ];
         $extra = [];
         foreach ($this->extra as $name) {
             if ('query' === $name) {
@@ -117,10 +150,8 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
             }
         }
         $extra = array_filter($extra);
-        if ($statusCode >= 400 && $statusCode < 600) {
-            $this->logger->error($message, $extra);
-        } else {
-            $this->logger->info($message, $extra);
-        }
+        $messageContext['extra'] = $extra;
+
+        return $messageContext;
     }
 }
