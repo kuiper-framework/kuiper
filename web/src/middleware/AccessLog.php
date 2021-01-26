@@ -21,11 +21,6 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
     .'"$http_user_agent" "$http_x_forwarded_for" rt=$request_time';
 
     /**
-     * @var string
-     */
-    private $dateFormat;
-
-    /**
      * @var string|callable
      */
     private $format;
@@ -47,6 +42,11 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
     private $requestFilter;
 
     /**
+     * @var callable
+     */
+    private $dateFormatter;
+
+    /**
      * AccessLog constructor.
      *
      * @param string[] $extra
@@ -55,14 +55,26 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
         $format = self::MAIN,
         array $extra = ['query', 'body'],
         int $bodyMaxSize = 4096,
-        string $dateFormat = '%d/%b/%Y:%H:%M:%S %z',
+        $dateFormat = '%d/%b/%Y:%H:%M:%S %z',
         ?callable $requestFilter = null)
     {
         $this->format = $format;
         $this->extra = $extra;
         $this->bodyMaxSize = $bodyMaxSize;
         $this->requestFilter = $requestFilter;
-        $this->dateFormat = $dateFormat;
+        if (is_string($dateFormat)) {
+            if (substr_count($dateFormat, '%') >= 2) {
+                $this->dateFormatter = static function () use ($dateFormat) {
+                    return strftime($dateFormat);
+                };
+            } else {
+                $this->dateFormatter = static function () use ($dateFormat) {
+                    return date($dateFormat);
+                };
+            }
+        } elseif (is_callable($dateFormat)) {
+            $this->dateFormatter = $dateFormat;
+        }
     }
 
     public function getJwtPayload(?string $tokenHeader): ?array
@@ -117,7 +129,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
         $messageContext = [
             'remote_addr' => $ipList[0] ?? '-',
             'remote_user' => $request->getUri()->getUserInfo() ?? '-',
-            'time_local' => strftime($this->dateFormat),
+            'time_local' => call_user_func($this->dateFormatter),
             'request_method' => $request->getMethod(),
             'request_uri' => (string) $request->getUri(),
             'request' => strtoupper($request->getMethod())
