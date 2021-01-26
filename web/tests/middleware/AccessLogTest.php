@@ -71,7 +71,7 @@ class AccessLogTest extends TestCase
     {
         Carbon::setTestNow('2020-01-01 00:01:00.30323');
         $accessLog = new AccessLog(
-            AccessLog::MAIN, [],
+            AccessLog::MAIN, ['pid'],
             0,
             function () { return Carbon::now()->format('Y-m-d H:i:s.v'); }
         );

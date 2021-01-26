@@ -6,6 +6,7 @@ namespace kuiper\web\middleware;
 
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
+use kuiper\swoole\monolog\CoroutineIdProcessor;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -47,6 +48,11 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
     private $dateFormatter;
 
     /**
+     * @var CoroutineIdProcessor
+     */
+    private $pidProcessor;
+
+    /**
      * AccessLog constructor.
      *
      * @param string[] $extra
@@ -62,6 +68,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
         $this->extra = $extra;
         $this->bodyMaxSize = $bodyMaxSize;
         $this->requestFilter = $requestFilter;
+        $this->pidProcessor = new CoroutineIdProcessor();
         if (is_string($dateFormat)) {
             if (substr_count($dateFormat, '%') >= 2) {
                 $this->dateFormatter = static function () use ($dateFormat) {
@@ -159,6 +166,8 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
             } elseif (0 === strpos($name, 'header.')) {
                 $header = substr($name, 7);
                 $extra[$header] = $request->getHeaderLine($header);
+            } elseif ('pid' === $name) {
+                $extra = call_user_func($this->pidProcessor, $extra);
             }
         }
         $extra = array_filter($extra);
