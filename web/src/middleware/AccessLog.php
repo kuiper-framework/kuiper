@@ -69,7 +69,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
                 };
             } else {
                 $this->dateFormatter = static function () use ($dateFormat) {
-                    return date($dateFormat);
+                    return date_create()->format($dateFormat);
                 };
             }
         } elseif (is_callable($dateFormat)) {
