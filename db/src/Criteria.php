@@ -38,12 +38,12 @@ class Criteria
     private $clause;
 
     /**
-     * @var int
+     * @var int|null
      */
     private $limit;
 
     /**
-     * @var int
+     * @var int|null
      */
     private $offset;
 
@@ -355,7 +355,7 @@ class Criteria
         if ($this->columns) {
             $stmt->select(...$this->getColumns());
         }
-        if ($this->limit) {
+        if (isset($this->limit)) {
             $stmt->limit($this->getLimit())
                 ->offset($this->getOffset());
         }
