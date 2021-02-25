@@ -262,7 +262,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         }
         $this->dispatch(new SqlExecutedEvent($this, $statement));
 
-        return $affectedRows;
+        return (int) $affectedRows;
     }
 
     /**
