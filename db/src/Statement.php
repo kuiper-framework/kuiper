@@ -123,7 +123,9 @@ class Statement implements StatementInterface
 
     public function tableAlias(string $alias): StatementInterface
     {
+        $this->query->resetTables();
         $this->tableAlias = $alias;
+        $this->table($this->getTableName());
 
         return $this;
     }

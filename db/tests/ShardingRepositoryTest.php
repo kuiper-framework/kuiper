@@ -161,7 +161,7 @@ class ShardingRepositoryTest extends AbstractRepositoryTestCase
     public function testFindAllByNaturalId()
     {
         $repository = $this->createRepository(ShardItemRepository::class);
-        $factory = function (string $itemNo) {
+        $factory = static function (string $itemNo) {
             $item = new Item();
             $item->setSharding(1);
             $item->setItemNo($itemNo);
@@ -170,6 +170,8 @@ class ShardingRepositoryTest extends AbstractRepositoryTestCase
         };
         $examples[] = $factory('01');
         $examples[] = $factory('02');
-        $repository->findAllByNaturalId($examples);
+        $ret = $repository->findAllByNaturalId($examples);
+        // var_export($ret);
+        $this->assertEmpty($ret);
     }
 }

@@ -68,7 +68,17 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
             throw new \InvalidArgumentException('connection not consist with previous');
         }
         $this->cluster->setConnectionId($connectionId);
+        if (method_exists($this->query, 'resetTables')) {
+            $this->query->resetTables();
+        }
         $this->table($this->getTableName());
+    }
+
+    public function tableAlias(string $alias): \kuiper\db\StatementInterface
+    {
+        $this->tableAlias = $alias;
+
+        return $this;
     }
 
     public function getShardBy(): array
