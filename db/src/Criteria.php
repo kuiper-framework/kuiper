@@ -14,6 +14,7 @@ use kuiper\db\criteria\OrClause;
 use kuiper\db\criteria\RawClause;
 use kuiper\db\criteria\Sort;
 use kuiper\helper\Arrays;
+use Webmozart\Assert\Assert;
 
 class Criteria
 {
@@ -85,7 +86,15 @@ class Criteria
 
     public function limit(int $limit, int $offset = 0): self
     {
+        Assert::greaterThan($limit, 0, "limit should greater then 0, got $limit");
         $this->limit = $limit;
+        $this->offset = $offset;
+
+        return $this;
+    }
+
+    public function offset(int $offset): self
+    {
         $this->offset = $offset;
 
         return $this;

@@ -11,8 +11,9 @@ use Psr\Container\ContainerInterface;
 class ConditionalDefinition implements Definition, Conditional
 {
     use DelegateDefinitionTrait;
+
     /**
-     * @var callable
+     * @var Conditional
      */
     private $condition;
 
