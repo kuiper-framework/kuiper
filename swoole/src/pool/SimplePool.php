@@ -69,7 +69,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
 
     public function take()
     {
-        $coroutineId = Coroutine::getCoroutineId();
+        $coroutineId = $this->getCoroutineId();
         if (isset($this->connections[$coroutineId])) {
             return $this->connections[$coroutineId][1];
         }
@@ -98,7 +98,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
 
     public function reset(): void
     {
-        $coroutineId = Coroutine::getCoroutineId();
+        $coroutineId = $this->getCoroutineId();
         if (isset($this->connections[$coroutineId])) {
             unset($this->connections[$coroutineId]);
             --$this->currentConnections;
@@ -139,5 +139,10 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         $this->logger->info(self::TAG.sprintf('create connection %s#%d', $this->poolName, $connectionId));
 
         return [$connectionId, call_user_func($this->connectionFactory, $connectionId)];
+    }
+
+    private function getCoroutineId(): int
+    {
+        return Coroutine::isEnabled() ? Coroutine::getCoroutineId() : (int) getmypid();
     }
 }
