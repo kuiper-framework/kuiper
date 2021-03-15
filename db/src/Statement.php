@@ -395,18 +395,27 @@ class Statement implements StatementInterface
     {
         try {
             $result = $this->doQueryOnce();
+            $this->eventDispatcher->dispatch(new StatementQueriedEvent($this));
+
+            return $result;
         } catch (\PDOException $e) {
             if (Connection::isRetryableError($e)) {
                 $this->connection->disconnect();
                 $this->connection->connect();
-                $result = $this->doQueryOnce();
+                try {
+                    $result = $this->doQueryOnce();
+                    $this->eventDispatcher->dispatch(new StatementQueriedEvent($this));
+
+                    return $result;
+                } catch (\PDOException $e) {
+                    $this->eventDispatcher->dispatch(new StatementQueriedEvent($this, $e));
+                    throw $e;
+                }
             } else {
+                $this->eventDispatcher->dispatch(new StatementQueriedEvent($this, $e));
                 throw $e;
             }
         }
-        $this->eventDispatcher->dispatch(new StatementQueriedEvent($this));
-
-        return $result;
     }
 
     protected function doQueryOnce(): bool

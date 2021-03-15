@@ -31,9 +31,14 @@ class LogStatementQuery implements EventListenerInterface, LoggerAwareInterface
         Assert::isInstanceOf($event, StatementQueriedEvent::class);
         /** @var StatementQueriedEvent $event */
         /** @var Statement $stmt */
+        $e = $event->getException();
         $stmt = $event->getStatement();
         $time = 1000 * (microtime(true) - $stmt->getConnection()->getLastQueryStart());
-        $level = ($time > 1000) ? 'warning' : 'debug';
+        if (null === $e) {
+            $level = ($time > 1000) ? 'warning' : 'debug';
+        } else {
+            $level = 'error';
+        }
         $sql = preg_replace('/\s+/', ' ', $stmt->getStatement());
         if (strlen($sql) > 500) {
             $sql = substr($sql, 0, 500).sprintf('...(with %d chars)', strlen($sql));
