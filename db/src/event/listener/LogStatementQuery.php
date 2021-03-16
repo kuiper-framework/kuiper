@@ -33,7 +33,7 @@ class LogStatementQuery implements EventListenerInterface, LoggerAwareInterface
         /** @var Statement $stmt */
         $e = $event->getException();
         $stmt = $event->getStatement();
-        $time = 1000 * (microtime(true) - $stmt->getConnection()->getLastQueryStart());
+        $time = 1000 * (microtime(true) - $stmt->getStartTime());
         if (null === $e) {
             $level = ($time > 1000) ? 'warning' : 'debug';
         } else {

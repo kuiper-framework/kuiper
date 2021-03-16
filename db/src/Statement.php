@@ -60,11 +60,17 @@ class Statement implements StatementInterface
      */
     protected $tableAlias;
 
+    /**
+     * @var float
+     */
+    private $startTime;
+
     public function __construct(ConnectionPoolInterface $pool, QueryInterface $query, EventDispatcherInterface $eventDispatcher)
     {
         $this->pool = $pool;
         $this->query = $query;
         $this->eventDispatcher = $eventDispatcher;
+        $this->startTime = microtime(true);
     }
 
     public function __destruct()
@@ -75,6 +81,11 @@ class Statement implements StatementInterface
     public function __toString()
     {
         return $this->getStatement();
+    }
+
+    public function getStartTime(): float
+    {
+        return $this->startTime;
     }
 
     public function close(): void

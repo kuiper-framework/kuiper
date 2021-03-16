@@ -45,14 +45,14 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     /**
      * The username for a lazy connection.
      *
-     * @var string
+     * @var string|null
      */
     protected $username;
 
     /**
      * The password for a lazy connection.
      *
-     * @var string
+     * @var string|null
      */
     protected $password;
 
@@ -91,12 +91,12 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     protected $inTransaction = false;
 
     /**
-     * @var float
+     * @var float|null
      */
     protected $lastQueryStart;
 
     /**
-     * @var int
+     * @var int|null
      */
     private $uniqueId;
 
@@ -147,6 +147,19 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         $this->connectedAt = time();
         $this->inTransaction = false;
         $this->dispatch(new ConnectedEvent($this));
+    }
+
+    /**
+     * @return string
+     */
+    public function getDsn()
+    {
+        return $this->dsn;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
     }
 
     public function __toString(): string
@@ -391,14 +404,14 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         return $this->timeout;
     }
 
-    public function getLastQueryStart(): float
+    public function getLastQueryStart(): ?float
     {
         return $this->lastQueryStart;
     }
 
     public function getLastQueryElapsed(): float
     {
-        return $this->lastQueryStart ? microtime(true) - $this->lastQueryStart : 0;
+        return null !== $this->lastQueryStart ? microtime(true) - $this->lastQueryStart : 0;
     }
 
     protected function isTimeout(): bool
