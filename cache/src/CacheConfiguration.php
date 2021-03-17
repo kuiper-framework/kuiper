@@ -52,8 +52,8 @@ class CacheConfiguration
         return new ArrayAdapter(
             $defaultLifetime,
             $config['serialize'] ?? true,
-            $config['max-lifetime'] ?? 2 * $defaultLifetime,
-            $config['max-items'] ?? 0
+            (int) ($config['max-lifetime'] ?? 2 * $defaultLifetime),
+            (int) ($config['max-items'] ?? 0)
         );
     }
 
@@ -64,7 +64,7 @@ class CacheConfiguration
     public function cacheItemPool(LoggerFactoryInterface $loggerFactory, PoolInterface $redisPool, ?array $cacheConfig): CacheItemPoolInterface
     {
         $namespace = $cacheConfig['namespace'] ?? '';
-        $defaultLifeTime = $cacheConfig['lifetime'] ?? 0;
+        $defaultLifeTime = (int) ($cacheConfig['lifetime'] ?? 0);
 
         $redisAdapter = new RedisPoolAdapter($redisPool, $namespace, $defaultLifeTime);
         $redisAdapter->setLogger($loggerFactory->create(RedisPoolAdapter::class));
