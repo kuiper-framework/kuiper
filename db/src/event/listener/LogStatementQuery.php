@@ -36,14 +36,16 @@ class LogStatementQuery implements EventListenerInterface, LoggerAwareInterface
         $time = 1000 * (microtime(true) - $stmt->getStartTime());
         if (null === $e) {
             $level = ($time > 1000) ? 'warning' : 'debug';
+            $message = 'query';
         } else {
             $level = 'error';
+            $message = 'fail query because '.$e->getMessage();
         }
         $sql = preg_replace('/\s+/', ' ', $stmt->getStatement());
         if (strlen($sql) > 500) {
             $sql = substr($sql, 0, 500).sprintf('...(with %d chars)', strlen($sql));
         }
-        $this->logger->$level(sprintf(self::TAG.'query %s in %.2fms', $sql, $time), [
+        $this->logger->$level(self::TAG.$message.sprintf(' %s in %.2fms', $sql, $time), [
             'params' => count($stmt->getBindValues()) > 10
                 ? array_slice($stmt->getBindValues(), 0, 10)
                 : $stmt->getBindValues(),
