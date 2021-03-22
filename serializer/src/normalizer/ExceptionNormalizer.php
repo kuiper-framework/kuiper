@@ -45,13 +45,13 @@ class ExceptionNormalizer implements NormalizerInterface
             if ($class->isSubClassOf(\Exception::class) && null !== $constructor) {
                 $params = $constructor->getParameters();
                 if (count($params) > 2) {
-                    $requiredParams = 0;
+                    $requiredParams = [];
                     foreach ($params as $param) {
                         if (!$param->isOptional()) {
-                            ++$requiredParams;
+                            $requiredParams[] = $param->getName();
                         }
                     }
-                    if ($requiredParams <= 2) {
+                    if (2 === count($requiredParams) && $requiredParams == ['message', 'code']) {
                         return new $className($exception['message'], $exception['code']);
                     }
                 }
