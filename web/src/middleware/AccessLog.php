@@ -154,9 +154,17 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
             if ('query' === $name) {
                 $extra['query'] = http_build_query($request->getQueryParams());
             } elseif ('body' === $name) {
-                $extra['body'] = isset($this->bodyMaxSize) && $request->getBody()->getSize() > $this->bodyMaxSize
-                    ? 'body-too-big'
-                    : (string) $request->getBody();
+                $bodySize = $request->getBody()->getSize();
+                if (isset($this->bodyMaxSize) && $bodySize > $this->bodyMaxSize) {
+                    $extra['body'] = 'body with '.$bodySize.' bytes';
+                } else {
+                    $body = (string) $request->getBody();
+                    if (mb_check_encoding($body, 'utf-8')) {
+                        $extra['body'] = $body;
+                    } else {
+                        $extra['body'] = 'binary data with '.$bodySize.'bytes';
+                    }
+                }
             } elseif ('headers' === $name) {
                 $extra['headers'] = $request->getHeaders();
             } elseif ('cookies' === $name) {

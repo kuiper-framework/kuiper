@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\web\middleware;
 
 use Carbon\Carbon;
+use GuzzleHttp\Psr7\BufferStream;
 use kuiper\helper\Arrays;
 use Laminas\Diactoros\ResponseFactory;
 use Laminas\Diactoros\ServerRequestFactory;
@@ -65,6 +66,26 @@ class AccessLogTest extends TestCase
         $accessLog->process($this->createRequest(), $this->createHandler());
         // var_export($this->logger->records);
         $this->assertCount(0, $this->logger->records);
+    }
+
+    public function testBinaryBody()
+    {
+        Carbon::setTestNow('2020-01-01 00:01:00.30323');
+        $accessLog = new AccessLog(
+            AccessLog::MAIN, ['pid', 'body'],
+            0,
+            function () { return Carbon::now()->format('Y-m-d H:i:s.v'); }
+        );
+        $accessLog->setLogger($this->logger);
+        $request = $this->createRequest();
+        $body = new BufferStream();
+        $body->write("\x01\x02");
+
+        $accessLog->process($request->withBody($body), $this->createHandler());
+        //var_export($this->logger->records);
+        $this->assertEquals('body with 2 bytes', $this->logger->records[0]['context']['body']);
+        $this->assertCount(1, $this->logger->records);
+        Carbon::setTestNow();
     }
 
     public function testDateFormatter()
