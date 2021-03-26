@@ -35,6 +35,10 @@ class CacheConfiguration
             isset($redisConfig['password']) ? $redisConfig['password'].'@' : '',
             $redisConfig['host'] ?? 'localhost',
             $redisConfig['port'] ?? 6379);
+        $database = (int) ($redisConfig['database'] ?? 0);
+        if (0 !== $database) {
+            $dsn .= '/'.$database;
+        }
 
         return $poolFactory->create('redis', static function () use ($dsn, $redisConfig) {
             return RedisAdapter::createConnection($dsn, $redisConfig);

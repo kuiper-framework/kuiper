@@ -273,7 +273,7 @@ class SwooleServer extends AbstractServer
         } catch (\Exception $e) {
             $this->logger->error(static::TAG.'handle http request failed: '.$e->getMessage()."\n"
                 .$e->getTraceAsString());
-            $psrResponse = $event && $event->getResponse()
+            $psrResponse = isset($event) && $event->getResponse()
                 ? $event->getResponse()
                 : $this->getResponseFactory()
                     ->createResponse(500);
