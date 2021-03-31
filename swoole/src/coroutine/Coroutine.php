@@ -12,9 +12,11 @@ final class Coroutine
     private const NOT_COROUTINE_ID = 0;
 
     /**
+     * 不开启 SWOOLE_HOOK_CURL.
+     *
      * @var int
      */
-    private static $HOOK_FLAGS = SWOOLE_HOOK_ALL ^ SWOOLE_HOOK_CURL;
+    private static $HOOK_FLAGS = SWOOLE_HOOK_TCP | SWOOLE_HOOK_UDP | SWOOLE_HOOK_UNIX | SWOOLE_HOOK_UDG | SWOOLE_HOOK_SSL | SWOOLE_HOOK_TLS | SWOOLE_HOOK_SLEEP | SWOOLE_HOOK_FILE | SWOOLE_HOOK_STREAM_SELECT | SWOOLE_HOOK_BLOCKING_FUNCTION;
 
     /**
      * @var \ArrayObject|null

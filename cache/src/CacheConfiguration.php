@@ -57,7 +57,7 @@ class CacheConfiguration
             $defaultLifetime,
             $config['serialize'] ?? true,
             (int) ($config['max-lifetime'] ?? 2 * $defaultLifetime),
-            (int) ($config['max-items'] ?? 0)
+            (int) ($config['max-items'] ?? 618)
         );
     }
 
