@@ -143,6 +143,11 @@ class SelectTcpServer extends AbstractServer
         return $this->workerManager->tick($millisecond, $callback);
     }
 
+    public function after(int $millisecond, callable $callback): int
+    {
+        return $this->workerManager->after($millisecond, $callback);
+    }
+
     protected function close(int $clientId): void
     {
         $this->workerManager->closeConnection($clientId);

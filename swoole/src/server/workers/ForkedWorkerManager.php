@@ -324,6 +324,15 @@ class ForkedWorkerManager extends AbstractWorkerManager
         return $this->worker->tick($millisecond, $callback);
     }
 
+    public function after(int $millisecond, callable $callback): int
+    {
+        if (!$this->worker) {
+            throw new \InvalidArgumentException('Cannot call tick on master process');
+        }
+
+        return $this->worker->after($millisecond, $callback);
+    }
+
     private function sendTick(): void
     {
         foreach ($this->workers as $worker) {

@@ -71,6 +71,8 @@ interface ServerInterface
 
     public function tick(int $millisecond, callable $callback): int;
 
+    public function after(int $millisecond, callable $callback): int;
+
     /**
      * @return ConnectionInfo
      */

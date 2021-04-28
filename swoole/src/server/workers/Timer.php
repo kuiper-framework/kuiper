@@ -27,14 +27,25 @@ class Timer
     private $callback;
 
     /**
+     * @var bool
+     */
+    private $once;
+
+    /**
      * Timer constructor.
      */
-    public function __construct(int $timerId, int $interval, callable $callback)
+    public function __construct(int $timerId, int $interval, bool $once, callable $callback)
     {
         $this->timerId = $timerId;
         $this->interval = $interval;
+        $this->once = $once;
         $this->triggerTime = time() + $interval;
         $this->callback = $callback;
+    }
+
+    public function isOnce(): bool
+    {
+        return $this->once;
     }
 
     public function trigger(): void

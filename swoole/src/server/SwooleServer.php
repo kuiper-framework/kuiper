@@ -172,6 +172,14 @@ class SwooleServer extends AbstractServer
         return $this->resource->tick($millisecond, $callback);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public function after(int $millisecond, callable $callback): int
+    {
+        return $this->resource->after($millisecond, $callback);
+    }
+
     public function getConnectionInfo(int $clientId): ?ConnectionInfo
     {
         $clientInfo = $this->resource->getClientInfo($clientId);

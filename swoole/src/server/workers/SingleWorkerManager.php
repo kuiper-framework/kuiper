@@ -154,7 +154,9 @@ class SingleWorkerManager extends AbstractWorkerManager
             /** @var Timer $timer */
             $timer = $this->timerCallbacks->extract();
             $timer->trigger();
-            $this->timerCallbacks->insert($timer, $timer->getTriggerTime());
+            if (!$timer->isOnce()) {
+                $this->timerCallbacks->insert($timer, $timer->getTriggerTime());
+            }
         }
     }
 
@@ -286,11 +288,21 @@ class SingleWorkerManager extends AbstractWorkerManager
 
     public function tick(int $millisecond, callable $callback): int
     {
+        return $this->addTimer($millisecond, $callback, false);
+    }
+
+    public function after(int $millisecond, callable $callback): int
+    {
+        return $this->addTimer($millisecond, $callback, true);
+    }
+
+    private function addTimer(int $millisecond, callable $callback, bool $once): int
+    {
         $second = (int) ($millisecond / 1000);
         if ($second <= 0) {
             $second = 1;
         }
-        $timer = new Timer($this->timerId++, $second, $callback);
+        $timer = new Timer($this->timerId++, $second, true, $callback);
         $this->timerCallbacks->insert($timer, $timer->getTriggerTime());
 
         return $timer->getTimerId();
