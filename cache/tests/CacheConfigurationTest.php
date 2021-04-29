@@ -4,20 +4,90 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
+use Dotenv\Dotenv;
+use function kuiper\helper\env;
 use kuiper\swoole\pool\PoolFactory;
 use PHPUnit\Framework\TestCase;
+use Psr\Cache\CacheItemPoolInterface;
 
 class CacheConfigurationTest extends TestCase
 {
-    public function testRedisPool()
+    protected function setUp(): void
+    {
+        Dotenv::createImmutable(__DIR__)->safeLoad();
+    }
+
+    private function createRedisPool()
     {
         $config = new CacheConfiguration();
         $poolFactory = new PoolFactory();
-        $redis = $config->redisPool($poolFactory, [
-            'host' => '127.0.0.1',
+
+        return $config->redisPool($poolFactory, [
+            'host' => env('REDIS_HOST'),
             'database' => 2,
-        ])->take();
+        ]);
+    }
+
+    public function testRedisPool()
+    {
+        $redis = $this->createRedisPool()->take();
         $ret = $redis->set('foo', 'bar');
         $this->assertTrue($ret);
+    }
+
+    public function testCachePool()
+    {
+        $cache = $this->createCache();
+        $key = 'foo';
+        $data = 'bar';
+
+        $cache->deleteItem($key);
+        $fetch = $this->createFetch($cache);
+        $this->assertEquals($data, $fetch($key, $data));
+        $this->assertEquals($data, $fetch($key));
+        $cache->deleteItem($key);
+        $this->assertEquals(null, $fetch($key));
+    }
+
+    public function testCacheGroup()
+    {
+        $cache = $this->createCache();
+        $parentKey = 'Group.foo';
+        $childKey = 'Group.foo/bar';
+
+        $cache->deleteItem($parentKey);
+        $fetch = $this->createFetch($cache);
+        $this->assertEquals('foo', $fetch($parentKey, 'foo'));
+        $this->assertEquals('bar', $fetch($childKey, 'bar'));
+
+        $this->assertEquals('foo', $fetch($parentKey));
+        $this->assertEquals('bar', $fetch($childKey));
+
+        $cache->deleteItem($parentKey);
+        $this->assertEquals(null, $fetch($parentKey));
+        $this->assertEquals(null, $fetch($childKey));
+    }
+
+    private function createFetch($cache): \Closure
+    {
+        return static function ($key, $data = null) use ($cache) {
+            $item = $cache->getItem($key);
+            if (isset($data) && !$item->isHit()) {
+                $item->set($data);
+                $cache->save($item);
+            }
+
+            return $item->get();
+        };
+    }
+
+    private function createCache(): CacheItemPoolInterface
+    {
+        $config = new CacheConfiguration();
+
+        return $config->stashCacheItemPool($this->createRedisPool(), [
+            'namespace' => 'test.',
+            'lifetime' => 1000,
+        ]);
     }
 }
