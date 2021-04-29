@@ -2,15 +2,6 @@
 
 declare(strict_types=1);
 
-/*
- * This file is part of the Stash package.
- *
- * (c) Robert Hafner <tedivm@tedivm.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace kuiper\cache;
 
 use kuiper\helper\Text;
@@ -75,7 +66,12 @@ class RedisDriver extends AbstractDriver
      */
     public function getData($key)
     {
-        return unserialize($this->getRedis()->get($this->makeKeyString($key)));
+        $data = $this->getRedis()->get($this->makeKeyString($key));
+        if (false === $data) {
+            return [];
+        }
+
+        return unserialize($data);
     }
 
     /**
