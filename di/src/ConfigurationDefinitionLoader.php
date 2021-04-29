@@ -137,7 +137,7 @@ class ConfigurationDefinitionLoader
     private function processComponentAnnotation(string $name, \ReflectionMethod $method): void
     {
         $returnType = $method->getReturnType();
-        if ($returnType && !$returnType->isBuiltin()) {
+        if ($returnType && !$returnType->isBuiltin() && class_exists($returnType->getName())) {
             $className = $returnType->getName();
             $reflectionClass = new \ReflectionClass($className);
             foreach ($this->annotationReader->getClassAnnotations($reflectionClass) as $annotation) {
