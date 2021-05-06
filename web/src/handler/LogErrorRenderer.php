@@ -12,7 +12,7 @@ class LogErrorRenderer extends PlainTextErrorRenderer
     protected function getErrorTitle(\Throwable $exception): string
     {
         if ($exception instanceof HttpException) {
-            return $exception->getTitle();
+            return $exception->getTitle().', uri='.$exception->getRequest()->getUri();
         }
 
         return sprintf('%s: %s at %s:%d',
