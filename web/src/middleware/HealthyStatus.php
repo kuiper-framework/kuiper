@@ -17,9 +17,9 @@ class HealthyStatus implements MiddlewareInterface
      */
     private $responseFactory;
     /**
-     * @var string
+     * @var string[]
      */
-    private $uriPath;
+    private $pathList;
     /**
      * @var string
      */
@@ -27,10 +27,10 @@ class HealthyStatus implements MiddlewareInterface
 
     public function __construct(
         ResponseFactoryInterface $responseFactory,
-        string $path = '/status.html',
+        $path = '/status.html',
         string $body = 'ok')
     {
-        $this->uriPath = $path;
+        $this->pathList = (array) $path;
         $this->responseFactory = $responseFactory;
         $this->body = $body;
     }
@@ -40,7 +40,7 @@ class HealthyStatus implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if ($request->getUri()->getPath() === $this->uriPath) {
+        if (in_array($request->getUri()->getPath(), $this->pathList, true)) {
             return $this->createHealthyStatusResponse($request);
         }
 
