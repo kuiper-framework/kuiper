@@ -13,9 +13,8 @@ use Psr\Log\NullLogger;
 
 class ServerManager implements LoggerAwareInterface
 {
-    protected const TAG = '['.__CLASS__.'] ';
-
     use LoggerAwareTrait;
+    protected const TAG = '['.__CLASS__.'] ';
 
     /**
      * @var ServerConfig
@@ -37,7 +36,7 @@ class ServerManager implements LoggerAwareInterface
     public function stop(): void
     {
         $masterPid = $this->getMasterPid();
-        if (empty($masterPid)) {
+        if ($masterPid > 0) {
             throw new ServerStateException('Server was not started');
         }
         exec("kill -TERM $masterPid", $output, $ret);
@@ -55,7 +54,9 @@ class ServerManager implements LoggerAwareInterface
             return (int) file_get_contents($this->serverConfig->getMasterPidFile());
         }
 
-        return current($this->getPidListByType(ProcessType::MASTER));
+        $pidList = $this->getPidListByType(ProcessType::MASTER);
+
+        return $pidList[0] ?? 0;
     }
 
     private function getPidListByType(string $processType): array
@@ -65,6 +66,6 @@ class ServerManager implements LoggerAwareInterface
         exec($cmd, $pidList);
         $this->logger->debug(static::TAG."get $processType pid list by '$cmd'", ['pid' => $pidList]);
 
-        return array_map('intval', $pidList);
+        return array_values(array_map('intval', $pidList));
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\security;
 
+use kuiper\swoole\http\ServerRequestHolder;
 use kuiper\web\session\FlashInterface;
 use kuiper\web\session\SessionFlash;
 use kuiper\web\session\SessionInterface;
@@ -54,6 +55,24 @@ class SecurityContext
     public function getSession(): SessionInterface
     {
         return $this->session;
+    }
+
+    public static function getIdentity(?ServerRequestInterface $request = null): ?UserIdentity
+    {
+        if (null === $request) {
+            $request = ServerRequestHolder::getRequest();
+            if (null === $request) {
+                return null;
+            }
+        }
+        $session = $request->getAttribute(static::SESSION);
+        if (null === $session) {
+            return null;
+        }
+        /** @var AuthInterface $auth */
+        $auth = self::createComponent(AuthInterface::class, $session);
+
+        return $auth->isAuthorized() ? $auth->getIdentity() : null;
     }
 
     public static function fromRequest(ServerRequestInterface $request): self

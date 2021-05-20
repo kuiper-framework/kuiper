@@ -102,7 +102,7 @@ interface StatementInterface
     /**
      * @return static
      */
-    public function addRow(array $values): StatementInterface;
+    public function addRow(array $values = []): StatementInterface;
 
     /**
      * Executes statement.

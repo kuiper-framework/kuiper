@@ -86,20 +86,26 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
         return $this->shardBy;
     }
 
-    public function cols(array $fields): \kuiper\db\StatementInterface
+    /**
+     * {@inheritDoc}
+     */
+    public function cols(array $values): \kuiper\db\StatementInterface
     {
-        $this->shardBy = array_merge($this->shardBy, $fields);
+        $this->shardBy = array_merge($this->shardBy, $values);
 
-        return parent::cols($fields);
+        return parent::cols($values);
     }
 
-    public function addRow(array $fields = []): \kuiper\db\StatementInterface
+    /**
+     * {@inheritDoc}
+     */
+    public function addRow(array $values = []): \kuiper\db\StatementInterface
     {
-        if (!empty($fields)) {
-            $this->shardBy = array_merge($this->shardBy, $fields);
+        if (!empty($values)) {
+            $this->shardBy = array_merge($this->shardBy, $values);
         }
 
-        return parent::addRow($fields);
+        return parent::addRow($values);
     }
 
     /**

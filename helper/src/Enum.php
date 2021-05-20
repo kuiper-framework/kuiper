@@ -156,7 +156,7 @@ abstract class Enum implements \JsonSerializable
      *
      * @param mixed $value
      */
-    public static function nameOf($value): string
+    public static function nameOf($value): ?string
     {
         $values = static::getValues();
 

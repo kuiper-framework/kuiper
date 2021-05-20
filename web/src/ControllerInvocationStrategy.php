@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\web;
 
+use kuiper\swoole\http\ServerRequestHolder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Interfaces\RequestHandlerInvocationStrategyInterface;
@@ -15,6 +16,7 @@ class ControllerInvocationStrategy implements RequestHandlerInvocationStrategyIn
      */
     public function __invoke(callable $callable, ServerRequestInterface $request, ResponseInterface $response, array $routeArguments): ResponseInterface
     {
+        ServerRequestHolder::setRequest($request);
         if (is_array($callable) && $callable[0] instanceof ControllerInterface) {
             /** @var ControllerInterface $controller */
             $controller = $callable[0];

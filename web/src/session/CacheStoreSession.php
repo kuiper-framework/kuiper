@@ -91,11 +91,11 @@ class CacheStoreSession implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function get($index, $default = null)
+    public function get($index, $defaultValue = null)
     {
         $this->checkStart();
 
-        return $this->sessionData[$index] ?? $default;
+        return $this->sessionData[$index] ?? $defaultValue;
     }
 
     /**

@@ -263,7 +263,7 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function addRow(array $values): StatementInterface
+    public function addRow(array $values = []): StatementInterface
     {
         $this->query->addRow($values);
 

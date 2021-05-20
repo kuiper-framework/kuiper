@@ -36,7 +36,7 @@ class PhpSession implements SessionInterface
     {
         $this->checkStart();
 
-        return $_SESSION[$index] ?? null;
+        return $_SESSION[$index] ?? $defaultValue;
     }
 
     /**
