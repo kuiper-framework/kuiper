@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace kuiper\web\security;
 
+use GuzzleHttp\Psr7\ServerRequest;
 use kuiper\swoole\http\ServerRequestHolder;
+use kuiper\web\session\EphemeralSession;
 use kuiper\web\session\FlashInterface;
 use kuiper\web\session\SessionFlash;
 use kuiper\web\session\SessionInterface;
@@ -55,6 +57,28 @@ class SecurityContext
     public function getSession(): SessionInterface
     {
         return $this->session;
+    }
+
+    public static function setIdentity(UserIdentity $userIdentity): void
+    {
+        $request = ServerRequestHolder::getRequest();
+        if (null === $request) {
+            if (!class_exists(ServerRequest::class)) {
+                throw new \InvalidArgumentException('guzzlehttp/psr7 is required');
+            }
+            $request = new ServerRequest('GET', '/');
+            ServerRequestHolder::setRequest($request);
+        }
+
+        $session = $request->getAttribute(static::SESSION);
+        if (null === $session) {
+            $session = new EphemeralSession();
+            $request = $request->withAttribute(static::SESSION, $session);
+            ServerRequestHolder::setRequest($request);
+        }
+        /** @var AuthInterface $auth */
+        $auth = self::createComponent(AuthInterface::class, $session);
+        $auth->login($userIdentity);
     }
 
     public static function getIdentity(?ServerRequestInterface $request = null): ?UserIdentity
