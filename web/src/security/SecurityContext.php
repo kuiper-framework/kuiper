@@ -59,15 +59,17 @@ class SecurityContext
         return $this->session;
     }
 
-    public static function setIdentity(UserIdentity $userIdentity): void
+    public static function setIdentity(UserIdentity $userIdentity, ?ServerRequestInterface $request = null): ServerRequestInterface
     {
-        $request = ServerRequestHolder::getRequest();
         if (null === $request) {
-            if (!class_exists(ServerRequest::class)) {
-                throw new \InvalidArgumentException('guzzlehttp/psr7 is required');
+            $request = ServerRequestHolder::getRequest();
+            if (null === $request) {
+                if (!class_exists(ServerRequest::class)) {
+                    throw new \InvalidArgumentException('guzzlehttp/psr7 is required');
+                }
+                $request = new ServerRequest('GET', '/');
+                ServerRequestHolder::setRequest($request);
             }
-            $request = new ServerRequest('GET', '/');
-            ServerRequestHolder::setRequest($request);
         }
 
         $session = $request->getAttribute(static::SESSION);
@@ -79,6 +81,8 @@ class SecurityContext
         /** @var AuthInterface $auth */
         $auth = self::createComponent(AuthInterface::class, $session);
         $auth->login($userIdentity);
+
+        return $request;
     }
 
     public static function getIdentity(?ServerRequestInterface $request = null): ?UserIdentity
