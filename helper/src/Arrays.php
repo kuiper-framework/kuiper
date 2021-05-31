@@ -105,6 +105,21 @@ class Arrays
         return $ret;
     }
 
+    public static function groupByField($arr, $groupBy): array
+    {
+        $ret = [];
+        foreach ($arr as $elem) {
+            $key = $elem->$groupBy;
+            if (null === $key || is_scalar($key)) {
+                $ret[$key][] = $elem;
+            } else {
+                throw new \InvalidArgumentException("Cannot group by key '$groupBy', support only scalar type, got ".(is_object($key) ? get_class($key) : gettype($key)));
+            }
+        }
+
+        return $ret;
+    }
+
     /**
      * Excludes key in given keys.
      */
