@@ -5,30 +5,15 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use Carbon\Carbon;
+use DateTimeInterface;
 
-class CarbonDateTimeFactory implements DateTimeFactoryInterface
+class CarbonDateTimeFactory extends DateTimeFactory
 {
     /**
      * {@inheritdoc}
      */
-    public function currentTimeString(): string
-    {
-        return Carbon::now()->toDateTimeString();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function stringToTime(string $timeString): \DateTime
+    public function stringToTime(string $timeString): ?DateTimeInterface
     {
         return Carbon::parse($timeString);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function timeToString(\DateTime $time): string
-    {
-        return Carbon::instance($time)->toDateTimeString();
     }
 }
