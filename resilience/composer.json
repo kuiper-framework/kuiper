@@ -1,0 +1,29 @@
+{
+    "name": "kuiper/resilence",
+    "type": "library",
+    "description": "Fault tolerance library for PHP ",
+    "keywords": [
+        "framework"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "kuiper/helper": "^0.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\resilience\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\resilience\\": "tests/"
+        }
+    }
+}
