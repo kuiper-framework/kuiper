@@ -16,16 +16,22 @@ abstract class AbstractRule implements RuleInterface
         $this->field = $field;
     }
 
+    public function getField(): string
+    {
+        return $this->field;
+    }
+
     /**
-     * Gets the sharding partition by value
+     * Gets the sharding partition by value.
      *
      * @param mixed $value
+     *
      * @return int|string
      */
     abstract protected function getPartitionFor($value);
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getPartition(array $fields)
     {

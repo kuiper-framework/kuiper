@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace kuiper\db\sharding\rule;
 
-use Webmozart\Assert\Assert;
-
 class HashRule extends AbstractRule
 {
     /**
@@ -17,6 +15,11 @@ class HashRule extends AbstractRule
     {
         parent::__construct($field);
         $this->bucket = $bucket;
+    }
+
+    public function getBucket(): int
+    {
+        return $this->bucket;
     }
 
     protected function getPartitionFor($value)
