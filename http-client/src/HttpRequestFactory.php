@@ -18,6 +18,7 @@ use kuiper\rpc\InvokingMethod;
 use kuiper\rpc\RequestInterface;
 use kuiper\rpc\RpcRequest;
 use kuiper\serializer\NormalizerInterface;
+use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 
 class HttpRequestFactory implements RequestFactoryInterface
 {
@@ -88,7 +89,7 @@ class HttpRequestFactory implements RequestFactoryInterface
         return new RpcRequest($request, $invokingMethod);
     }
 
-    private function getRequestOptions(\Psr\Http\Message\RequestInterface $request, array $parameters): array
+    private function getRequestOptions(HttpRequestInterface $request, array $parameters): array
     {
         $params = [];
         $hasResource = false;
@@ -138,7 +139,7 @@ class HttpRequestFactory implements RequestFactoryInterface
     /**
      * Copy from \Guzzle\Client.
      */
-    private function applyOptions(\Psr\Http\Message\RequestInterface $request, array $options): \Psr\Http\Message\RequestInterface
+    private function applyOptions(HttpRequestInterface $request, array $options): HttpRequestInterface
     {
         $modify = [
             'set_headers' => [],

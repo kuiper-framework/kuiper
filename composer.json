@@ -68,6 +68,7 @@
         "kuiper/resilience": "self.version",
         "kuiper/serializer": "self.version",
         "kuiper/swoole": "self.version",
+        "kuiper/tars": "self.version",
         "kuiper/web": "self.version"
     },
     "autoload": {
@@ -86,6 +87,7 @@
             "kuiper\\jsonrpc\\": "jsonrpc/src/",
             "kuiper\\serializer\\": "serializer/src/",
             "kuiper\\swoole\\": "swoole/src/",
+            "kuiper\\tars\\": "tars/src/",
             "kuiper\\web\\": "web/src/"
         },
         "files": [
@@ -106,6 +108,7 @@
             "kuiper\\rpc\\": "rpc/tests/",
             "kuiper\\swoole\\": "swoole/tests/",
             "kuiper\\serializer\\": "serializer/tests/",
+            "kuiper\\tars\\": "tars/tests/",
             "kuiper\\web\\": "web/tests/"
         }
     },
