@@ -9,8 +9,6 @@ use kuiper\rpc\exception\CommunicationException;
 interface RpcExecutorInterface
 {
     /**
-     * @return mixed
-     *
      * @throws CommunicationException
      */
     public function execute(): array;

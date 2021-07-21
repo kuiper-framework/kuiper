@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace kuiper\http\client\fixtures;
 
-class GitRepository
+use kuiper\helper\JsonSerializableTrait;
+
+class GitRepository implements \JsonSerializable
 {
+    use JsonSerializableTrait;
+
     /**
      * @var string
      */

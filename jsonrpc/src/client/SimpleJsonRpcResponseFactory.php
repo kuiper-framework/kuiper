@@ -21,6 +21,7 @@ class SimpleJsonRpcResponseFactory implements ResponseFactoryInterface
      */
     public function createResponse(RequestInterface $request, ResponseInterface $response): \kuiper\rpc\ResponseInterface
     {
+        /* @var JsonRpcRequest $request */
         Assert::isInstanceOf($request, HasRequestIdInterface::class,
             'request should implements '.HasRequestIdInterface::class);
         $result = json_decode((string) $response->getBody(), true);
@@ -34,7 +35,7 @@ class SimpleJsonRpcResponseFactory implements ResponseFactoryInterface
             throw new RequestIdMismatchException("expected request id {$request->getRequestId()}, got {$result['id']}");
         }
         try {
-            $request->getInvokingMethod()->setResult($this->buildResult($request->getInvokingMethod(), $result['result'] ?? null));
+            $request->getInvokingMethod()->setResult($this->buildResult($request->getInvokingMethod(), $result['result'] ?? []));
         } catch (\InvalidArgumentException $e) {
             throw new BadResponseException($request, $response);
         }
@@ -44,11 +45,9 @@ class SimpleJsonRpcResponseFactory implements ResponseFactoryInterface
 
     /**
      * @param mixed $result
-     *
-     * @return mixed
      */
     protected function buildResult(InvokingMethod $method, $result): array
     {
-        return [$result];
+        return $result;
     }
 }

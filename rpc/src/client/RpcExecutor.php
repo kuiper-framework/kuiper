@@ -17,13 +17,6 @@ class RpcExecutor implements RpcExecutorInterface
      */
     private $client;
 
-    /**
-     * RpcExecutor constructor.
-     *
-     * @param RpcClientInterface $rpcClient
-     * @param object             $proxy
-     * @param string             $method
-     */
     public function __construct(RpcClientInterface $client, RequestInterface $request)
     {
         $this->request = $request;

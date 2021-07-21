@@ -22,14 +22,16 @@ class InvokingMethod
     private $arguments;
 
     /**
-     * @var mixed
+     * 返回值，形式为 [$returnValue, ...$outParams].
+     *
+     * @var array
      */
     private $result;
 
     /**
      * InvokingMethod constructor.
      *
-     * @param object|string $target
+     * @param object|string|mixed $target
      */
     public function __construct($target, string $methodName, array $arguments)
     {
@@ -65,12 +67,12 @@ class InvokingMethod
         return $this->arguments;
     }
 
-    public function getResult()
+    public function getResult(): array
     {
         return $this->result;
     }
 
-    public function setResult($result): void
+    public function setResult(array $result): void
     {
         $this->result = $result;
     }

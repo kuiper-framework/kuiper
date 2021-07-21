@@ -37,13 +37,11 @@ class RpcServerRequestHandler implements RequestHandlerInterface
     public function handle(RequestInterface $request): ResponseInterface
     {
         return $this->buildMiddlewareStack(new class($this) implements RequestHandlerInterface {
+            /**
+             * @var RpcServerRequestHandler
+             */
             private $handler;
 
-            /**
-             *  constructor.
-             *
-             * @param $handler
-             */
             public function __construct(RpcServerRequestHandler $handler)
             {
                 $this->handler = $handler;
@@ -64,21 +62,18 @@ class RpcServerRequestHandler implements RequestHandlerInterface
         $reflectionMethod = new \ReflectionMethod($target, $method->getMethodName());
         $parameters = [];
         $out = [];
+        $outIndex = 0;
         foreach ($reflectionMethod->getParameters() as $i => $parameter) {
             if ($parameter->isPassedByReference()) {
-                $out[$parameter->getName()] = null;
-                $parameters[] = &$out[$parameter->getName()];
+                $out[$outIndex] = null;
+                $parameters[] = &$out[$outIndex];
+                ++$outIndex;
             } else {
                 $parameters[] = $args[$i] ?? null;
             }
         }
         $return = call_user_func_array([$target, $method->getMethodName()], $parameters);
-        if (empty($out)) {
-            $method->setResult($return);
-        } else {
-            $out[''] = $return;
-            $method->setResult($out);
-        }
+        $method->setResult(array_merge([$return], $out));
 
         return $this->responseFactory->createResponse($request);
     }

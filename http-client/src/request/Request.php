@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\http\client;
+namespace kuiper\http\client\request;
 
 class Request
 {

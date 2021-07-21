@@ -9,9 +9,9 @@ use GuzzleHttp\MessageFormatter;
 use GuzzleHttp\Middleware;
 use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\swoole\pool\PoolFactory;
-use kuiper\web\TestCase;
 use Monolog\Handler\ErrorLogHandler;
 use Monolog\Logger;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Swoole\Coroutine;
 
@@ -33,10 +33,8 @@ class HttpClientFactoryTest extends TestCase
 
     public function testCoroutine()
     {
-        Coroutine::set(['hook_flags' => SWOOLE_HOOK_ALL | SWOOLE_HOOK_CURL]);
-
         $logger = new Logger('', [new ErrorLogHandler()], [new CoroutineIdProcessor()]);
-        $httpClientFactory = new HttpClientFactory(new PoolFactory([], $logger));
+        $httpClientFactory = new HttpClientFactory(new PoolFactory());
         $handlerStack = HandlerStack::create();
         $handlerStack->push(Middleware::log($logger, new MessageFormatter()));
 

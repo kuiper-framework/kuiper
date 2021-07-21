@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
+use kuiper\rpc\exception\ConnectFailedException;
 use kuiper\rpc\exception\ErrorCode;
 use kuiper\swoole\constants\ServerSetting;
 use Psr\Http\Message\ResponseInterface;
@@ -27,7 +28,7 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
     ];
 
     /**
-     * @return Client
+     * @return Client|\Swoole\Coroutine\Client
      */
     protected function createSwooleClient()
     {
@@ -78,8 +79,6 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
     }
 
     /**
-     * @param float|null $timeout
-     *
      * @return string|false
      */
     protected function doRecv(float $timeout)
@@ -105,5 +104,6 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
             $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_RECEIVE_FAILED),
                 isset($client->errCode) ? socket_strerror($client->errCode) : null);
         }
+        throw new ConnectFailedException($this, 'should not arrive here');
     }
 }

@@ -105,7 +105,7 @@ class JsonRpcServerRequestFactory implements ServerRequestFactoryInterface
         return $ret;
     }
 
-    private function getParameterTypes(string $className, $methodName): array
+    private function getParameterTypes(string $className, string $methodName): array
     {
         $key = $className.'::'.$methodName;
         if (isset($this->cachedTypes[$key])) {

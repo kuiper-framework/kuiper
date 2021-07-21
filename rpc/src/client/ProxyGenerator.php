@@ -69,15 +69,13 @@ class ProxyGenerator implements ProxyGeneratorInterface
                 $parameters[] = $parameter->name;
             }
         }
-        if ($hasReturnValue) {
-            $returnValueName = 'ret';
-            $i = 1;
-            while (in_array($returnValueName, $outParameters, true)) {
-                $returnValueName = 'ret'.$i++;
-            }
-            $outParameters[] = $returnValueName;
+        $returnValueName = 'ret';
+        $i = 1;
+        while (in_array($returnValueName, $outParameters, true)) {
+            $returnValueName = 'ret'.$i++;
         }
-        // 参数顺序 ...outParams, $returnValue
+        array_unshift($outParameters, $returnValueName);
+        // 参数顺序 $returnValue, ...$out
         $call = '$this->client->sendRequest($this->client->createRequest($this, __FUNCTION__, ['.
             (empty($parameters) ? '' : $this->buildParameters($parameters)).']));';
         if (empty($outParameters)) {
@@ -85,7 +83,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
         }
         $body = 'list ('.$this->buildParameters($outParameters).') = '.$call;
         if ($hasReturnValue) {
-            $body .= "\nreturn $".end($outParameters).';';
+            $body .= "\nreturn $".$outParameters[0].';';
         }
 
         return $body;
@@ -146,6 +144,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
                 $methodBody,
                 DocBlockGenerator::fromReflection(new DocBlockReflection('/** @inheritdoc */'))
             );
+            /* @phpstan-ignore-next-line */
             $methodGenerator->setReturnType($reflectionMethod->getReturnType());
             $phpClass->addMethodFromGenerator($methodGenerator);
         }
@@ -173,7 +172,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
                 $argsParam,
             ],
             MethodGenerator::FLAG_PUBLIC,
-            'return new \\'.RpcExecutor::class.'($this->client->createRequest($this, $method, ...$args));'
+            'return new \\'.RpcExecutor::class.'($this->client, $this->client->createRequest($this, $method, $args));'
         );
         $methodGenerator->setReturnType(RpcExecutorInterface::class);
 

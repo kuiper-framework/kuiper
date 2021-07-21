@@ -30,14 +30,23 @@ class JsonRpcServerResponseFactory implements ServerResponseFactoryInterface
 
     public function createResponse(RequestInterface $request): ResponseInterface
     {
+        /* @var JsonRpcRequest $request */
         Assert::isInstanceOf($request, HasRequestIdInterface::class);
         $response = $this->httpResponseFactory->createResponse();
         $response->getBody()->write(json_encode([
             'jsonrpc' => JsonRpcRequest::JSONRPC_VERSION,
             'id' => $request->getRequestId(),
-            'result' => $request->getInvokingMethod()->getResult(),
+            'result' => $this->getResult($request),
         ]));
 
         return new RpcResponse($request, $response);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getResult(RequestInterface $request)
+    {
+        return $request->getInvokingMethod()->getResult();
     }
 }
