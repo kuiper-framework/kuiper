@@ -7,79 +7,147 @@ namespace kuiper\resilience\circuitbreaker;
 class CircuitBreakerConfig
 {
     /**
-     * Configures the failure rate threshold in percentage.
-     * When the failure rate is equal or greater than the threshold, the CircuitBreaker transitions
-     * to open and starts short-circuiting calls.
-     *
      * @var float
      */
-    private $failureRateThreshold = 50;
+    private $failureRateThreshold;
     /**
-     * Configures a threshold in percentage.
-     * The CircuitBreaker considers a call as slow when the call duration is greater than slowCallDurationThreshold.
-     * When the percentage of slow calls is equal or greater the threshold, the CircuitBreaker transitions
-     * to open and starts short-circuiting calls.
-     *
      * @var float
      */
-    private $slowCallRateThreshold = 100;
+    private $slowCallRateThreshold;
     /**
-     * Configures the duration threshold above which calls are considered as slow and increase the rate of slow calls.
-     *
      * @var int
      */
-    private $slowCallDurationThreshold = 60000;
+    private $slowCallDurationThreshold;
     /**
-     * Configures the number of permitted calls when the CircuitBreaker is half open.
-     *
      * @var int
      */
-    private $permittedNumberOfCallsInHalfOpenState = 10;
+    private $permittedNumberOfCallsInHalfOpenState;
     /**
-     * Configures a maximum wait duration which controls the longest amount of time a CircuitBreaker
-     * could stay in Half Open state, before it switches to open.
-     * Value 0 means Circuit Breaker would wait infinitely in HalfOpen State until all permitted calls have been completed.
-     *
      * @var int
      */
-    private $maxWaitDurationInHalfOpenState = 0;
+    private $maxWaitDurationInHalfOpenState;
 
     /**
-     * Configures the type of the sliding window which is used to record the outcome of calls when the CircuitBreaker is closed.
-     * If the sliding window is COUNT_BASED, the last slidingWindowSize calls are recorded and aggregated.
-     * If the sliding window is TIME_BASED, the calls of the last slidingWindowSize seconds recorded and aggregated.
-     *
      * @var SlideWindowType
      */
     private $slidingWindowType;
 
     /**
-     * Configures the size of the sliding window which is used to record the outcome of calls when the CircuitBreaker is closed.
-     *
      * @var int
      */
-    private $slidingWindowSize = 100;
+    private $slidingWindowSize;
     /**
-     * Configures the minimum number of calls which are required (per sliding window period) before the CircuitBreaker
-     * can calculate the error rate or slow call rate.
-     * For example, if minimumNumberOfCalls is 10, then at least 10 calls must be recorded, before the failure rate
-     * can be calculated. If only 9 calls have been recorded the CircuitBreaker will not transition to open even if
-     * all 9 calls have failed.
-     *
      * @var int
      */
-    private $minimumNumberOfCalls = 100;
+    private $minimumNumberOfCalls;
 
-    public function validateResult($result): bool
+    /**
+     * @var callable
+     */
+    private $waitIntervalFunctionInOpenState;
+
+    /**
+     * @var callable|null
+     */
+    private $resultPredicate;
+
+    /**
+     * @var string[]
+     */
+    private $ignoreExceptions;
+
+    /**
+     * @var callable|null
+     */
+    private $ignoreExceptionPredicate;
+
+    /**
+     * @var string[]
+     */
+    private $recordExceptions;
+
+    /**
+     * @var callable|null
+     */
+    private $recordExceptionPredicate;
+
+    public function __construct(
+        float $failureRateThreshold,
+        float $slowCallRateThreshold,
+        int $slowCallDurationThreshold,
+        int $permittedNumberOfCallsInHalfOpenState,
+        int $maxWaitDurationInHalfOpenState,
+        SlideWindowType $slidingWindowType,
+        int $slidingWindowSize,
+        int $minimumNumberOfCalls,
+        callable $waitIntervalFunctionInOpenState,
+        ?callable $resultPredicate,
+        array $ignoreExceptions,
+        ?callable $ignoreExceptionPredicate,
+        array $recordExceptions,
+        ?callable $recordExceptionPredicate)
     {
+        $this->failureRateThreshold = $failureRateThreshold;
+        $this->slowCallRateThreshold = $slowCallRateThreshold;
+        $this->slowCallDurationThreshold = $slowCallDurationThreshold;
+        $this->permittedNumberOfCallsInHalfOpenState = $permittedNumberOfCallsInHalfOpenState;
+        $this->maxWaitDurationInHalfOpenState = $maxWaitDurationInHalfOpenState;
+        $this->slidingWindowType = $slidingWindowType;
+        $this->slidingWindowSize = $slidingWindowSize;
+        $this->minimumNumberOfCalls = $minimumNumberOfCalls;
+        $this->waitIntervalFunctionInOpenState = $waitIntervalFunctionInOpenState;
+        $this->resultPredicate = $resultPredicate;
+        $this->ignoreExceptions = $ignoreExceptions;
+        $this->ignoreExceptionPredicate = $ignoreExceptionPredicate;
+        $this->recordExceptions = $recordExceptions;
+        $this->recordExceptionPredicate = $recordExceptionPredicate;
+    }
+
+    /**
+     * return true if the result should count as a failure.
+     *
+     * @param mixed $result
+     */
+    public function isFailureResult($result): bool
+    {
+        if (null === $this->resultPredicate) {
+            return false;
+        }
+
+        return call_user_func($this->resultPredicate, $result);
     }
 
     public function shouldIgnoreException(\Exception $exception): bool
     {
+        foreach ($this->ignoreExceptions as $type) {
+            if ($exception instanceof $type) {
+                return true;
+            }
+        }
+        if (null !== $this->ignoreExceptionPredicate) {
+            return call_user_func($this->ignoreExceptionPredicate, $exception);
+        }
+
+        return false;
     }
 
     public function isFailureException(\Exception $exception): bool
     {
+        foreach ($this->recordExceptions as $type) {
+            if ($exception instanceof $type) {
+                return true;
+            }
+        }
+        if (null !== $this->recordExceptionPredicate) {
+            return call_user_func($this->recordExceptionPredicate, $exception);
+        }
+
+        return true;
+    }
+
+    public function getWaitIntervalInOpenState(int $attempts): int
+    {
+        return call_user_func($this->waitIntervalFunctionInOpenState, $attempts);
     }
 
     public function getFailureRateThreshold(): float
@@ -107,11 +175,6 @@ class CircuitBreakerConfig
         return $this->maxWaitDurationInHalfOpenState;
     }
 
-    public function getMinimumNumberOfCalls(): int
-    {
-        return $this->minimumNumberOfCalls;
-    }
-
     public function getSlidingWindowType(): SlideWindowType
     {
         return $this->slidingWindowType;
@@ -122,34 +185,59 @@ class CircuitBreakerConfig
         return $this->slidingWindowSize;
     }
 
-    /**
-     * Returns an interval function which controls how long the CircuitBreaker should stay open,
-     * before it switches to half open.
-     *
-     * @return callable the CircuitBreakerConfig.Builder
-     */
+    public function getMinimumNumberOfCalls(): int
+    {
+        return $this->minimumNumberOfCalls;
+    }
+
     public function getWaitIntervalFunctionInOpenState(): callable
     {
         return $this->waitIntervalFunctionInOpenState;
     }
 
-    public function getRecordExceptionPredicate(): callable
+    public function getResultPredicate(): ?callable
     {
-        return $this->recordExceptionPredicate;
+        return $this->resultPredicate;
     }
 
-    public function getRecordResultPredicate(): callable
+    /**
+     * @return string[]
+     */
+    public function getIgnoreExceptions(): array
     {
-        return $this->recordResultPredicate;
+        return $this->ignoreExceptions;
     }
 
-    public function getIgnoreExceptionPredicate(): callable
+    public function getIgnoreExceptionPredicate(): ?callable
     {
         return $this->ignoreExceptionPredicate;
     }
 
-    public function isAutomaticTransitionFromOpenToHalfOpenEnabled(): bool
+    /**
+     * @return string[]
+     */
+    public function getRecordExceptions(): array
     {
-        return $this->automaticTransitionFromOpenToHalfOpenEnabled;
+        return $this->recordExceptions;
+    }
+
+    public function getRecordExceptionPredicate(): ?callable
+    {
+        return $this->recordExceptionPredicate;
+    }
+
+    public static function builder(?CircuitBreakerConfig $config = null): CircuitBreakerConfigBuilder
+    {
+        return new CircuitBreakerConfigBuilder($config);
+    }
+
+    public static function ofDefaults(): CircuitBreakerConfig
+    {
+        static $default;
+        if (null === $default) {
+            $default = self::builder()->build();
+        }
+
+        return $default;
     }
 }

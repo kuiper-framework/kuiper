@@ -15,6 +15,11 @@ interface Metrics
     public function record(int $duration, Outcome $outcome): Snapshot;
 
     /**
+     * Reset metric.
+     */
+    public function reset(): void;
+
+    /**
      * Returns a snapshot.
      *
      * @return Snapshot a snapshot

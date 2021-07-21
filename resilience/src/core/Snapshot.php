@@ -27,13 +27,21 @@ class Snapshot
      */
     private $numberOfCalls;
 
-    public function __construct(TotalAggregation $aggregation)
+    public function __construct(TotalAggregation $aggregation = null)
     {
-        $this->duration = $aggregation->getTotalDuration();
-        $this->numberOfSlowCalls = $aggregation->getTotalNumberOfSlowCalls();
-        $this->numberOfFailedCalls = $aggregation->getTotalNumberOfFailedCalls();
-        $this->numberOfSlowFailedCalls = $aggregation->getTotalNumberOfSlowFailedCalls();
-        $this->numberOfCalls = $aggregation->getTotalNumberOfCalls();
+        if (null !== $aggregation) {
+            $this->duration = $aggregation->getTotalDuration();
+            $this->numberOfSlowCalls = $aggregation->getTotalNumberOfSlowCalls();
+            $this->numberOfFailedCalls = $aggregation->getTotalNumberOfFailedCalls();
+            $this->numberOfSlowFailedCalls = $aggregation->getTotalNumberOfSlowFailedCalls();
+            $this->numberOfCalls = $aggregation->getTotalNumberOfCalls();
+        } else {
+            $this->duration = 0;
+            $this->numberOfSlowCalls = 0;
+            $this->numberOfFailedCalls = 0;
+            $this->numberOfSlowFailedCalls = 0;
+            $this->numberOfCalls = 0;
+        }
     }
 
     public function getDuration(): int
@@ -69,5 +77,15 @@ class Snapshot
     public function getNumberOfSlowSuccessfulCalls(): int
     {
         return $this->numberOfSlowCalls - $this->numberOfSlowFailedCalls;
+    }
+
+    public static function dummy(): Snapshot
+    {
+        static $dummy;
+        if (null === $dummy) {
+            $dummy = new self();
+        }
+
+        return $dummy;
     }
 }

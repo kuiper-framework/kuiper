@@ -1,0 +1,30 @@
+{
+    "name": "kuiper/rpc",
+    "type": "library",
+    "description": "RPC client library for PHP ",
+    "keywords": [
+        "framework"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "laminas/laminas-code": "^3.4",
+        "kuiper/reflection": "^0.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\rpc\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\rpc\\": "tests/"
+        }
+    }
+}

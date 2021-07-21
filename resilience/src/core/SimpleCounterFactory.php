@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\core;
 
-class SimpleCounterFactory implements CounterFactory
+class SimpleCounterFactory extends AbstractCounterFactory
 {
-    public function create(): Counter
+    protected function createInternal(string $name): Counter
     {
         return new SimpleCounter();
     }

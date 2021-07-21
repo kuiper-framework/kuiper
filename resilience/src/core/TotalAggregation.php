@@ -6,12 +6,12 @@ namespace kuiper\resilience\core;
 
 class TotalAggregation extends AbstractAggregation
 {
-    public function remove(AbstractAggregation $bucket): void
+    public function aggregate(EphemeralMeasure $bucket): void
     {
-        $this->totalDuration -= $bucket->totalDuration;
-        $this->totalNumberOfSlowCalls -= $bucket->totalNumberOfSlowCalls;
-        $this->totalNumberOfSlowFailedCalls -= $bucket->totalNumberOfSlowFailedCalls;
-        $this->totalNumberOfFailedCalls -= $bucket->totalNumberOfFailedCalls;
-        $this->totalNumberOfCalls -= $bucket->totalNumberOfCalls;
+        $this->totalDuration->increment($bucket->getTotalDuration());
+        $this->totalNumberOfSlowCalls->increment($bucket->getTotalNumberOfSlowCalls());
+        $this->totalNumberOfSlowFailedCalls->increment($bucket->getTotalNumberOfSlowFailedCalls());
+        $this->totalNumberOfFailedCalls->increment($bucket->getTotalNumberOfFailedCalls());
+        $this->totalNumberOfCalls->increment($bucket->getTotalNumberOfCalls());
     }
 }

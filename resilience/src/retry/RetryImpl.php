@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\retry;
 
+use kuiper\resilience\core\Clock;
 use kuiper\resilience\core\Counter;
 use kuiper\resilience\core\CounterFactory;
 use kuiper\resilience\retry\event\RetryOnError;
@@ -58,12 +59,17 @@ class RetryImpl implements Retry
      * @var \Exception|null
      */
     private $lastException;
+    /**
+     * @var Clock
+     */
+    private $clock;
 
-    public function __construct(string $name, RetryConfig $config, CounterFactory $counterFactory, EventDispatcherInterface $eventDispatcher)
+    public function __construct(string $name, RetryConfig $config, Clock $clock, CounterFactory $counterFactory, EventDispatcherInterface $eventDispatcher)
     {
         $this->name = $name;
         $this->config = $config;
         $this->numOfAttempts = 0;
+        $this->clock = $clock;
         $this->succeededAfterRetryCounter = $counterFactory->create($this->name.'.succeeded_retry');
         $this->succeededWithoutRetryCounter = $counterFactory->create($this->name.'.succeeded');
         $this->failedAfterRetryCounter = $counterFactory->create($this->name.'.failed_retry');
@@ -101,7 +107,7 @@ class RetryImpl implements Retry
     /**
      * {@inheritDoc}
      */
-    public function call(callable $call, array $args)
+    public function call(callable $call, ...$args)
     {
         return $this->decorate($call)(...$args);
     }
@@ -141,11 +147,15 @@ class RetryImpl implements Retry
         }
     }
 
+    /**
+     * @param mixed $result
+     */
     protected function onResult($result): bool
     {
         if (null === $this->config->getRetryOnResult()) {
             return false;
         }
+        /** @var bool $shouldRetry */
         $shouldRetry = call_user_func($this->config->getRetryOnResult(), $result);
         if ($shouldRetry) {
             $currentNumberOfAttempts = ++$this->numOfAttempts;
@@ -185,10 +195,13 @@ class RetryImpl implements Retry
         }
     }
 
+    /**
+     * @param mixed $result
+     */
     private function waitIntervalAfterFailure(int $numOfAttempts, ?\Exception $exception, $result): void
     {
         $interval = $this->config->getRetryInterval($this->numOfAttempts, $exception, $result);
         $this->eventDispatcher->dispatch(new RetryOnRetry($this, $numOfAttempts, $interval, $exception, $result));
-        usleep($interval);
+        $this->clock->sleep($interval);
     }
 }

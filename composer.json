@@ -82,6 +82,8 @@
             "kuiper\\logger\\": "logger/src/",
             "kuiper\\reflection\\": "reflection/src/",
             "kuiper\\resilience\\": "resilience/src/",
+            "kuiper\\rpc\\": "rpc/src/",
+            "kuiper\\jsonrpc\\": "jsonrpc/src/",
             "kuiper\\serializer\\": "serializer/src/",
             "kuiper\\swoole\\": "swoole/src/",
             "kuiper\\web\\": "web/src/"
@@ -98,8 +100,10 @@
             "kuiper\\helper\\": "helper/tests/",
             "kuiper\\http\\client\\": "http-client/tests/",
             "kuiper\\logger\\": "logger/tests/",
+            "kuiper\\jsonrpc\\": "jsonrpc/tests/",
             "kuiper\\reflection\\": "reflection/tests/",
             "kuiper\\resilience\\": "resilience/tests/",
+            "kuiper\\rpc\\": "rpc/tests/",
             "kuiper\\swoole\\": "swoole/tests/",
             "kuiper\\serializer\\": "serializer/tests/",
             "kuiper\\web\\": "web/tests/"

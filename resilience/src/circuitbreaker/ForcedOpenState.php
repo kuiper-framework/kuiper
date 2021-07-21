@@ -4,16 +4,34 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use kuiper\resilience\circuitbreaker\exception\CallNotPermittedException;
+
 class ForcedOpenState implements CircuitBreakerState
 {
+    /**
+     * @var CircuitBreakerMetricsImpl
+     */
+    private $metrics;
     /**
      * @var int
      */
     private $attempts;
 
+    /**
+     * ForcedOpenState constructor.
+     *
+     * @param CircuitBreakerImpl $circuitBreaker
+     */
+    public function __construct(CircuitBreaker $circuitBreaker, int $attempts)
+    {
+        /* @phpstan-ignore-next-line */
+        $this->metrics = $circuitBreaker->getMetrics();
+        $this->attempts = $attempts;
+    }
+
     public function tryAcquirePermission(): bool
     {
-        circuitBreakerMetrics.onCallNotPermitted();
+        $this->metrics->onCallNotPermitted();
 
         return false;
     }

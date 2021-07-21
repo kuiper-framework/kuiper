@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\serializer;
 
 use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\serializer\annotation\SerializeIgnore;
 use kuiper\serializer\annotation\SerializeName;
@@ -17,18 +18,18 @@ class ClassMetadataFactory
      */
     private $annotationReader;
     /**
-     * @var DocReaderInterface
+     * @var ReflectionDocBlockFactoryInterface
      */
-    private $docReader;
+    private $reflectionDocBlockFactory;
     /**
      * @var array<string,ClassMetadata>
      */
     private $cache;
 
-    public function __construct(AnnotationReaderInterface $annotationReader, DocReaderInterface $docReader)
+    public function __construct(AnnotationReaderInterface $annotationReader, ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
     {
         $this->annotationReader = $annotationReader;
-        $this->docReader = $docReader;
+        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
     }
 
     /**
@@ -78,7 +79,8 @@ class ClassMetadataFactory
         if (0 === strpos($name, 'set')
             && 1 === $method->getNumberOfParameters()
             && !$this->isIgnore($method)) {
-            $types = array_values($this->docReader->getParameterTypes($method));
+            $docBlock = $this->reflectionDocBlockFactory->createMethodDocBlock($method);
+            $types = array_values($docBlock->getParameterTypes());
             if (!$this->validateType($types[0])) {
                 throw new NotSerializableException(sprintf('Cannot serialize class %s for method %s', $method->getDeclaringClass()->getName(), $method->getName()));
             }
@@ -99,7 +101,7 @@ class ClassMetadataFactory
         if (preg_match('/^(get|is|has)(.+)/', $name, $matches)
             && 0 === $method->getNumberOfParameters()
             && !$this->isIgnore($method)) {
-            $type = $this->docReader->getReturnType($method);
+            $type = $this->reflectionDocBlockFactory->createMethodDocBlock($method)->getReturnType();
             if (!$this->validateType($type)) {
                 throw new NotSerializableException(sprintf('Cannot serialize class %s for method %s', $method->getDeclaringClass()->getName(), $method->getName()));
             }
@@ -120,7 +122,7 @@ class ClassMetadataFactory
             if ($property->isStatic() || $this->isIgnore($property)) {
                 continue;
             }
-            $type = $this->docReader->getPropertyType($property);
+            $type = $this->reflectionDocBlockFactory->createPropertyDocBlock($property)->getType();
             if (!$this->validateType($type)) {
                 throw new NotSerializableException(sprintf('Cannot serialize class %s for property %s', $property->getDeclaringClass()->getName(), $property->getName()));
             }

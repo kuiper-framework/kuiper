@@ -4,8 +4,32 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use kuiper\resilience\circuitbreaker\event\CircuitBreakerOnFailureRateExceeded;
+
 class ClosedState implements CircuitBreakerState
 {
+    /**
+     * @var CircuitBreakerImpl
+     */
+    private $circuitBreaker;
+
+    /**
+     * @var CircuitBreakerMetricsImpl
+     */
+    private $metrics;
+
+    /**
+     * ClosedState constructor.
+     *
+     * @param CircuitBreakerImpl $circuitBreaker
+     */
+    public function __construct(CircuitBreaker $circuitBreaker)
+    {
+        $this->circuitBreaker = $circuitBreaker;
+        /* @phpstan-ignore-next-line */
+        $this->metrics = $circuitBreaker->getMetrics();
+    }
+
     public function tryAcquirePermission(): bool
     {
         return true;
@@ -23,12 +47,12 @@ class ClosedState implements CircuitBreakerState
 
     public function onError(int $duration, \Exception $exception): void
     {
-        $this->checkIfThresholdsExceeded($this->circuitBreakerMetrics->onError($duration));
+        $this->checkIfThresholdsExceeded($this->metrics->onError($duration));
     }
 
     public function onSuccess(int $duration): void
     {
-        $this->checkIfThresholdsExceeded($this->circuitBreakerMetrics->onSuccess($duration));
+        $this->checkIfThresholdsExceeded($this->metrics->onSuccess($duration));
     }
 
     public function attempts(): int
@@ -44,8 +68,11 @@ class ClosedState implements CircuitBreakerState
     private function checkIfThresholdsExceeded(Result $result): void
     {
         if (Result::hasExceededThresholds($result)) {
-            publishCircuitThresholdsExceededEvent(result, circuitBreakerMetrics);
-            transitionToOpenState();
+            if (Result::hasFailureRateExceededThreshold($result)) {
+                $this->circuitBreaker->getEventDispatcher()->dispatch(new CircuitBreakerOnFailureRateExceeded(
+                        $this->circuitBreaker, $this->metrics->getFailureRate()));
+            }
+            $this->circuitBreaker->transitionToOpenState();
         }
     }
 }

@@ -11,9 +11,11 @@ class SimpleCounter implements Counter
      */
     private $count = 0;
 
-    public function increment(): void
+    public function increment(int $value = 1): int
     {
-        ++$this->count;
+        $this->count += $value;
+
+        return $this->count;
     }
 
     public function get(): int
@@ -21,8 +23,15 @@ class SimpleCounter implements Counter
         return $this->count;
     }
 
-    public function incrementAndGet(): int
+    public function set(int $value): void
     {
-        return ++$this->count;
+        $this->count = $value;
+    }
+
+    public function decrement(int $value = 1): int
+    {
+        $this->count -= $value;
+
+        return $this->count;
     }
 }

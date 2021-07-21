@@ -8,19 +8,40 @@ use kuiper\resilience\circuitbreaker\exception\CallNotPermittedException;
 
 class OpenState implements CircuitBreakerState
 {
+    /**
+     * @var int
+     */
+    private $attempts;
+    /**
+     * @var CircuitBreakerImpl
+     */
+    private $circuitBreaker;
+    /**
+     * @var CircuitBreakerMetricsImpl
+     */
+    private $metrics;
+    /**
+     * @var int
+     */
+    private $retryAfterWaitDuration;
+
+    public function __construct(CircuitBreakerImpl $circuitBreaker, int $attempts, int $stateChangeTime)
+    {
+        $this->circuitBreaker = $circuitBreaker;
+        /* @phpstan-ignore-next-line */
+        $this->metrics = $circuitBreaker->getMetrics();
+        $this->attempts = $attempts;
+        $this->retryAfterWaitDuration = $stateChangeTime + $circuitBreaker->getConfig()->getWaitIntervalInOpenState($this->attempts);
+    }
+
     public function tryAcquirePermission(): bool
     {
-        if (after($this->config->getRetryAfterWaitDuration())) {
-            $this->transitionTo(State::HALF_OPEN());
-            $callPermitted = $this->tryAcquirePermission();
-            if (!$callPermitted) {
-                publishCallNotPermittedEvent();
-                circuitBreakerMetrics.onCallNotPermitted();
-            }
+        if ($this->circuitBreaker->getCurrentTimestamp() > $this->retryAfterWaitDuration) {
+            $this->circuitBreaker->transitionToHalfOpen();
 
-            return $callPermitted;
+            return $this->circuitBreaker->tryAcquirePermission();
         }
-        circuitBreakerMetrics.onCallNotPermitted();
+        $this->metrics->onCallNotPermitted();
 
         return false;
     }
@@ -39,17 +60,17 @@ class OpenState implements CircuitBreakerState
 
     public function onError(int $duration, \Exception $exception): void
     {
-        $this->circuitBreakerMetrics->onError($duration);
+        $this->metrics->onError($duration);
     }
 
     public function onSuccess(int $duration): void
     {
-        $this->circuitBreakerMetrics->onSuccess($duration);
+        $this->metrics->onSuccess($duration);
     }
 
     public function attempts(): int
     {
-        // TODO: Implement attempts() method.
+        return $this->attempts;
     }
 
     public function getState(): State

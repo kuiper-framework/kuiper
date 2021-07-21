@@ -36,7 +36,7 @@ class State extends Enum
         ],
     ];
 
-    public function canTransfer(State $nextState): bool
+    public function canTransitionTo(State $nextState): bool
     {
         if (!isset($this->next_state)) {
             return true;

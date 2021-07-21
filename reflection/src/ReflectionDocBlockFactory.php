@@ -2,20 +2,15 @@
 
 declare(strict_types=1);
 
-namespace kuiper\serializer;
+namespace kuiper\reflection;
 
+use kuiper\reflection\exception\ClassNotFoundException;
 use kuiper\reflection\exception\ReflectionException;
-use kuiper\reflection\FqcnResolver;
-use kuiper\reflection\ReflectionFileFactory;
-use kuiper\reflection\ReflectionFileFactoryInterface;
-use kuiper\reflection\ReflectionType;
-use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\reflection\type\ArrayType;
 use kuiper\reflection\type\ClassType;
 use kuiper\reflection\type\CompositeType;
-use kuiper\serializer\exception\ClassNotFoundException;
 
-class DocReader implements DocReaderInterface
+class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
 {
     private const METHOD_PARAM_REGEX = '/@param\s+(\S+)\s+\$([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)/';
 
@@ -29,134 +24,94 @@ class DocReader implements DocReaderInterface
      */
     private static $CACHE;
 
-    public function __construct(ReflectionFileFactoryInterface $reflectionFileFactory = null)
+    public function __construct(?ReflectionFileFactoryInterface $reflectionFileFactory = null)
     {
         $this->reflectionFileFactory = $reflectionFileFactory ?: ReflectionFileFactory::getInstance();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getPropertyType(\ReflectionProperty $property): ReflectionTypeInterface
+    public function createPropertyDocBlock(\ReflectionProperty $property): ReflectionPropertyDocBlockInterface
     {
         return $this->getCached($property, function () use ($property) {
-            return $this->parseTypeFromDocBlock($property->getDocComment(), $this->getPropertyDeclaringClass($property), 'var');
+            $type = $this->parseTypeFromDocBlock($property->getDocComment(), $this->getPropertyDeclaringClass($property), 'var');
+            return new ReflectionPropertyDocBlock($property, $type);
         }, 'property:');
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getPropertyClass(\ReflectionProperty $property): ?string
-    {
-        return $this->getClassType($this->getPropertyType($property));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getParameterTypes(\ReflectionMethod $method): array
+    public function createMethodDocBlock(\ReflectionMethod $method): ReflectionMethodDocBlockInterface
     {
         return $this->getCached($method, function () use ($method) {
-            /** @var ReflectionTypeInterface[] $parameterTypes */
-            $parameterTypes = [];
-            foreach ($method->getParameters() as $parameter) {
-                if (method_exists($parameter, 'hasType')
-                    && $parameter->hasType()) {
-                    // detected from php 7.0 ReflectionType
-                    $parameterTypes[$parameter->getName()] = ReflectionType::fromPhpType($parameter->getType());
-                } else {
-                    $parameterTypes[$parameter->getName()] = ReflectionType::forName('mixed');
-                }
-            }
-            $doc = $this->getMethodDocComment($method);
-            if ($doc->docBlock && preg_match_all(self::METHOD_PARAM_REGEX, $doc->docBlock, $matches)) {
-                $declaringClass = $doc->declaringClass;
-                foreach ($matches[2] as $index => $name) {
-                    if (!isset($parameterTypes[$name])) {
-                        continue;
-                    }
-                    if ($parameterTypes[$name]->isUnknown()) {
-                        // if type is unknown, parse from doc block param tag
-                        $parameterTypes[$name] = $this->parseType($matches[1][$index], $declaringClass);
-                    }
-                }
-            }
-
-            return $parameterTypes;
+            return new ReflectionMethodDocBlock($method, $this->getParameterTypes($method), $this->getReturnType($method));
         }, 'method:');
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getParameterClasses(\ReflectionMethod $method): array
+    private function getParameterTypes(\ReflectionMethod $method): array
     {
-        $parameters = [];
-        foreach ($this->getParameterTypes($method) as $name => $type) {
-            $parameters[$name] = $this->getClassType($type);
-        }
-
-        return array_filter($parameters);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getReturnType(\ReflectionMethod $method): ReflectionTypeInterface
-    {
-        return $this->getCached($method, function () use ($method) {
-            if (method_exists($method, 'hasReturnType')
-                && $method->hasReturnType()) {
+        /** @var ReflectionTypeInterface[] $parameterTypes */
+        $parameterTypes = [];
+        foreach ($method->getParameters() as $parameter) {
+            if (method_exists($parameter, 'hasType')
+                && $parameter->hasType()) {
                 // detected from php 7.0 ReflectionType
-                $type = ReflectionType::fromPhpType($method->getReturnType());
-                if (!$type->isUnknown()) {
-                    return $type;
+                $parameterTypes[$parameter->getName()] = ReflectionType::fromPhpType($parameter->getType());
+            } else {
+                $parameterTypes[$parameter->getName()] = ReflectionType::forName('mixed');
+            }
+        }
+        $doc = $this->getMethodDocComment($method);
+        if ($doc->docBlock && preg_match_all(self::METHOD_PARAM_REGEX, $doc->docBlock, $matches)) {
+            $declaringClass = $doc->declaringClass;
+            foreach ($matches[2] as $index => $name) {
+                if (!isset($parameterTypes[$name])) {
+                    continue;
+                }
+                if ($parameterTypes[$name]->isUnknown()) {
+                    // if type is unknown, parse from doc block param tag
+                    $parameterTypes[$name] = $this->parseType($matches[1][$index], $declaringClass);
                 }
             }
-            $doc = $this->getMethodDocComment($method);
-            if ($doc->docBlock && preg_match(self::getDocTagRegexp('return'), $doc->docBlock)) {
-                return $this->parseTypeFromDocBlock($doc->docBlock, $doc->declaringClass, 'return');
-            } else {
-                return $type ?? ReflectionType::forName('mixed');
-            }
-        }, 'return:');
+        }
+
+        return $parameterTypes;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getReturnClass(\ReflectionMethod $method): ?string
+    private function getReturnType(\ReflectionMethod $method): ReflectionTypeInterface
     {
-        return $this->getClassType($this->getReturnType($method));
+        if (method_exists($method, 'hasReturnType')
+            && $method->hasReturnType()) {
+            // detected from php 7.0 ReflectionType
+            $type = ReflectionType::fromPhpType($method->getReturnType());
+            if (!$type->isUnknown()) {
+                return $type;
+            }
+        }
+        $doc = $this->getMethodDocComment($method);
+        if ($doc->docBlock && preg_match(self::getDocTagRegexp('return'), $doc->docBlock)) {
+            return $this->parseTypeFromDocBlock($doc->docBlock, $doc->declaringClass, 'return');
+        }
+
+        return $type ?? ReflectionType::forName('mixed');
     }
 
     /**
      * @param \ReflectionMethod|\ReflectionProperty $reflection
-     * @param callable                              $callback
-     * @param string                                $prefix
+     * @param callable $callback
+     * @param string $prefix
      *
      * @return mixed
      */
-    private function getCached($reflection, $callback, $prefix = null)
+    private function getCached($reflection, callable $callback, string $prefix)
     {
         $className = $reflection->getDeclaringClass()->getName();
-        $key = $prefix.$reflection->getName();
-        if (isset(self::$CACHE[$className][$key])) {
-            return self::$CACHE[$className][$key];
+        $key = $prefix . $reflection->getName();
+        if (!isset(self::$CACHE[$className][$key])) {
+            self::$CACHE[$className][$key] = $callback();
         }
-
-        return self::$CACHE[$className][$key] = $callback();
-    }
-
-    private function getClassType(ReflectionTypeInterface $type): ?string
-    {
-        return $type->isClass() ? $type->getName() : null;
+        return self::$CACHE[$className][$key];
     }
 
     /**
      * @param string|false $docBlock
-     * @param string       $annotationTag
+     * @param string $annotationTag
      */
     private function parseTypeFromDocBlock($docBlock, \ReflectionClass $declaringClass, $annotationTag): ReflectionTypeInterface
     {
@@ -169,16 +124,15 @@ class DocReader implements DocReaderInterface
 
     /**
      * @param string $annotationTag
+     * @return string
      */
-    private static function getDocTagRegexp($annotationTag): string
+    private static function getDocTagRegexp(string $annotationTag): string
     {
-        return '/@'.$annotationTag.'\s+(\S+)/';
+        return '/@' . $annotationTag . '\s+(\S+)/';
     }
 
     /**
      * Parses the type.
-     *
-     * @throws ClassNotFoundException
      */
     private function parseType(string $type, \ReflectionClass $declaringClass): ReflectionTypeInterface
     {
@@ -192,12 +146,17 @@ class DocReader implements DocReaderInterface
         try {
             return $this->resolveFqcn($reflectionType, $declaringClass);
         } catch (ReflectionException $e) {
-            trigger_error('Parse type error: '.$e->getMessage());
+            trigger_error('Parse type error: ' . $e->getMessage());
 
             return ReflectionType::forName('mixed');
         }
     }
 
+    /**
+     * @throws exception\SyntaxErrorException
+     * @throws ClassNotFoundException
+     * @throws exception\FileNotFoundException
+     */
     private function resolveFqcn(ReflectionTypeInterface $type, \ReflectionClass $declaringClass): ReflectionTypeInterface
     {
         /** @var ArrayType $type */
@@ -205,7 +164,9 @@ class DocReader implements DocReaderInterface
             $valueType = $this->resolveFqcn($type->getValueType(), $declaringClass);
 
             return new ArrayType($valueType, $type->getDimension());
-        } elseif ($type->isComposite()) {
+        }
+
+        if ($type->isComposite()) {
             $types = [];
             /** @var CompositeType $type */
             foreach ($type->getTypes() as $subType) {
@@ -213,7 +174,9 @@ class DocReader implements DocReaderInterface
             }
 
             return new CompositeType($types);
-        } elseif ($type->isClass()) {
+        }
+
+        if ($type->isClass()) {
             $name = $type->getName();
             if ('\\' !== $name[0] && $declaringClass->getFileName()) {
                 $fqcn = $this->createFqcnResolver($declaringClass->getFileName())
@@ -221,9 +184,9 @@ class DocReader implements DocReaderInterface
                 $this->assertClassExists($fqcn);
 
                 return new ClassType($fqcn);
-            } else {
-                $this->assertClassExists($name);
             }
+
+            $this->assertClassExists($name);
         }
 
         return $type;
@@ -244,7 +207,7 @@ class DocReader implements DocReaderInterface
                 if ($interface->hasMethod($name)) {
                     $method = $interface->getMethod($name);
 
-                    return (object) [
+                    return (object)[
                         'docBlock' => $method->getDocComment(),
                         'declaringClass' => $method->getDeclaringClass(),
                     ];
@@ -252,7 +215,7 @@ class DocReader implements DocReaderInterface
             }
         }
 
-        return (object) [
+        return (object)[
             'docBlock' => $doc,
             'declaringClass' => $method->getDeclaringClass(),
         ];
@@ -265,6 +228,9 @@ class DocReader implements DocReaderInterface
         return new FqcnResolver($reflectionFile);
     }
 
+    /**
+     * @throws ClassNotFoundException
+     */
     private function assertClassExists(string $className): void
     {
         if (class_exists($className) || interface_exists($className)) {

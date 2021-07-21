@@ -67,13 +67,6 @@ class RetryConfig
      */
     private $failAfterMaxAttempts;
 
-    /**
-     * RetryConfig constructor.
-     *
-     * @param string[] $retryExceptions
-     * @param string[] $ignoreExceptions
-     * @param bool     $failAfterMaxRetries
-     */
     public function __construct(
         int $maxAttempts = 3,
         int $waitDuration = 500,
@@ -117,6 +110,9 @@ class RetryConfig
         return true;
     }
 
+    /**
+     * @param mixed $result
+     */
     public function getRetryInterval(int $numOfAttempts, ?\Exception $lastException, $result): int
     {
         if (null !== $this->intervalFunction) {
@@ -170,5 +166,20 @@ class RetryConfig
     public function isFailAfterMaxAttempts(): bool
     {
         return $this->failAfterMaxAttempts;
+    }
+
+    public static function builder(?RetryConfig $config = null): RetryConfigBuilder
+    {
+        return new RetryConfigBuilder($config);
+    }
+
+    public static function ofDefaults(): RetryConfig
+    {
+        static $default;
+        if (null === $default) {
+            $default = new RetryConfig();
+        }
+
+        return $default;
     }
 }

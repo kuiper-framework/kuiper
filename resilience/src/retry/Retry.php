@@ -9,9 +9,11 @@ interface Retry
     public function decorate(callable $call): callable;
 
     /**
+     * @param mixed ...$args
+     *
      * @return mixed
      */
-    public function call(callable $call, array $args);
+    public function call(callable $call, ...$args);
 
     public function getMetrics(): RetryMetrics;
 }

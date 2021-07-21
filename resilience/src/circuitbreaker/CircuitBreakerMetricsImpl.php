@@ -24,14 +24,25 @@ class CircuitBreakerMetricsImpl implements CircuitBreakerMetrics
     private $metrics;
 
     /**
+     * @var CircuitBreakerConfig
+     */
+    private $config;
+
+    /**
      * @var Snapshot
      */
     private $snapshot;
 
     /**
-     * @var CircuitBreakerConfig
+     * CircuitBreakerMetricsImpl constructor.
      */
-    private $config;
+    public function __construct(Counter $numberOfNotPermittedCalls, Metrics $metrics, CircuitBreakerConfig $config)
+    {
+        $this->numberOfNotPermittedCalls = $numberOfNotPermittedCalls;
+        $this->metrics = $metrics;
+        $this->config = $config;
+        $this->snapshot = Snapshot::dummy();
+    }
 
     public function onCallNotPermitted(): void
     {

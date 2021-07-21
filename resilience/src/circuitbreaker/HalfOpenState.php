@@ -4,18 +4,37 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use kuiper\resilience\circuitbreaker\exception\CallNotPermittedException;
 use kuiper\resilience\core\Counter;
 
 class HalfOpenState implements CircuitBreakerState
 {
     /**
+     * @var CircuitBreakerImpl
+     */
+    private $circuitBreaker;
+    /**
      * @var int
      */
     private $attempts;
     /**
+     * @var CircuitBreakerMetricsImpl
+     */
+    private $metrics;
+    /**
      * @var Counter
      */
     private $permittedNumberOfCalls;
+
+    public function __construct(CircuitBreaker $circuitBreaker, int $attempts, CircuitBreakerMetrics $metrics, Counter $permittedNumberOfCalls)
+    {
+        /* @phpstan-ignore-next-line */
+        $this->circuitBreaker = $circuitBreaker;
+        $this->attempts = $attempts;
+        $this->permittedNumberOfCalls = $permittedNumberOfCalls;
+        /* @phpstan-ignore-next-line */
+        $this->metrics = $metrics;
+    }
 
     public function tryAcquirePermission(): bool
     {
@@ -28,7 +47,7 @@ class HalfOpenState implements CircuitBreakerState
 
             return true;
         }
-        circuitBreakerMetrics.onCallNotPermitted();
+        $this->metrics->onCallNotPermitted();
 
         return false;
     }
@@ -47,12 +66,12 @@ class HalfOpenState implements CircuitBreakerState
 
     public function onError(int $duration, \Exception $exception): void
     {
-        $this->checkIfThresholdsExceeded($this->circuitBreakerMetrics->onError($duration));
+        $this->checkIfThresholdsExceeded($this->metrics->onError($duration));
     }
 
     public function onSuccess(int $duration): void
     {
-        $this->checkIfThresholdsExceeded($this->circuitBreakerMetrics->onSuccess($duration));
+        $this->checkIfThresholdsExceeded($this->metrics->onSuccess($duration));
     }
 
     public function attempts(): int
@@ -68,10 +87,10 @@ class HalfOpenState implements CircuitBreakerState
     private function checkIfThresholdsExceeded(Result $result): void
     {
         if (Result::hasExceededThresholds($result)) {
-            transitionToOpenState();
+            $this->circuitBreaker->transitionToOpenState();
         }
         if (Result::BELOW_THRESHOLDS === $result->value) {
-            transitionToCloseState();
+            $this->circuitBreaker->transitionToCloseState();
         }
     }
 }

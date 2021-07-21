@@ -7,69 +7,95 @@ namespace kuiper\resilience\core;
 abstract class AbstractAggregation
 {
     /**
-     * @var int
+     * @var Counter
      */
-    protected $totalDuration = 0;
+    protected $totalDuration;
     /**
-     * @var int
+     * @var Counter
      */
-    protected $totalNumberOfSlowCalls = 0;
+    protected $totalNumberOfSlowCalls;
     /**
-     * @var int
+     * @var Counter
      */
-    protected $totalNumberOfSlowFailedCalls = 0;
+    protected $totalNumberOfSlowFailedCalls;
     /**
-     * @var int
+     * @var Counter
      */
-    protected $totalNumberOfFailedCalls = 0;
+    protected $totalNumberOfFailedCalls;
     /**
-     * @var int
+     * @var Counter
      */
-    protected $totalNumberOfCalls = 0;
+    protected $totalNumberOfCalls;
+
+    /**
+     * TotalAggregation constructor.
+     */
+    public function __construct(
+        Counter $totalDuration,
+        Counter $totalNumberOfSlowCalls,
+        Counter $totalNumberOfSlowFailedCalls,
+        Counter $totalNumberOfFailedCalls,
+        Counter $totalNumberOfCalls)
+    {
+        $this->totalDuration = $totalDuration;
+        $this->totalNumberOfSlowCalls = $totalNumberOfSlowCalls;
+        $this->totalNumberOfSlowFailedCalls = $totalNumberOfSlowFailedCalls;
+        $this->totalNumberOfFailedCalls = $totalNumberOfFailedCalls;
+        $this->totalNumberOfCalls = $totalNumberOfCalls;
+    }
 
     public function record(int $duration, Outcome $outcome): void
     {
-        ++$this->totalNumberOfCalls;
-        $this->totalDuration += $duration;
+        $this->totalNumberOfCalls->increment();
+        $this->totalDuration->increment($duration);
         switch ($outcome->value) {
             case Outcome::SLOW_SUCCESS:
-                $this->totalNumberOfSlowCalls++;
+                $this->totalNumberOfSlowCalls->increment();
                 break;
 
             case Outcome::SLOW_ERROR:
-                $this->totalNumberOfSlowCalls++;
-                ++$this->totalNumberOfFailedCalls;
-                ++$this->totalNumberOfSlowFailedCalls;
+                $this->totalNumberOfSlowCalls->increment();
+                $this->totalNumberOfFailedCalls->increment();
+                $this->totalNumberOfSlowFailedCalls->increment();
                 break;
 
             case Outcome::ERROR:
-                $this->totalNumberOfFailedCalls++;
+                $this->totalNumberOfFailedCalls->increment();
                 break;
         }
     }
 
+    public function reset(): void
+    {
+        $this->totalDuration->set(0);
+        $this->totalNumberOfSlowCalls->set(0);
+        $this->totalNumberOfSlowFailedCalls->set(0);
+        $this->totalNumberOfFailedCalls->set(0);
+        $this->totalNumberOfCalls->set(0);
+    }
+
     public function getTotalDuration(): int
     {
-        return $this->totalDuration;
+        return $this->totalDuration->get();
     }
 
     public function getTotalNumberOfSlowCalls(): int
     {
-        return $this->totalNumberOfSlowCalls;
+        return $this->totalNumberOfSlowCalls->get();
     }
 
     public function getTotalNumberOfSlowFailedCalls(): int
     {
-        return $this->totalNumberOfSlowFailedCalls;
+        return $this->totalNumberOfSlowFailedCalls->get();
     }
 
     public function getTotalNumberOfFailedCalls(): int
     {
-        return $this->totalNumberOfFailedCalls;
+        return $this->totalNumberOfFailedCalls->get();
     }
 
     public function getTotalNumberOfCalls(): int
     {
-        return $this->totalNumberOfCalls;
+        return $this->totalNumberOfCalls->get();
     }
 }

@@ -6,5 +6,8 @@ namespace kuiper\resilience\core;
 
 interface CounterFactory
 {
+    /**
+     * Creates a counter.
+     */
     public function create(string $name): Counter;
 }

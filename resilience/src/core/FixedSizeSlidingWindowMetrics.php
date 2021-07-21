@@ -29,26 +29,49 @@ class FixedSizeSlidingWindowMetrics implements Metrics
     /**
      * FixedSizeSlidingWindowMetrics constructor.
      */
-    public function __construct(int $windowSize)
+    public function __construct(string $name, int $windowSize, CounterFactory $counterFactory)
     {
         $this->windowSize = $windowSize;
         $this->headIndex = 0;
         foreach (range(0, $this->windowSize - 1) as $i) {
-            $this->measurements[] = new Measurement();
+            $prefix = $name.'_'.$i;
+            $this->measurements[] = new Measurement(
+                $counterFactory->create($prefix.'.duration'),
+                $counterFactory->create($prefix.'.slow_calls'),
+                $counterFactory->create($prefix.'.slow_failed_calls'),
+                $counterFactory->create($prefix.'.failed_calls'),
+                $counterFactory->create($prefix.'.calls')
+            );
         }
-        $this->totalAggregation = new TotalAggregation();
+        $this->totalAggregation = new TotalAggregation(
+            $counterFactory->create($name.'.duration'),
+            $counterFactory->create($name.'.slow_calls'),
+            $counterFactory->create($name.'.slow_failed_calls'),
+            $counterFactory->create($name.'.failed_calls'),
+            $counterFactory->create($name.'.calls')
+        );
     }
 
     public function record(int $duration, Outcome $outcome): Snapshot
     {
-        $this->totalAggregation->record($duration, $outcome);
-        $this->headIndex = ($this->headIndex + 1) % $this->windowSize;
-        $bucket = $this->measurements[$this->headIndex];
-        $this->totalAggregation->remove($bucket);
-        $bucket->reset();
+        $bucket = new EphemeralMeasure();
         $bucket->record($duration, $outcome);
+        $this->headIndex = ($this->headIndex + 1) % $this->windowSize;
+        $lastMeasurement = $this->measurements[$this->headIndex];
+        $bucket->remove($lastMeasurement);
+        $lastMeasurement->reset();
+        $lastMeasurement->record($duration, $outcome);
+        $this->totalAggregation->aggregate($bucket);
 
         return new Snapshot($this->totalAggregation);
+    }
+
+    public function reset(): void
+    {
+        $this->totalAggregation->reset();
+        foreach ($this->measurements as $measurement) {
+            $measurement->reset();
+        }
     }
 
     public function getSnapshot(): Snapshot
