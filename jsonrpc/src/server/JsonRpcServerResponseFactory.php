@@ -39,7 +39,7 @@ class JsonRpcServerResponseFactory implements ServerResponseFactoryInterface
             'result' => $this->getResult($request),
         ]));
 
-        return new RpcResponse($request, $response);
+        return new RpcResponse($request, $response->withHeader('content-type', 'application/json'));
     }
 
     /**

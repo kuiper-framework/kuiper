@@ -4,28 +4,35 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
+use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
 
 class RpcRequest implements RequestInterface
 {
     /**
-     * @var \Psr\Http\Message\RequestInterface
+     * @var HttpRequestInterface
      */
-    private $httpRequest;
+    protected $httpRequest;
+
+    /**
+     * @var array
+     */
+    protected $attributes;
 
     /**
      * @var InvokingMethod
      */
-    private $invokingMethod;
+    protected $invokingMethod;
 
     /**
      * RpcRequest constructor.
      */
-    public function __construct(\Psr\Http\Message\RequestInterface $httpRequest, InvokingMethod $invokingMethod)
+    public function __construct(HttpRequestInterface $httpRequest, InvokingMethod $invokingMethod)
     {
         $this->httpRequest = $httpRequest;
         $this->invokingMethod = $invokingMethod;
+        $this->attributes = [];
     }
 
     public function getProtocolVersion()
@@ -135,6 +142,34 @@ class RpcRequest implements RequestInterface
         $copy->httpRequest = $this->httpRequest->withUri($uri, $preserveHost);
 
         return $copy;
+    }
+
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getAttribute(string $name, $default = null)
+    {
+        if (false === array_key_exists($name, $this->attributes)) {
+            return $default;
+        }
+
+        return $this->attributes[$name];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function withAttribute(string $name, $value): self
+    {
+        $new = clone $this;
+        $new->attributes[$name] = $value;
+
+        return $new;
     }
 
     public function getInvokingMethod(): InvokingMethod

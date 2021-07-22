@@ -4,24 +4,25 @@ declare(strict_types=1);
 
 namespace kuiper\tars\stream;
 
-use kuiper\tars\protocol\type\MapType;
-use kuiper\tars\protocol\type\PrimitiveType;
-use kuiper\tars\protocol\type\StructMap;
-use kuiper\tars\protocol\type\StructType;
-use kuiper\tars\protocol\type\Type;
-use kuiper\tars\protocol\type\VectorType;
+use kuiper\tars\exception\TarsStreamException;
+use kuiper\tars\type\MapType;
+use kuiper\tars\type\PrimitiveType;
+use kuiper\tars\type\StructMap;
+use kuiper\tars\type\StructType;
+use kuiper\tars\type\Type;
+use kuiper\tars\type\VectorType;
 
 class TarsInputStream implements TarsInputStreamInterface
 {
     private const TYPE_ALIAS = [
-        TarsType::INT8 => [TarsType::ZERO],
-        TarsType::INT16 => [TarsType::INT8, TarsType::ZERO],
-        TarsType::INT32 => [TarsType::INT16, TarsType::INT8, TarsType::ZERO],
-        TarsType::INT64 => [TarsType::INT32, TarsType::INT16, TarsType::INT8, TarsType::ZERO],
-        TarsType::FLOAT => [TarsType::ZERO],
-        TarsType::DOUBLE => [TarsType::ZERO],
-        TarsType::STRING4 => [TarsType::STRING1],
-        TarsType::VECTOR => [TarsType::SIMPLE_LIST],
+        Type::INT8 => [Type::ZERO],
+        Type::INT16 => [Type::INT8, Type::ZERO],
+        Type::INT32 => [Type::INT16, Type::INT8, Type::ZERO],
+        Type::INT64 => [Type::INT32, Type::INT16, Type::INT8, Type::ZERO],
+        Type::FLOAT => [Type::ZERO],
+        Type::DOUBLE => [Type::ZERO],
+        Type::STRING4 => [Type::STRING1],
+        Type::VECTOR => [Type::SIMPLE_LIST],
     ];
 
     /**
@@ -52,7 +53,7 @@ class TarsInputStream implements TarsInputStreamInterface
     {
         $char = fread($this->buffer, $length);
         if (false === $char) {
-            throw TarsException::streamLenError();
+            throw TarsStreamException::streamLenError();
         }
 
         return $char;
@@ -63,7 +64,7 @@ class TarsInputStream implements TarsInputStreamInterface
         $header = fread($this->buffer, 1);
         if (false === $header || '' === $header) {
             if ($require) {
-                throw TarsException::streamLenError();
+                throw TarsStreamException::streamLenError();
             } else {
                 return false;
             }
@@ -82,10 +83,10 @@ class TarsInputStream implements TarsInputStreamInterface
     private function matchTag(?int $tag): int
     {
         if (!$this->readHead($nextTag, $nextType, true)) {
-            throw TarsException::tagNotMatch();
+            throw TarsStreamException::tagNotMatch();
         }
         if (null !== $tag && $nextTag !== $tag) {
-            throw TarsException::tagNotMatch();
+            throw TarsStreamException::tagNotMatch();
         }
 
         return $nextType;
@@ -105,25 +106,25 @@ class TarsInputStream implements TarsInputStreamInterface
         if (!$this->readHead($nextTag, $nextType, $require)) {
             return null;
         }
-        if (TarsType::STRUCT_END === $nextType) {
-            if (TarsType::STRUCT_END === $type || !$require) {
+        if (Type::STRUCT_END === $nextType) {
+            if (Type::STRUCT_END === $type || !$require) {
                 $this->pushHeadBack($nextTag);
 
                 return null;
             }
-            throw TarsException::tagNotMatch();
+            throw TarsStreamException::tagNotMatch();
         }
-        if (TarsType::STRUCT_END !== $type) {
+        if (Type::STRUCT_END !== $type) {
             if ($nextTag === $tag) {
                 if ($nextType !== $type && !in_array($nextType, self::TYPE_ALIAS[$type] ?? [], true)) {
-                    throw TarsException::typeNotMatch("Expected type $type, got $nextType");
+                    throw TarsStreamException::typeNotMatch("Expected type $type, got $nextType");
                 }
 
                 return $nextType;
             }
             if ($nextTag > $tag) {
                 if ($require) {
-                    throw TarsException::tagNotMatch();
+                    throw TarsStreamException::tagNotMatch();
                 } else {
                     $this->pushHeadBack($nextTag);
 
@@ -139,36 +140,36 @@ class TarsInputStream implements TarsInputStreamInterface
     private function skipField(int $type): void
     {
         switch ($type) {
-            case TarsType::ZERO:
+            case Type::ZERO:
                 break;
-            case TarsType::INT8:
+            case Type::INT8:
                 $this->readInternal(1);
                 break;
-            case TarsType::INT16:
+            case Type::INT16:
                 $this->readInternal(2);
                 break;
-            case TarsType::FLOAT:
-            case TarsType::INT32:
+            case Type::FLOAT:
+            case Type::INT32:
                 $this->readInternal(4);
                 break;
-            case TarsType::DOUBLE:
-            case TarsType::INT64:
+            case Type::DOUBLE:
+            case Type::INT64:
                 $this->readInternal(8);
                 break;
-            case TarsType::STRING1:
-            case TarsType::STRING4:
+            case Type::STRING1:
+            case Type::STRING4:
                 $this->readStringInternal($type);
                 break;
-            case TarsType::STRUCT_BEGIN:
+            case Type::STRUCT_BEGIN:
                 while (true) {
                     $fieldType = $this->matchTag(null);
-                    if (TarsType::STRUCT_END !== $fieldType) {
+                    if (Type::STRUCT_END !== $fieldType) {
                         break;
                     }
                     $this->skipField($fieldType);
                 }
                 break;
-            case TarsType::MAP:
+            case Type::MAP:
                 $len = $this->readInt32(0, true);
                 for ($i = 0; $i < $len; ++$i) {
                     $keyType = $this->matchTag(0);
@@ -177,26 +178,26 @@ class TarsInputStream implements TarsInputStreamInterface
                     $this->skipField($valueType);
                 }
                 break;
-            case TarsType::VECTOR:
+            case Type::VECTOR:
                 $len = $this->readInt32(0, true);
                 for ($i = 0; $i < $len; ++$i) {
                     $itemType = $this->matchTag(0);
                     $this->skipField($itemType);
                 }
                 break;
-            case TarsType::SIMPLE_LIST:
-                $this->match(0, TarsType::INT8, true);
+            case Type::SIMPLE_LIST:
+                $this->match(0, Type::INT8, true);
                 $len = $this->readInt32(0, true);
                 $this->readInternal($len);
                 break;
             default:
-                throw TarsException::typeNotMatch("Unknown type $type");
+                throw TarsStreamException::typeNotMatch("Unknown type $type");
         }
     }
 
     private function readInt8Internal(int $type): int
     {
-        if (TarsType::ZERO === $type) {
+        if (Type::ZERO === $type) {
             return 0;
         }
 
@@ -205,10 +206,10 @@ class TarsInputStream implements TarsInputStreamInterface
 
     private function readInt16Internal(int $type): int
     {
-        if (TarsType::INT16 === $type) {
+        if (Type::INT16 === $type) {
             $unpack = unpack('n', $this->readInternal(2));
             if (false === $unpack) {
-                throw TarsException::outOfRange();
+                throw TarsStreamException::outOfRange();
             }
 
             return $unpack[1];
@@ -219,10 +220,10 @@ class TarsInputStream implements TarsInputStreamInterface
 
     private function readInt32Internal(int $type): int
     {
-        if (TarsType::INT32 === $type) {
+        if (Type::INT32 === $type) {
             $unpack = unpack('N', $this->readInternal(4));
             if (false === $unpack) {
-                throw TarsException::outOfRange();
+                throw TarsStreamException::outOfRange();
             }
 
             return $unpack[1];
@@ -233,10 +234,10 @@ class TarsInputStream implements TarsInputStreamInterface
 
     private function readInt64Internal(int $type): int
     {
-        if (TarsType::INT64 === $type) {
+        if (Type::INT64 === $type) {
             $unpack = unpack('J', $this->readInternal(8));
             if (false === $unpack) {
-                throw TarsException::outOfRange();
+                throw TarsStreamException::outOfRange();
             }
 
             return $unpack[1];
@@ -247,10 +248,10 @@ class TarsInputStream implements TarsInputStreamInterface
 
     private function readStringInternal(int $type): string
     {
-        if (TarsType::STRING1 === $type) {
+        if (Type::STRING1 === $type) {
             $len = ord($this->readInternal(1));
         } else {
-            $len = $this->readInt32Internal(TarsType::INT32);
+            $len = $this->readInt32Internal(Type::INT32);
         }
 
         if (0 === $len) {
@@ -289,7 +290,7 @@ class TarsInputStream implements TarsInputStreamInterface
                 case PrimitiveType::STRING:
                     return $this->readString($tag, $require);
                 default:
-                    throw TarsException::typeNotMatch('unknown primitive type '.$type);
+                    throw TarsStreamException::typeNotMatch('unknown primitive type '.$type);
             }
         } elseif ($type->isEnum()) {
             $value = $this->readInt64($tag, $require);
@@ -305,7 +306,7 @@ class TarsInputStream implements TarsInputStreamInterface
         } elseif ($type->isMap()) {
             return $this->readMap($tag, $require, $type->asMapType());
         } else {
-            throw TarsException::typeNotMatch('unknown type '.$type);
+            throw TarsStreamException::typeNotMatch('unknown type '.$type);
         }
     }
 
@@ -331,7 +332,7 @@ class TarsInputStream implements TarsInputStreamInterface
 
     public function readInt8(int $tag, bool $require): ?int
     {
-        $type = $this->match($tag, TarsType::INT8, $require);
+        $type = $this->match($tag, Type::INT8, $require);
         if (null === $type) {
             return null;
         }
@@ -341,7 +342,7 @@ class TarsInputStream implements TarsInputStreamInterface
 
     public function readInt16(int $tag, bool $require): ?int
     {
-        $type = $this->match($tag, TarsType::INT16, $require);
+        $type = $this->match($tag, Type::INT16, $require);
 
         if (null === $type) {
             return null;
@@ -352,7 +353,7 @@ class TarsInputStream implements TarsInputStreamInterface
 
     public function readInt32(int $tag, bool $require): ?int
     {
-        $type = $this->match($tag, TarsType::INT32, $require);
+        $type = $this->match($tag, Type::INT32, $require);
 
         if (null === $type) {
             return null;
@@ -363,7 +364,7 @@ class TarsInputStream implements TarsInputStreamInterface
 
     public function readInt64(int $tag, bool $require): ?int
     {
-        $type = $this->match($tag, TarsType::INT64, $require);
+        $type = $this->match($tag, Type::INT64, $require);
 
         if (null === $type) {
             return null;
@@ -374,16 +375,16 @@ class TarsInputStream implements TarsInputStreamInterface
 
     public function readFloat(int $tag, bool $require): ?float
     {
-        $type = $this->match($tag, TarsType::FLOAT, $require);
+        $type = $this->match($tag, Type::FLOAT, $require);
         if (null === $type) {
             return null;
         }
-        if (TarsType::ZERO === $type) {
+        if (Type::ZERO === $type) {
             return 0;
         }
         $unpack = unpack('G', $this->readInternal(4));
         if (false === $unpack) {
-            throw TarsException::outOfRange();
+            throw TarsStreamException::outOfRange();
         }
 
         return $unpack[1];
@@ -391,16 +392,16 @@ class TarsInputStream implements TarsInputStreamInterface
 
     public function readDouble(int $tag, bool $require): ?float
     {
-        $type = $this->match($tag, TarsType::DOUBLE, $require);
+        $type = $this->match($tag, Type::DOUBLE, $require);
         if (null === $type) {
             return null;
         }
-        if (TarsType::ZERO === $type) {
+        if (Type::ZERO === $type) {
             return 0;
         }
         $unpack = unpack('E', $this->readInternal(8));
         if (false === $unpack) {
-            throw TarsException::outOfRange();
+            throw TarsStreamException::outOfRange();
         }
 
         return $unpack[1];
@@ -423,7 +424,7 @@ class TarsInputStream implements TarsInputStreamInterface
 
     public function readString(int $tag, bool $require): ?string
     {
-        $type = $this->match($tag, TarsType::STRING4, $require);
+        $type = $this->match($tag, Type::STRING4, $require);
         if (null === $type) {
             return null;
         }
@@ -433,7 +434,7 @@ class TarsInputStream implements TarsInputStreamInterface
 
     public function readStruct(int $tag, bool $require, StructType $structType): ?object
     {
-        $type = $this->match($tag, TarsType::STRUCT_BEGIN, $require);
+        $type = $this->match($tag, Type::STRUCT_BEGIN, $require);
         if (null === $type) {
             return null;
         }
@@ -442,7 +443,7 @@ class TarsInputStream implements TarsInputStreamInterface
         foreach ($structType->getFields() as $field) {
             $obj->{$field->getName()} = $this->read($field->getTag(), $field->isRequired(), $field->getType());
         }
-        $this->match(0, TarsType::STRUCT_END, true);
+        $this->match(0, Type::STRUCT_END, true);
 
         return $obj;
     }
@@ -452,12 +453,12 @@ class TarsInputStream implements TarsInputStreamInterface
      */
     public function readVector(int $tag, bool $require, VectorType $vectorType)
     {
-        $type = $this->match($tag, TarsType::VECTOR, $require);
+        $type = $this->match($tag, Type::VECTOR, $require);
         if (null === $type) {
             return null;
         }
-        if (TarsType::SIMPLE_LIST === $type) {
-            $this->match(0, TarsType::INT8, true);
+        if (Type::SIMPLE_LIST === $type) {
+            $this->match(0, Type::INT8, true);
             $len = $this->readInt32(0, true);
 
             if (0 === $len) {
@@ -480,7 +481,7 @@ class TarsInputStream implements TarsInputStreamInterface
      */
     public function readMap(int $tag, bool $require, MapType $mapType)
     {
-        $type = $this->match($tag, TarsType::MAP, $require);
+        $type = $this->match($tag, Type::MAP, $require);
         if (null === $type) {
             return null;
         }
@@ -535,38 +536,38 @@ class TarsInputStream implements TarsInputStreamInterface
         }
         $token = [$tag, TarsType::fromValue($type)];
         switch ($type) {
-            case TarsType::ZERO:
-            case TarsType::INT8:
-            case TarsType::INT16:
-            case TarsType::INT32:
-            case TarsType::INT64:
+            case Type::ZERO:
+            case Type::INT8:
+            case Type::INT16:
+            case Type::INT32:
+            case Type::INT64:
                 $token[] = $this->readInt64Internal($type);
                 break;
-            case TarsType::FLOAT:
+            case Type::FLOAT:
                 $token[] = unpack('G', $this->readInternal(4))[1];
                 break;
-            case TarsType::DOUBLE:
+            case Type::DOUBLE:
                 $token[] = unpack('J', $this->readInternal(8))[1];
                 break;
-            case TarsType::STRING1:
-            case TarsType::STRING4:
+            case Type::STRING1:
+            case Type::STRING4:
                 $token[] = $this->readStringInternal($type);
                 break;
-            case TarsType::STRUCT_END:
+            case Type::STRUCT_END:
                 $token[] = null;
                 break;
-            case TarsType::STRUCT_BEGIN:
+            case Type::STRUCT_BEGIN:
                 $fields = [];
                 while (true) {
                     $field = $this->nextToken();
-                    if (TarsType::STRUCT_END === $field[0]) {
+                    if (Type::STRUCT_END === $field[0]) {
                         break;
                     }
                     $fields[] = $field;
                 }
                 $token[] = $fields;
                 break;
-            case TarsType::MAP:
+            case Type::MAP:
                 $map = [];
                 $len = $this->readInt32(0, true);
                 for ($i = 0; $i < $len; ++$i) {
@@ -577,7 +578,7 @@ class TarsInputStream implements TarsInputStreamInterface
                 }
                 $token[] = $map;
                 break;
-            case TarsType::VECTOR:
+            case Type::VECTOR:
                 $list = [];
                 $len = $this->readInt32(0, true);
                 for ($i = 0; $i < $len; ++$i) {
@@ -585,13 +586,13 @@ class TarsInputStream implements TarsInputStreamInterface
                 }
                 $token[] = $list;
                 break;
-            case TarsType::SIMPLE_LIST:
-                $this->match(0, TarsType::INT8, true);
+            case Type::SIMPLE_LIST:
+                $this->match(0, Type::INT8, true);
                 $len = $this->readInt32(0, true);
                 $token[] = $this->readInternal($len);
                 break;
             default:
-                throw TarsException::typeNotMatch("Unknown type $type");
+                throw TarsStreamException::typeNotMatch("Unknown type $type");
         }
 
         return $token;

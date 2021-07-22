@@ -11,12 +11,12 @@ class RpcResponse implements ResponseInterface
     /**
      * @var RequestInterface
      */
-    private $request;
+    protected $request;
 
     /**
      * @var \Psr\Http\Message\ResponseInterface
      */
-    private $httpResponse;
+    protected $httpResponse;
 
     /**
      * RpcResponse constructor.

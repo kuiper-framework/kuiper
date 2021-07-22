@@ -34,6 +34,8 @@ class SimpleJsonRpcResponseFactory implements ResponseFactoryInterface
         if (null !== $result['id'] && $result['id'] !== $request->getRequestId()) {
             throw new RequestIdMismatchException("expected request id {$request->getRequestId()}, got {$result['id']}");
         }
+        if (isset($result['error'])) {
+        }
         try {
             $request->getInvokingMethod()->setResult($this->buildResult($request->getInvokingMethod(), $result['result'] ?? []));
         } catch (\InvalidArgumentException $e) {

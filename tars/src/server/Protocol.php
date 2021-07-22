@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace kuiper\tars\server;
+
+use kuiper\helper\Enum;
+use kuiper\swoole\constants\ServerType;
+
+/**
+ * Class Protocol.
+ *
+ * @property string|null $serverType
+ */
+class Protocol extends Enum
+{
+    public const HTTP = 'http';
+    public const HTTP2 = 'http2';
+    public const WEBSOCKET = 'websocket';
+    public const GRPC = 'grpc';
+    public const JSONRPC = 'jsonrpc';
+    public const TARS = 'tars';
+
+    /**
+     * @var array
+     */
+    protected static $PROPERTIES = [
+        'serverType' => [
+            self::HTTP => ServerType::HTTP,
+            self::HTTP2 => ServerType::HTTP2,
+            self::WEBSOCKET => ServerType::WEBSOCKET,
+            self::GRPC => ServerType::HTTP2,
+        ],
+    ];
+
+    public function isHttpProtocol(): bool
+    {
+        return null !== $this->serverType
+            && ServerType::fromValue($this->serverType)->isHttpProtocol();
+    }
+}

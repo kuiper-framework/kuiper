@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace kuiper\tars\stream;
 
 use kuiper\helper\Enum;
-use kuiper\tars\protocol\type\MapType;
-use kuiper\tars\protocol\type\StructMap;
-use kuiper\tars\protocol\type\StructMapEntry;
-use kuiper\tars\protocol\type\StructType;
-use kuiper\tars\protocol\type\Type;
-use kuiper\tars\protocol\type\VectorType;
+use kuiper\tars\exception\TarsStreamException;
+use kuiper\tars\type\MapType;
+use kuiper\tars\type\StructMap;
+use kuiper\tars\type\StructMapEntry;
+use kuiper\tars\type\StructType;
+use kuiper\tars\type\Type;
+use kuiper\tars\type\VectorType;
 
 class TarsOutputStream implements TarsOutputStreamInterface
 {
@@ -79,9 +80,9 @@ class TarsOutputStream implements TarsOutputStreamInterface
     public function writeInt8(int $tag, int $value): void
     {
         if (0 === $value) {
-            $this->writeHead($tag, TarsType::ZERO);
+            $this->writeHead($tag, Type::ZERO);
         } else {
-            $this->writeHead($tag, TarsType::INT8);
+            $this->writeHead($tag, Type::INT8);
             fwrite($this->buffer, chr($value));
             ++$this->length;
         }
@@ -97,7 +98,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
         if ($value >= TarsConst::MIN_INT8 && $value <= TarsConst::MAX_INT8) {
             $this->writeInt8($tag, $value);
         } else {
-            $this->writeHead($tag, TarsType::INT16);
+            $this->writeHead($tag, Type::INT16);
             fwrite($this->buffer, pack('n', $value));
             $this->length += 2;
         }
@@ -108,7 +109,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
         if ($value >= TarsConst::MIN_INT16 && $value <= TarsConst::MAX_INT16) {
             $this->writeInt16($tag, $value);
         } else {
-            $this->writeHead($tag, TarsType::INT32);
+            $this->writeHead($tag, Type::INT32);
             fwrite($this->buffer, pack('N', $value));
             $this->length += 4;
         }
@@ -119,7 +120,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
         if ($value >= TarsConst::MIN_INT32 && $value <= TarsConst::MAX_INT32) {
             $this->writeInt32($tag, $value);
         } else {
-            $this->writeHead($tag, TarsType::INT64);
+            $this->writeHead($tag, Type::INT64);
             fwrite($this->buffer, pack('J', $value));
             $this->length += 8;
         }
@@ -143,9 +144,9 @@ class TarsOutputStream implements TarsOutputStreamInterface
     public function writeFloat(int $tag, float $value): void
     {
         if ($value < PHP_FLOAT_EPSILON && $value > -PHP_FLOAT_EPSILON) {
-            $this->writeHead($tag, TarsType::ZERO);
+            $this->writeHead($tag, Type::ZERO);
         } else {
-            $this->writeHead($tag, TarsType::FLOAT);
+            $this->writeHead($tag, Type::FLOAT);
             fwrite($this->buffer, pack('G', $value));
             $this->length += 4;
         }
@@ -154,9 +155,9 @@ class TarsOutputStream implements TarsOutputStreamInterface
     public function writeDouble(int $tag, float $value): void
     {
         if ($value < PHP_FLOAT_EPSILON && $value > -PHP_FLOAT_EPSILON) {
-            $this->writeHead($tag, TarsType::ZERO);
+            $this->writeHead($tag, Type::ZERO);
         } else {
-            $this->writeHead($tag, TarsType::DOUBLE);
+            $this->writeHead($tag, Type::DOUBLE);
             fwrite($this->buffer, pack('E', $value));
             $this->length += 8;
         }
@@ -167,11 +168,11 @@ class TarsOutputStream implements TarsOutputStreamInterface
         $len = strlen($value);
 
         if ($len <= TarsConst::MAX_STRING1_LEN) {
-            $this->writeHead($tag, TarsType::STRING1);
+            $this->writeHead($tag, Type::STRING1);
             fwrite($this->buffer, chr($len));
             ++$this->length;
         } else {
-            $this->writeHead($tag, TarsType::STRING4);
+            $this->writeHead($tag, Type::STRING4);
             fwrite($this->buffer, pack('N', $len));
             $this->length += 4;
         }
@@ -181,7 +182,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
 
     public function writeStruct(int $tag, object $value, StructType $structType): void
     {
-        $this->writeHead($tag, TarsType::STRUCT_BEGIN);
+        $this->writeHead($tag, Type::STRUCT_BEGIN);
         foreach ($structType->getFields() as $field) {
             $fieldValue = $value->{$field->getName()};
             if (null === $fieldValue && !$field->isRequired()) {
@@ -189,25 +190,25 @@ class TarsOutputStream implements TarsOutputStreamInterface
             }
             $this->write($field->getTag(), $fieldValue, $field->getType());
         }
-        $this->writeHead(0, TarsType::STRUCT_END);
+        $this->writeHead(0, Type::STRUCT_END);
     }
 
     public function writeVector(int $tag, $value, VectorType $vectorType): void
     {
         if ($vectorType->getSubType()->isPrimitive()
-            && TarsType::INT8 === $vectorType->getSubType()->getTarsType()) {
+            && Type::INT8 === $vectorType->getSubType()->getTarsType()) {
             if (!is_string($value)) {
-                throw TarsException::typeNotMatch('expect string, got '.gettype($value));
+                throw TarsStreamException::typeNotMatch('expect string, got '.gettype($value));
             }
-            $this->writeHead($tag, TarsType::SIMPLE_LIST);
-            $this->writeHead(0, TarsType::INT8);
+            $this->writeHead($tag, Type::SIMPLE_LIST);
+            $this->writeHead(0, Type::INT8);
             $len = strlen($value);
             $this->writeInt32(0, $len);
             fwrite($this->buffer, $value);
             $this->length += $len;
         } else {
             $cnt = count($value);
-            $this->writeHead($tag, TarsType::VECTOR);
+            $this->writeHead($tag, Type::VECTOR);
             $this->writeInt32(0, $cnt);
             foreach ($value as $item) {
                 $this->write(0, $item, $vectorType->getSubType());
@@ -219,10 +220,10 @@ class TarsOutputStream implements TarsOutputStreamInterface
     {
         /** @var mixed $value */
         if (!is_array($value) && !($value instanceof StructMap)) {
-            throw TarsException::typeNotMatch('Expect array or StructMap, got '.gettype($value));
+            throw TarsStreamException::typeNotMatch('Expect array or StructMap, got '.gettype($value));
         }
         $cnt = count($value);
-        $this->writeHead($tag, TarsType::MAP);
+        $this->writeHead($tag, Type::MAP);
         $this->writeInt32(0, $cnt);
 
         if (is_array($value)) {
@@ -247,29 +248,29 @@ class TarsOutputStream implements TarsOutputStreamInterface
         if ($type->isPrimitive()) {
             // todo 检查类型
             switch ($type->asPrimitiveType()->getTarsType()) {
-                case TarsType::INT8:
+                case Type::INT8:
                     $this->writeInt8($tag, (int) ($value ?? 0));
                     break;
-                case TarsType::INT16:
+                case Type::INT16:
                     $this->writeInt16($tag, (int) ($value ?? 0));
                     break;
-                case TarsType::INT32:
+                case Type::INT32:
                     $this->writeInt32($tag, (int) ($value ?? 0));
                     break;
-                case TarsType::INT64:
+                case Type::INT64:
                     $this->writeInt64($tag, (int) ($value ?? 0));
                     break;
-                case TarsType::FLOAT:
+                case Type::FLOAT:
                     $this->writeFloat($tag, (int) ($value ?? 0));
                     break;
-                case TarsType::DOUBLE:
+                case Type::DOUBLE:
                     $this->writeDouble($tag, (int) ($value ?? 0));
                     break;
-                case TarsType::STRING4:
+                case Type::STRING4:
                     $this->writeString($tag, (string) ($value ?? ''));
                     break;
                 default:
-                    throw TarsException::typeNotMatch('unknown primitive type '.$type);
+                    throw TarsStreamException::typeNotMatch('unknown primitive type '.$type);
             }
         } elseif ($type->isEnum()) {
             if (null === $value) {
@@ -280,7 +281,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             } elseif (is_object($value) && ($value instanceof Enum)) {
                 $this->writeInt64($tag, $value->value());
             } else {
-                throw TarsException::typeNotMatch('Expect enum value, got '.gettype($value));
+                throw TarsStreamException::typeNotMatch('Expect enum value, got '.gettype($value));
             }
         } elseif ($type->isVector()) {
             $this->writeVector($tag, $value ?? [], $type->asVectorType());
@@ -293,7 +294,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             }
             $this->writeStruct($tag, $value, $type->asStructType());
         } else {
-            throw TarsException::typeNotMatch('Expect type one of primitive,enum,struct,vector,map, got '.get_class($type));
+            throw TarsStreamException::typeNotMatch('Expect type one of primitive,enum,struct,vector,map, got '.get_class($type));
         }
     }
 

@@ -36,7 +36,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
      */
     public function generate(string $interfaceName, array $context = []): GeneratedClass
     {
-        $phpClass = $this->createClassGenerator($interfaceName);
+        $phpClass = $this->createClassGenerator($interfaceName, $context);
 
         $className = ltrim($phpClass->getNamespaceName().'\\'.$phpClass->getName(), '\\');
         self::$PROXY_INTERFACES[$className] = $interfaceName;
@@ -99,7 +99,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
     /**
      * @throws \ReflectionException
      */
-    public function createClassGenerator(string $interfaceName): ClassGenerator
+    protected function createClassGenerator(string $interfaceName, array $context = []): ClassGenerator
     {
         $class = new \ReflectionClass($interfaceName);
         if (!$class->isInterface()) {

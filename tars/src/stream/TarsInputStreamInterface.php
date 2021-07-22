@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace kuiper\tars\stream;
 
-use kuiper\tars\protocol\type\MapType;
-use kuiper\tars\protocol\type\StructMap;
-use kuiper\tars\protocol\type\StructType;
-use kuiper\tars\protocol\type\Type;
-use kuiper\tars\protocol\type\VectorType;
+use kuiper\tars\type\MapType;
+use kuiper\tars\type\StructMap;
+use kuiper\tars\type\StructType;
+use kuiper\tars\type\Type;
+use kuiper\tars\type\VectorType;
 
 interface TarsInputStreamInterface
 {

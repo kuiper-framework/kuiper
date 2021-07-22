@@ -46,6 +46,7 @@
         "swoft/swoole-ide-helper": "^4.4",
         "symfony/cache": "^5.1",
         "symfony/serializer": "^5.0",
+        "symfony/validator": "^5.3",
         "tedivm/stash": "^0.16.0",
         "twig/twig": "^3.0",
         "vlucas/phpdotenv": "^5.0",

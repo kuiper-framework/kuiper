@@ -6,7 +6,9 @@ namespace kuiper\serializer;
 
 use kuiper\annotations\AnnotationReader;
 use kuiper\helper\Enum;
+use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\serializer\fixtures\Company;
+use kuiper\serializer\fixtures\Customer;
 use kuiper\serializer\fixtures\Gender;
 use kuiper\serializer\fixtures\Member;
 use kuiper\serializer\fixtures\Organization;
@@ -21,7 +23,7 @@ class SerializerTest extends TestCase
 {
     public function createSerializer()
     {
-        return new Serializer(AnnotationReader::getInstance(), new DocReader(), [
+        return new Serializer(AnnotationReader::getInstance(), new ReflectionDocBlockFactory(), [
             \DateTime::class => new DateTimeNormalizer(),
             Enum::class => new EnumNormalizer(),
         ]);
@@ -156,5 +158,13 @@ class SerializerTest extends TestCase
             ->setGender(Gender::MALE());
 
         return $user;
+    }
+
+    public function testStrictType()
+    {
+        $serializer = $this->createSerializer();
+        $customer = $serializer->denormalize(['id' => '1'], Customer::class);
+        // print_r($customer);
+        $this->assertInstanceOf(Customer::class, $customer);
     }
 }

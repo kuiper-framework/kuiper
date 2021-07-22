@@ -14,6 +14,12 @@ class TarsConst
     public const MIN_INT32 = -2147483648;
     public const MAX_INT32 = 2147483647;
     public const MAX_STRING1_LEN = 255;
+    public const PACKET_TYPE = 0;
+    public const MESSAGE_TYPE = 0;
+    public const VERSION = 3;
+    public const TIMEOUT = 2000;
+    public const RESULT_CODE = '__CODE';
+    public const RESULT_DESC = '__DESC';
 
     public static function check(): void
     {
