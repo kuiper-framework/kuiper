@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
-use kuiper\rpc\HasRequestIdInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
 use kuiper\rpc\RpcRpcResponse;
@@ -33,7 +32,7 @@ class JsonRpcServerResponseFactory implements RpcServerResponseFactoryInterface
      */
     public function createResponse(RpcRequestInterface $request): RpcResponseInterface
     {
-        Assert::isInstanceOf($request, HasRequestIdInterface::class);
+        Assert::isInstanceOf($request, JsonRpcRequestInterface::class);
         $response = $this->httpResponseFactory->createResponse();
         /* @var JsonRpcRequestInterface $request */
         $response->getBody()->write(json_encode([

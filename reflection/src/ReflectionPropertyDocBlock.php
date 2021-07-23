@@ -7,7 +7,7 @@ namespace kuiper\reflection;
 class ReflectionPropertyDocBlock implements ReflectionPropertyDocBlockInterface
 {
     /**
-     * \ReflectionProperty.
+     * @var \ReflectionProperty
      */
     private $property;
 

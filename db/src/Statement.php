@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use Aura\SqlQuery\Common\DeleteInterface;
+use Aura\SqlQuery\Common\Insert;
 use Aura\SqlQuery\Common\InsertInterface;
+use Aura\SqlQuery\Common\Select;
 use Aura\SqlQuery\Common\SelectInterface;
+use Aura\SqlQuery\Common\Update;
 use Aura\SqlQuery\Common\UpdateInterface;
+use Aura\SqlQuery\Common\WhereInterface;
 use Aura\SqlQuery\QueryInterface;
 use kuiper\db\event\StatementQueriedEvent;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -15,10 +19,11 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 /**
  * Interface StatementInterface.
  *
- * @method leftJoin(string $table, string $cond): StatementInterface
- * @method bindValues(array $bindValues): StatementInterface
- * @method union(): StatementInterface
- * @method unionAll(): StatementInterface
+ * @method $this leftJoin(string $table, string $cond)
+ * @method $this bindValues(array $bindValues)
+ * @method $this set(string $column, string $expression)
+ * @method $this union()
+ * @method $this unionAll()
  */
 class Statement implements StatementInterface
 {
@@ -41,7 +46,7 @@ class Statement implements StatementInterface
     protected $eventDispatcher;
 
     /**
-     * @var ConnectionInterface
+     * @var ConnectionInterface|null
      */
     protected $connection;
 
@@ -90,20 +95,23 @@ class Statement implements StatementInterface
 
     public function close(): void
     {
-        if ($this->pdoStatement) {
+        if (null !== $this->pdoStatement) {
             $this->pdoStatement->closeCursor();
             $this->pdoStatement = null;
         }
-        if ($this->connection) {
+        if (null !== $this->connection) {
             $this->connection = null;
         }
     }
 
-    public function table(string $table): StatementInterface
+    /**
+     * @return static
+     */
+    public function table(string $table)
     {
         $this->table = $table;
         if ($this->query instanceof SelectInterface || $this->query instanceof DeleteInterface) {
-            $this->query->from($table.($this->tableAlias ? ' as '.$this->tableAlias : ''));
+            $this->query->from($table.(null !== $this->tableAlias ? ' as '.$this->tableAlias : ''));
         } elseif ($this->query instanceof UpdateInterface) {
             $this->query->table($table);
         } elseif ($this->query instanceof InsertInterface) {
@@ -120,21 +128,31 @@ class Statement implements StatementInterface
         return $this->table;
     }
 
-    public function useIndex(string $indexName): StatementInterface
+    /**
+     * @return static
+     */
+    public function useIndex(string $indexName)
     {
-        if (!$this->query instanceof SelectInterface) {
-            throw new \InvalidArgumentException('Cannot not call use index for '.get_class($this->query));
+        $query = $this->query;
+        if (!$query instanceof SelectInterface) {
+            throw new \InvalidArgumentException('Cannot not call use index for '.get_class($query));
         }
-        $this->query->resetTables();
-        $this->query->fromRaw($this->getTableName().($this->tableAlias ? ' as '.$this->tableAlias : '')
+        /* @var Select $query */
+        $query->resetTables();
+        $query->fromRaw($this->getTableName().(null !== $this->tableAlias ? ' as '.$this->tableAlias : '')
             ." use index ({$indexName})");
 
         return $this;
     }
 
-    public function tableAlias(string $alias): StatementInterface
+    /**
+     * @return static
+     */
+    public function tableAlias(string $alias)
     {
-        $this->query->resetTables();
+        /** @var Select $query */
+        $query = $this->query;
+        $query->resetTables();
         $this->tableAlias = $alias;
         $this->table($this->getTableName());
 
@@ -144,10 +162,12 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function select(...$columns): StatementInterface
+    public function select(...$columns)
     {
-        $this->query->resetCols();
-        $this->query->cols($columns);
+        /** @var Select $query */
+        $query = $this->query;
+        $query->resetCols();
+        $query->cols($columns);
 
         return $this;
     }
@@ -155,7 +175,7 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function where($condition, ...$args): StatementInterface
+    public function where($condition, ...$args)
     {
         if (is_string($condition)) {
             call_user_func_array([$this->query, 'WHERE'], func_get_args());
@@ -171,7 +191,7 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function bindValue(string $name, $value): StatementInterface
+    public function bindValue(string $name, $value)
     {
         $this->query->bindValue($name, $value);
 
@@ -181,7 +201,7 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function orWhere($condition, ...$args): StatementInterface
+    public function orWhere($condition, ...$args)
     {
         if (is_string($condition)) {
             call_user_func_array([$this->query, 'orWhere'], func_get_args());
@@ -197,65 +217,67 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function like(string $field, string $value): StatementInterface
+    public function like(string $column, string $value)
     {
-        return $this->where($field.' LIKE ?', $value);
+        return $this->where($column.' LIKE ?', $value);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function in(string $field, array $values): StatementInterface
+    public function in(string $column, array $values)
     {
         if (empty($values)) {
             throw new \InvalidArgumentException('Cannot bind empty value for in statment');
         }
 
-        return $this->addInWhere($field, $values);
+        return $this->addInWhere($column, $values);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function orIn(string $field, array $values): StatementInterface
+    public function orIn(string $column, array $values)
     {
         if (empty($values)) {
             throw new \InvalidArgumentException('Cannot bind empty value for in statment');
         }
 
-        return $this->addInWhere($field, $values, self::OPERATOR_OR);
+        return $this->addInWhere($column, $values, self::OPERATOR_OR);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function notIn(string $field, array $values): StatementInterface
+    public function notIn(string $column, array $values)
     {
         if (empty($values)) {
             throw new \InvalidArgumentException('Cannot bind empty value for in statment');
         }
 
-        return $this->addInWhere($field, $values, self::OPERATOR_AND, 'not IN');
+        return $this->addInWhere($column, $values, self::OPERATOR_AND, 'not IN');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function orNotIn(string $field, array $values): StatementInterface
+    public function orNotIn(string $column, array $values)
     {
         if (empty($values)) {
             throw new \InvalidArgumentException('Cannot bind empty value for in statment');
         }
 
-        return $this->addInWhere($field, $values, self::OPERATOR_OR, 'not IN');
+        return $this->addInWhere($column, $values, self::OPERATOR_OR, 'not IN');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function cols(array $values): StatementInterface
+    public function cols(array $values)
     {
-        $this->query->cols($values);
+        /** @var Insert|Update $query */
+        $query = $this->query;
+        $query->cols($values);
 
         return $this;
     }
@@ -263,9 +285,11 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function addRow(array $values = []): StatementInterface
+    public function addRow(array $values = [])
     {
-        $this->query->addRow($values);
+        /** @var Insert $query */
+        $query = $this->query;
+        $query->addRow($values);
 
         return $this;
     }
@@ -273,9 +297,11 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function limit($limit): StatementInterface
+    public function limit(int $limit)
     {
-        $this->query->limit($limit);
+        /** @var Select $query */
+        $query = $this->query;
+        $query->limit($limit);
 
         return $this;
     }
@@ -283,7 +309,7 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function offset($offset): StatementInterface
+    public function offset(int $offset)
     {
         if (method_exists($this->query, 'offset')) {
             $this->query->offset($offset);
@@ -295,12 +321,14 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function orderBy(array $orderSpec): StatementInterface
+    public function orderBy(array $orderSpec)
     {
+        /** @var Select $query */
+        $query = $this->query;
         if (empty($orderSpec)) {
-            $this->query->resetOrderBy();
+            $query->resetOrderBy();
         } else {
-            $this->query->orderBy($orderSpec);
+            $query->orderBy($orderSpec);
         }
 
         return $this;
@@ -309,12 +337,14 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function groupBy(array $columns): StatementInterface
+    public function groupBy(array $columns)
     {
+        /** @var Select $query */
+        $query = $this->query;
         if (empty($columns)) {
-            $this->query->resetGroupBy();
+            $query->resetGroupBy();
         } else {
-            $this->query->groupBy($columns);
+            $query->groupBy($columns);
         }
 
         return $this;
@@ -331,14 +361,17 @@ class Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function query(): StatementInterface
+    public function query()
     {
         $this->doQuery();
 
         return $this;
     }
 
-    public function __call($method, $args)
+    /**
+     * @return static
+     */
+    public function __call(string $method, array $args)
     {
         call_user_func_array([$this->query, $method], $args);
 
@@ -395,7 +428,7 @@ class Statement implements StatementInterface
         return $this->pdoStatement->fetchColumn($columnNumber);
     }
 
-    public function fetchAll(int $fetchStyle = null)
+    public function fetchAll(int $fetchStyle = null): array
     {
         $this->checkPdoStatement();
 
@@ -436,7 +469,7 @@ class Statement implements StatementInterface
         return @$this->pdoStatement->execute($this->query->getBindValues());
     }
 
-    protected function addWhere(array $condition, $op = self::OPERATOR_AND): void
+    protected function addWhere(array $condition, string $op = self::OPERATOR_AND): void
     {
         foreach ($condition as $key => $value) {
             if (is_array($value)) {
@@ -453,22 +486,29 @@ class Statement implements StatementInterface
             }, array_keys($condition))).')';
             $args = array_values($condition);
             array_unshift($args, $cond);
+            /** @var WhereInterface $query */
+            $query = $this->query;
             if (self::OPERATOR_AND === $op) {
-                $this->query->where(...$args);
+                $query->where(...$args);
             } else {
-                $this->query->orWhere(...$args);
+                $query->orWhere(...$args);
             }
         }
     }
 
-    protected function addInWhere($field, array $values, $op = self::OPERATOR_AND, $in = 'IN'): self
+    /**
+     * @return static
+     */
+    protected function addInWhere(string $field, array $values, string $op = self::OPERATOR_AND, string $in = 'IN')
     {
         if (!empty($values)) {
             $condition = sprintf('%s %s (%s)', $field, $in, implode(',', array_fill(0, count($values), '?')));
+            /** @var WhereInterface $query */
+            $query = $this->query;
             if (self::OPERATOR_AND === $op) {
-                $this->query->where($condition, ...$values);
+                $query->where($condition, ...$values);
             } else {
-                $this->query->orWhere($condition, ...$values);
+                $query->orWhere($condition, ...$values);
             }
         }
 

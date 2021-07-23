@@ -22,8 +22,6 @@ class AbstractDateTimeConverter implements AttributeConverterInterface
 
     /**
      * {@inheritdoc}
-     *
-     * @param \DateTimeInterface|string $attribute
      */
     public function convertToDatabaseColumn($attribute, Column $column)
     {

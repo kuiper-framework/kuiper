@@ -63,9 +63,9 @@ class Column implements ColumnInterface
         $this->naturalId = $property->hasAnnotation(NaturalId::class);
         $this->creationTimestamp = $property->hasAnnotation(CreationTimestamp::class);
         $this->updateTimestamp = $property->hasAnnotation(UpdateTimestamp::class);
-        /** @var GeneratedValue $generatedValue */
+        /** @var GeneratedValue|null $generatedValue */
         $generatedValue = $property->getAnnotation(GeneratedValue::class);
-        if ($generatedValue) {
+        if (null !== $generatedValue) {
             $this->generateStrategy = $generatedValue->value;
         }
     }
@@ -85,7 +85,10 @@ class Column implements ColumnInterface
         return $this->property->getPath();
     }
 
-    public function getValue($entity)
+    /**
+     * @return mixed
+     */
+    public function getValue(object $entity)
     {
         $value = $this->property->getValue($entity);
         if ($this->isNull($value)) {
@@ -95,7 +98,10 @@ class Column implements ColumnInterface
         return $this->converter->convertToDatabaseColumn($value, $this);
     }
 
-    public function setValue($entity, $value): void
+    /**
+     * @param mixed $value
+     */
+    public function setValue(object $entity, $value): void
     {
         $attributeValue = isset($value) ? $this->converter->convertToEntityAttribute($value, $this) : null;
         $this->property->setValue($entity, $attributeValue);
@@ -136,6 +142,9 @@ class Column implements ColumnInterface
         return $this->updateTimestamp;
     }
 
+    /**
+     * @param mixed $value
+     */
     private function isNull($value): bool
     {
         return !isset($value) || $value instanceof NullValue;

@@ -98,7 +98,7 @@ class DbConfiguration implements DefinitionConfiguration
         EventDispatcherInterface $eventDispatcher,
         array $config): ConnectionPoolInterface
     {
-        return new ConnectionPool($poolFactory->create('db', function () use ($eventDispatcher, $config) {
+        return new ConnectionPool($poolFactory->create('db', function () use ($eventDispatcher, $config): ConnectionInterface {
             return $this->connection($eventDispatcher, $config);
         }));
     }

@@ -14,8 +14,14 @@ class CacheItem extends Item
      */
     private $isSet = false;
 
+    /**
+     * @var int
+     */
     protected $invalidationMethod = Invalidation::NONE;
 
+    /**
+     * {@inheritDoc}
+     */
     public function setKey(array $key, $namespace = null): void
     {
         $this->namespace = $namespace;

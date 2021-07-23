@@ -450,7 +450,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     /**
      * {@inheritDoc}
      */
-    public function addConfiguration($configuration): ContainerBuilderInterface
+    public function addConfiguration(object $configuration): ContainerBuilderInterface
     {
         if ($configuration instanceof ContainerBuilderAwareInterface) {
             $configuration->setContainerBuilder($this);

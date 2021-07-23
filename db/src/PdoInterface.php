@@ -41,8 +41,6 @@ interface PdoInterface
 
     /**
      * Gets the most recent error code.
-     *
-     * @return mixed
      */
     public function errorCode(): string;
 

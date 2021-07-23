@@ -10,9 +10,9 @@ use kuiper\db\Criteria;
 use kuiper\db\DateTimeFactoryInterface;
 use kuiper\db\exception\MetaModelException;
 use kuiper\db\metadata\MetaModelFactoryInterface;
-use kuiper\db\StatementInterface;
 use kuiper\helper\Arrays;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Webmozart\Assert\Assert;
 
 abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
 {
@@ -77,7 +77,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
                 $this->update($partEntities[0]);
             } else {
                 $stmt = $this->buildBatchUpdateStatement($partEntities);
-                /* @var \kuiper\db\sharding\StatementInterface $stmt */
+                /* @var StatementInterface $stmt */
                 $stmt->shardBy($this->getShardFields($partEntities[0]));
                 $this->doExecute($stmt);
             }
@@ -114,7 +114,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
                 }
                 $shardFields = $this->getShardFields($partEntities[0]);
                 // 不能直接使用 Criteria 对象，因为  criteria 对象会被 filterCriteria 进行值转换
-                $result[] = $this->findAllBy(function ($stmt) use ($values, $shardFields): StatementInterface {
+                $result[] = $this->findAllBy(function ($stmt) use ($values, $shardFields): \kuiper\db\StatementInterface {
                     $stmt->shardBy($shardFields);
                     $naturalIdIndex = $this->metaModel->getNaturalIdIndex();
                     if (null !== $naturalIdIndex) {
@@ -131,10 +131,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         return Arrays::flatten($result);
     }
 
-    /**
-     * @param object $entity
-     */
-    public function getShardingId($entity): string
+    public function getShardingId(object $entity): string
     {
         $strategy = $this->cluster->getTableStrategy($this->getTableName());
         $shard = $this->getShardFields($entity);
@@ -142,22 +139,28 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         return $strategy->getDb($shard).':'.$strategy->getTable($shard, $this->getTableName());
     }
 
-    protected function doExecute(StatementInterface $stmt): void
+    protected function doExecute(\kuiper\db\StatementInterface $stmt): void
     {
+        Assert::isInstanceOf($stmt, StatementInterface::class);
+        /* @var StatementInterface $stmt */
         $this->checkShardFields($stmt);
 
         parent::doExecute($stmt);
     }
 
-    protected function doQuery(StatementInterface $stmt): StatementInterface
+    protected function doQuery(\kuiper\db\StatementInterface $stmt): \kuiper\db\StatementInterface
     {
+        Assert::isInstanceOf($stmt, StatementInterface::class);
+        /* @var StatementInterface $stmt */
         $this->checkShardFields($stmt);
 
         return parent::doQuery($stmt);
     }
 
-    protected function buildStatementByCriteria(StatementInterface $stmt, Criteria $criteria): StatementInterface
+    protected function buildStatementByCriteria(\kuiper\db\StatementInterface $stmt, Criteria $criteria): \kuiper\db\StatementInterface
     {
+        Assert::isInstanceOf($stmt, StatementInterface::class);
+        /* @var StatementInterface $stmt */
         $stmt->shardBy($criteria->getBindValues());
 
         return parent::buildStatementByCriteria($stmt, $criteria);
@@ -173,10 +176,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         }
     }
 
-    /**
-     * @param object $entity
-     */
-    protected function getShardFields($entity): array
+    protected function getShardFields(object $entity): array
     {
         $this->checkEntityClassMatch($entity);
         $shard = [];

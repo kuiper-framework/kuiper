@@ -57,17 +57,13 @@ interface SessionInterface extends \ArrayAccess, \Iterator
 
     /**
      * Destroys the active session.
-     *
-     * @param bool $removeData
      */
-    public function destroy($removeData = false): bool;
+    public function destroy(bool $removeData = false): bool;
 
     /**
      * Regenerate session's id.
-     *
-     * @param bool $deleteOldSession
      */
-    public function regenerateId($deleteOldSession = true): void;
+    public function regenerateId(bool $deleteOldSession = true): void;
 
     public function setCookie(ResponseInterface $response): ResponseInterface;
 }

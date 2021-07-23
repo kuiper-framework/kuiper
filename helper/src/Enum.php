@@ -7,25 +7,31 @@ namespace kuiper\helper;
 /**
  * enum class.
  *
- * @property string name
- * @property mixed value
+ * @property string $name
+ * @property mixed  $value
  */
 abstract class Enum implements \JsonSerializable
 {
     /**
      * key = className
      * value = array which key is enum value.
+     *
+     * @var array
      */
     private static $VALUES = [];
 
     /**
      * key = className
      * value = array which key is enum name.
+     *
+     * @var array
      */
     private static $NAMES = [];
 
     /**
      * properties for enum instances.
+     *
+     * @var array
      */
     protected static $PROPERTIES = [];
 
@@ -90,27 +96,34 @@ abstract class Enum implements \JsonSerializable
     /**
      * Gets properties.
      *
-     * @param string $name
-     *
      * @return mixed
      */
-    public function __get($name)
+    public function __get(string $name)
     {
         if (isset(static::$PROPERTIES[$name])) {
             return static::$PROPERTIES[$name][$this->value] ?? null;
         }
 
         if (property_exists($this, $name)) {
+            /* @phpstan-ignore-next-line */
             return $this->$name;
         }
 
         throw new \InvalidArgumentException('Undefined property: '.get_class($this).'::$'.$name);
     }
 
-    public function __isset($name)
+    /**
+     * @param mixed $value
+     */
+    public function __set(string $name, $value): void
     {
-        return isset(static::$PROPERTIES[$name][$this->value])
-            || isset($this->$name);
+        throw new \InvalidArgumentException('Cannot modified enum object '.get_class($this));
+    }
+
+    public function __isset(string $name): bool
+    {
+        /* @phpstan-ignore-next-line */
+        return isset(static::$PROPERTIES[$name][$this->value]) || isset($this->$name);
     }
 
     /**

@@ -227,7 +227,7 @@ class MetaModelProperty
         $ancestors = [];
         $metaProperty = $this->parent;
         while (null !== $metaProperty) {
-            if (!$metaProperty->modelClass) {
+            if (null === $metaProperty->modelClass) {
                 if (!$metaProperty->type->isClass()) {
                     throw new MetaModelException($metaProperty->type.' not class');
                 }

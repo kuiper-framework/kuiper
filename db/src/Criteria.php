@@ -34,7 +34,7 @@ class Criteria
     private $columns = [];
 
     /**
-     * @var CriteriaClauseInterface
+     * @var CriteriaClauseInterface|null
      */
     private $clause;
 
@@ -63,7 +63,7 @@ class Criteria
      */
     private $bindValues = [];
 
-    private function __construct()
+    final private function __construct()
     {
     }
 
@@ -77,6 +77,9 @@ class Criteria
         return $criteria;
     }
 
+    /**
+     * @param string ...$columns
+     */
     public function select(...$columns): self
     {
         $this->columns = $columns;
@@ -100,6 +103,9 @@ class Criteria
         return $this;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function where(string $column, $value, string $op = self::OPERATOR_EQUAL): self
     {
         if (self::OPERATOR_EQUAL === $op) {
@@ -109,16 +115,25 @@ class Criteria
         return $this->merge(new ExpressionClause($column, $op, $value));
     }
 
+    /**
+     * @param mixed ...$bindValues
+     */
     public function expression(string $expression, ...$bindValues): self
     {
         return $this->merge(new RawClause($expression, $bindValues));
     }
 
+    /**
+     * @param mixed $value
+     */
     public function like(string $column, $value): self
     {
         return $this->where($column, $value, self::OPERATOR_LIKE);
     }
 
+    /**
+     * @param mixed $value
+     */
     public function notLike(string $column, $value): self
     {
         return $this->where($column, $value, self::OPERATOR_NOT_LIKE);
@@ -142,6 +157,9 @@ class Criteria
         return $this->where($column, $value, self::OPERATOR_NOT_IN);
     }
 
+    /**
+     * @param mixed $value
+     */
     public function orWhere(string $column, $value, string $op = self::OPERATOR_EQUAL): self
     {
         return $this->merge(new ExpressionClause($column, $op, $value), false);
@@ -149,7 +167,7 @@ class Criteria
 
     public function or(Criteria $criteria): self
     {
-        if ($criteria->getClause()) {
+        if (null !== $criteria->getClause()) {
             $this->merge($criteria->getClause(), false);
         }
 
@@ -158,7 +176,7 @@ class Criteria
 
     public function and(Criteria $criteria): self
     {
-        if ($criteria->getClause()) {
+        if (null !== $criteria->getClause()) {
             $this->merge($criteria->getClause());
         }
 
@@ -167,7 +185,7 @@ class Criteria
 
     public function not(Criteria $criteria): self
     {
-        if ($criteria->clause) {
+        if (null !== $criteria->clause) {
             $this->merge(new NotClause($criteria->getClause()));
         }
 
@@ -228,9 +246,9 @@ class Criteria
         return $this->merge($match->getClause());
     }
 
-    private function merge(CriteriaClauseInterface $clause, $and = true): self
+    private function merge(CriteriaClauseInterface $clause, bool $and = true): self
     {
-        if ($this->clause) {
+        if (null !== $this->clause) {
             $this->clause = $and ? new AndClause($this->clause, $clause)
                 : new OrClause($this->clause, $clause);
         } else {
@@ -242,8 +260,6 @@ class Criteria
 
     /**
      * @param Sort[] $columns
-     *
-     * @return static
      */
     public function orderBy(array $columns): self
     {
@@ -299,7 +315,7 @@ class Criteria
 
     public function getQuery(): array
     {
-        if (empty($this->clause)) {
+        if (null === $this->clause) {
             return ['1=1'];
         }
 
@@ -317,7 +333,7 @@ class Criteria
     public function filter($filter): self
     {
         $copy = clone $this;
-        if ($copy->clause) {
+        if (null !== $copy->clause) {
             $copy->clause = $this->filterClause($copy->clause, $filter);
         }
 
@@ -328,27 +344,27 @@ class Criteria
     {
         $copy = clone $this;
 
-        if ($this->columns) {
+        if (!empty($this->columns)) {
             $copy->columns = array_map(static function (string $column) use ($columnAlias) {
                 return $columnAlias[$column] ?? $column;
             }, $this->columns);
         }
 
-        if ($this->groupBy) {
+        if (!empty($this->groupBy)) {
             $copy->groupBy = array_map(static function (string $column) use ($columnAlias) {
                 return $columnAlias[$column] ?? $column;
             }, $this->groupBy);
         }
 
-        if ($this->orderBy) {
-            $copy->orderBy = array_map(static function (Sort $sort) use ($columnAlias) {
+        if (!empty($this->orderBy)) {
+            $copy->orderBy = array_map(static function (Sort $sort) use ($columnAlias): Sort {
                 return isset($columnAlias[$sort->getColumn()])
                     ? Sort::of($columnAlias[$sort->getColumn()], $sort->getDirection())
                     : $sort;
             }, $this->orderBy);
         }
 
-        if ($this->bindValues) {
+        if (!empty($this->bindValues)) {
             $copy->bindValues = [];
             foreach ($this->bindValues as $name => $value) {
                 $copy->bindValues[$columnAlias[$name] ?? $name] = $value;
@@ -361,19 +377,19 @@ class Criteria
     public function buildStatement(StatementInterface $stmt): StatementInterface
     {
         $stmt->where(...$this->getQuery());
-        if ($this->columns) {
+        if (!empty($this->columns)) {
             $stmt->select(...$this->getColumns());
         }
         if (isset($this->limit)) {
             $stmt->limit($this->getLimit())
                 ->offset($this->getOffset());
         }
-        if ($this->orderBy) {
-            $stmt->orderBy(array_map(static function (Sort $sort) {
+        if (!empty($this->orderBy)) {
+            $stmt->orderBy(array_map(static function (Sort $sort): string {
                 return (string) $sort;
             }, $this->getOrderBy()));
         }
-        if ($this->groupBy) {
+        if (!empty($this->groupBy)) {
             $stmt->groupBy($this->getGroupBy());
         }
 
@@ -423,6 +439,9 @@ class Criteria
         throw new \InvalidArgumentException('unknown conditions type '.get_class($clause));
     }
 
+    /**
+     * @param callable|CriteriaFilterInterface $callback
+     */
     private function filterClause(CriteriaClauseInterface $clause, $callback): CriteriaClauseInterface
     {
         if ($clause instanceof LogicClause) {

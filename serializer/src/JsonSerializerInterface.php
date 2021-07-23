@@ -14,7 +14,7 @@ interface JsonSerializerInterface
      *
      * @throws exception\SerializeException
      */
-    public function toJson($data, $options = 0): string;
+    public function toJson($data, int $options = 0): string;
 
     /**
      * Converts json to object.

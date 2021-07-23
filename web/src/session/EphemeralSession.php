@@ -63,6 +63,11 @@ class EphemeralSession implements SessionInterface
         return $response;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return false|mixed
+     */
     public function current()
     {
         return current($this->data);
@@ -76,16 +81,27 @@ class EphemeralSession implements SessionInterface
         next($this->data);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return mixed
+     */
     public function key()
     {
         return key($this->data);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function valid(): bool
     {
         return null !== key($this->data);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function rewind(): void
     {
         reset($this->data);

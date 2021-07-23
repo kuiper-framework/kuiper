@@ -7,102 +7,107 @@ namespace kuiper\db;
 /**
  * Interface StatementInterface.
  *
- * @method leftJoin(string $table, string $cond): StatementInterface
- * @method bindValues(array $bindValues): StatementInterface
- * @method getStatement(): string
- * @method getBindValues(): array
- * @method union(): StatementInterface
- * @method unionAll(): StatementInterface
+ * @method $this  leftJoin(string $table, string $cond)
+ * @method $this  bindValues(array $bindValues)
+ * @method $this  set(string $column, string $expression)
+ * @method string getStatement()
+ * @method array  getBindValues()
+ * @method $this  union()
+ * @method $this  unionAll()
  */
 interface StatementInterface
 {
     /**
      * Sets table alias.
+     *
+     * @return static
      */
-    public function tableAlias(string $alias): StatementInterface;
+    public function tableAlias(string $alias);
 
     /**
      * @param array $columns
      *
      * @return static
      */
-    public function select(...$columns): StatementInterface;
+    public function select(...$columns);
 
     /**
-     * @param string|array $condition
-     * @param array        $args
+     * @param string|array|mixed $condition
+     * @param array              $args
      *
      * @return static
      */
-    public function where($condition, ...$args): StatementInterface;
+    public function where($condition, ...$args);
 
     /**
      * @param mixed $value
-     */
-    public function bindValue(string $name, $value): StatementInterface;
-
-    /**
-     * @param string|array $condition
-     * @param array        $args
      *
      * @return static
      */
-    public function orWhere($condition, ...$args): StatementInterface;
+    public function bindValue(string $name, $value);
+
+    /**
+     * @param string|array|mixed $condition
+     * @param array              $args
+     *
+     * @return static
+     */
+    public function orWhere($condition, ...$args);
 
     /**
      * @return static
      */
-    public function like(string $column, string $value): StatementInterface;
+    public function like(string $column, string $value);
 
     /**
      * @return static
      */
-    public function in(string $column, array $values): StatementInterface;
+    public function in(string $column, array $values);
 
     /**
      * @return static
      */
-    public function orIn(string $column, array $values): StatementInterface;
+    public function orIn(string $column, array $values);
 
     /**
      * @return static
      */
-    public function notIn(string $column, array $values): StatementInterface;
+    public function notIn(string $column, array $values);
 
     /**
      * @return static
      */
-    public function orNotIn(string $column, array $values): StatementInterface;
+    public function orNotIn(string $column, array $values);
 
     /**
      * @return static
      */
-    public function limit(int $limit): StatementInterface;
+    public function limit(int $limit);
 
     /**
      * @return static
      */
-    public function offset(int $offset): StatementInterface;
+    public function offset(int $offset);
 
     /**
      * @return static
      */
-    public function orderBy(array $orderSpec): StatementInterface;
+    public function orderBy(array $orderSpec);
 
     /**
      * @return static
      */
-    public function groupBy(array $columns): StatementInterface;
+    public function groupBy(array $columns);
 
     /**
      * @return static
      */
-    public function cols(array $values): StatementInterface;
+    public function cols(array $values);
 
     /**
      * @return static
      */
-    public function addRow(array $values = []): StatementInterface;
+    public function addRow(array $values = []);
 
     /**
      * Executes statement.
@@ -111,8 +116,10 @@ interface StatementInterface
 
     /**
      * Executes query statement.
+     *
+     * @return static
      */
-    public function query(): StatementInterface;
+    public function query();
 
     /**
      * Gets affected rows.
@@ -129,9 +136,15 @@ interface StatementInterface
      */
     public function getConnection(): ConnectionInterface;
 
+    /**
+     * @return string[]|false
+     */
     public function fetch(int $fetchStyle = null);
 
+    /**
+     * @return string|false
+     */
     public function fetchColumn(int $columnNumber = 0);
 
-    public function fetchAll(int $fetchStyle = null);
+    public function fetchAll(int $fetchStyle = null): array;
 }

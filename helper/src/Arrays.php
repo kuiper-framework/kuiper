@@ -6,11 +6,17 @@ namespace kuiper\helper;
 
 class Arrays
 {
+    /**
+     * @param array|\Countable|null $arr
+     */
     public static function isEmpty($arr): bool
     {
         return !isset($arr) || 0 === count($arr);
     }
 
+    /**
+     * @param array|\Countable|null $arr
+     */
     public static function isNotEmpty($arr): bool
     {
         return isset($arr) && count($arr) > 0;
@@ -28,6 +34,7 @@ class Arrays
         foreach ($arr as $elem) {
             if (is_object($elem)) {
                 $method = 'get'.$name;
+                /* @phpstan-ignore-next-line */
                 $ret[] = $elem->$method();
             } else {
                 $ret[] = $elem[$name] ?? null;
@@ -37,10 +44,14 @@ class Arrays
         return $ret;
     }
 
-    public static function pullField($arr, $name): array
+    /**
+     * @param array|\Iterator $arr
+     */
+    public static function pullField($arr, string $name): array
     {
         $ret = [];
         foreach ($arr as $elem) {
+            /* @phpstan-ignore-next-line */
             $ret[] = $elem->$name;
         }
 
@@ -62,6 +73,7 @@ class Arrays
                 $ret[$name($elem)] = $elem;
             } elseif (is_object($elem)) {
                 $method = 'get'.$name;
+                /* @phpstan-ignore-next-line */
                 $ret[$elem->$method()] = $elem;
             } else {
                 $ret[$elem[$name] ?? null] = $elem;
@@ -71,18 +83,30 @@ class Arrays
         return $ret;
     }
 
-    public static function assocByField($arr, $name): array
+    /**
+     * @param array|\Iterator $arr
+     */
+    public static function assocByField($arr, string $name): array
     {
         return self::assoc($arr, static function ($item) use ($name) {
+            /* @phpstan-ignore-next-line */
             return $item->$name;
         });
     }
 
+    /**
+     * @param array|\Iterator $arr
+     * @param string|callable $name
+     */
     public static function toMap($arr, $name): array
     {
         return self::assoc($arr, $name);
     }
 
+    /**
+     * @param array|\Iterator $arr
+     * @param string|callable $groupBy
+     */
     public static function groupBy($arr, $groupBy): array
     {
         $ret = [];
@@ -91,6 +115,7 @@ class Arrays
                 $key = $groupBy($elem);
             } elseif (is_object($elem)) {
                 $method = 'get'.$groupBy;
+                /** @phpstan-ignore-next-line */
                 $key = $elem->$method();
             } else {
                 $key = $elem[$groupBy] ?? null;
@@ -105,10 +130,14 @@ class Arrays
         return $ret;
     }
 
-    public static function groupByField($arr, $groupBy): array
+    /**
+     * @param array|\Iterator $arr
+     */
+    public static function groupByField($arr, string $groupBy): array
     {
         $ret = [];
         foreach ($arr as $elem) {
+            /** @phpstan-ignore-next-line */
             $key = $elem->$groupBy;
             if (null === $key || is_scalar($key)) {
                 $ret[$key][] = $elem;
@@ -172,7 +201,7 @@ class Arrays
     /**
      * Create array with given keys.
      *
-     * @param array|object $arr
+     * @param mixed $arr
      */
     public static function select($arr, array $includedKeys): array
     {
@@ -181,6 +210,7 @@ class Arrays
             foreach ($includedKeys as $name) {
                 $method = 'get'.$name;
                 if (method_exists($arr, $method)) {
+                    /* @phpstan-ignore-next-line */
                     $ret[$name] = $arr->$method();
                 }
             }
@@ -201,11 +231,18 @@ class Arrays
         return $ret;
     }
 
+    /**
+     * Create array with given keys.
+     *
+     * @param array|object $arr
+     */
     public static function selectField($arr, array $includedKeys): array
     {
         $ret = [];
         foreach ($includedKeys as $name) {
+            /* @phpstan-ignore-next-line */
             if (isset($arr->$name)) {
+                /* @phpstan-ignore-next-line */
                 $ret[$name] = $arr->$name;
             }
         }
@@ -218,33 +255,31 @@ class Arrays
      */
     public static function filter(array $arr): array
     {
-        return array_filter($arr, static function ($elem) {
+        return array_filter($arr, static function ($elem): bool {
             return isset($elem);
         });
     }
 
     /**
-     * @param object          $bean
      * @param array|\Iterator $attributes
-     * @param bool            $onlyPublic
      *
      * @return object
      */
-    public static function assign($bean, $attributes, $onlyPublic = true)
+    public static function assign(object $bean, $attributes, bool $onlyPublic = true)
     {
-        if (null === $bean || !is_object($bean)) {
-            throw new \InvalidArgumentException("Parameter 'bean' need be an object, got ".gettype($bean));
-        }
         if ($bean instanceof \ArrayAccess) {
             foreach ($attributes as $name => $val) {
                 $bean[$name] = $val;
             }
         } else {
             $properties = get_object_vars($bean);
+            $failed = [];
             foreach ($attributes as $name => $val) {
                 if (array_key_exists($name, $properties)) {
+                    /* @phpstan-ignore-next-line */
                     $bean->{$name} = $val;
                 } elseif (method_exists($bean, $method = 'set'.Text::camelCase($name))) {
+                    /* @phpstan-ignore-next-line */
                     $bean->$method($val);
                 } elseif (!$onlyPublic) {
                     $failed[$name] = $val;
@@ -258,10 +293,8 @@ class Arrays
                             continue;
                         }
                         $property = $class->getProperty($name);
-                        if ($property) {
-                            $property->setAccessible(true);
-                            $property->setValue($bean, $val);
-                        }
+                        $property->setAccessible(true);
+                        $property->setValue($bean, $val);
                     }
                 } catch (\ReflectionException $e) {
                     trigger_error('Cannot assign attributes to bean: '.$e->getMessage());
@@ -272,17 +305,8 @@ class Arrays
         return $bean;
     }
 
-    /**
-     * @param object $bean
-     * @param bool   $includeGetters
-     * @param bool   $uncamelizeKey
-     * @param bool   $recursive
-     */
-    public static function toArray($bean, $includeGetters = true, $uncamelizeKey = false, $recursive = false): array
+    public static function toArray(object $bean, bool $includeGetters = true, bool $snakeCaseKey = false, bool $recursive = false): array
     {
-        if (null === $bean || !is_object($bean)) {
-            throw new \InvalidArgumentException("Parameter 'bean' need be an object, got ".gettype($bean));
-        }
         $properties = get_object_vars($bean);
         if ($includeGetters) {
             try {
@@ -300,23 +324,23 @@ class Arrays
                 trigger_error('Cannot convert bean to array: '.$e->getMessage());
             }
         }
-        if ($uncamelizeKey) {
+        if ($snakeCaseKey) {
             $properties = self::snakeCaseKeys($properties);
         }
         if ($recursive) {
-            $properties = self::recursiveToArray($properties, $includeGetters, $uncamelizeKey);
+            $properties = self::recursiveToArray($properties, $includeGetters, $snakeCaseKey);
         }
 
         return $properties;
     }
 
-    private static function recursiveToArray(array $values, $includeGetters, $uncamelizeKey): array
+    private static function recursiveToArray(array $values, bool $includeGetters, bool $snakeCaseKey): array
     {
         foreach ($values as $key => $val) {
             if (is_object($val)) {
-                $values[$key] = self::toArray($val, $includeGetters, $uncamelizeKey, true);
+                $values[$key] = self::toArray($val, $includeGetters, $snakeCaseKey, true);
             } elseif (is_array($val)) {
-                $values[$key] = self::recursiveToArray($val, $includeGetters, $uncamelizeKey);
+                $values[$key] = self::recursiveToArray($val, $includeGetters, $snakeCaseKey);
             }
         }
 

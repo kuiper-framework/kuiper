@@ -1,30 +1,23 @@
 <?php
 
+declare(strict_types=1);
 
 namespace kuiper\swoole;
 
-
+use kuiper\di\annotation\Command;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilder;
+use kuiper\di\ContainerFactoryInterface;
+use kuiper\helper\Properties;
 use kuiper\helper\Text;
 use Psr\Container\ContainerInterface;
-use Psr\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Command\Command as ConsoleCommand;
 use Symfony\Component\Console\CommandLoader\FactoryCommandLoader;
-use wenbinye\tars\server\Composer;
-use wenbinye\tars\server\Config;
-use wenbinye\tars\server\ConfigLoader;
-use wenbinye\tars\server\ConfigLoaderInterface;
-use wenbinye\tars\server\ContainerFactoryInterface;
-use wenbinye\tars\server\event\BootstrapEvent;
-use wenbinye\tars\server\ServerApplication;
-use wenbinye\tars\server\ServerStartCommand;
-use function wenbinye\tars\server\;
 
 class Application
 {
-    public const APP_NAME = 'tars-app';
+    public const DEFAULT_APP_NAME = 'app';
 
     /**
      * @var ContainerFactoryInterface|callable|null
@@ -37,21 +30,33 @@ class Application
     private $container;
 
     /**
-     * @var ConfigLoaderInterface
+     * @var string
      */
-    private $configLoader;
+    private $basePath;
 
     /**
-     * @var string|null
+     * @var Properties
      */
-    private $configFile;
+    private $config;
 
     /**
      * @var self
      */
     private static $INSTANCE;
 
-    public static function getInstance(): ServerApplication
+    /**
+     * Application constructor.
+     *
+     * @param ContainerFactoryInterface|callable|null $containerFactory
+     */
+    final private function __construct(string $basePath, $containerFactory = null)
+    {
+        $this->containerFactory = $containerFactory;
+        $this->basePath = $basePath;
+        $this->config = $this->loadConfig();
+    }
+
+    public static function getInstance(): self
     {
         if (null === self::$INSTANCE) {
             throw new \InvalidArgumentException('Call create first');
@@ -60,16 +65,20 @@ class Application
         return self::$INSTANCE;
     }
 
+    public static function setInstance(Application $application): void
+    {
+        self::$INSTANCE = $application;
+    }
+
     /**
      * @param ContainerFactoryInterface|callable|null $containerFactory
-     *
-     * @return ServerApplication
      */
-    public static function create($containerFactory = null): ServerApplication
+    public static function create($containerFactory = null): self
     {
-        $serverApplication = new self();
-        self::$INSTANCE = $serverApplication;
-        $serverApplication->containerFactory = $containerFactory;
+        $serverApplication = new static(defined('APP_PATH') ? APP_PATH : self::detectBasePath(), $containerFactory);
+        if (null === self::$INSTANCE) {
+            self::setInstance($serverApplication);
+        }
 
         return $serverApplication;
     }
@@ -77,24 +86,24 @@ class Application
     /**
      * @param ContainerFactoryInterface|callable|null $containerFactory
      *
-     * @return int
-     *
      * @throws \Exception
      */
     public static function run($containerFactory = null): int
     {
         $self = static::create($containerFactory);
 
-        return $self->createApp(...$self->parseArgv())->run();
+        return $self->createApp()->run();
     }
 
-    public static function package(): int
+    protected function loadConfig(): Properties
     {
-        $app = new \Symfony\Component\Console\Application(self::APP_NAME);
-        $command = new PackageCommand();
-        $app->add($command);
+        $configFile = $this->basePath.'/src/config.php';
+        if (file_exists($configFile)) {
+            /* @noinspection PhpIncludeInspection */
+            return Properties::create(require $configFile);
+        }
 
-        return $app->run();
+        return Properties::create();
     }
 
     public function getContainer(): ContainerInterface
@@ -106,30 +115,27 @@ class Application
         return $this->container;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getConfigFile(): ?string
+    public function getBasePath(): string
     {
-        return $this->configFile;
+        return $this->basePath;
     }
 
-    public function createApp(?string $configFile = null, array $properties = []): Application
+    public function getConfig(): Properties
     {
-        if (null !== $configFile) {
-            $this->configFile = $configFile;
-            $this->getConfigLoader()->load($configFile, $properties);
-        } else {
-            Config::createDummyConfig();
-        }
-        $app = new Application(Config::getInstance()->getString('application.name', self::APP_NAME));
+        return $this->config;
+    }
+
+    public function createApp(): ConsoleApplication
+    {
+        $app = new ConsoleApplication($this->getConfig()->getString('application.name', self::DEFAULT_APP_NAME));
 
         $container = $this->getContainer();
         $commandLoader = new FactoryCommandLoader($this->getCommandMap($container));
         $app->setCommandLoader($commandLoader);
-        $app->setDefaultCommand(ServerStartCommand::COMMAND_NAME);
-
-        $container->get(EventDispatcherInterface::class)->dispatch(new BootstrapEvent($app));
+        $defaultCommand = $this->getConfig()->getString('application.default_command');
+        if (null !== $defaultCommand) {
+            $app->setDefaultCommand($defaultCommand);
+        }
 
         return $app;
     }
@@ -152,15 +158,10 @@ class Application
         return $basePath;
     }
 
-    public function setConfigLoader(ConfigLoaderInterface $configLoader): void
-    {
-        $this->configLoader = $configLoader;
-    }
-
     protected function createContainer(): ContainerInterface
     {
         if (null === $this->containerFactory) {
-            return ContainerBuilder::create(defined('APP_PATH') ? APP_PATH : self::detectBasePath())
+            return ContainerBuilder::create($this->basePath)
                 ->build();
         }
         if ($this->containerFactory instanceof ContainerFactoryInterface) {
@@ -170,52 +171,6 @@ class Application
         return call_user_func($this->containerFactory);
     }
 
-    protected function getConfigLoader(): ConfigLoaderInterface
-    {
-        if (null === $this->configLoader) {
-            $this->configLoader = new ConfigLoader();
-        }
-
-        return $this->configLoader;
-    }
-
-    private function parseArgv(): array
-    {
-        $configFile = null;
-        $properties = [];
-        $commandName = null;
-        $argv = $_SERVER['argv'];
-        $rest = [];
-        while (null !== $token = array_shift($argv)) {
-            if ('--' === $token) {
-                $rest[] = $token;
-                break;
-            }
-            if (0 === strpos($token, '--')) {
-                $name = substr($token, 2);
-                $pos = strpos($name, '=');
-                if (false !== $pos) {
-                    $value = substr($name, $pos + 1);
-                    $name = substr($name, 0, $pos);
-                }
-                if ('config' === $name) {
-                    $configFile = $value ?? array_shift($argv);
-                } elseif ('define' === $name) {
-                    $properties[] = $value ?? array_shift($argv);
-                } else {
-                    $rest[] = $token;
-                }
-            } elseif ('-' === $token[0] && 2 === strlen($token) && 'D' === $token[1]) {
-                $properties[] = array_shift($argv);
-            } else {
-                $rest[] = $token;
-            }
-        }
-        $_SERVER['argv'] = array_merge($rest, $argv);
-
-        return [$configFile, $properties];
-    }
-
     protected function getCommandMap(ContainerInterface $container): array
     {
         $factory = static function ($id) use ($container): callable {
@@ -223,10 +178,7 @@ class Application
                 return $container->get($id);
             };
         };
-        $commandMap = [
-            ServerStartCommand::COMMAND_NAME => $factory(ServerStartCommand::class),
-            ServerStopCommand::COMMAND_NAME => $factory(ServerStopCommand::class),
-        ];
+        $commandMap = [];
         $commands = $container->get('application.commands');
         if (null !== $commands) {
             if (!is_array($commands)) {
@@ -236,8 +188,8 @@ class Application
                 $commandMap[$name] = $factory($id);
             }
         }
+        /** @var Command $annotation */
         foreach (ComponentCollection::getAnnotations(Command::class) as $annotation) {
-            /* @var Command $annotation */
             $commandMap[$annotation->name] = static function () use ($container, $annotation): ConsoleCommand {
                 /** @var ConsoleCommand $command */
                 $command = $container->get($annotation->getComponentId());

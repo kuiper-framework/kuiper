@@ -13,6 +13,8 @@ interface StatementInterface extends \kuiper\db\StatementInterface
      */
     public function shardBy(array $fields): void;
 
+    public function getShardBy(): array;
+
     /**
      * Gets the original name of the table.
      */

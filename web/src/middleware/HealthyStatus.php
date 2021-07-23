@@ -25,6 +25,11 @@ class HealthyStatus implements MiddlewareInterface
      */
     private $body;
 
+    /**
+     * HealthyStatus constructor.
+     *
+     * @param string|array $path
+     */
     public function __construct(
         ResponseFactoryInterface $responseFactory,
         $path = '/status.html',

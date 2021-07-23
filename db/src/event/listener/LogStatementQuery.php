@@ -30,8 +30,8 @@ class LogStatementQuery implements EventListenerInterface, LoggerAwareInterface
     {
         Assert::isInstanceOf($event, StatementQueriedEvent::class);
         /** @var StatementQueriedEvent $event */
-        /** @var Statement $stmt */
         $e = $event->getException();
+        /** @var Statement $stmt */
         $stmt = $event->getStatement();
         $time = 1000 * (microtime(true) - $stmt->getStartTime());
         if (null === $e) {
@@ -45,6 +45,7 @@ class LogStatementQuery implements EventListenerInterface, LoggerAwareInterface
         if (strlen($sql) > 500) {
             $sql = substr($sql, 0, 500).sprintf('...(with %d chars)', strlen($sql));
         }
+        /* @phpstan-ignore-next-line */
         $this->logger->$level(self::TAG.$message.sprintf(' %s in %.2fms', $sql, $time), [
             'params' => count($stmt->getBindValues()) > 10
                 ? array_slice($stmt->getBindValues(), 0, 10)

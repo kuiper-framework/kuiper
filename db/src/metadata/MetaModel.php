@@ -348,13 +348,16 @@ class MetaModel implements MetaModelInterface
     }
 
     /**
-     * @return mixed
+     * @throws \ReflectionException
      */
-    protected function createEntity()
+    protected function createEntity(): object
     {
         return $this->entityClass->newInstanceWithoutConstructor();
     }
 
+    /**
+     * @param mixed $value
+     */
     protected function isNull($value): bool
     {
         return $value instanceof NullValue;

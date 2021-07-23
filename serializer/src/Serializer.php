@@ -46,9 +46,9 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     /**
      * {@inheritdoc}
      */
-    public function toJson($object, $options = 0): string
+    public function toJson($data, int $options = 0): string
     {
-        return json_encode($this->normalize($object), $options);
+        return json_encode($this->normalize($data), $options);
     }
 
     /**
@@ -71,11 +71,13 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
             }
 
             return $ret;
-        } elseif (is_object($object)) {
-            return $this->normalizeObject($object);
-        } else {
-            return $object;
         }
+
+        if (is_object($object)) {
+            return $this->normalizeObject($object);
+        }
+
+        return $object;
     }
 
     /**
@@ -85,11 +87,13 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     {
         if ($className instanceof ReflectionTypeInterface) {
             return $this->toType($data, $className);
-        } elseif (is_string($className)) {
-            return $this->toType($data, ReflectionType::parse($className));
-        } else {
-            throw new \InvalidArgumentException('Parameter type expects class name or object, got '.gettype($className));
         }
+
+        if (is_string($className)) {
+            return $this->toType($data, ReflectionType::parse($className));
+        }
+
+        throw new \InvalidArgumentException('Parameter type expects class name or object, got '.gettype($className));
     }
 
     /**
@@ -112,29 +116,34 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
             }
 
             return $this->denormalizeObject($value, $className);
-        } elseif ($type->isComposite()) {
-            /** @var CompositeType $type */
+        }
+
+        /** @var CompositeType|ArrayType $type */
+        if ($type->isComposite()) {
             foreach ($type->getTypes() as $subtype) {
                 if (($subtype->isArray() && is_array($value)) || $subtype->isValid($value)) {
                     return $this->toType($value, $subtype);
                 }
             }
             throw new UnexpectedValueException("Expects '$type', got ".ReflectionType::describe($value));
-        } elseif ($type->isArray()) {
-            /* @var ArrayType $type */
+        }
+
+        if ($type->isArray()) {
             if (!is_array($value)) {
                 throw new UnexpectedValueException('Expects array, got '.ReflectionType::describe($value));
             }
 
             return $this->toArrayType($value, $type->getValueType(), $type->getDimension());
-        } elseif ($type->isScalar() || $type->isValid($value)) {
-            return $type->sanitize($value);
-        } else {
-            throw new UnexpectedValueException("Expects '$type', got ".ReflectionType::describe($value));
         }
+
+        if ($type->isScalar() || $type->isValid($value)) {
+            return $type->sanitize($value);
+        }
+
+        throw new UnexpectedValueException("Expects '$type', got ".ReflectionType::describe($value));
     }
 
-    private function toArrayType(array $value, ReflectionTypeInterface $valueType, int $dimension)
+    private function toArrayType(array $value, ReflectionTypeInterface $valueType, int $dimension): array
     {
         $result = [];
         if (1 === $dimension) {
@@ -150,7 +159,10 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         return $result;
     }
 
-    private function normalizeObject($object)
+    /**
+     * @return mixed
+     */
+    private function normalizeObject(object $object)
     {
         if ($object instanceof \JsonSerializable) {
             return $object->jsonSerialize();
@@ -164,7 +176,12 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         return $this->objectNormalizer->normalize($object);
     }
 
-    private function denormalizeObject($data, $className)
+    /**
+     * @param mixed $data
+     *
+     * @return mixed
+     */
+    private function denormalizeObject($data, string $className)
     {
         foreach ($this->normalizers as $typeClass => $normalizer) {
             if (is_a($className, $typeClass, true)) {
@@ -175,7 +192,10 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         return $this->objectNormalizer->denormalize($data, $className);
     }
 
-    public static function decodeJson($json)
+    /**
+     * @return mixed
+     */
+    public static function decodeJson(string $json)
     {
         $data = json_decode($json, true);
         if (false === $data) {
@@ -185,10 +205,8 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         return $data;
     }
 
-    public function addObjectNormalizer(string $className, NormalizerInterface $normalizer)
+    public function addObjectNormalizer(string $className, NormalizerInterface $normalizer): void
     {
         $this->normalizers[$className] = $normalizer;
-
-        return $this;
     }
 }

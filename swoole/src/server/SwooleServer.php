@@ -169,6 +169,7 @@ class SwooleServer extends AbstractServer
      */
     public function tick(int $millisecond, callable $callback): int
     {
+        /* @phpstan-ignore-next-line */
         return $this->resource->tick($millisecond, $callback);
     }
 

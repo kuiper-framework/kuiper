@@ -166,6 +166,8 @@ class CacheStoreSession implements SessionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return mixed
      */
     public function current()
     {
@@ -177,15 +179,17 @@ class CacheStoreSession implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function next()
+    public function next(): void
     {
         $this->checkStart();
 
-        return next($this->sessionData);
+        next($this->sessionData);
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @return mixed
      */
     public function key()
     {

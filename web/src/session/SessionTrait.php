@@ -18,42 +18,63 @@ trait SessionTrait
      */
     private $autoStart = false;
 
-    public function offsetExists($offset)
+    /**
+     * @param mixed $offset
+     */
+    public function offsetExists($offset): bool
     {
         return $this->has($offset);
     }
 
+    /**
+     * @param mixed $offset
+     *
+     * @return mixed|null
+     */
     public function offsetGet($offset)
     {
         return $this->get($offset);
     }
 
-    public function offsetSet($offset, $value)
+    /**
+     * @param mixed $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value): void
     {
         $this->set($offset, $value);
     }
 
-    public function offsetUnset($offset)
+    /**
+     * @param mixed $offset
+     */
+    public function offsetUnset($offset): void
     {
         $this->remove($offset);
     }
 
-    public function __get($index)
+    /**
+     * @return mixed|null
+     */
+    public function __get(string $index)
     {
         return $this->get($index);
     }
 
-    public function __set($index, $value)
+    /**
+     * @param mixed $value
+     */
+    public function __set(string $index, $value): void
     {
         $this->set($index, $value);
     }
 
-    public function __isset($index)
+    public function __isset(string $index): bool
     {
         return $this->has($index);
     }
 
-    public function __unset($index)
+    public function __unset(string $index): void
     {
         $this->remove($index);
     }

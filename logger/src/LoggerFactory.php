@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\logger;
 
+use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\FormattableHandlerInterface;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\RotatingFileHandler;
@@ -208,13 +209,11 @@ class LoggerFactory implements LoggerFactoryInterface
     }
 
     /**
-     * @param string $logFile
-     * @param int    $logLevel
-     * @param int    $rotate   max Rotate
+     * @param int $rotate max Rotate
      *
      * @return RotatingFileHandler|StreamHandler
      */
-    private function createFileHandler($logFile, $logLevel, $rotate = null)
+    private function createFileHandler(string $logFile, int $logLevel, int $rotate = null)
     {
         if (null !== $rotate) {
             $logHandler = new RotatingFileHandler($logFile, $rotate, $logLevel);
@@ -230,7 +229,9 @@ class LoggerFactory implements LoggerFactoryInterface
         /** @var HandlerInterface $handler */
         $handler = $this->createObject($handlerSetting['handler']);
         if (isset($handlerSetting['formatter']) && $handler instanceof FormattableHandlerInterface) {
-            $handler->setFormatter($this->createObject($handlerSetting['formatter']));
+            /** @var FormatterInterface $formatter */
+            $formatter = $this->createObject($handlerSetting['formatter']);
+            $handler->setFormatter($formatter);
         }
 
         return $handler;

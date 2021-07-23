@@ -28,13 +28,11 @@ class PooledHttpClient implements ClientInterface
     }
 
     /**
-     * @param string $method
-     * @param array  $args
-     *
      * @return mixed
      */
-    public function __call($method, $args)
+    public function __call(string $method, array $args)
     {
+        /* @phpstan-ignore-next-line */
         return $this->httpClientPool->take()->$method(...$args);
     }
 

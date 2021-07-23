@@ -88,7 +88,7 @@ class ClassMetadataFactory
             $field->setType($types[0]);
             $field->setSetter($name);
             $serializeName = $this->getSerializeName($method);
-            if ($serializeName) {
+            if (null !== $serializeName) {
                 $field->setSerializeName($serializeName);
             }
             $metadata->addSetter($field);
@@ -109,7 +109,7 @@ class ClassMetadataFactory
             $field->setType($type);
             $field->setGetter($name);
             $serializeName = $this->getSerializeName($method);
-            if ($serializeName) {
+            if (null !== $serializeName) {
                 $field->setSerializeName($serializeName);
             }
             $metadata->addGetter($field);
@@ -127,14 +127,14 @@ class ClassMetadataFactory
                 throw new NotSerializableException(sprintf('Cannot serialize class %s for property %s', $property->getDeclaringClass()->getName(), $property->getName()));
             }
             $field = new Field($metadata->getClassName(), $property->getName());
-            $field->setIsPublic($property->isPublic())
-                ->setType($type);
+            $field->setPublic($property->isPublic());
+            $field->setType($type);
             $serializeName = $this->getSerializeName($property);
-            if ($serializeName) {
+            if (null !== $serializeName) {
                 $field->setSerializeName($serializeName);
             }
             $getter = $metadata->getGetter($property->getName());
-            if ($getter) {
+            if (null !== $getter) {
                 if ($getter->getType()->isUnknown()) {
                     $getter->setType($field->getType());
                 }
@@ -143,7 +143,7 @@ class ClassMetadataFactory
                 $metadata->addGetter($field);
             }
             $setter = $metadata->getSetter($property->getName());
-            if ($setter) {
+            if (null !== $setter) {
                 if ($setter->getType()->isUnknown()) {
                     $setter->setType($field->getType());
                 }
@@ -154,6 +154,9 @@ class ClassMetadataFactory
         }
     }
 
+    /**
+     * @param \ReflectionMethod|\ReflectionProperty $reflector
+     */
     protected function isIgnore($reflector): bool
     {
         if ($reflector instanceof \ReflectionMethod) {
@@ -165,6 +168,9 @@ class ClassMetadataFactory
         return null !== $annotation;
     }
 
+    /**
+     * @param \ReflectionMethod|\ReflectionProperty $reflector
+     */
     protected function getSerializeName($reflector): ?string
     {
         if ($reflector instanceof \ReflectionMethod) {
@@ -173,6 +179,7 @@ class ClassMetadataFactory
             $annotation = $this->annotationReader->getPropertyAnnotation($reflector, SerializeName::class);
         }
 
+        /* @var SerializeName|null $annotation */
         return null !== $annotation ? $annotation->value : null;
     }
 

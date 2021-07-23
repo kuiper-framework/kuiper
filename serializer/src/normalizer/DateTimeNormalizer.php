@@ -13,8 +13,8 @@ class DateTimeNormalizer implements NormalizerInterface
      */
     public function normalize($object)
     {
-        if ($object instanceof \DateTime) {
-            return $object->format(\DateTime::RFC3339);
+        if ($object instanceof \DateTimeInterface) {
+            return $object->format(\DateTimeInterface::RFC3339);
         } else {
             throw new \InvalidArgumentException('Expected DateTime object, got '.gettype($object));
         }
@@ -27,9 +27,12 @@ class DateTimeNormalizer implements NormalizerInterface
     {
         if (is_string($data)) {
             return new \DateTime($data);
-        } elseif (is_array($data) && isset($data['date']) && isset($data['timezone'])) {
+        }
+
+        if (isset($data['date'], $data['timezone']) && is_array($data)) {
             // \DateTime array
             return new \DateTime($data['date'], new \DateTimeZone($data['timezone']));
         }
+        throw new \InvalidArgumentException('not valid date');
     }
 }

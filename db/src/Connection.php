@@ -325,7 +325,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
      */
     public function lastInsertId($name = null)
     {
-        if (!$this->pdo) {
+        if (null === $this->pdo) {
             throw new \BadMethodCallException('Cannot call lastInsertId without insert');
         }
 
@@ -380,7 +380,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         }
     }
 
-    public function setLongRunning($longRunning = true): self
+    public function setLongRunning(bool $longRunning = true): self
     {
         $this->longRunning = $longRunning;
 
@@ -392,7 +392,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         return $this->longRunning;
     }
 
-    public function setTimeout($timeout): self
+    public function setTimeout(int $timeout): self
     {
         $this->timeout = $timeout;
 
@@ -431,7 +431,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         $this->lastQueryStart = microtime(true);
     }
 
-    protected function dispatch($event): void
+    protected function dispatch(object $event): void
     {
         $this->eventDispatcher->dispatch($event);
     }

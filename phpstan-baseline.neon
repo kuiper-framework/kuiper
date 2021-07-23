@@ -1,0 +1,72 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Parameter \\#1 \\$attribute \\(int\\) of method kuiper\\\\db\\\\Connection\\:\\:getAttribute\\(\\) should be contravariant with parameter \\$attribute \\(mixed\\) of method kuiper\\\\db\\\\PdoInterface\\:\\:getAttribute\\(\\)$#"
+			count: 2
+			path: db/src/Connection.php
+
+		-
+			message: "#^Parameter \\#1 \\$attribute \\(int\\) of method kuiper\\\\db\\\\Connection\\:\\:setAttribute\\(\\) should be contravariant with parameter \\$attribute \\(mixed\\) of method kuiper\\\\db\\\\PdoInterface\\:\\:setAttribute\\(\\)$#"
+			count: 2
+			path: db/src/Connection.php
+
+		-
+			message: "#^Parameter \\#1 \\$value \\(string\\) of method kuiper\\\\db\\\\Connection\\:\\:quote\\(\\) should be contravariant with parameter \\$value \\(mixed\\) of method kuiper\\\\db\\\\PdoInterface\\:\\:quote\\(\\)$#"
+			count: 2
+			path: db/src/Connection.php
+
+		-
+			message: "#^kuiper\\\\db\\\\Connection\\:\\:__construct\\(\\) does not call parent constructor from PDO\\.$#"
+			count: 1
+			path: db/src/Connection.php
+
+		-
+			message: "#^Method kuiper\\\\db\\\\PdoInterface\\:\\:lastInsertId\\(\\) has no return typehint specified\\.$#"
+			count: 1
+			path: db/src/PdoInterface.php
+
+		-
+			message: "#^PHPDoc tag @param for parameter \\$fetch_arg2 with type mixed is not subtype of native type array\\.$#"
+			count: 1
+			path: db/src/PdoInterface.php
+
+		-
+			message: "#^PHPDoc tag @return with type mixed is not subtype of native type string\\.$#"
+			count: 1
+			path: db/src/PdoInterface.php
+
+		-
+			message: "#^Casting to string something that's already string\\.$#"
+			count: 1
+			path: db/src/Statement.php
+
+		-
+			message: "#^Instanceof between mixed and ArrayAccess will always evaluate to false\\.$#"
+			count: 1
+			path: helper/src/Arrays.php
+
+		-
+			message: "#^Parameter \\#3 \\$logLevel of static method GuzzleHttp\\\\Middleware\\:\\:log\\(\\) expects 'alert'\\|'critical'\\|'debug'\\|'emergency'\\|'error'\\|'info'\\|'notice'\\|'warning', string given\\.$#"
+			count: 1
+			path: http-client/src/HttpClientFactory.php
+
+		-
+			message: "#^Parameter \\#2 \\$level of class Monolog\\\\Handler\\\\StreamHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|non\\-empty\\-string, int given\\.$#"
+			count: 1
+			path: logger/src/LoggerFactory.php
+
+		-
+			message: "#^Parameter \\#3 \\$level of class Monolog\\\\Handler\\\\RotatingFileHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|non\\-empty\\-string, int given\\.$#"
+			count: 1
+			path: logger/src/LoggerFactory.php
+
+		-
+			message: "#^Call to function method_exists\\(\\) with ReflectionMethod and 'hasReturnType' will always evaluate to true\\.$#"
+			count: 1
+			path: reflection/src/ReflectionDocBlockFactory.php
+
+		-
+			message: "#^Call to function method_exists\\(\\) with ReflectionParameter and 'hasType' will always evaluate to true\\.$#"
+			count: 1
+			path: reflection/src/ReflectionDocBlockFactory.php
+

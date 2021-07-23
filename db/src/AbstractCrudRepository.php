@@ -188,7 +188,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             $cols = [];
             foreach ($update as $column => $value) {
                 $property = $this->metaModel->getProperty($column);
-                if ($property) {
+                if (null !== $property) {
                     foreach ($property->getColumnValues($value) as $name => $columnValue) {
                         $cols[$name] = $columnValue;
                     }
@@ -475,7 +475,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             throw new InvalidArgumentException('id list is empty');
         }
 
-        return function (StatementInterface $stmt) use ($ids) {
+        return function (StatementInterface $stmt) use ($ids): StatementInterface {
             $keys = [];
             foreach ($ids as $id) {
                 $keys[] = $this->metaModel->idToPrimaryKey($id);
@@ -494,7 +494,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         };
     }
 
-    protected function dispatch($event): void
+    protected function dispatch(object $event): void
     {
         $this->eventDispatcher->dispatch($event);
     }

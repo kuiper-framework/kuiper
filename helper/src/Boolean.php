@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\helper;
 
 class Boolean extends Enum
@@ -7,6 +9,9 @@ class Boolean extends Enum
     public const TRUE = true;
     public const FALSE = false;
 
+    /**
+     * @var array
+     */
     protected static $PROPERTIES = [
         'description' => [
             self::FALSE => 'False',
@@ -15,11 +20,11 @@ class Boolean extends Enum
     ];
 
     /**
-     * @param string|bool $value
+     * @param string|bool|mixed $value
      *
-     * @return string "true", "1", 1, true = TRUE
-     *                "false", "0", 0, false = FALSE
-     *                other value = null
+     * @return bool|null "true", "1", 1, true = TRUE
+     *                   "false", "0", 0, false = FALSE
+     *                   other value = null
      */
     public static function valueOf($value): ?bool
     {

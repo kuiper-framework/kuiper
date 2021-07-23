@@ -1,19 +1,20 @@
+includes:
+  - phpstan-baseline.neon
+
 parameters:
   level: 6
   paths:
-    - annotations/src
-    - cache/src
-    - db/src
-    - di/src
-    - event/src
-    - helper/src
-    - http-client/src
-    - logger/src
-    - reflection/src
-    - serializer/src
-    - swoole/src
-    - web/src
+    - .
+  excludePaths:
+    - vendor/*
+    - */vendor/*
+    - */tests/*
+    - cache/*
+    - scratch.php
+    - swoole/demo/*
+    - swoole/src/server/SwooleServer.php
   checkMissingIterableValueType: false
   checkGenericClassInNonGenericObjectType: false
+  treatPhpDocTypesAsCertain: false
   ignoreErrors:
     - '#Construct empty\(\) is not allowed#'

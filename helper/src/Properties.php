@@ -21,17 +21,23 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         parent::__construct([]);
     }
 
-    public function __get($name)
+    /**
+     * @return mixed|null
+     */
+    public function __get(string $name)
     {
         return $this[$name] ?? null;
     }
 
-    public function __set($name, $value)
+    /**
+     * @param mixed $value
+     */
+    public function __set(string $name, $value): void
     {
         throw new \BadMethodCallException('Cannot modify config');
     }
 
-    public function __isset($name)
+    public function __isset(string $name): bool
     {
         return isset($this[$name]);
     }
@@ -57,27 +63,30 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         return $value ?? $default;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function set(string $key, $value): void
     {
         $this->setValue($key, $value);
     }
 
-    public function getInt(string $key, $default = 0): int
+    public function getInt(string $key, int $default = 0): int
     {
         return (int) $this->get($key, $default);
     }
 
-    public function getBool(string $key, $default = false): bool
+    public function getBool(string $key, bool $default = false): bool
     {
         return (bool) $this->get($key, $default);
     }
 
-    public function getString(string $key, $default = ''): string
+    public function getString(string $key, string $default = ''): string
     {
         return (string) $this->get($key, $default);
     }
 
-    public function getNumber(string $key, $default = 0): float
+    public function getNumber(string $key, float $default = 0): float
     {
         return (float) $this->get($key, $default);
     }
@@ -97,7 +106,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
                 }
                 $current = (int) substr($key, 1, $posRight - 1);
                 $rest = substr($key, $posRight + 1);
-                if ($rest && 0 === strpos($rest, '.')) {
+                if ('' !== $rest && 0 === strpos($rest, '.')) {
                     $rest = substr($rest, 1);
                 }
             } else {
@@ -112,6 +121,9 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         return [$current, $rest];
     }
 
+    /**
+     * @return mixed|null
+     */
     private function getValue(string $key)
     {
         [$current, $rest] = $this->parseKey($key);
@@ -129,7 +141,10 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         return null;
     }
 
-    private function setValue(string $key, $value, $prefix = null): void
+    /**
+     * @param mixed $value
+     */
+    private function setValue(string $key, $value, ?string $prefix = null): void
     {
         [$current, $rest] = $this->parseKey($key);
         if (empty($rest)) {
@@ -143,7 +158,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         $this[$current]->setValue($rest, $value, $prefix.(is_int($current) ? "[$current]" : $current.'.'));
     }
 
-    public function merge(array $configArray, $append = true): void
+    public function merge(array $configArray, bool $append = true): void
     {
         foreach ($configArray as $key => $value) {
             if (!isset($value)) {

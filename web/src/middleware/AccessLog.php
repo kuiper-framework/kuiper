@@ -55,7 +55,9 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
     /**
      * AccessLog constructor.
      *
-     * @param string[] $extra
+     * @param string|callable $format
+     * @param string[]        $extra
+     * @param string|callable $dateFormat
      */
     public function __construct(
         $format = self::MAIN,
@@ -71,11 +73,11 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
         $this->pidProcessor = new CoroutineIdProcessor();
         if (is_string($dateFormat)) {
             if (substr_count($dateFormat, '%') >= 2) {
-                $this->dateFormatter = static function () use ($dateFormat) {
+                $this->dateFormatter = static function () use ($dateFormat): string {
                     return strftime($dateFormat);
                 };
             } else {
-                $this->dateFormatter = static function () use ($dateFormat) {
+                $this->dateFormatter = static function () use ($dateFormat): string {
                     return date_create()->format($dateFormat);
                 };
             }
@@ -108,7 +110,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
 
             return $response;
         } finally {
-            if (null === $this->requestFilter || call_user_func($this->requestFilter, $request, $response)) {
+            if (null === $this->requestFilter || (bool) call_user_func($this->requestFilter, $request, $response)) {
                 $responseTime = (microtime(true) - $start) * 1000;
                 $this->format($this->prepareMessageContext($request, $response, $responseTime));
             }

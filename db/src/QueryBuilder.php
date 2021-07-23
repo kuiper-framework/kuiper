@@ -28,7 +28,7 @@ class QueryBuilder implements QueryBuilderInterface
     {
         $this->pool = $pool;
         $this->eventDispatcher = $eventDispatcher ?? new NullEventDispatcher();
-        if ($queryFactory) {
+        if (null !== $queryFactory) {
             $this->queryFactory = $queryFactory;
         } else {
             $connection = $this->pool->take();

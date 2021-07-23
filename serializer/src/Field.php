@@ -19,37 +19,37 @@ class Field implements \Serializable
     private $name;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $serializeName;
 
     /**
      * @var bool
      */
-    private $isPublic = false;
+    private $public = false;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $getter;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $setter;
 
     /**
-     * @var ReflectionTypeInterface
+     * @var ReflectionTypeInterface|null
      */
     private $type;
 
     /**
-     * @var callable
+     * @var callable|null
      */
     private $getFunction;
 
     /**
-     * @var callable
+     * @var callable|null
      */
     private $setFunction;
 
@@ -69,18 +69,18 @@ class Field implements \Serializable
 
     public function getSerializeName(): string
     {
-        return $this->serializeName ?: $this->name;
+        return $this->serializeName ?? $this->name;
     }
 
     public function isPublic(): bool
     {
-        return $this->isPublic;
+        return $this->public;
     }
 
     /**
      * @return string
      */
-    public function getGetter()
+    public function getGetter(): ?string
     {
         return $this->getter;
     }
@@ -88,7 +88,7 @@ class Field implements \Serializable
     /**
      * @return string
      */
-    public function getSetter()
+    public function getSetter(): ?string
     {
         return $this->setter;
     }
@@ -98,71 +98,51 @@ class Field implements \Serializable
         return $this->type;
     }
 
-    /**
-     * @return $this
-     */
-    public function setSerializeName(string $serializeName)
+    public function setSerializeName(string $serializeName): void
     {
         $this->serializeName = $serializeName;
-
-        return $this;
     }
 
-    /**
-     * @return $this
-     */
-    public function setIsPublic(bool $isPublic)
+    public function setPublic(bool $public): void
     {
-        $this->isPublic = $isPublic;
-
-        return $this;
+        $this->public = $public;
     }
 
-    /**
-     * @return $this
-     */
-    public function setGetter(string $getter)
+    public function setGetter(string $getter): void
     {
         $this->getter = $getter;
-
-        return $this;
     }
 
-    /**
-     * @return $this
-     */
-    public function setSetter(string $setter)
+    public function setSetter(string $setter): void
     {
         $this->setter = $setter;
+    }
 
-        return $this;
+    public function setType(ReflectionTypeInterface $type): void
+    {
+        $this->type = $type;
     }
 
     /**
-     * @return $this
+     * @return mixed
      */
-    public function setType(ReflectionTypeInterface $type)
+    public function getValue(object $object)
     {
-        $this->type = $type;
-
-        return $this;
-    }
-
-    public function getValue($object)
-    {
-        if (!$this->getFunction) {
-            if ($this->isPublic) {
+        if (null === $this->getFunction) {
+            if ($this->public) {
                 $this->getFunction = function ($object) {
+                    /* @phpstan-ignore-next-line */
                     return $object->{$this->name};
                 };
-            } elseif ($this->getter) {
+            } elseif (null !== $this->getter) {
                 $this->getFunction = function ($object) {
+                    /* @phpstan-ignore-next-line */
                     return $object->{$this->getter}();
                 };
             } else {
                 $property = new \ReflectionProperty($this->className, $this->name);
                 $property->setAccessible(true);
-                $this->getFunction = function ($object) use ($property) {
+                $this->getFunction = static function ($object) use ($property) {
                     return $property->getValue($object);
                 };
             }
@@ -171,21 +151,28 @@ class Field implements \Serializable
         return call_user_func($this->getFunction, $object);
     }
 
-    public function setValue($object, $value)
+    /**
+     * @param mixed $value
+     *
+     * @throws \ReflectionException
+     */
+    public function setValue(object $object, $value): void
     {
-        if (!$this->setFunction) {
-            if ($this->isPublic) {
-                $this->setFunction = function ($object, $value) {
+        if (null === $this->setFunction) {
+            if ($this->public) {
+                $this->setFunction = function ($object, $value): void {
+                    /* @phpstan-ignore-next-line */
                     $object->{$this->name} = $value;
                 };
-            } elseif ($this->setter) {
-                $this->setFunction = function ($object, $value) {
+            } elseif (null !== $this->setter) {
+                $this->setFunction = function ($object, $value): void {
+                    /* @phpstan-ignore-next-line */
                     $object->{$this->setter}($value);
                 };
             } else {
                 $property = new \ReflectionProperty($this->className, $this->name);
                 $property->setAccessible(true);
-                $this->setFunction = function ($object, $value) use ($property) {
+                $this->setFunction = static function ($object, $value) use ($property): void {
                     $property->setValue($object, $value);
                 };
             }
@@ -225,6 +212,7 @@ class Field implements \Serializable
     public function unserialize($serialized)
     {
         foreach (unserialize($serialized) as $key => $val) {
+            /* @phpstan-ignore-next-line */
             $this->$key = $val;
         }
     }

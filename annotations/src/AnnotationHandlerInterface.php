@@ -9,14 +9,14 @@ interface AnnotationHandlerInterface
     /**
      * Sets the annotated target.
      *
-     * @param \Reflector $target
+     * @param \ReflectionClass|\ReflectionProperty|\ReflectionMethod $target
      */
     public function setTarget($target): void;
 
     /**
      * Gets the annotated target.
      *
-     * @return \Reflector
+     * @return \ReflectionClass|\ReflectionProperty|\ReflectionMethod
      */
     public function getTarget();
 

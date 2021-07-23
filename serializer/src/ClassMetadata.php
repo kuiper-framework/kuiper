@@ -33,40 +33,30 @@ class ClassMetadata
         return $this->className;
     }
 
-    public function addSetter(Field $field)
+    public function addSetter(Field $field): void
     {
         $this->setters[$field->getName()] = $field;
-
-        return $this;
     }
 
-    public function addGetter(Field $field)
+    public function addGetter(Field $field): void
     {
         $this->getters[$field->getName()] = $field;
-
-        return $this;
     }
 
-    /**
-     * @return Field|null
-     */
-    public function getSetter(string $name)
+    public function getSetter(string $name): ?Field
     {
-        return isset($this->setters[$name]) ? $this->setters[$name] : null;
+        return $this->setters[$name] ?? null;
     }
 
-    /**
-     * @return Field|null
-     */
-    public function getGetter(string $name)
+    public function getGetter(string $name): ?Field
     {
-        return isset($this->getters[$name]) ? $this->getters[$name] : null;
+        return $this->getters[$name] ?? null;
     }
 
     /**
      * @return Field[]
      */
-    public function getGetters()
+    public function getGetters(): array
     {
         return array_values($this->getters);
     }
@@ -74,7 +64,7 @@ class ClassMetadata
     /**
      * @return Field[]
      */
-    public function getSetters()
+    public function getSetters(): array
     {
         return array_values($this->setters);
     }

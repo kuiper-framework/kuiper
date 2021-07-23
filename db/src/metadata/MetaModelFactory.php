@@ -95,7 +95,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
         if (null === $annotation) {
             foreach ($reflectionClass->getInterfaces() as $interface) {
                 $annotation = $this->annotationReader->getClassAnnotation($interface, Repository::class);
-                if ($annotation) {
+                if (null !== $annotation) {
                     break;
                 }
             }
@@ -185,7 +185,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
         $type = $this->getPropertyType($property);
         $metaProperty = new MetaModelProperty($property, $type, $parent, $annotations);
         $attributeConverter = $this->getAttributeConverter($metaProperty);
-        if ($attributeConverter) {
+        if (null !== $attributeConverter) {
             /** @var ColumnAnnotation|null $columnAnnotation */
             $columnAnnotation = $this->getAnnotation($annotations, ColumnAnnotation::class);
             $namingContext = new NamingContext();

@@ -13,6 +13,7 @@ class ExceptionNormalizer implements NormalizerInterface
      */
     public function normalize($exception)
     {
+        /** @var \Exception $exception */
         if ($exception instanceof \Serializable) {
             $data = $exception;
         } else {
@@ -42,7 +43,7 @@ class ExceptionNormalizer implements NormalizerInterface
             $className = $exception['class'];
             $class = new \ReflectionClass($className);
             $constructor = $class->getConstructor();
-            if ($class->isSubClassOf(\Exception::class) && null !== $constructor) {
+            if ($class->isSubclassOf(\Exception::class) && null !== $constructor) {
                 $params = $constructor->getParameters();
                 $paramNames = [];
                 foreach ($params as $param) {

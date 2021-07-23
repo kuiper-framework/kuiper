@@ -105,6 +105,11 @@ class PhpSession implements SessionInterface
         session_regenerate_id($deleteOldSession);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return mixed
+     */
     public function current()
     {
         $this->checkStart();
@@ -112,13 +117,21 @@ class PhpSession implements SessionInterface
         return current($_SESSION);
     }
 
-    public function next()
+    /**
+     * {@inheritDoc}
+     */
+    public function next(): void
     {
         $this->checkStart();
 
-        return next($_SESSION);
+        next($_SESSION);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return mixed
+     */
     public function key()
     {
         $this->checkStart();
@@ -126,6 +139,9 @@ class PhpSession implements SessionInterface
         return key($_SESSION);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function valid(): bool
     {
         $this->checkStart();
@@ -133,11 +149,14 @@ class PhpSession implements SessionInterface
         return null !== key($_SESSION);
     }
 
-    public function rewind()
+    /**
+     * {@inheritDoc}
+     */
+    public function rewind(): void
     {
         $this->checkStart();
 
-        return reset($_SESSION);
+        reset($_SESSION);
     }
 
     /**

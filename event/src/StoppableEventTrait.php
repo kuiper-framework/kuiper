@@ -6,6 +6,9 @@ namespace kuiper\event;
 
 trait StoppableEventTrait
 {
+    /**
+     * @var bool
+     */
     private $propagationStopped = false;
 
     /**

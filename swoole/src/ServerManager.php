@@ -48,6 +48,21 @@ class ServerManager implements LoggerAwareInterface
         }
     }
 
+    /**
+     * @throws ServerStateException
+     */
+    public function reload(): void
+    {
+        $masterPid = $this->getMasterPid();
+        if ($masterPid > 0) {
+            throw new ServerStateException('Server was not started');
+        }
+        exec("kill -USR1 $masterPid", $output, $ret);
+        if (0 !== $ret) {
+            throw new ServerStateException('Server was failed to reload');
+        }
+    }
+
     public function getMasterPid(): int
     {
         if (file_exists($this->serverConfig->getMasterPidFile())) {

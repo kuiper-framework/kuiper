@@ -6,6 +6,9 @@ namespace kuiper\cache;
 
 class RedisFactory
 {
+    /**
+     * @var array
+     */
     private static $defaultConnectionOptions = [
         'class' => null,
         'persistent' => 0,

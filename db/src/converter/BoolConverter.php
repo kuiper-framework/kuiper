@@ -13,7 +13,7 @@ class BoolConverter implements AttributeConverterInterface
      */
     public function convertToDatabaseColumn($attribute, Column $column)
     {
-        return $attribute ? 1 : 0;
+        return ((bool) $attribute) ? 1 : 0;
     }
 
     /**
