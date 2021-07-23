@@ -17,7 +17,7 @@ class SocketChannel
     private $parent;
 
     /**
-     * @var resource
+     * @var resource|null
      */
     private $socket;
 
@@ -49,7 +49,7 @@ class SocketChannel
 
     public function close(): void
     {
-        if ($this->socket) {
+        if (null !== $this->socket) {
             fclose($this->socket);
             unset($this->socket);
         }
@@ -60,6 +60,9 @@ class SocketChannel
         return isset($this->socket);
     }
 
+    /**
+     * @param mixed $data
+     */
     public function send($data): void
     {
         if (!$this->isActive()) {
@@ -83,16 +86,22 @@ class SocketChannel
         }
     }
 
+    /**
+     * @return mixed|null
+     */
     public function receive(?int $timeout = null)
     {
         $select = self::select([$this], $timeout);
-        if ($select) {
+        if (!empty($select)) {
             return $select[0]->read();
         }
 
         return null;
     }
 
+    /**
+     * @return mixed|null
+     */
     public function read()
     {
         if (!$this->isActive()) {
@@ -137,7 +146,7 @@ class SocketChannel
             }
         }
         $write = $except = null;
-        if ($read && stream_select($read, $write, $except, $timeout) && $read) {
+        if (!empty($read) && stream_select($read, $write, $except, $timeout) && !empty($read)) {
             $ready = [];
             foreach ($read as $i => $fd) {
                 $ready[] = $channels[$i];

@@ -7,7 +7,7 @@ namespace kuiper\annotations;
 trait AnnotationReaderAwareTrait
 {
     /**
-     * @var AnnotationReaderInterface
+     * @var AnnotationReaderInterface|null
      */
     protected $annotationReader;
 

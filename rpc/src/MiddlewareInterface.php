@@ -6,5 +6,5 @@ namespace kuiper\rpc;
 
 interface MiddlewareInterface
 {
-    public function process(RequestInterface $request, RequestHandlerInterface $next): ResponseInterface;
+    public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $next): RpcResponseInterface;
 }

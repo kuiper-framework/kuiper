@@ -24,7 +24,7 @@ trait MiddlewareSupport
         return $this;
     }
 
-    private function buildMiddlewareStack(RequestHandlerInterface $finalHandler): MiddlewareStack
+    private function buildMiddlewareStack(RpcRequestHandlerInterface $finalHandler): MiddlewareStack
     {
         if (null === $this->middlewareStack) {
             $this->middlewareStack = new MiddlewareStack($this->middlewares, $finalHandler);

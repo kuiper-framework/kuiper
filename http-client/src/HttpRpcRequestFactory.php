@@ -13,14 +13,14 @@ use kuiper\http\client\annotation\RequestMapping;
 use kuiper\http\client\request\File;
 use kuiper\http\client\request\Request;
 use kuiper\rpc\client\ProxyGenerator;
-use kuiper\rpc\client\RequestFactoryInterface;
+use kuiper\rpc\client\RpcRequestFactoryInterface;
 use kuiper\rpc\InvokingMethod;
-use kuiper\rpc\RequestInterface;
-use kuiper\rpc\RpcRequest;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcRpcRequest;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 
-class HttpRequestFactory implements RequestFactoryInterface
+class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 {
     /**
      * @var AnnotationReaderInterface
@@ -38,7 +38,7 @@ class HttpRequestFactory implements RequestFactoryInterface
         $this->normalizer = $normalizer;
     }
 
-    public function createRequest(object $proxy, string $method, array $args): RequestInterface
+    public function createRequest(object $proxy, string $method, array $args): RpcRequestInterface
     {
         $invokingMethod = new InvokingMethod($proxy, $method, $args);
         $reflectionMethod = new \ReflectionMethod(ProxyGenerator::getInterfaceName($invokingMethod->getTargetClass()), $method);
@@ -57,9 +57,9 @@ class HttpRequestFactory implements RequestFactoryInterface
                 unset($parameters[$matches[1]]);
 
                 return $value['value'];
-            } else {
-                throw new \InvalidArgumentException($invokingMethod->getFullMethodName()." should have parameter \${$matches[1]}");
             }
+
+            throw new \InvalidArgumentException($invokingMethod->getFullMethodName()." should have parameter \${$matches[1]}");
         };
         $placeholderRe = '/\{(\w+)(:.*)?\}/';
 
@@ -86,7 +86,7 @@ class HttpRequestFactory implements RequestFactoryInterface
             $request = $this->applyOptions($request, $options);
         }
 
-        return new RpcRequest($request, $invokingMethod);
+        return new RpcRpcRequest($request, $invokingMethod);
     }
 
     private function getRequestOptions(HttpRequestInterface $request, array $parameters): array

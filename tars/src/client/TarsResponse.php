@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace kuiper\tars\client;
 
-use kuiper\rpc\RequestInterface;
-use kuiper\rpc\RpcResponse;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcRpcResponse;
 use kuiper\tars\stream\ResponsePacket;
 use Psr\Http\Message\ResponseInterface;
 
-class TarsRpcResponse extends RpcResponse
+class TarsResponse extends RpcRpcResponse
 {
     /**
      * @var ResponsePacket
      */
     private $packet;
 
-    public function __construct(RequestInterface $request, ResponseInterface $response, ResponsePacket $packet)
+    public function __construct(RpcRequestInterface $request, ResponseInterface $response, ResponsePacket $packet)
     {
         parent::__construct($request, $response);
         $this->packet = $packet;

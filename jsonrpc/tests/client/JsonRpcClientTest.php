@@ -10,6 +10,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use kuiper\annotations\AnnotationReader;
+use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\RpcResponseNormalizer;
@@ -31,7 +32,7 @@ class JsonRpcClientTest extends TestCase
         $class = $generatedClass->getClassName();
         $mock = new MockHandler([
             new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequest::JSONRPC_VERSION,
+                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
                 'id' => 1,
                 'result' => ['hello world'],
             ])),
@@ -43,7 +44,7 @@ class JsonRpcClientTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $transporter = new HttpTransporter($client);
-        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), 1);
+        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), 1, 1);
         $responseFactory = new SimpleJsonRpcResponseFactory();
         /** @var HelloService $proxy */
         $proxy = new $class(new JsonRpcClient($transporter, $requestFactory, $responseFactory));
@@ -69,17 +70,17 @@ class JsonRpcClientTest extends TestCase
 
         $mock = new MockHandler([
             new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequest::JSONRPC_VERSION,
+                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
                 'id' => 1,
                 'result' => [$user],
             ])),
             new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequest::JSONRPC_VERSION,
+                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
                 'id' => 2,
                 'result' => [[$user], 2],
             ])),
             new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequest::JSONRPC_VERSION,
+                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
                 'id' => 3,
                 'result' => [null],
             ])),
@@ -91,7 +92,7 @@ class JsonRpcClientTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $transporter = new HttpTransporter($client);
-        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), 1);
+        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), 1, 1);
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
         $responseFactory = new JsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory));
         /** @var UserService $proxy */
@@ -132,7 +133,7 @@ class JsonRpcClientTest extends TestCase
 
         $mock = new MockHandler([
             new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequest::JSONRPC_VERSION,
+                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
                 'id' => 1,
                 'result' => $user,
             ])),
@@ -144,7 +145,7 @@ class JsonRpcClientTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $transporter = new HttpTransporter($client);
-        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), 1);
+        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), 1, 1);
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
         $responseFactory = new NoOutParamJsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory));
         /** @var UserService $proxy */

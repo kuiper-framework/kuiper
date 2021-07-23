@@ -54,9 +54,9 @@ class MapType extends AbstractType
         return Type::MAP;
     }
 
-    public static function arrayMap(Type $valueType, string $keyType = PrimitiveType::STRING): MapType
+    public static function arrayMap(Type $valueType, PrimitiveType $keyType = null): MapType
     {
-        return new self(PrimitiveType::of($keyType), $valueType);
+        return new self($keyType ?? PrimitiveType::string(), $valueType);
     }
 
     public static function byteArrayMap(): self

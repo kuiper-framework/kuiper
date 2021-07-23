@@ -72,9 +72,10 @@ class AwareInjection
             throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} parameter {$parameter->getName()} should has class type");
         }
         $setter = $method->getName();
+        /** @phpstan-ignore-next-line */
         $beanName = $parameter->getType()->getName();
 
-        return new self($awareInterfaceName, $setter, function ($defintion) use ($beanName) {
+        return new self($awareInterfaceName, $setter, function () use ($beanName): array {
             return [new Reference($beanName)];
         });
     }

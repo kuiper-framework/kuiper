@@ -195,6 +195,9 @@ class TarsInputStream implements TarsInputStreamInterface
         }
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     private function readInt8Internal(int $type): int
     {
         if (Type::ZERO === $type) {
@@ -204,6 +207,9 @@ class TarsInputStream implements TarsInputStreamInterface
         return ord($this->readInternal(1));
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     private function readInt16Internal(int $type): int
     {
         if (Type::INT16 === $type) {
@@ -218,6 +224,9 @@ class TarsInputStream implements TarsInputStreamInterface
         return $this->readInt8Internal($type);
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     private function readInt32Internal(int $type): int
     {
         if (Type::INT32 === $type) {
@@ -232,6 +241,9 @@ class TarsInputStream implements TarsInputStreamInterface
         return $this->readInt16Internal($type);
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     private function readInt64Internal(int $type): int
     {
         if (Type::INT64 === $type) {
@@ -246,6 +258,9 @@ class TarsInputStream implements TarsInputStreamInterface
         return $this->readInt32Internal($type);
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     private function readStringInternal(int $type): string
     {
         if (Type::STRING1 === $type) {
@@ -267,27 +282,29 @@ class TarsInputStream implements TarsInputStreamInterface
     public function read(int $tag, bool $require, Type $type)
     {
         if ($type->isPrimitive()) {
-            switch ($type->asPrimitiveType()->getPhpType()) {
-                case PrimitiveType::CHAR:
-                    return $this->readChar($tag, $require);
-                case PrimitiveType::BOOL:
-                    return $this->readBool($tag, $require);
-                case PrimitiveType::INT8:
-                    return $this->readInt8($tag, $require);
-                case PrimitiveType::UINT8:
-                case PrimitiveType::SHORT:
+            switch ($type->asPrimitiveType()->getTarsType()) {
+                case Type::INT8:
+                    $value = $this->readInt8($tag, $require);
+                    $phpType = $type->asPrimitiveType()->getPhpType();
+                    if (PrimitiveType::BOOL === $phpType) {
+                        return (bool) $value;
+                    }
+                    if (PrimitiveType::CHAR === $phpType) {
+                        return chr($value);
+                    }
+
+                    return $value;
+                case Type::INT16:
                     return $this->readInt16($tag, $require);
-                case PrimitiveType::UINT16:
-                case PrimitiveType::INT32:
+                case Type::INT32:
                     return $this->readInt32($tag, $require);
-                case PrimitiveType::UINT32:
-                case PrimitiveType::INT64:
+                case Type::INT64:
                     return $this->readInt64($tag, $require);
-                case PrimitiveType::FLOAT:
+                case Type::FLOAT:
                     return $this->readFloat($tag, $require);
-                case PrimitiveType::DOUBLE:
+                case Type::DOUBLE:
                     return $this->readDouble($tag, $require);
-                case PrimitiveType::STRING:
+                case Type::STRING4:
                     return $this->readString($tag, $require);
                 default:
                     throw TarsStreamException::typeNotMatch('unknown primitive type '.$type);
@@ -441,6 +458,7 @@ class TarsInputStream implements TarsInputStreamInterface
         $className = $structType->getClassName();
         $obj = new $className();
         foreach ($structType->getFields() as $field) {
+            /* @phpstan-ignore-next-line */
             $obj->{$field->getName()} = $this->read($field->getTag(), $field->isRequired(), $field->getType());
         }
         $this->match(0, Type::STRUCT_END, true);
@@ -529,12 +547,25 @@ class TarsInputStream implements TarsInputStreamInterface
         return $tokens;
     }
 
+    private static function getTypeName(int $type): string
+    {
+        static $typeNames;
+        if (null === $typeNames) {
+            $reflectionClass = new \ReflectionClass(Type::class);
+            foreach ($reflectionClass->getConstants() as $name => $value) {
+                $typeNames[$value] = $name;
+            }
+        }
+
+        return $typeNames[$type] ?? '';
+    }
+
     private function nextToken(): ?array
     {
         if (!$this->readHead($tag, $type, false)) {
             return null;
         }
-        $token = [$tag, TarsType::fromValue($type)];
+        $token = [$tag, self::getTypeName($type)];
         switch ($type) {
             case Type::ZERO:
             case Type::INT8:

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\server;
 
-use kuiper\jsonrpc\client\JsonRpcRequest;
+use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\rpc\HasRequestIdInterface;
-use kuiper\rpc\RequestInterface;
-use kuiper\rpc\ResponseInterface;
-use kuiper\rpc\RpcResponse;
-use kuiper\rpc\server\ServerResponseFactoryInterface;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcResponseInterface;
+use kuiper\rpc\RpcRpcResponse;
+use kuiper\rpc\server\RpcServerResponseFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Webmozart\Assert\Assert;
 
-class JsonRpcServerResponseFactory implements ServerResponseFactoryInterface
+class JsonRpcServerResponseFactory implements RpcServerResponseFactoryInterface
 {
     /**
      * @var ResponseFactoryInterface
@@ -28,24 +28,27 @@ class JsonRpcServerResponseFactory implements ServerResponseFactoryInterface
         $this->httpResponseFactory = $httpResponseFactory;
     }
 
-    public function createResponse(RequestInterface $request): ResponseInterface
+    /**
+     * {@inheritDoc}
+     */
+    public function createResponse(RpcRequestInterface $request): RpcResponseInterface
     {
-        /* @var JsonRpcRequest $request */
         Assert::isInstanceOf($request, HasRequestIdInterface::class);
         $response = $this->httpResponseFactory->createResponse();
+        /* @var JsonRpcRequestInterface $request */
         $response->getBody()->write(json_encode([
-            'jsonrpc' => JsonRpcRequest::JSONRPC_VERSION,
+            'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
             'id' => $request->getRequestId(),
             'result' => $this->getResult($request),
         ]));
 
-        return new RpcResponse($request, $response->withHeader('content-type', 'application/json'));
+        return new RpcRpcResponse($request, $response->withHeader('content-type', 'application/json'));
     }
 
     /**
      * @return mixed
      */
-    protected function getResult(RequestInterface $request)
+    protected function getResult(RpcRequestInterface $request)
     {
         return $request->getInvokingMethod()->getResult();
     }

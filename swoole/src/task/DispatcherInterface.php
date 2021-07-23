@@ -11,5 +11,5 @@ interface DispatcherInterface
     /**
      * Dispatch task to processor.
      */
-    public function dispatch(TaskEvent $task): void;
+    public function dispatch(TaskEvent $event): void;
 }

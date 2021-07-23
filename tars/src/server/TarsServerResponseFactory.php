@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
-use kuiper\rpc\HasRequestIdInterface;
-use kuiper\rpc\RequestInterface;
-use kuiper\rpc\ResponseInterface;
-use kuiper\rpc\server\ServerResponseFactoryInterface;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcResponseInterface;
+use kuiper\rpc\server\RpcServerResponseFactoryInterface;
 use kuiper\tars\core\MethodMetadataFactoryInterface;
+use kuiper\tars\core\TarsRequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Webmozart\Assert\Assert;
 
-class TarsServerResponseFactory implements ServerResponseFactoryInterface
+class TarsServerResponseFactory implements RpcServerResponseFactoryInterface
 {
     /**
      * @var ResponseFactoryInterface
@@ -38,10 +38,9 @@ class TarsServerResponseFactory implements ServerResponseFactoryInterface
         $this->streamFactory = $streamFactory;
     }
 
-    public function createResponse(RequestInterface $request): ResponseInterface
+    public function createResponse(RpcRequestInterface $request): RpcResponseInterface
     {
-        Assert::isInstanceOf($request, HasRequestIdInterface::class);
-        /* @var TarsServerRpcRequest $request */
+        Assert::isInstanceOf($request, TarsRequestInterface::class);
         $response = $this->httpResponseFactory->createResponse();
 
         $metadata = $this->methodMetadataFactory->create(
@@ -49,6 +48,7 @@ class TarsServerResponseFactory implements ServerResponseFactoryInterface
             $request->getInvokingMethod()->getMethodName()
         );
 
+        /* @var TarsRequestInterface $request */
         return new TarsServerRpcResponse($request, $response, $metadata, $this->streamFactory);
     }
 }

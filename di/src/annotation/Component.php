@@ -48,6 +48,6 @@ class Component implements ComponentInterface, ContainerBuilderAwareInterface
 
     protected function getBeanNames(): array
     {
-        return array_merge($this->class->getInterfaceNames() ?: [], [$this->class->getName()]);
+        return array_merge($this->class->getInterfaceNames() ?? [], [$this->class->getName()]);
     }
 }

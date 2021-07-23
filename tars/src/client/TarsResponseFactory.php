@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace kuiper\tars\client;
 
-use kuiper\rpc\client\ResponseFactoryInterface;
+use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\exception\RequestIdMismatchException;
 use kuiper\rpc\exception\ServerException;
 use kuiper\rpc\HasRequestIdInterface;
-use kuiper\rpc\RequestInterface;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcResponseInterface;
 use kuiper\tars\core\MethodMetadata;
 use kuiper\tars\core\MethodMetadataFactoryInterface;
 use kuiper\tars\exception\ErrorCode;
@@ -19,7 +20,7 @@ use kuiper\tars\type\MapType;
 use Psr\Http\Message\ResponseInterface;
 use Webmozart\Assert\Assert;
 
-class TarsRpcResponseFactory implements ResponseFactoryInterface
+class TarsResponseFactory implements RpcResponseFactoryInterface
 {
     /**
      * @var MethodMetadataFactoryInterface
@@ -34,11 +35,11 @@ class TarsRpcResponseFactory implements ResponseFactoryInterface
         $this->methodMetadataFactory = $methodMetadataFactory;
     }
 
-    public function createResponse(RequestInterface $request, ResponseInterface $response): \kuiper\rpc\ResponseInterface
+    public function createResponse(RpcRequestInterface $request, ResponseInterface $response): RpcResponseInterface
     {
         Assert::isInstanceOf($request, HasRequestIdInterface::class);
-        $packet = ResponsePacket::decode((string) $response->getBody());
-        /** @var HasRequestIdInterface|RequestInterface $request */
+        $packet = ResponsePacket::decode((string)$response->getBody());
+        /** @var HasRequestIdInterface|RpcRequestInterface $request */
         if ($packet->iRequestId > 0 && $packet->iRequestId !== $request->getRequestId()) {
             throw new RequestIdMismatchException();
         }
@@ -51,7 +52,7 @@ class TarsRpcResponseFactory implements ResponseFactoryInterface
         );
         $request->getInvokingMethod()->setResult($this->buildResult($metadata, $packet));
 
-        return new TarsRpcResponse($request, $response, $packet);
+        return new TarsResponse($request, $response, $packet);
     }
 
     private function buildResult(MethodMetadata $metadata, ResponsePacket $packet): array
@@ -60,21 +61,22 @@ class TarsRpcResponseFactory implements ResponseFactoryInterface
         if (ErrorCode::SERVER_SUCCESS === $packet->iRet) {
             $is = new TarsInputStream($packet->sBuffer);
             if (TarsConst::VERSION === $packet->iVersion) {
+                $ret = $is->readMap(0, true, MapType::byteArrayMap());
                 $return = $metadata->getReturnValue();
-                if ($return->getType()->isVoid()) {
-                    $returnValues[] = null;
-                } else {
+                if (isset($ret['']) && !$return->getType()->isVoid()) {
                     $returnValues[] = TarsInputStream::unpack($return->getType(), $ret[''] ?? '');
+                } else {
+                    $returnValues[] = null;
                 }
 
-                $ret = $is->readMap(0, true, MapType::byteArrayMap());
                 foreach ($metadata->getParameters() as $parameter) {
-                    if ($parameter->isOut()) {
-                        if (isset($ret[$parameter->getName()])) {
-                            $returnValues[] = TarsInputStream::unpack($parameter->getType(), $ret[$parameter->getName()] ?? '');
-                        } else {
-                            $returnValues[] = null;
-                        }
+                    if (!$parameter->isOut()) {
+                        continue;
+                    }
+                    if (isset($ret[$parameter->getName()])) {
+                        $returnValues[] = TarsInputStream::unpack($parameter->getType(), $ret[$parameter->getName()]);
+                    } else {
+                        $returnValues[] = null;
                     }
                 }
             } else {

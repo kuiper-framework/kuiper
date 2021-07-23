@@ -64,6 +64,9 @@ class SocketWorker extends AbstractWorker
         $this->handleMessages();
     }
 
+    /**
+     * @param mixed $data
+     */
     public function sendTask($data, int $taskWorkerId, ?callable $onFinish): void
     {
         $task = new Task();
@@ -132,7 +135,10 @@ class SocketWorker extends AbstractWorker
         }
     }
 
-    private function read($fp, $length): string
+    /**
+     * @param resource $fp
+     */
+    private function read($fp, int $length): string
     {
         $data = '';
         while ($buf = fread($fp, $length)) {
@@ -150,7 +156,6 @@ class SocketWorker extends AbstractWorker
         if (isset($this->sockets[$socketId])) {
             fclose($this->sockets[$socketId]);
         }
-        $this->sockets[$socketId] = null;
         unset($this->sockets[$socketId], $this->clients[$socketId]);
         $this->dispatch(Event::CLOSE, [$socketId, 0]);
     }
@@ -179,7 +184,7 @@ class SocketWorker extends AbstractWorker
     private function handleMessages(): void
     {
         $data = $this->getChannel()->receive(0);
-        if ($data && 2 === count($data)) {
+        if (!empty($data) && 2 === count($data)) {
             /** @var Task $task */
             [$msgType, $task] = $data;
             switch ($msgType) {

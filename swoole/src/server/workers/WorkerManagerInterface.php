@@ -11,7 +11,15 @@ use kuiper\swoole\ServerConfig;
 
 interface WorkerManagerInterface
 {
+    /**
+     * starts loop.
+     */
     public function loop(): void;
+
+    /**
+     * @return mixed
+     */
+    public function getResource();
 
     /**
      * Sends data to client.
@@ -35,7 +43,7 @@ interface WorkerManagerInterface
      * @param int      $taskWorkerId
      * @param callable $onFinish
      *
-     * @return mixed
+     * @return void
      */
     public function task($data, $taskWorkerId = -1, $onFinish = null);
 
@@ -50,6 +58,8 @@ interface WorkerManagerInterface
      * Adds timer.
      */
     public function tick(int $millisecond, callable $callback): int;
+
+    public function after(int $millisecond, callable $callback): int;
 
     /**
      * @return ConnectionInfo

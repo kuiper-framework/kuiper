@@ -49,6 +49,7 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
             $this->getEndpoint()->getConnectTimeout() ?? $this->options[Endpoint::CONNECT_TIMEOUT]
         );
         if (!$isConnected) {
+            $client->close();
             $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_CONNECT_FAILED));
         }
 

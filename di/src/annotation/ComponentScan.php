@@ -13,5 +13,5 @@ class ComponentScan
     /**
      * @var string[]
      */
-    public $basePackages = [];
+    public $basePackages;
 }

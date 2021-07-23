@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace kuiper\tars\core;
 
 use kuiper\rpc\HasRequestIdInterface;
-use kuiper\rpc\RequestInterface;
+use kuiper\rpc\RpcRequestInterface;
 
-interface TarsRequestInterface extends RequestInterface, HasRequestIdInterface
+interface TarsRequestInterface extends RpcRequestInterface, HasRequestIdInterface
 {
     public function getVersion(): int;
 

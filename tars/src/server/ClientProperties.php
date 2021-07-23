@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use kuiper\tars\core\Route;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ClientProperties
@@ -78,8 +79,14 @@ class ClientProperties
         return $this->locator;
     }
 
-    public function setLocator(?Route $locator): void
+    /**
+     * @param string|Route $locator
+     */
+    public function setLocator($locator): void
     {
+        if (is_string($locator)) {
+            $locator = Route::fromString($locator);
+        }
         $this->locator = $locator;
     }
 

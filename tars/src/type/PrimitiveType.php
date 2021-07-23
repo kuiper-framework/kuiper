@@ -21,33 +21,39 @@ final class PrimitiveType extends AbstractType
 {
     public const BOOL = 'bool';
     public const CHAR = 'char';
-    public const INT8 = 'int8';
-    public const DOUBLE = 'double';
-    public const FLOAT = 'float';
-    public const SHORT = 'short';
-    public const INT32 = 'int32';
-    public const INT64 = 'int64';
-    public const UINT8 = 'uint8';
-    public const UINT16 = 'uint16';
-    public const UINT32 = 'uint32';
     public const STRING = 'string';
+    public const INT = 'int';
+    public const LONG = 'long';
+    public const FLOAT_TYPE = 'float';
+    public const DOUBLE_TYPE = 'double';
 
     /**
-     * @var array
+     * @var int[]
      */
-    private static $MAP = [
+    private static $PRIMITIVES = [
         self::BOOL => Type::INT8,
+        'boolean' => Type::INT8,
+        'byte' => Type::INT8,
         self::CHAR => Type::INT8,
-        self::INT8 => Type::INT8,
-        self::UINT8 => Type::INT16,
-        self::SHORT => Type::INT16,
-        self::UINT16 => Type::INT32,
-        self::INT32 => Type::INT32,
-        self::UINT32 => Type::INT64,
-        self::INT64 => Type::INT64,
-        self::FLOAT => Type::FLOAT,
-        self::DOUBLE => Type::DOUBLE,
+        'unsigned byte' => Type::INT16,
+        'unsigned char' => Type::INT16,
+        'short' => Type::INT16,
+        'unsigned short' => Type::INT32,
+        self::INT => Type::INT32,
+        'unsigned int' => Type::INT64,
+        self::LONG => Type::INT64,
+        self::FLOAT_TYPE => Type::FLOAT,
+        self::DOUBLE_TYPE => Type::DOUBLE,
         self::STRING => Type::STRING4,
+    ];
+
+    /**
+     * @var string[]
+     */
+    private static $ALIAS = [
+        'boolean' => self::BOOL,
+        'byte' => self::CHAR,
+        'unsigned byte' => 'unsigned char',
     ];
 
     /**
@@ -63,9 +69,9 @@ final class PrimitiveType extends AbstractType
     /**
      * PrimitiveType constructor.
      */
-    public function __construct(string $primitiveType)
+    private function __construct(string $primitiveType)
     {
-        if (!isset(self::$MAP[$primitiveType])) {
+        if (!self::has($primitiveType)) {
             throw new \InvalidArgumentException("unknown primitive tars type $primitiveType");
         }
         $this->type = $primitiveType;
@@ -76,19 +82,27 @@ final class PrimitiveType extends AbstractType
         return self::of($name);
     }
 
+    public static function has(string $name): bool
+    {
+        return isset(self::$PRIMITIVES[strtolower($name)]);
+    }
+
     public static function of(string $name): self
     {
         $name = strtolower($name);
-        if (isset(self::$INSTANCES[$name])) {
-            return self::$INSTANCES[$name];
+        if (isset(self::$ALIAS[$name])) {
+            $name = self::$ALIAS[$name];
+        }
+        if (!isset(self::$INSTANCES[$name])) {
+            self::$INSTANCES[$name] = new self($name);
         }
 
-        return self::$INSTANCES[$name] = new self($name);
+        return self::$INSTANCES[$name];
     }
 
     public function getTarsType(): int
     {
-        return self::$MAP[$this->type];
+        return self::$PRIMITIVES[$this->type];
     }
 
     public function getPhpType(): string

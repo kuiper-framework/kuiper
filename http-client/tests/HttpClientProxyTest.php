@@ -42,14 +42,14 @@ class HttpClientProxyTest extends TestCase
         $annotationReader = AnnotationReader::getInstance();
         $reflectionDocBlockFactory = new ReflectionDocBlockFactory();
         $normalizer = new Serializer($annotationReader, $reflectionDocBlockFactory);
-        $responseFactory = new JsonResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory));
+        $responseFactory = new HttpJsonResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory));
 
         $proxyGenerator = new ProxyGenerator($reflectionDocBlockFactory);
         $generatedClass = $proxyGenerator->generate(GithubService::class);
         $generatedClass->eval();
         $class = $generatedClass->getClassName();
         /** @var GithubService $proxy */
-        $proxy = new $class(new RpcClient($httpTransporter, new HttpRequestFactory($annotationReader, $normalizer), $responseFactory));
+        $proxy = new $class(new RpcClient($httpTransporter, new HttpRpcRequestFactory($annotationReader, $normalizer), $responseFactory));
         $repos = $proxy->listRepos('john');
         // var_export($repos);
         $this->assertIsArray($repos);

@@ -21,6 +21,7 @@ trait ComponentTrait
 
     public function setTarget($class): void
     {
+        /* @var ReflectionClass $class */
         $this->class = $class;
     }
 

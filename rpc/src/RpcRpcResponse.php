@@ -6,10 +6,10 @@ namespace kuiper\rpc;
 
 use Psr\Http\Message\StreamInterface;
 
-class RpcResponse implements ResponseInterface
+class RpcRpcResponse implements RpcResponseInterface
 {
     /**
-     * @var RequestInterface
+     * @var RpcRequestInterface
      */
     protected $request;
 
@@ -21,7 +21,7 @@ class RpcResponse implements ResponseInterface
     /**
      * RpcResponse constructor.
      */
-    public function __construct(RequestInterface $request, \Psr\Http\Message\ResponseInterface $httpResponse)
+    public function __construct(RpcRequestInterface $request, \Psr\Http\Message\ResponseInterface $httpResponse)
     {
         $this->request = $request;
         $this->httpResponse = $httpResponse;
@@ -110,7 +110,7 @@ class RpcResponse implements ResponseInterface
         return $copy;
     }
 
-    public function getRequest(): RequestInterface
+    public function getRequest(): RpcRequestInterface
     {
         return $this->request;
     }

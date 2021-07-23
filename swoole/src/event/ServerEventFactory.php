@@ -17,9 +17,10 @@ class ServerEventFactory
         $method = sprintf('create%sEvent', $eventName);
         if (method_exists($this, $method)) {
             $server = array_shift($args);
-            /** @var AbstractServerEvent $event */
+            /** @phpstan-ignore-next-line */
             $event = $this->$method(...$args);
             if ($server instanceof ServerInterface) {
+                /* @var AbstractServerEvent $event */
                 $event->setServer($server);
             }
 

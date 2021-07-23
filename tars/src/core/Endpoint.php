@@ -165,6 +165,7 @@ final class Endpoint
                 return $this->encrypted ? '-e' : '';
             }
 
+            /* @phpstan-ignore-next-line */
             return isset($this->{$name}) ? '-'.self::$SHORT_OPTIONS[$name].' '.$this->{$name} : null;
         }, array_keys(self::$SHORT_OPTIONS))));
     }

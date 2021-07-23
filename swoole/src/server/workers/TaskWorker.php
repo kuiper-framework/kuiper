@@ -11,15 +11,16 @@ class TaskWorker extends AbstractWorker
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @var Task
+     * @var Task|null
      */
     private $task;
 
     protected function work(): void
     {
-        /** @var Task $task */
         $data = $this->getChannel()->receive();
-        if ($data && 2 === count($data)) {
+        if (!empty($data) && 2 === count($data)) {
+            /** @var Task $task */
+            /** @var int $msgType */
             [$msgType, $task] = $data;
             if (MessageType::TICK === $msgType) {
                 $this->triggerTick();
@@ -37,6 +38,9 @@ class TaskWorker extends AbstractWorker
         }
     }
 
+    /**
+     * @param mixed $data
+     */
     public function finish($data): void
     {
         $ret = clone $this->task;

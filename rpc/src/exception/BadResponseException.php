@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\exception;
 
-use kuiper\rpc\RequestInterface;
+use kuiper\rpc\RpcRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class BadResponseException extends \Exception
 {
     /**
-     * @var RequestInterface
+     * @var RpcRequestInterface
      */
     private $request;
 
@@ -22,14 +22,14 @@ class BadResponseException extends \Exception
     /**
      * BadResponseException constructor.
      */
-    public function __construct(RequestInterface $request, ResponseInterface $response)
+    public function __construct(RpcRequestInterface $request, ResponseInterface $response)
     {
         parent::__construct('Cannot parse response');
         $this->request = $request;
         $this->response = $response;
     }
 
-    public function getRequest(): RequestInterface
+    public function getRequest(): RpcRequestInterface
     {
         return $this->request;
     }

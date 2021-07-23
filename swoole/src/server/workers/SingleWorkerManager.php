@@ -56,7 +56,7 @@ class SingleWorkerManager extends AbstractWorkerManager
      */
     private $taskId = 0;
     /**
-     * @var Task
+     * @var Task|null
      */
     private $currentTask;
 
@@ -129,7 +129,10 @@ class SingleWorkerManager extends AbstractWorkerManager
 
     private function setErrorHandler(): void
     {
-        set_error_handler([$this, 'handleError']);
+        /* @phpstan-ignore-next-line */
+        set_error_handler(function (): void {
+            $this->handleError();
+        });
     }
 
     public function handleError(): void
@@ -180,7 +183,10 @@ class SingleWorkerManager extends AbstractWorkerManager
         }
     }
 
-    private function read($fp, $length): string
+    /**
+     * @param resource $fp
+     */
+    private function read($fp, int $length): string
     {
         $data = '';
         while ($buf = fread($fp, $length)) {
@@ -193,14 +199,16 @@ class SingleWorkerManager extends AbstractWorkerManager
         return $data;
     }
 
-    public function closeConnection(int $socketId): void
+    /**
+     * {@inheritDoc}
+     */
+    public function closeConnection(int $clientId): void
     {
-        if (isset($this->sockets[$socketId])) {
-            fclose($this->sockets[$socketId]);
+        if (isset($this->sockets[$clientId])) {
+            fclose($this->sockets[$clientId]);
         }
-        $this->sockets[$socketId] = null;
-        unset($this->sockets[$socketId], $this->clients[$socketId]);
-        $this->dispatch(Event::CLOSE, [$socketId, 0]);
+        unset($this->sockets[$clientId], $this->clients[$clientId]);
+        $this->dispatch(Event::CLOSE, [$clientId, 0]);
     }
 
     /**

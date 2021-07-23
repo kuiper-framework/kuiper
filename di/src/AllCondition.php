@@ -15,6 +15,11 @@ class AllCondition implements Conditional
      */
     private $conditions;
 
+    /**
+     * AllCondition constructor.
+     *
+     * @param Conditional ...$conditions
+     */
     public function __construct(...$conditions)
     {
         foreach ($conditions as $condition) {
@@ -39,7 +44,7 @@ class AllCondition implements Conditional
     }
 
     /**
-     * @param \ReflectionMethod|\ReflectionClass $reflector
+     * @param \ReflectionMethod|\ReflectionClass|mixed $reflector
      */
     public static function create(AnnotationReaderInterface $annotationReader, $reflector): ?AllCondition
     {

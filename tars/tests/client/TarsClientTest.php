@@ -13,8 +13,13 @@ use kuiper\annotations\AnnotationReader;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\rpc\transporter\HttpTransporter;
 use kuiper\tars\core\MethodMetadataFactory;
+use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\fixtures\HelloService;
+use kuiper\tars\stream\RequestPacket;
 use kuiper\tars\stream\ResponsePacket;
+use kuiper\tars\stream\TarsOutputStream;
+use kuiper\tars\type\MapType;
+use kuiper\tars\type\PrimitiveType;
 use Laminas\Diactoros\RequestFactory;
 use Laminas\Diactoros\StreamFactory;
 use PHPUnit\Framework\TestCase;
@@ -27,9 +32,12 @@ class TarsClientTest extends TestCase
         $generatedClass = $proxyGenerator->generate(HelloService::class);
         $generatedClass->eval();
         $class = $generatedClass->getClassName();
+        $methodMetadataFactory = new MethodMetadataFactory(AnnotationReader::getInstance());
         $packet = new ResponsePacket();
         $packet->iRequestId = 1;
-        $packet->
+        $packet->sBuffer = TarsOutputStream::pack(MapType::byteArrayMap(), [
+            '' => TarsOutputStream::pack(PrimitiveType::string(), 'hello world'),
+        ]);
         $mock = new MockHandler([
             new Response(200, [], (string) $packet->encode()),
         ]);
@@ -40,12 +48,17 @@ class TarsClientTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $transporter = new HttpTransporter($client);
-        $methodMetadataFactory = new MethodMetadataFactory(AnnotationReader::getInstance());
-        $requestFactory = new TarsRpcRequestFactory(new RequestFactory(), new StreamFactory(), $methodMetadataFactory, 1);
-        $responseFactory = new TarsRpcResponseFactory($methodMetadataFactory);
+        $requestFactory = new TarsRequestFactory(new RequestFactory(), new StreamFactory(), $methodMetadataFactory, 1);
+        $responseFactory = new TarsResponseFactory($methodMetadataFactory);
         /** @var HelloService $proxy */
-        $proxy = new $class(new TarsRpcClient($transporter, $requestFactory, $responseFactory));
+        $proxy = new $class(new TarsClient($transporter, $requestFactory, $responseFactory));
         $result = $proxy->hello('world');
         $this->assertEquals($result, 'hello world');
+
+        /** @var TarsRequestInterface $request */
+        $request = $requests[0]['request'];
+        $packet = RequestPacket::decode((string) $request->getBody());
+        $this->assertEquals('app.hello.HelloObj', $packet->sServantName);
+        $this->assertEquals('hello', $packet->sFuncName);
     }
 }

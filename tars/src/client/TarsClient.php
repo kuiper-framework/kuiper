@@ -6,15 +6,15 @@ namespace kuiper\tars\client;
 
 use kuiper\rpc\client\RpcClient;
 use kuiper\rpc\exception\RequestIdMismatchException;
-use kuiper\rpc\RequestInterface;
-use kuiper\rpc\ResponseInterface;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcResponseInterface;
 
-class TarsRpcClient extends RpcClient
+class TarsClient extends RpcClient
 {
     /**
      * {@inheritDoc}
      */
-    public function handle(RequestInterface $request): ResponseInterface
+    public function handle(RpcRequestInterface $request): RpcResponseInterface
     {
         try {
             return parent::handle($request);

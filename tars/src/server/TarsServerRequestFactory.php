@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace kuiper\tars\server;
 
 use kuiper\rpc\InvokingMethod;
-use kuiper\rpc\server\ServerRequestFactoryInterface;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\tars\core\MethodMetadata;
 use kuiper\tars\core\MethodMetadataFactoryInterface;
 use kuiper\tars\exception\ErrorCode;
@@ -18,7 +19,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 
-class TarsServerRequestFactory implements ServerRequestFactoryInterface, LoggerAwareInterface
+class TarsServerRequestFactory implements RpcServerRequestFactoryInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
     protected const TAG = '['.__CLASS__.'] ';
@@ -45,7 +46,12 @@ class TarsServerRequestFactory implements ServerRequestFactoryInterface, LoggerA
         $this->methodMetadataFactory = $methodMetadataFactory;
     }
 
-    public function createRequest(RequestInterface $request): \kuiper\rpc\RequestInterface
+    /**
+     * {@inheritDoc}
+     *
+     * @throws TarsRequestException
+     */
+    public function createRequest(RequestInterface $request): RpcRequestInterface
     {
         $packet = RequestPacket::decode((string) $request->getBody());
         $servant = $this->servants[$request->getUri()->getPort()][$packet->sServantName] ?? null;
@@ -56,7 +62,7 @@ class TarsServerRequestFactory implements ServerRequestFactoryInterface, LoggerA
         $methodMetadata = $this->methodMetadataFactory->create($servant, $packet->sFuncName);
         $invokingMethod = new InvokingMethod($servant, $packet->sFuncName, $this->resolveParams($methodMetadata, $packet));
 
-        return new TarsServerRpcRequest($request, $invokingMethod, $packet, $methodMetadata);
+        return new TarsServerRequest($request, $invokingMethod, $packet, $methodMetadata);
     }
 
     private function resolveParams(MethodMetadata $methodMetadata, RequestPacket $packet): array

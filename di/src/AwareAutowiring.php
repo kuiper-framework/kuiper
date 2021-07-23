@@ -26,7 +26,7 @@ class AwareAutowiring implements DefinitionSource, Autowiring
         $this->autowiring = $autowiring;
     }
 
-    public function add(AwareInjection $awareInjection, $ignoreExist = false): void
+    public function add(AwareInjection $awareInjection, bool $ignoreExist = false): void
     {
         if (!$ignoreExist && isset($this->awareInjections[$awareInjection->getInterfaceName()])) {
             throw new \InvalidArgumentException($awareInjection->getInterfaceName().' is injected');
@@ -50,19 +50,19 @@ class AwareAutowiring implements DefinitionSource, Autowiring
     /**
      * {@inheritdoc}
      */
-    public function autowire(string $name, ObjectDefinition $definition = null)
+    public function autowire(string $name, ?ObjectDefinition $definition = null)
     {
-        $definition = $this->autowiring->autowire($name, $definition);
-        if ($definition && $definition instanceof ObjectDefinition) {
-            $className = $definition->getClassName();
+        $autowired = $this->autowiring->autowire($name, $definition);
+        if ($autowired instanceof ObjectDefinition) {
+            $className = $autowired->getClassName();
             foreach ($this->awareInjections as $awareDefinition) {
                 if ($awareDefinition->match($className)) {
-                    $awareDefinition->inject($definition);
+                    $awareDefinition->inject($autowired);
                 }
             }
         }
 
-        return $definition;
+        return $autowired;
     }
 
     /**

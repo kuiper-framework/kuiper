@@ -20,6 +20,11 @@ class ConnectionReleaseEvent implements StoppableEventInterface
      */
     private $connection;
 
+    /**
+     * ConnectionReleaseEvent constructor.
+     *
+     * @param mixed $connection
+     */
     public function __construct(string $poolName, $connection)
     {
         $this->connection = $connection;

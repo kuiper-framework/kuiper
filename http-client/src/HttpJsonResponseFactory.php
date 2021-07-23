@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace kuiper\http\client;
 
-use kuiper\rpc\client\ResponseFactoryInterface;
+use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\client\RpcResponseNormalizer;
 use kuiper\rpc\exception\BadResponseException;
 use kuiper\rpc\InvokingMethod;
-use kuiper\rpc\RequestInterface;
-use kuiper\rpc\RpcResponse;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcRpcResponse;
 use Psr\Http\Message\ResponseInterface;
 
-class JsonResponseFactory implements ResponseFactoryInterface
+class HttpJsonResponseFactory implements RpcResponseFactoryInterface
 {
     /**
      * @var RpcResponseNormalizer
@@ -27,7 +27,7 @@ class JsonResponseFactory implements ResponseFactoryInterface
         $this->normalizer = $normalizer;
     }
 
-    public function createResponse(RequestInterface $request, ResponseInterface $response): \kuiper\rpc\ResponseInterface
+    public function createResponse(RpcRequestInterface $request, ResponseInterface $response): \kuiper\rpc\RpcResponseInterface
     {
         try {
             $request->getInvokingMethod()->setResult($this->buildResult($request->getInvokingMethod(), $response));
@@ -35,7 +35,7 @@ class JsonResponseFactory implements ResponseFactoryInterface
             throw new BadResponseException($request, $response);
         }
 
-        return new RpcResponse($request, $response);
+        return new RpcRpcResponse($request, $response);
     }
 
     protected function buildResult(InvokingMethod $method, ResponseInterface $response): array

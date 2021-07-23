@@ -26,7 +26,6 @@ use DI\Proxy\ProxyFactory;
 use InvalidArgumentException;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\Conditional;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 use Psr\Container\ContainerInterface;
@@ -97,7 +96,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $definitionSources = [];
 
     /**
-     * @var AwareAutowiring
+     * @var AwareAutowiring|null
      */
     private $awareAutowiring;
     /**
@@ -108,49 +107,49 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $locked = false;
 
     /**
-     * @var ComponentScannerInterface
+     * @var ComponentScannerInterface|null
      */
     private $componentScanner;
 
     /**
-     * @var ClassLoader
+     * @var ClassLoader|null
      */
     private $classLoader;
 
     /**
-     * @var ReflectionNamespaceFactoryInterface
+     * @var ReflectionNamespaceFactoryInterface|null
      */
     private $reflectionNamespaceFactory;
 
     /**
-     * @var ConfigurationDefinitionLoader
+     * @var ConfigurationDefinitionLoader|null
      */
     private $configurationDefinition;
 
     /**
-     * @var ConditionalDefinitionSource
+     * @var ConditionalDefinitionSource|null
      */
     private $conditionalDefinitionSource;
 
     /**
-     * @var AnnotationReaderInterface
+     * @var AnnotationReaderInterface|null
      */
     private $annotationReader;
 
     /**
      * @var object[]
      */
-    private $configurations;
+    private $configurations = [];
 
     /**
      * @var array
      */
-    private $scanNamespaces;
+    private $scanNamespaces = [];
 
     /**
      * @var callable[]
      */
-    private $deferCallbacks;
+    private $deferCallbacks = [];
 
     /**
      * @var ConditionalDefinition[]
@@ -158,7 +157,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $conditionalDefinitions = [];
 
     /**
-     * @var DefinitionArray
+     * @var DefinitionArray|null
      */
     private $mutableDefinitionSource;
 
@@ -219,7 +218,7 @@ class ContainerBuilder implements ContainerBuilderInterface
         $this->locked = true;
         $containerClass = $this->containerClass;
         $container = new $containerClass($source, $proxyFactory, $this->wrapperContainer);
-        if ($this->conditionalDefinitionSource) {
+        if (null !== $this->conditionalDefinitionSource) {
             $this->conditionalDefinitionSource->setContainer($container);
         }
         if (!empty($this->deferCallbacks)) {
@@ -231,7 +230,10 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $container;
     }
 
-    public function defer(callable $callback): self
+    /**
+     * {@inheritDoc}
+     */
+    public function defer(callable $callback): ContainerBuilderInterface
     {
         $this->deferCallbacks[] = $callback;
 
@@ -240,14 +242,17 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getAwareAutowiring(): AwareAutowiring
     {
-        if (!$this->awareAutowiring) {
+        if (null !== $this->awareAutowiring) {
             $this->awareAutowiring = new AwareAutowiring();
         }
 
         return $this->awareAutowiring;
     }
 
-    public function addAwareInjection(AwareInjection $awareInjection): self
+    /**
+     * {@inheritDoc}
+     */
+    public function addAwareInjection(AwareInjection $awareInjection): ContainerBuilderInterface
     {
         $this->getAwareAutowiring()->add($awareInjection);
 
@@ -347,13 +352,13 @@ class ContainerBuilder implements ContainerBuilderInterface
     /**
      * Add definitions to the container.
      *
-     * @param string|array|DefinitionSource ...$definitions Can be an array of definitions, the
-     *                                                      name of a file containing definitions
-     *                                                      or a DefinitionSource object.
+     * @param string|array|DefinitionSource|mixed ...$definitions Can be an array of definitions, the
+     *                                                            name of a file containing definitions
+     *                                                            or a DefinitionSource object.
      *
      * @return static
      */
-    public function addDefinitions(...$definitions)
+    public function addDefinitions(...$definitions): ContainerBuilderInterface
     {
         if ($this->locked) {
             foreach ($definitions as $definition) {
@@ -365,7 +370,7 @@ class ContainerBuilder implements ContainerBuilderInterface
                 }
             }
 
-            return;
+            return $this;
         }
 
         foreach ($definitions as $definition) {
@@ -376,9 +381,8 @@ class ContainerBuilder implements ContainerBuilderInterface
                 $simpleDefinition = [];
                 foreach ($definition as $key => $def) {
                     if ($def instanceof ComponentDefinition) {
-                        /** @var Conditional $condition */
                         $condition = AllCondition::create($this->getAnnotationReader(), $def->getComponent()->getTarget());
-                        if ($condition) {
+                        if (null !== $condition) {
                             $def = new ConditionalDefinition($def->getDefinition(), $condition);
                         } else {
                             $def = $def->getDefinition();
@@ -443,7 +447,10 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
     }
 
-    public function addConfiguration($configuration): self
+    /**
+     * {@inheritDoc}
+     */
+    public function addConfiguration($configuration): ContainerBuilderInterface
     {
         if ($configuration instanceof ContainerBuilderAwareInterface) {
             $configuration->setContainerBuilder($this);
@@ -455,7 +462,7 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getAnnotationReader(): AnnotationReaderInterface
     {
-        if (!$this->annotationReader) {
+        if (null === $this->annotationReader) {
             $this->annotationReader = AnnotationReader::getInstance();
         }
 
@@ -471,7 +478,7 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getConfigurationDefinition(): ConfigurationDefinitionLoader
     {
-        if (!$this->configurationDefinition) {
+        if (null === $this->configurationDefinition) {
             $this->configurationDefinition = new ConfigurationDefinitionLoader($this, $this->getAnnotationReader());
         }
 
@@ -487,7 +494,7 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getClassLoader(): ClassLoader
     {
-        if (!$this->classLoader) {
+        if (null === $this->classLoader) {
             throw new \InvalidArgumentException('class loader is not set yet');
         }
 
@@ -503,9 +510,11 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getReflectionNamespaceFactory(): ReflectionNamespaceFactoryInterface
     {
-        if (!$this->reflectionNamespaceFactory) {
-            $this->reflectionNamespaceFactory = ReflectionNamespaceFactory::getInstance()
-                ->registerLoader($this->getClassLoader());
+        if (null === $this->reflectionNamespaceFactory) {
+            /** @var ReflectionNamespaceFactory $reflectionNamespaceFactory */
+            $reflectionNamespaceFactory = ReflectionNamespaceFactory::getInstance();
+            $reflectionNamespaceFactory->registerLoader($this->getClassLoader());
+            $this->reflectionNamespaceFactory = $reflectionNamespaceFactory;
         }
 
         return $this->reflectionNamespaceFactory;
@@ -523,7 +532,7 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getComponentScanner(): ComponentScannerInterface
     {
-        if (!$this->componentScanner) {
+        if (null === $this->componentScanner) {
             $this->componentScanner = new ComponentScanner($this, $this->getAnnotationReader(), $this->getReflectionNamespaceFactory());
         }
 
@@ -587,7 +596,7 @@ class ContainerBuilder implements ContainerBuilderInterface
         if (!empty($this->conditionalDefinitions)) {
             $sources[] = $this->conditionalDefinitionSource = new ConditionalDefinitionSource($this->conditionalDefinitions, $autowiring);
         }
-        $sources = array_map(static function ($definitions) use ($autowiring) {
+        $sources = array_map(static function ($definitions) use ($autowiring): DefinitionSource {
             if (is_array($definitions)) {
                 return new DefinitionArray($definitions, $autowiring);
             }
@@ -621,7 +630,10 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $source;
     }
 
-    private function addDefinition($name, $value): void
+    /**
+     * @param mixed $value
+     */
+    private function addDefinition(string $name, $value): void
     {
         if ($value instanceof DefinitionHelper) {
             $value = $value->getDefinition($name);

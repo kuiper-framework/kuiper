@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client;
 
-use kuiper\rpc\RequestInterface;
+use kuiper\rpc\RpcRequestInterface;
 
 class RpcExecutor implements RpcExecutorInterface
 {
     /**
-     * @var RequestInterface
+     * @var RpcRequestInterface
      */
     private $request;
     /**
-     * @var RpcClientInterface
+     * @var RpcClientInterfaceRpc
      */
     private $client;
 
-    public function __construct(RpcClientInterface $client, RequestInterface $request)
+    public function __construct(RpcClientInterfaceRpc $client, RpcRequestInterface $request)
     {
         $this->request = $request;
         $this->client = $client;

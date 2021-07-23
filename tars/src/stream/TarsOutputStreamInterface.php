@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\stream;
 
+use kuiper\tars\exception\TarsStreamException;
 use kuiper\tars\type\MapType;
 use kuiper\tars\type\StructMap;
 use kuiper\tars\type\StructType;
@@ -36,20 +37,29 @@ interface TarsOutputStreamInterface
 
     public function writeString(int $tag, string $value): void;
 
+    /**
+     * @throws TarsStreamException
+     */
     public function writeStruct(int $tag, object $value, StructType $structType): void;
 
     /**
      * @param array|string $value
+     *
+     * @throws TarsStreamException
      */
     public function writeVector(int $tag, $value, VectorType $vectorType): void;
 
     /**
      * @param array|StructMap $value
+     *
+     * @throws TarsStreamException
      */
     public function writeMap(int $tag, $value, MapType $mapType): void;
 
     /**
      * @param mixed $value
+     *
+     * @throws TarsStreamException
      */
     public function write(int $tag, $value, Type $type): void;
 }

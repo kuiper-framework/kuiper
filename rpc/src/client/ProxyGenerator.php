@@ -120,7 +120,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
         $phpClass->addMethod('__construct',
             [
                 [
-                    'type' => RpcClientInterface::class,
+                    'type' => RpcClientInterfaceRpc::class,
                     'name' => 'client',
                 ],
             ],

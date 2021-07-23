@@ -29,17 +29,17 @@ trait DelegateDefinitionTrait
     /**
      * {@inheritdoc}
      */
-    public function setName(string $name)
+    public function setName(string $name): void
     {
-        return $this->definition->setName($name);
+        $this->definition->setName($name);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function replaceNestedDefinitions(callable $replacer)
+    public function replaceNestedDefinitions(callable $replacer): void
     {
-        return $this->definition->replaceNestedDefinitions($replacer);
+        $this->definition->replaceNestedDefinitions($replacer);
     }
 
     /**

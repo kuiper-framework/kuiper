@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\server;
 
-use kuiper\rpc\RequestInterface;
+use kuiper\rpc\RpcRequestInterface;
 
 class NoOutParamJsonRpcServerResponseFactory extends JsonRpcServerResponseFactory
 {
     /**
      * @return mixed
      */
-    protected function getResult(RequestInterface $request)
+    protected function getResult(RpcRequestInterface $request)
     {
         return $request->getInvokingMethod()->getResult()[0];
     }

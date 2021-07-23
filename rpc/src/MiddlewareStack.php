@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
-class MiddlewareStack implements RequestHandlerInterface
+class MiddlewareStack implements RpcRequestHandlerInterface
 {
     /**
      * @var MiddlewareInterface[]
      */
     private $middlewares;
     /**
-     * @var RequestHandlerInterface
+     * @var RpcRequestHandlerInterface
      */
     private $final;
 
@@ -20,13 +20,13 @@ class MiddlewareStack implements RequestHandlerInterface
      *
      * @param MiddlewareInterface[] $middlewares
      */
-    public function __construct(array $middlewares, RequestHandlerInterface $final)
+    public function __construct(array $middlewares, RpcRequestHandlerInterface $final)
     {
         $this->middlewares = $middlewares;
         $this->final = $final;
     }
 
-    public function withFinalHandler(RequestHandlerInterface $final): self
+    public function withFinalHandler(RpcRequestHandlerInterface $final): self
     {
         $copy = clone $this;
         $copy->final = $final;
@@ -34,20 +34,20 @@ class MiddlewareStack implements RequestHandlerInterface
         return $copy;
     }
 
-    public function handle(RequestInterface $request): ResponseInterface
+    public function handle(RpcRequestInterface $request): RpcResponseInterface
     {
         return $this->callNext($request, 0);
     }
 
-    private function callNext(RequestInterface $request, int $index): ResponseInterface
+    private function callNext(RpcRequestInterface $request, int $index): RpcResponseInterface
     {
         if (!isset($this->middlewares[$index])) {
             return $this->final->handle($request);
         }
-        $next = function (RequestInterface $request) use ($index): ResponseInterface {
+        $next = function (RpcRequestInterface $request) use ($index): RpcResponseInterface {
             return $this->callNext($request, $index + 1);
         };
-        $handler = new class($next) implements RequestHandlerInterface {
+        $handler = new class($next) implements RpcRequestHandlerInterface {
             /**
              * @var callable
              */
@@ -58,7 +58,7 @@ class MiddlewareStack implements RequestHandlerInterface
                 $this->next = $next;
             }
 
-            public function handle(RequestInterface $request): ResponseInterface
+            public function handle(RpcRequestInterface $request): RpcResponseInterface
             {
                 return call_user_func($this->next, $request);
             }

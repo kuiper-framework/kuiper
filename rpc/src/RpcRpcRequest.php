@@ -8,7 +8,7 @@ use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
 
-class RpcRequest implements RequestInterface
+class RpcRpcRequest implements RpcRequestInterface
 {
     /**
      * @var HttpRequestInterface

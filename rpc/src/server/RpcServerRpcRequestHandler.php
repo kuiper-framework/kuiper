@@ -6,11 +6,11 @@ namespace kuiper\rpc\server;
 
 use kuiper\rpc\exception\ServiceNotFoundException;
 use kuiper\rpc\MiddlewareSupport;
-use kuiper\rpc\RequestHandlerInterface;
-use kuiper\rpc\RequestInterface;
-use kuiper\rpc\ResponseInterface;
+use kuiper\rpc\RpcRequestHandlerInterface;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcResponseInterface;
 
-class RpcServerRequestHandler implements RequestHandlerInterface
+class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
 {
     use MiddlewareSupport;
 
@@ -20,11 +20,11 @@ class RpcServerRequestHandler implements RequestHandlerInterface
     private $services;
 
     /**
-     * @var ServerResponseFactoryInterface
+     * @var RpcServerResponseFactoryInterface
      */
     private $responseFactory;
 
-    public function __construct(array $services, ServerResponseFactoryInterface $responseFactory, array $middlewares = [])
+    public function __construct(array $services, RpcServerResponseFactoryInterface $responseFactory, array $middlewares = [])
     {
         $this->services = $services;
         $this->responseFactory = $responseFactory;
@@ -34,27 +34,27 @@ class RpcServerRequestHandler implements RequestHandlerInterface
     /**
      * {@inheritDoc}
      */
-    public function handle(RequestInterface $request): ResponseInterface
+    public function handle(RpcRequestInterface $request): RpcResponseInterface
     {
-        return $this->buildMiddlewareStack(new class($this) implements RequestHandlerInterface {
+        return $this->buildMiddlewareStack(new class($this) implements RpcRequestHandlerInterface {
             /**
-             * @var RpcServerRequestHandler
+             * @var RpcServerRpcRequestHandler
              */
             private $handler;
 
-            public function __construct(RpcServerRequestHandler $handler)
+            public function __construct(RpcServerRpcRequestHandler $handler)
             {
                 $this->handler = $handler;
             }
 
-            public function handle(RequestInterface $request): ResponseInterface
+            public function handle(RpcRequestInterface $request): RpcResponseInterface
             {
                 return $this->handler->serve($request);
             }
         })->handle($request);
     }
 
-    public function serve(RequestInterface $request): ResponseInterface
+    public function serve(RpcRequestInterface $request): RpcResponseInterface
     {
         $method = $request->getInvokingMethod();
         $args = $method->getArguments();

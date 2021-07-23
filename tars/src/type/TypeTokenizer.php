@@ -45,26 +45,6 @@ class TypeTokenizer
     ];
 
     /**
-     * @var array
-     */
-    private static $PRIMITIVES = [
-        'bool' => PrimitiveType::BOOL,
-        'boolean' => PrimitiveType::BOOL,
-        'byte' => PrimitiveType::CHAR,
-        'char' => PrimitiveType::CHAR,
-        'unsigned byte' => PrimitiveType::UINT8,
-        'unsigned char' => PrimitiveType::UINT8,
-        'short' => PrimitiveType::SHORT,
-        'unsigned short' => PrimitiveType::UINT16,
-        'int' => PrimitiveType::INT32,
-        'unsigned int' => PrimitiveType::UINT32,
-        'long' => PrimitiveType::INT64,
-        'float' => PrimitiveType::FLOAT,
-        'double' => PrimitiveType::DOUBLE,
-        'string' => PrimitiveType::STRING,
-    ];
-
-    /**
      * @var string
      */
     private $input;
@@ -138,15 +118,15 @@ class TypeTokenizer
         if (self::UNSIGNED === $word) {
             $this->skipWhitespace();
             $unsignedType = $word.' '.$this->readIdentifier();
-            if (!isset(self::$PRIMITIVES[$unsignedType])) {
+            if (!PrimitiveType::has($unsignedType)) {
                 $this->raiseSyntaxError('expect byte|short|int for unsigned type');
             }
 
-            return $this->createToken(self::T_PRIMITIVE, self::$PRIMITIVES[$unsignedType]);
+            return $this->createToken(self::T_PRIMITIVE, $unsignedType);
         }
 
-        if (isset(self::$PRIMITIVES[$word])) {
-            return $this->createToken(self::T_PRIMITIVE, self::$PRIMITIVES[$word]);
+        if (PrimitiveType::has($word)) {
+            return $this->createToken(self::T_PRIMITIVE, $word);
         }
 
         return $this->createToken(self::T_STRUCT, $word);

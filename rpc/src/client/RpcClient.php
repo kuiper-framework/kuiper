@@ -6,17 +6,17 @@ namespace kuiper\rpc\client;
 
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\MiddlewareSupport;
-use kuiper\rpc\RequestHandlerInterface;
-use kuiper\rpc\RequestInterface;
-use kuiper\rpc\ResponseInterface;
+use kuiper\rpc\RpcRequestHandlerInterface;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcResponseInterface;
 use kuiper\rpc\transporter\TransporterInterface;
 
-class RpcClient implements RpcClientInterface, RequestHandlerInterface
+class RpcClient implements RpcClientInterfaceRpc, RpcRequestHandlerInterface
 {
     use MiddlewareSupport;
 
     /**
-     * @var RequestFactoryInterface
+     * @var RpcRequestFactoryInterface
      */
     private $requestFactory;
 
@@ -26,7 +26,7 @@ class RpcClient implements RpcClientInterface, RequestHandlerInterface
     private $transporter;
 
     /**
-     * @var ResponseFactoryInterface
+     * @var RpcResponseFactoryInterface
      */
     private $responseFactory;
 
@@ -35,7 +35,7 @@ class RpcClient implements RpcClientInterface, RequestHandlerInterface
      *
      * @param MiddlewareInterface[] $middlewares
      */
-    public function __construct(TransporterInterface $transporter, RequestFactoryInterface $requestFactory, ResponseFactoryInterface $responseFactory, array $middlewares = [])
+    public function __construct(TransporterInterface $transporter, RpcRequestFactoryInterface $requestFactory, RpcResponseFactoryInterface $responseFactory, array $middlewares = [])
     {
         $this->requestFactory = $requestFactory;
         $this->middlewares = $middlewares;
@@ -43,7 +43,7 @@ class RpcClient implements RpcClientInterface, RequestHandlerInterface
         $this->responseFactory = $responseFactory;
     }
 
-    public function getRequestFactory(): RequestFactoryInterface
+    public function getRequestFactory(): RpcRequestFactoryInterface
     {
         return $this->requestFactory;
     }
@@ -54,7 +54,7 @@ class RpcClient implements RpcClientInterface, RequestHandlerInterface
     }
 
     /**
-     * @return ResponseFactoryInterface
+     * @return RpcResponseFactoryInterface
      */
     public function getResponseFactory()
     {
@@ -64,7 +64,7 @@ class RpcClient implements RpcClientInterface, RequestHandlerInterface
     /**
      * {@inheritDoc}
      */
-    public function handle(RequestInterface $request): ResponseInterface
+    public function handle(RpcRequestInterface $request): RpcResponseInterface
     {
         return $this->responseFactory->createResponse($request, $this->transporter->send($request));
     }
@@ -72,7 +72,7 @@ class RpcClient implements RpcClientInterface, RequestHandlerInterface
     /**
      * {@inheritDoc}
      */
-    public function createRequest(object $proxy, string $method, array $args): RequestInterface
+    public function createRequest(object $proxy, string $method, array $args): RpcRequestInterface
     {
         return $this->requestFactory->createRequest($proxy, $method, $args);
     }
@@ -80,7 +80,7 @@ class RpcClient implements RpcClientInterface, RequestHandlerInterface
     /**
      * {@inheritDoc}
      */
-    public function sendRequest(RequestInterface $request): array
+    public function sendRequest(RpcRequestInterface $request): array
     {
         $response = $this->buildMiddlewareStack($this)->handle($request);
 

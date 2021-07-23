@@ -12,7 +12,7 @@ use DI\Definition\ValueDefinition;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ComponentInterface;
-use kuiper\di\annotation\Conditional;
+use kuiper\helper\Text;
 
 class ConfigurationDefinitionLoader
 {
@@ -31,25 +31,23 @@ class ConfigurationDefinitionLoader
         $this->annotationReader = $annotationReader;
     }
 
-    public function getDefinitions($configuration, bool $ignoreCondition = false): array
+    public function getDefinitions(object $configuration, bool $ignoreCondition = false): array
     {
         $definitions = [];
         $reflectionClass = new \ReflectionClass($configuration);
-        /** @var Conditional $configurationCondition */
         $configurationCondition = AllCondition::create($this->annotationReader, $reflectionClass);
         foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            /** @var Bean $beanAnnotation */
+            /** @var Bean|null $beanAnnotation */
             $beanAnnotation = $this->annotationReader->getMethodAnnotation($method, Bean::class);
-            if (!$beanAnnotation) {
+            if (null === $beanAnnotation) {
                 continue;
             }
             $definition = $this->createDefinition($beanAnnotation, $configuration, $method);
             $condition = null;
             if (!$ignoreCondition) {
-                /** @var AllCondition $condition */
                 $condition = AllCondition::create($this->annotationReader, $method);
-                if ($configurationCondition) {
-                    if ($condition) {
+                if (null !== $configurationCondition) {
+                    if (null !== $condition) {
                         $condition->addCondition($configurationCondition);
                     } else {
                         $condition = $configurationCondition;
@@ -57,9 +55,9 @@ class ConfigurationDefinitionLoader
                 }
             }
 
-            if ($condition) {
+            if (null !== $condition) {
                 $definitions[] = new ConditionalDefinition($definition, $condition);
-                $this->containerBuilder->defer(function ($container) use ($condition, $definition, $method) {
+                $this->containerBuilder->defer(function ($container) use ($condition, $definition, $method): void {
                     if ($condition->match($container)) {
                         $this->processComponentAnnotation($definition->getName(), $method);
                     }
@@ -71,7 +69,7 @@ class ConfigurationDefinitionLoader
         }
         if ($configuration instanceof DefinitionConfiguration) {
             foreach ($configuration->getDefinitions() as $name => $def) {
-                if ($configurationCondition && !$ignoreCondition) {
+                if (null !== $configurationCondition && !$ignoreCondition) {
                     $definitions[] = new ConditionalDefinition($this->normalizeDefinition($def, $name), $configurationCondition);
                 } else {
                     $definitions[$name] = $def;
@@ -92,20 +90,21 @@ class ConfigurationDefinitionLoader
         return $parameters;
     }
 
-    private function createDefinition(Bean $beanAnnotation, $configuration, \ReflectionMethod $method): FactoryDefinition
+    private function createDefinition(Bean $beanAnnotation, object $configuration, \ReflectionMethod $method): FactoryDefinition
     {
         $name = $beanAnnotation->name;
-        if (!$name) {
-            if ($method->getReturnType() && !$method->getReturnType()->isBuiltin()) {
+        if (Text::isNotEmpty($name)) {
+            if (null !== $method->getReturnType() && !$method->getReturnType()->isBuiltin()) {
+                /** @phpstan-ignore-next-line */
                 $name = $method->getReturnType()->getName();
             } else {
                 $name = $method->getName();
             }
         }
 
-        /** @var Inject $annotation */
+        /** @var Inject|null $annotation */
         $annotation = $this->annotationReader->getMethodAnnotation($method, Inject::class);
-        if ($annotation) {
+        if (null !== $annotation) {
             return new FactoryDefinition(
                 $name, [$configuration, $method->getName()], $this->getMethodParameterInjections($annotation)
             );
@@ -137,8 +136,12 @@ class ConfigurationDefinitionLoader
     private function processComponentAnnotation(string $name, \ReflectionMethod $method): void
     {
         $returnType = $method->getReturnType();
-        if ($returnType && !$returnType->isBuiltin() && class_exists($returnType->getName())) {
+        if (null !== $returnType && !$returnType->isBuiltin()) {
+            /** @phpstan-ignore-next-line */
             $className = $returnType->getName();
+            if (!class_exists($className)) {
+                return;
+            }
             $reflectionClass = new \ReflectionClass($className);
             foreach ($this->annotationReader->getClassAnnotations($reflectionClass) as $annotation) {
                 if ($annotation instanceof ComponentInterface) {

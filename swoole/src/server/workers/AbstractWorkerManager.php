@@ -25,7 +25,7 @@ abstract class AbstractWorkerManager implements LoggerAwareInterface, WorkerMana
     protected $server;
 
     /**
-     * @var resource
+     * @var resource|null
      */
     protected $resource;
 
@@ -55,7 +55,7 @@ abstract class AbstractWorkerManager implements LoggerAwareInterface, WorkerMana
 
     protected function close(): void
     {
-        if ($this->resource) {
+        if (null !== $this->resource) {
             fclose($this->resource);
         }
         $this->resource = null;

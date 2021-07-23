@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
-use kuiper\rpc\HasRequestIdInterface;
-use kuiper\rpc\RpcResponse;
+use kuiper\rpc\RpcRpcResponse;
 use kuiper\tars\core\MethodMetadataInterface;
 use kuiper\tars\core\TarsRequestInterface;
-use kuiper\tars\stream\RequestPacketTrait;
 use kuiper\tars\stream\ResponsePacket;
 use kuiper\tars\stream\TarsConst;
 use kuiper\tars\stream\TarsOutputStream;
@@ -16,10 +14,12 @@ use kuiper\tars\type\MapType;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
-class TarsServerRpcResponse extends RpcResponse implements HasRequestIdInterface
+class TarsServerRpcResponse extends RpcRpcResponse
 {
-    use RequestPacketTrait;
-
+    /**
+     * @var ResponsePacket
+     */
+    private $packet;
     /**
      * @var MethodMetadataInterface
      */
@@ -65,7 +65,7 @@ class TarsServerRpcResponse extends RpcResponse implements HasRequestIdInterface
                 foreach ($out as $i => $param) {
                     $os->write($param->getOrder(), $returnValues[$i] ?? null, $param->getType());
                 }
-                $param->sBuffer = (string) $os;
+                $packet->sBuffer = (string) $os;
             }
             $this->httpResponse = $this->httpResponse->withBody($this->streamFactory->createStream((string) $packet->encode()));
         }

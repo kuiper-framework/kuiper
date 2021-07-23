@@ -36,7 +36,7 @@ class ConditionalOnProperty implements Conditional
         $value = $container->get(PropertyResolverInterface::class)->get($this->value);
         if (isset($value)) {
             if (isset($this->hasValue)) {
-                return $this->isEquals($value, $this->hasValue);
+                return $this->equals($value, $this->hasValue);
             }
 
             return true;
@@ -45,7 +45,11 @@ class ConditionalOnProperty implements Conditional
         return $this->matchIfMissing;
     }
 
-    private function isEquals($value, $hasValue): bool
+    /**
+     * @param mixed             $value
+     * @param bool|string|mixed $hasValue
+     */
+    private function equals($value, $hasValue): bool
     {
         if (is_bool($hasValue)) {
             return ((bool) $value) === $hasValue;

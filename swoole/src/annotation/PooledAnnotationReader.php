@@ -19,7 +19,7 @@ class PooledAnnotationReader implements AnnotationReaderInterface
 
     public function __construct(PoolFactoryInterface $poolFactory)
     {
-        $this->pool = $poolFactory->create('AnnotationReaderPool', function () {
+        $this->pool = $poolFactory->create('AnnotationReaderPool', function (): AnnotationReaderInterface {
             AnnotationRegistry::registerLoader('class_exists');
 
             return new AnnotationReader(new \Doctrine\Common\Annotations\AnnotationReader());

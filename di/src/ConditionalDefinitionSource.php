@@ -40,7 +40,7 @@ class ConditionalDefinitionSource implements DefinitionSource, ContainerAwareInt
     public function getDefinition(string $name)
     {
         $definition = $this->source->getDefinition($name);
-        if ($definition) {
+        if (null !== $definition) {
             return $definition;
         }
         if (!isset($this->definitions[$name])) {
@@ -51,15 +51,15 @@ class ConditionalDefinitionSource implements DefinitionSource, ContainerAwareInt
         }
         $this->resolving[$name] = true;
         $conditionDefs = $this->definitions[$name];
-        foreach (array_reverse($conditionDefs) as $definition) {
-            if (!$definition instanceof ConditionalDefinition) {
+        foreach (array_reverse($conditionDefs) as $conditionDef) {
+            if (!$conditionDef instanceof ConditionalDefinition) {
                 throw new \InvalidArgumentException("Definition '$name' is not ConditionalDefinition");
             }
-            if (!$definition->match($this->container)) {
+            if (!$conditionDef->match($this->container)) {
                 continue;
             }
             unset($this->resolving[$name]);
-            $this->source->addDefinition($definition->getDefinition());
+            $this->source->addDefinition($conditionDef->getDefinition());
 
             return $this->source->getDefinition($name);
         }

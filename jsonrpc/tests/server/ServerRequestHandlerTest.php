@@ -9,7 +9,7 @@ use kuiper\annotations\AnnotationReader;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\rpc\fixtures\User;
 use kuiper\rpc\fixtures\UserService;
-use kuiper\rpc\server\RpcServerRequestHandler;
+use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\serializer\Serializer;
 use Laminas\Diactoros\ResponseFactory;
 use PHPUnit\Framework\TestCase;
@@ -31,7 +31,7 @@ class ServerRequestHandlerTest extends TestCase
 
         $reflectionDocBlockFactory = new ReflectionDocBlockFactory();
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
-        $handler = new RpcServerRequestHandler([
+        $handler = new RpcServerRpcRequestHandler([
             UserService::class => $userService,
         ], new JsonRpcServerResponseFactory(new ResponseFactory()));
 
@@ -72,7 +72,7 @@ class ServerRequestHandlerTest extends TestCase
 
         $reflectionDocBlockFactory = new ReflectionDocBlockFactory();
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
-        $handler = new RpcServerRequestHandler([
+        $handler = new RpcServerRpcRequestHandler([
             UserService::class => $userService,
         ], new NoOutParamJsonRpcServerResponseFactory(new ResponseFactory()));
 

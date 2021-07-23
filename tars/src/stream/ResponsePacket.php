@@ -34,7 +34,7 @@ final class ResponsePacket
     /**
      * @var int|null
      */
-    public $iRet = 0;
+    public $iRet = ErrorCode::SERVER_SUCCESS;
 
     /**
      * @var string|null

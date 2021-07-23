@@ -55,13 +55,13 @@ class ComponentScanner implements ComponentScannerInterface
                         }
                         $annotation->handle();
                     } elseif ($annotation instanceof ComponentScan) {
-                        foreach ($annotation->basePackages ?: [$reflectionClass->getNamespaceName()] as $ns) {
+                        foreach ($annotation->basePackages ?? [$reflectionClass->getNamespaceName()] as $ns) {
                             $namespaces[] = $ns;
                         }
                     }
                 }
             }
-            $scannedNamespaces[$namespace] = true;
+            $this->scannedNamespaces[$namespace] = true;
         }
     }
 }

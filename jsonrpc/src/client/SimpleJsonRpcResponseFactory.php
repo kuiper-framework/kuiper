@@ -4,37 +4,39 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
-use kuiper\rpc\client\ResponseFactoryInterface;
+use kuiper\jsonrpc\core\JsonRpcRequestInterface;
+use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\exception\BadResponseException;
 use kuiper\rpc\exception\RequestIdMismatchException;
-use kuiper\rpc\HasRequestIdInterface;
 use kuiper\rpc\InvokingMethod;
-use kuiper\rpc\RequestInterface;
-use kuiper\rpc\RpcResponse;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcResponseInterface;
+use kuiper\rpc\RpcRpcResponse;
 use Psr\Http\Message\ResponseInterface;
 use Webmozart\Assert\Assert;
 
-class SimpleJsonRpcResponseFactory implements ResponseFactoryInterface
+class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
 {
     /**
      * {@inheritDoc}
      */
-    public function createResponse(RequestInterface $request, ResponseInterface $response): \kuiper\rpc\ResponseInterface
+    public function createResponse(RpcRequestInterface $request, ResponseInterface $response): RpcResponseInterface
     {
-        /* @var JsonRpcRequest $request */
-        Assert::isInstanceOf($request, HasRequestIdInterface::class,
-            'request should implements '.HasRequestIdInterface::class);
+        Assert::isInstanceOf($request, JsonRpcRequestInterface::class,
+            'request should implements '.JsonRpcRequestInterface::class);
         $result = json_decode((string) $response->getBody(), true);
         if (false === $result
             || !isset($result['jsonrpc'])
-            || JsonRpcRequest::JSONRPC_VERSION !== $result['jsonrpc']
+            || JsonRpcRequestInterface::JSONRPC_VERSION !== $result['jsonrpc']
             || !array_key_exists('id', $result)) {
             throw new BadResponseException($request, $response);
         }
+        /** @var JsonRpcRequestInterface $request */
         if (null !== $result['id'] && $result['id'] !== $request->getRequestId()) {
             throw new RequestIdMismatchException("expected request id {$request->getRequestId()}, got {$result['id']}");
         }
         if (isset($result['error'])) {
+            // todo: 错误处理
         }
         try {
             $request->getInvokingMethod()->setResult($this->buildResult($request->getInvokingMethod(), $result['result'] ?? []));
@@ -42,7 +44,7 @@ class SimpleJsonRpcResponseFactory implements ResponseFactoryInterface
             throw new BadResponseException($request, $response);
         }
 
-        return new RpcResponse($request, $response);
+        return new RpcRpcResponse($request, $response);
     }
 
     /**

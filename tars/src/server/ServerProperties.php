@@ -6,8 +6,9 @@ namespace kuiper\tars\server;
 
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
+use kuiper\tars\core\Endpoint;
+use kuiper\tars\core\Route;
 use Symfony\Component\Validator\Constraints as Assert;
-use wenbinye\tars\rpc\route\Endpoint;
 
 class ServerProperties
 {
@@ -213,18 +214,30 @@ class ServerProperties
         return $this->node;
     }
 
-    public function setNode(?Route $node): void
+    /**
+     * @param string|Route $node
+     */
+    public function setNode($node): void
     {
+        if (is_string($node)) {
+            $node = Route::fromString($node);
+        }
         $this->node = $node;
     }
 
-    public function getLocal(): ?ServerAddress
+    public function getLocal(): ?Endpoint
     {
         return $this->local;
     }
 
-    public function setLocal(?ServerAddress $local): void
+    /**
+     * @param string|Endpoint $local
+     */
+    public function setLocal($local): void
     {
+        if (is_string($local)) {
+            $local = Endpoint::fromString($local);
+        }
         $this->local = $local;
     }
 
@@ -332,16 +345,6 @@ class ServerProperties
         $this->supervisorConfExtension = $supervisorConfExtension;
     }
 
-    public function getPortAdapters(): array
-    {
-        return $this->portAdapters;
-    }
-
-    public function setPortAdapters(array $portAdapters): void
-    {
-        $this->portAdapters = $portAdapters;
-    }
-
     public function getServerName(): string
     {
         return $this->app.'.'.$this->server;
@@ -405,7 +408,7 @@ class ServerProperties
     }
 
     /**
-     * @return AdapterProperties[]
+     * @return Adapter[]
      */
     public function getAdapters(): array
     {
@@ -413,11 +416,11 @@ class ServerProperties
     }
 
     /**
-     * @param AdapterProperties[] $adapters
+     * @param Adapter[] $adapters
      */
     public function setAdapters(array $adapters): void
     {
-        usort($adapters, static function (AdapterProperties $a, AdapterProperties $b) {
+        usort($adapters, static function (Adapter $a, Adapter $b) {
             if ($b->getServerType() === $a->getServerType()) {
                 return 0;
             }
@@ -427,10 +430,6 @@ class ServerProperties
 
             return 1;
         });
-        $this->portAdapters = [];
-        foreach ($adapters as $adapter) {
-            $this->portAdapters[$adapter->getEndpoint()->getPort()][] = $adapter;
-        }
 
         $this->adapters = $adapters;
     }
@@ -440,22 +439,29 @@ class ServerProperties
         return isset($this->adapters[$name]);
     }
 
-    public function getAdapter(string $name): ?AdapterProperties
+    public function getAdapter(string $name): ?Adapter
     {
         return $this->adapters[$name] ?? null;
     }
 
-    public function getPrimaryAdapter(): AdapterProperties
+    public function getPrimaryAdapter(): Adapter
     {
         return array_values($this->adapters)[0];
     }
 
     /**
-     * @return AdapterProperties[]
+     * @return Adapter[]
      */
     public function getAdaptersByPort(int $port): array
     {
-        return $this->portAdapters[$port] ?? [];
+        $adapters = [];
+        foreach ($this->adapters as $adapter) {
+            if ($adapter->getEndpoint()->getPort() === $port) {
+                $adapters[] = $adapter;
+            }
+        }
+
+        return $adapters;
     }
 
     public function getMasterPidFile(): string

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use kuiper\helper\Text;
-use kuiper\jsonrpc\client\JsonRpcRequest;
+use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\ErrorCode;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
@@ -13,11 +13,11 @@ use kuiper\reflection\ReflectionType;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\reflection\type\VoidType;
 use kuiper\rpc\InvokingMethod;
-use kuiper\rpc\server\ServerRequestFactoryInterface;
+use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Http\Message\RequestInterface;
 
-class JsonRpcServerRequestFactory implements ServerRequestFactoryInterface
+class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
 {
     /**
      * @var NormalizerInterface
@@ -43,7 +43,7 @@ class JsonRpcServerRequestFactory implements ServerRequestFactoryInterface
         $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
     }
 
-    public function createRequest(RequestInterface $request): \kuiper\rpc\RequestInterface
+    public function createRequest(RequestInterface $request): \kuiper\rpc\RpcRequestInterface
     {
         $requestData = json_decode((string) $request->getBody(), true);
         if (false === $requestData) {
@@ -52,7 +52,7 @@ class JsonRpcServerRequestFactory implements ServerRequestFactoryInterface
         if (!isset($requestData['jsonrpc'])) {
             throw new JsonRpcRequestException(null, 'Json RPC version not found', ErrorCode::ERROR_INVALID_REQUEST);
         }
-        if (JsonRpcRequest::JSONRPC_VERSION !== $requestData['jsonrpc']) {
+        if (JsonRpcRequestInterface::JSONRPC_VERSION !== $requestData['jsonrpc']) {
             throw new JsonRpcRequestException(null, "Json RPC version {$requestData['jsonrpc']} is invalid", ErrorCode::ERROR_INVALID_REQUEST);
         }
         $id = $requestData['id'] ?? null;
@@ -78,7 +78,7 @@ class JsonRpcServerRequestFactory implements ServerRequestFactoryInterface
             throw new JsonRpcRequestException($id, "Json RPC method '{$method}' not found", ErrorCode::ERROR_INVALID_METHOD);
         }
 
-        return new JsonRpcRequest($id, $request, $method);
+        return new JsonRpcServerRequest($request, $method, $id);
     }
 
     private function resolveMethod(string $method): array

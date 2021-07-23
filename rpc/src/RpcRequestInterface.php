@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
-interface RequestInterface extends \Psr\Http\Message\RequestInterface
+use Psr\Http\Message\RequestInterface;
+
+interface RpcRequestInterface extends RequestInterface
 {
     public function getInvokingMethod(): InvokingMethod;
 

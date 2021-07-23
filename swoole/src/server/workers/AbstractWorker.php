@@ -193,7 +193,10 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
 
     private function setErrorHandler(): void
     {
-        set_error_handler([$this, 'handleError']);
+        /* @phpstan-ignore-next-line */
+        set_error_handler(function (): void {
+            $this->handleError();
+        });
     }
 
     public function handleError(): void

@@ -13,4 +13,11 @@ interface WorkerInterface
     public function start(): void;
 
     public function getChannel(): SocketChannel;
+
+    /**
+     * Adds timer.
+     */
+    public function tick(int $millisecond, callable $callback): int;
+
+    public function after(int $millisecond, callable $callback): int;
 }

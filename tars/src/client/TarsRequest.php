@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\tars\client;
 
 use kuiper\rpc\InvokingMethod;
-use kuiper\rpc\RpcRequest;
+use kuiper\rpc\RpcRpcRequest;
 use kuiper\tars\core\MethodMetadataInterface;
 use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\stream\RequestPacket;
@@ -16,7 +16,7 @@ use kuiper\tars\type\MapType;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
-class TarsRpcRequest extends RpcRequest implements TarsRequestInterface
+class TarsRequest extends RpcRpcRequest implements TarsRequestInterface
 {
     use RequestPacketTrait;
 

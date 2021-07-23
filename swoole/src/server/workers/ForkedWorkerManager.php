@@ -107,7 +107,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
         }
     }
 
-    private function doStartWorkers($workerType, $num, $startId): void
+    private function doStartWorkers(string $workerType, int $num, int $startId): void
     {
         for ($i = 0; $i < $num; ++$i) {
             $workerId = $i + $startId;
@@ -158,11 +158,11 @@ class ForkedWorkerManager extends AbstractWorkerManager
     private function wait(): void
     {
         $timeout = 30;
-        while ($this->workers && $timeout > 0) {
+        while (!empty($this->workers) && $timeout > 0) {
             --$timeout;
             sleep(1);
         }
-        if ($this->workers) {
+        if (!empty($this->workers)) {
             throw new ServerStateException('workers still alive, pid='.implode(',', Arrays::pull($this->workers, 'pid')));
         }
     }
@@ -195,7 +195,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
 
     private function getSocketWorker(): SocketWorker
     {
-        if (!$this->worker || !$this->worker instanceof SocketWorker) {
+        if (null === $this->worker || !$this->worker instanceof SocketWorker) {
             throw new \InvalidArgumentException('cannot send without worker');
         }
 
@@ -213,7 +213,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
 
     private function getTaskWorker(): TaskWorker
     {
-        if (!$this->worker || !$this->worker instanceof TaskWorker) {
+        if (null === $this->worker || !$this->worker instanceof TaskWorker) {
             throw new \InvalidArgumentException('not in task worker: '.(isset($this->worker) ? get_class($this->worker) : 'null'));
         }
 
@@ -231,11 +231,11 @@ class ForkedWorkerManager extends AbstractWorkerManager
 
     private function handleMessages(): void
     {
-        if (!$this->workers) {
+        if (empty($this->workers)) {
             return;
         }
         while (true) {
-            $channels = array_filter(array_map(static function (WorkerInterface $worker) {
+            $channels = array_filter(array_map(static function (WorkerInterface $worker): SocketChannel {
                 return $worker->getChannel();
             }, $this->workers));
             $channels = SocketChannel::select($channels, 0);
@@ -279,7 +279,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
             }
         }
         $tasks = [];
-        while (!$this->taskQueue->isEmpty() && $availableWorkers) {
+        while (!$this->taskQueue->isEmpty() && !empty($availableWorkers)) {
             /** @var Task $task */
             $task = $this->taskQueue->pop();
             $taskWorker = null;
@@ -292,7 +292,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
             } else {
                 $taskWorker = current($availableWorkers);
             }
-            if ($taskWorker) {
+            if (null !== $taskWorker) {
                 $task->setTaskId($this->taskId++);
                 $task->setTaskWorkerId($taskWorker->getWorkerId());
                 $taskWorker->setTask($task);
@@ -317,7 +317,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
 
     public function tick(int $millisecond, callable $callback): int
     {
-        if (!$this->worker) {
+        if (null === $this->worker) {
             throw new \InvalidArgumentException('Cannot call tick on master process');
         }
 
@@ -326,7 +326,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
 
     public function after(int $millisecond, callable $callback): int
     {
-        if (!$this->worker) {
+        if (null === $this->worker) {
             throw new \InvalidArgumentException('Cannot call tick on master process');
         }
 

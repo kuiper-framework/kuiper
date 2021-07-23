@@ -7,6 +7,7 @@ namespace kuiper\swoole\task;
 use kuiper\annotations\AnnotationReaderAwareInterface;
 use kuiper\annotations\AnnotationReaderAwareTrait;
 use kuiper\swoole\annotation\TaskProcessor;
+use kuiper\swoole\event\TaskEvent;
 use kuiper\swoole\exception\TaskProcessorNotFoundException;
 use kuiper\swoole\server\ServerInterface;
 use Psr\Container\ContainerInterface;
@@ -28,7 +29,7 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
     private $server;
 
     /**
-     * @var ContainerInterface
+     * @var ContainerInterface|null
      */
     private $container;
 
@@ -56,10 +57,13 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
         return is_int($taskId) ? $taskId : 0;
     }
 
+    /**
+     * @param string|ProcessorInterface|mixed $handler
+     */
     public function registerProcessor(string $taskClass, $handler): void
     {
         if (is_string($handler)) {
-            if (!$this->container) {
+            if (null === $this->container) {
                 throw new \InvalidArgumentException('container not set');
             }
             $handler = $this->container->get($handler);
@@ -73,7 +77,7 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
     /**
      * {@inheritdoc}
      */
-    public function dispatch($event): void
+    public function dispatch(TaskEvent $event): void
     {
         try {
             $task = $event->getData();
@@ -100,10 +104,10 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
             return $this->processors[$taskClass];
         }
 
-        if ($this->annotationReader) {
-            /** @var TaskProcessor $annotation */
+        if (null !== $this->annotationReader) {
+            /** @var TaskProcessor|null $annotation */
             $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($taskClass), TaskProcessor::class);
-            if ($annotation) {
+            if (null !== $annotation) {
                 $this->registerProcessor($taskClass, $annotation->name);
 
                 return $this->processors[$taskClass];
