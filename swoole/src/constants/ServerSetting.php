@@ -68,6 +68,8 @@ class ServerSetting extends Enum
     public const MAX_COROUTINE = 'max_coroutine';
     public const SSL_VERIFY_PEER = 'ssl_verify_peer';
     public const MAX_WAIT_TIME = 'max_wait_time';
+    public const PACKAGE_LENGTH_OFFSET = 'package_length_offset';
+    public const PACKAGE_BODY_OFFSET = 'package_body_offset';
 
     /**
      * @var array
@@ -131,6 +133,8 @@ class ServerSetting extends Enum
             self::MAX_COROUTINE => 'int',
             self::SSL_VERIFY_PEER => 'bool',
             self::MAX_WAIT_TIME => 'int',
+            self::PACKAGE_BODY_OFFSET => 'int',
+            self::PACKAGE_LENGTH_OFFSET => 'int',
         ],
     ];
 }

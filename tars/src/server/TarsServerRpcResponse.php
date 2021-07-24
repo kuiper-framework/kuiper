@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
-use kuiper\rpc\RpcRpcResponse;
+use kuiper\rpc\RpcResponse;
 use kuiper\tars\core\MethodMetadataInterface;
 use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\stream\ResponsePacket;
@@ -14,7 +14,7 @@ use kuiper\tars\type\MapType;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
-class TarsServerRpcResponse extends RpcRpcResponse
+class TarsServerRpcResponse extends RpcResponse
 {
     /**
      * @var ResponsePacket

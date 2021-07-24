@@ -6,7 +6,7 @@ namespace kuiper\rpc\transporter;
 
 use kuiper\rpc\exception\ConnectFailedException;
 use kuiper\rpc\exception\ErrorCode;
-use kuiper\swoole\constants\ServerSetting;
+use kuiper\swoole\constants\ClientSettings;
 use Psr\Http\Message\ResponseInterface;
 use Swoole\Client;
 
@@ -18,14 +18,29 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
      * @var array
      */
     protected $options = [
-        ServerSetting::OPEN_LENGTH_CHECK => true,
-        ServerSetting::PACKAGE_LENGTH_TYPE => 'N',
-        'package_length_offset' => 0,
-        'package_body_offset' => 0,
-        Endpoint::CONNECT_TIMEOUT => 5.0,
-        Endpoint::RECV_TIMEOUT => 5.0,
-        ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
+        ClientSettings::OPEN_LENGTH_CHECK => true,
+        ClientSettings::PACKAGE_LENGTH_TYPE => 'N',
+        ClientSettings::PACKAGE_LENGTH_OFFSET => 0,
+        ClientSettings::PACKAGE_BODY_OFFSET => 0,
+        ClientSettings::CONNECT_TIMEOUT => 5.0,
+        ClientSettings::RECV_TIMEOUT => 5.0,
+        ClientSettings::PACKAGE_MAX_LENGTH => 10485760,
     ];
+
+    /**
+     * @var array
+     */
+    protected $clientOptions = [];
+
+    public function setOptions(array $options): void
+    {
+        parent::setOptions($options);
+        foreach ($this->options as $name => $value) {
+            if (ClientSettings::hasValue($name)) {
+                $this->clientOptions[$name] = $value;
+            }
+        }
+    }
 
     /**
      * @return Client|\Swoole\Coroutine\Client
@@ -41,12 +56,12 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
     protected function createResource()
     {
         $client = $this->createSwooleClient();
-        $client->set($this->options);
+        $client->set($this->clientOptions);
 
         $isConnected = $client->connect(
             $this->getEndpoint()->getHost(),
             $this->getEndpoint()->getPort(),
-            $this->getEndpoint()->getConnectTimeout() ?? $this->options[Endpoint::CONNECT_TIMEOUT]
+            $this->getEndpoint()->getConnectTimeout() ?? $this->options[ClientSettings::CONNECT_TIMEOUT]
         );
         if (!$isConnected) {
             $client->close();
@@ -93,7 +108,7 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
         if (null === $client) {
             $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_CLOSED));
         }
-        $response = $this->doRecv($this->getEndpoint()->getReceiveTimeout() ?? $this->options[Endpoint::RECV_TIMEOUT]);
+        $response = $this->doRecv($this->getEndpoint()->getReceiveTimeout() ?? $this->options[ClientSettings::RECV_TIMEOUT]);
         if (is_string($response) && '' !== $response) {
             return $this->createResponse($response);
         }

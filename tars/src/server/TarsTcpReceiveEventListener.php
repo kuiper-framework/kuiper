@@ -18,7 +18,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Webmozart\Assert\Assert;
 
-class TcpReceiveEventListener implements EventListenerInterface, LoggerAwareInterface
+class TarsTcpReceiveEventListener implements EventListenerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 

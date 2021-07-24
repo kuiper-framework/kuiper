@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
+use kuiper\helper\Text;
+use kuiper\swoole\constants\ClientSettings;
 use Psr\Http\Message\UriInterface;
 
-class Endpoint
+final class Endpoint
 {
-    public const CONNECT_TIMEOUT = 'connect_timeout';
-    public const RECV_TIMEOUT = 'recv_timeout';
-
     /**
      * @var string
      */
@@ -26,19 +25,19 @@ class Endpoint
     private $port;
 
     /**
-     * @var int|null
+     * @var float|null
      */
     private $connectTimeout;
 
     /**
-     * @var int|null
+     * @var float|null
      */
     private $receiveTimeout;
 
     /**
      * Endpoint constructor.
      */
-    public function __construct(string $protocol, string $host, int $port, ?int $connectTimeout, ?int $receiveTimeout)
+    public function __construct(string $protocol, string $host, int $port, ?float $connectTimeout, ?float $receiveTimeout)
     {
         $this->protocol = $protocol;
         $this->host = $host;
@@ -62,12 +61,18 @@ class Endpoint
         return $this->port;
     }
 
-    public function getConnectTimeout(): int
+    /**
+     * @return float|null
+     */
+    public function getConnectTimeout(): ?float
     {
         return $this->connectTimeout;
     }
 
-    public function getReceiveTimeout(): int
+    /**
+     * @return float|null
+     */
+    public function getReceiveTimeout(): ?float
     {
         return $this->receiveTimeout;
     }
@@ -85,13 +90,40 @@ class Endpoint
             $this->host,
             $this->port,
             http_build_query(array_filter([
-                self::CONNECT_TIMEOUT => $this->connectTimeout,
-                self::RECV_TIMEOUT => $this->receiveTimeout,
+                ClientSettings::CONNECT_TIMEOUT => $this->connectTimeout,
+                ClientSettings::RECV_TIMEOUT => $this->receiveTimeout,
             ]))
         );
     }
 
-    public static function fromUri(UriInterface $uri): self
+    public static function fromString(string $uri): Endpoint
+    {
+        $parts = parse_url($uri);
+        $options = [];
+        if (isset($parts['query'])) {
+            parse_str($parts['query'], $options);
+        }
+
+        return new self(
+            $parts['scheme'] ?? '',
+            $parts['host'] ?? '',
+            $parts['port'] ?? 0,
+            self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null),
+            self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null)
+        );
+    }
+
+    private static function filterTimeout(?string $timeout): ?float
+    {
+        return Text::isNotEmpty($timeout) ? (float) $timeout : null;
+    }
+
+    /**
+     * @param UriInterface $uri
+     *
+     * @return Endpoint
+     */
+    public static function fromUri(UriInterface $uri): Endpoint
     {
         parse_str($uri->getQuery(), $options);
 
@@ -99,8 +131,8 @@ class Endpoint
             $uri->getScheme(),
             $uri->getHost(),
             $uri->getPort() ?? 0,
-            (int) ($options[self::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null),
-            (int) ($options[self::RECV_TIMEOUT] ?? $options['timeout'] ?? null)
+            self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null),
+            self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null)
         );
     }
 }

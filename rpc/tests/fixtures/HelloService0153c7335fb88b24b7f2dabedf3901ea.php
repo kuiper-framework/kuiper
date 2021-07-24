@@ -8,7 +8,7 @@ class HelloService0153c7335fb88b24b7f2dabedf3901ea implements HelloService
 {
     private $client = null;
 
-    public function __construct(\kuiper\rpc\client\RpcClientInterfaceRpc $client)
+    public function __construct(\kuiper\rpc\client\RpcClientInterface $client)
     {
         $this->client = $client;
     }

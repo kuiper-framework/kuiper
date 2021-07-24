@@ -6,10 +6,10 @@ namespace kuiper\jsonrpc\server;
 
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\rpc\InvokingMethod;
-use kuiper\rpc\RpcRpcRequest;
+use kuiper\rpc\RpcRequest;
 use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 
-class JsonRpcServerRequest extends RpcRpcRequest implements JsonRpcRequestInterface
+class JsonRpcServerRequest extends RpcRequest implements JsonRpcRequestInterface
 {
     /**
      * @var int

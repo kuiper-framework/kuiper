@@ -7,7 +7,7 @@ namespace kuiper\rpc\client;
 use kuiper\rpc\exception\CommunicationException;
 use kuiper\rpc\RpcRequestInterface;
 
-interface RpcClientInterfaceRpc extends RpcRequestFactoryInterface
+interface RpcClientInterface extends RpcRequestFactoryInterface
 {
     /**
      * Send request and parse response.

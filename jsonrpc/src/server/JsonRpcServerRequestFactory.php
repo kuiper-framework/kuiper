@@ -13,12 +13,18 @@ use kuiper\reflection\ReflectionType;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\reflection\type\VoidType;
 use kuiper\rpc\InvokingMethod;
+use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Http\Message\RequestInterface;
 
 class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
 {
+    /**
+     * @var array
+     */
+    private $services;
+
     /**
      * @var NormalizerInterface
      */
@@ -37,13 +43,14 @@ class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
     /**
      * JsonRpcSerializerResponseFactory constructor.
      */
-    public function __construct(NormalizerInterface $normalizer, ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
+    public function __construct(array $services, NormalizerInterface $normalizer, ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
     {
+        $this->services = $services;
         $this->normalizer = $normalizer;
         $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
     }
 
-    public function createRequest(RequestInterface $request): \kuiper\rpc\RpcRequestInterface
+    public function createRequest(RequestInterface $request): RpcRequestInterface
     {
         $requestData = json_decode((string) $request->getBody(), true);
         if (false === $requestData) {
@@ -68,35 +75,40 @@ class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
             throw new JsonRpcRequestException($id, 'Json RPC params is invalid', ErrorCode::ERROR_INVALID_REQUEST);
         }
         try {
-            [$className, $method] = $this->resolveMethod($method);
+            [$target, $method] = $this->resolveMethod($id, $method);
         } catch (\InvalidArgumentException $e) {
-            throw new JsonRpcRequestException($id, "Json RPC method '{$method}' is invalid", ErrorCode::ERROR_INVALID_METHOD);
+            throw new JsonRpcRequestException($id, "JsonRPC method '{$method}' is invalid", ErrorCode::ERROR_INVALID_METHOD);
         }
         try {
-            $method = new InvokingMethod($className, $method, $this->resolveParams($className, $method, $params));
+            $method = new InvokingMethod($target, $method, $this->resolveParams($target, $method, $params));
         } catch (\ReflectionException $e) {
-            throw new JsonRpcRequestException($id, "Json RPC method '{$method}' not found", ErrorCode::ERROR_INVALID_METHOD);
+            throw new JsonRpcRequestException($id, "JsonRPC method '{$method}' not found", ErrorCode::ERROR_INVALID_METHOD);
         }
 
         return new JsonRpcServerRequest($request, $method, $id);
     }
 
-    private function resolveMethod(string $method): array
+    private function resolveMethod(int $id, string $method): array
     {
         $pos = strrpos($method, '.');
         if (false === $pos) {
             throw new \InvalidArgumentException('invalid method');
         }
 
-        return [
-            str_replace('.', '\\', substr($method, 0, $pos)),
-            substr($method, $pos + 1),
-        ];
+        $serviceName = substr($method, 0, $pos);
+        $methodName = substr($method, $pos + 1);
+        if (!isset($this->services[$serviceName])) {
+            $serviceName = str_replace('.', '\\', $serviceName);
+        }
+        if (isset($this->services[$serviceName])) {
+            return [$this->services[$serviceName], $methodName];
+        }
+        throw new JsonRpcRequestException($id, "JsonRPC method '{$method}' not found", ErrorCode::ERROR_INVALID_METHOD);
     }
 
-    private function resolveParams(string $className, string $methodName, array $params): array
+    private function resolveParams(object $target, string $methodName, array $params): array
     {
-        $paramTypes = $this->getParameterTypes($className, $methodName);
+        $paramTypes = $this->getParameterTypes($target, $methodName);
         $ret = [];
         foreach ($paramTypes as $i => $type) {
             $ret[] = $this->normalizer->denormalize($params[$i], $type);
@@ -105,13 +117,14 @@ class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
         return $ret;
     }
 
-    private function getParameterTypes(string $className, string $methodName): array
+    private function getParameterTypes(object $target, string $methodName): array
     {
-        $key = $className.'::'.$methodName;
+        $key = get_class($target).'::'.$methodName;
         if (isset($this->cachedTypes[$key])) {
             return $this->cachedTypes[$key];
         }
-        $reflectionMethod = new \ReflectionMethod($className, $methodName);
+
+        $reflectionMethod = new \ReflectionMethod($target, $methodName);
         $docParamTypes = $this->reflectionDocBlockFactory->createMethodDocBlock($reflectionMethod)->getParameterTypes();
         $paramTypes = [];
         foreach ($reflectionMethod->getParameters() as $i => $parameter) {

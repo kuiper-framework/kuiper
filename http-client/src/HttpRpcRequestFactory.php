@@ -15,8 +15,8 @@ use kuiper\http\client\request\Request;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\RpcRequestFactoryInterface;
 use kuiper\rpc\InvokingMethod;
+use kuiper\rpc\RpcRequest;
 use kuiper\rpc\RpcRequestInterface;
-use kuiper\rpc\RpcRpcRequest;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 
@@ -86,7 +86,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
             $request = $this->applyOptions($request, $options);
         }
 
-        return new RpcRpcRequest($request, $invokingMethod);
+        return new RpcRequest($request, $invokingMethod);
     }
 
     private function getRequestOptions(HttpRequestInterface $request, array $parameters): array

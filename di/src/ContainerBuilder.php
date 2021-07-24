@@ -242,7 +242,7 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getAwareAutowiring(): AwareAutowiring
     {
-        if (null !== $this->awareAutowiring) {
+        if (null === $this->awareAutowiring) {
             $this->awareAutowiring = new AwareAutowiring();
         }
 

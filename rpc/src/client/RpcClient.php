@@ -11,7 +11,7 @@ use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
 use kuiper\rpc\transporter\TransporterInterface;
 
-class RpcClient implements RpcClientInterfaceRpc, RpcRequestHandlerInterface
+class RpcClient implements RpcClientInterface, RpcRequestHandlerInterface
 {
     use MiddlewareSupport;
 

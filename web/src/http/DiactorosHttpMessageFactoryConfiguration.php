@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace kuiper\web\http;
 
-use kuiper\di\annotation\Bean;
+use function DI\autowire;
+use function DI\get;
 use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\Configuration;
+use kuiper\di\ContainerBuilderAwareTrait;
+use kuiper\di\DefinitionConfiguration;
 use kuiper\swoole\http\DiactorosSwooleRequestBridge;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
+use Laminas\Diactoros\RequestFactory;
 use Laminas\Diactoros\ResponseFactory;
 use Laminas\Diactoros\ServerRequestFactory;
 use Laminas\Diactoros\StreamFactory;
 use Laminas\Diactoros\UploadedFileFactory;
 use Laminas\Diactoros\UriFactory;
+use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -24,53 +29,20 @@ use Psr\Http\Message\UriFactoryInterface;
  * @Configuration()
  * @ConditionalOnClass(ServerRequestFactory::class)
  */
-class DiactorosHttpMessageFactoryConfiguration
+class DiactorosHttpMessageFactoryConfiguration implements DefinitionConfiguration
 {
-    /**
-     * @Bean()
-     */
-    public function serverRequestFactory(): ServerRequestFactoryInterface
-    {
-        return new ServerRequestFactory();
-    }
+    use ContainerBuilderAwareTrait;
 
-    /**
-     * @Bean()
-     */
-    public function responseFactory(): ResponseFactoryInterface
+    public function getDefinitions(): array
     {
-        return new ResponseFactory();
-    }
-
-    /**
-     * @Bean()
-     */
-    public function streamFactory(): StreamFactoryInterface
-    {
-        return new StreamFactory();
-    }
-
-    /**
-     * @Bean()
-     */
-    public function uriFactory(): UriFactoryInterface
-    {
-        return new UriFactory();
-    }
-
-    /**
-     * @Bean()
-     */
-    public function uploadFileFactory(): UploadedFileFactoryInterface
-    {
-        return new UploadedFileFactory();
-    }
-
-    /**
-     * @Bean()
-     */
-    public function swooleRequestBridge(): SwooleRequestBridgeInterface
-    {
-        return new DiactorosSwooleRequestBridge();
+        return [
+            RequestFactoryInterface::class => get(RequestFactory::class),
+            ResponseFactoryInterface::class => get(ResponseFactory::class),
+            StreamFactoryInterface::class => get(StreamFactory::class),
+            UriFactoryInterface::class => get(UriFactory::class),
+            UploadedFileFactoryInterface::class => get(UploadedFileFactory::class),
+            ServerRequestFactoryInterface::class => get(ServerRequestFactory::class),
+            SwooleRequestBridgeInterface::class => autowire(DiactorosSwooleRequestBridge::class),
+        ];
     }
 }

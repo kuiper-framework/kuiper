@@ -48,7 +48,7 @@ class TarsServerResponseFactory implements RpcServerResponseFactoryInterface
             $request->getInvokingMethod()->getMethodName()
         );
 
-        /* @var TarsRequestInterface $request */
+        /** @var TarsRequestInterface $request */
         return new TarsServerRpcResponse($request, $response, $metadata, $this->streamFactory);
     }
 }

@@ -49,12 +49,12 @@ class EphemeralSession implements SessionInterface
         return true;
     }
 
-    public function destroy($removeData = false): bool
+    public function destroy(bool $removeData = false): bool
     {
         return true;
     }
 
-    public function regenerateId($deleteOldSession = true): void
+    public function regenerateId(bool $deleteOldSession = true): void
     {
     }
 

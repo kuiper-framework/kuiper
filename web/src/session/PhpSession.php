@@ -86,7 +86,7 @@ class PhpSession implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function destroy($removeData = false): bool
+    public function destroy(bool $removeData = false): bool
     {
         $this->checkStart();
         if ($removeData) {
@@ -100,7 +100,7 @@ class PhpSession implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function regenerateId($deleteOldSession = true): void
+    public function regenerateId(bool $deleteOldSession = true): void
     {
         session_regenerate_id($deleteOldSession);
     }

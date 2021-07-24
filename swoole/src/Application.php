@@ -17,8 +17,6 @@ use Symfony\Component\Console\CommandLoader\FactoryCommandLoader;
 
 class Application
 {
-    public const DEFAULT_APP_NAME = 'app';
-
     /**
      * @var ContainerFactoryInterface|callable|null
      */
@@ -127,13 +125,12 @@ class Application
 
     public function createApp(): ConsoleApplication
     {
-        $app = new ConsoleApplication($this->getConfig()->getString('application.name', self::DEFAULT_APP_NAME));
-
         $container = $this->getContainer();
+        $app = $container->get(ConsoleApplication::class);
         $commandLoader = new FactoryCommandLoader($this->getCommandMap($container));
         $app->setCommandLoader($commandLoader);
         $defaultCommand = $this->getConfig()->getString('application.default_command');
-        if (null !== $defaultCommand) {
+        if ('' !== $defaultCommand) {
             $app->setDefaultCommand($defaultCommand);
         }
 

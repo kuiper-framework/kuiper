@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\middleware;
+namespace kuiper\rpc\server\middleware;
 
+use kuiper\rpc\MiddlewareInterface;
+use kuiper\rpc\RpcRequestHandlerInterface;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcResponseInterface;
 use kuiper\web\RequestLogFormatter;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 
@@ -20,28 +20,18 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
      * @var RequestLogFormatter
      */
     private $formatter;
-
     /**
      * @var callable|null
      */
     private $requestFilter;
 
-    /**
-     * AccessLog constructor.
-     *
-     * @param RequestLogFormatter $formatter
-     * @param callable|null       $requestFilter
-     */
-    public function __construct(RequestLogFormatter $formatter, ?callable $requestFilter)
+    public function __construct(RequestLogFormatter $formatter, ?callable $requestFilter = null)
     {
         $this->formatter = $formatter;
         $this->requestFilter = $requestFilter;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $handler): RpcResponseInterface
     {
         $start = microtime(true);
         $response = null;

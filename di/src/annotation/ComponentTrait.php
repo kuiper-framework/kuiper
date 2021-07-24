@@ -30,6 +30,11 @@ trait ComponentTrait
         return $this->class;
     }
 
+    public function getTargetClass(): string
+    {
+        return $this->class->getName();
+    }
+
     public function setComponentId(string $componentId): void
     {
         $this->componentId = $componentId;

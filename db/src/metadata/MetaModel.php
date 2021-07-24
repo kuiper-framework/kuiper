@@ -226,7 +226,7 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function getIdValues($entity): ?array
+    public function getIdValues(object $entity): ?array
     {
         $this->checkEntityMatch($entity);
 
@@ -236,7 +236,7 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function getNaturalIdValues($entity): ?array
+    public function getNaturalIdValues(object $entity): ?array
     {
         $this->checkEntityMatch($entity);
 
@@ -246,7 +246,7 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function getUniqueKey($entity, string $joiner = "\0x1", bool $ignoreCase = true): string
+    public function getUniqueKey(object $entity, string $joiner = "\0x1", bool $ignoreCase = true): string
     {
         $this->checkEntityMatch($entity);
         $values = $this->getUniqueKeyValues($entity, NaturalId::class);
@@ -285,7 +285,7 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function getId($entity)
+    public function getId(object $entity)
     {
         $this->checkEntityMatch($entity);
 

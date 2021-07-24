@@ -43,7 +43,7 @@ class ServerConfig
     public function __construct(string $serverName, array $settings, array $ports)
     {
         $this->serverName = $serverName;
-        $this->settings = Properties::fromArray($settings);
+        $this->settings = Properties::create($settings);
         Assert::notEmpty($ports, 'at least one server port should be set');
         $this->ports = $ports;
     }

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace kuiper\tars\client;
 
 use kuiper\rpc\RpcRequestInterface;
-use kuiper\rpc\RpcRpcResponse;
+use kuiper\rpc\RpcResponse;
 use kuiper\tars\stream\ResponsePacket;
 use Psr\Http\Message\ResponseInterface;
 
-class TarsResponse extends RpcRpcResponse
+class TarsResponse extends RpcResponse
 {
     /**
      * @var ResponsePacket

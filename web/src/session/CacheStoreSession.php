@@ -77,7 +77,7 @@ class CacheStoreSession implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function regenerateId($deleteOldSession = true): void
+    public function regenerateId(bool $deleteOldSession = true): void
     {
         if ($deleteOldSession) {
             if (null !== $this->sessionId) {
@@ -150,12 +150,12 @@ class CacheStoreSession implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function destroy($remove = false): bool
+    public function destroy(bool $removeData = false): bool
     {
         if (null !== $this->sessionId) {
             $this->sessionHandler->destroy($this->sessionId);
         }
-        if ($remove) {
+        if ($removeData) {
             $this->sessionData = [];
         }
         $this->started = false;

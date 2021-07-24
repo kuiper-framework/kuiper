@@ -8,7 +8,7 @@ class UserService287144eeac08b48f7713f40fc08f345d implements UserService
 {
     private $client = null;
 
-    public function __construct(\kuiper\rpc\client\RpcClientInterfaceRpc $client)
+    public function __construct(\kuiper\rpc\client\RpcClientInterface $client)
     {
         $this->client = $client;
     }

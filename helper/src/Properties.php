@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\helper;
 
+use function DI\create;
+
 /**
  * Access array use key separated by dot(.) :.
  *
@@ -186,7 +188,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
     public function mergeIfNotExists(array $configArray): void
     {
         foreach ($configArray as $key => $value) {
-            if (is_array($value) && $this[$key] instanceof self) {
+            if (is_array($value) && isset($this[$key]) && $this[$key] instanceof self) {
                 $this[$key]->mergeIfNotExists($value);
             } elseif (!isset($this[$key])) {
                 $this[$key] = $this->createItem($value);
@@ -210,15 +212,10 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
 
     public static function create(array $arr = []): self
     {
-        return static::fromArray($arr);
-    }
-
-    public static function fromArray(array $arr): self
-    {
-        $config = new static();
+        $config = new self();
         foreach ($arr as $key => $value) {
             if (is_array($value)) {
-                $config[$key] = static::fromArray($value);
+                $config[$key] = self::create($value);
             } else {
                 $config[$key] = $value;
             }
@@ -228,13 +225,21 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
     }
 
     /**
+     * @deprecated use {@link create()}
+     */
+    public static function fromArray(array $arr): self
+    {
+        return self::create($arr);
+    }
+
+    /**
      * @param mixed $value
      *
      * @return static|array
      */
     private function createItem($value)
     {
-        return is_array($value) ? static::fromArray($value) : $value;
+        return is_array($value) ? self::create($value) : $value;
     }
 
     private function isIndexBasedArray(array $value): bool

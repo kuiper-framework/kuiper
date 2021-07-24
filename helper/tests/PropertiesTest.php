@@ -8,7 +8,7 @@ class PropertiesTest extends TestCase
 {
     public function createDotArray()
     {
-        return Properties::fromArray([
+        return Properties::create([
             'int' => 1,
             'array' => [1, 2, [3, 4]],
             'map' => [
@@ -73,50 +73,50 @@ class PropertiesTest extends TestCase
         $this->assertEquals('v1', $array->get('array2[0].k1'));
     }
 
-    public function testWhenMergeNotArrayKey_thenReplaceOriginal()
+    public function testWhenMergeNotArrayKeyThenReplaceOriginal()
     {
-        $p = Properties::fromArray(['app' => ['foo' => '']]);
+        $p = Properties::create(['app' => ['foo' => '']]);
         $p->merge(['app' => ['foo' => ['one' => 1]], 'one' => 1]);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => ['one' => 1]], 'one' => 1]);
     }
 
-    public function testWhenMergeArrayKey_thenReplaceOriginal()
+    public function testWhenMergeArrayKeyThenReplaceOriginal()
     {
-        $p = Properties::fromArray(['app' => ['foo' => '']]);
+        $p = Properties::create(['app' => ['foo' => '']]);
         $p->merge(['app' => ['foo' => 'one']]);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => 'one']]);
     }
 
-    public function testWhenMergeIndexBasedArrayAndNotArray_thenReplace()
+    public function testWhenMergeIndexBasedArrayAndNotArrayThenReplace()
     {
-        $p = Properties::fromArray(['app' => ['foo' => '']]);
+        $p = Properties::create(['app' => ['foo' => '']]);
         $p->merge(['app' => ['foo' => ['one']]]);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => ['one']]]);
     }
 
-    public function testWhenMergeIndexBasedArrayAndExist_thenAppend()
+    public function testWhenMergeIndexBasedArrayAndExistThenAppend()
     {
-        $p = Properties::fromArray(['app' => ['foo' => ['one']]]);
+        $p = Properties::create(['app' => ['foo' => ['one']]]);
         $p->merge(['app' => ['foo' => ['two']]]);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => ['one', 'two']]]);
     }
 
-    public function testWhenMergeIndexBasedArrayAndNoAppend_thenReplaceExist()
+    public function testWhenMergeIndexBasedArrayAndNoAppendThenReplaceExist()
     {
-        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $p->merge(['app' => ['foo' => ['three']]], false);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => ['three']]]);
     }
 
-    public function testWhenGetKeyIsArray_thenReturnArray()
+    public function testWhenGetKeyIsArrayThenReturnArray()
     {
-        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two']]);
     }
 
     public function testMergeIfNotExists()
     {
-        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $p->mergeIfNotExists([
             'app' => [
                 'foo' => 'foo_value',
@@ -125,23 +125,33 @@ class PropertiesTest extends TestCase
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two'], 'bar' => 'bar_value']);
     }
 
+    public function testMergeIfNotExistsNotExistKey()
+    {
+        $p = Properties::create();
+        $p->mergeIfNotExists([
+            'application' => [
+                'commands' => ['a' => 'c'],
+            ],
+        ]);
+    }
+
     public function testSetExistKey()
     {
-        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $p->set('app.foo', 'foo_value');
         $this->assertEquals($p->get('app'), ['foo' => 'foo_value']);
     }
 
     public function testSetNotExistKey()
     {
-        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $p->set('app.bar', 'bar_value');
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two'], 'bar' => 'bar_value']);
     }
 
     public function testSetNotArrayKey()
     {
-        $p = Properties::fromArray(['app' => ['foo' => ['one', 'two']]]);
+        $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $p->set('app.foo[0].bar', 'bar_value');
         $this->assertEquals($p->get('app'), ['foo' => [['bar' => 'bar_value'], 'two']]);
     }

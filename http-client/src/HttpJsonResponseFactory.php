@@ -9,7 +9,7 @@ use kuiper\rpc\client\RpcResponseNormalizer;
 use kuiper\rpc\exception\BadResponseException;
 use kuiper\rpc\InvokingMethod;
 use kuiper\rpc\RpcRequestInterface;
-use kuiper\rpc\RpcRpcResponse;
+use kuiper\rpc\RpcResponse;
 use Psr\Http\Message\ResponseInterface;
 
 class HttpJsonResponseFactory implements RpcResponseFactoryInterface
@@ -35,7 +35,7 @@ class HttpJsonResponseFactory implements RpcResponseFactoryInterface
             throw new BadResponseException($request, $response);
         }
 
-        return new RpcRpcResponse($request, $response);
+        return new RpcResponse($request, $response);
     }
 
     protected function buildResult(InvokingMethod $method, ResponseInterface $response): array

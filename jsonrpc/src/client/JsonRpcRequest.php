@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\client;
 
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
+use kuiper\jsonrpc\JsonRpcProtocol;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\InvokingMethod;
-use kuiper\rpc\RpcRpcRequest;
+use kuiper\rpc\RpcRequest;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 
-class JsonRpcRequest extends RpcRpcRequest implements JsonRpcRequestInterface
+class JsonRpcRequest extends RpcRequest implements JsonRpcRequestInterface
 {
     /**
      * @var StreamFactoryInterface
@@ -54,7 +55,7 @@ class JsonRpcRequest extends RpcRpcRequest implements JsonRpcRequestInterface
     public function getBody(): StreamInterface
     {
         if (null === $this->body) {
-            $this->body = $this->streamFactory->createStream(json_encode([
+            $this->body = $this->streamFactory->createStream(JsonRpcProtocol::encode([
                 'id' => $this->requestId,
                 'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
                 'method' => $this->getJsonRpcMethod(),

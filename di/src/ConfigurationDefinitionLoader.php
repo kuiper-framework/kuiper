@@ -93,7 +93,7 @@ class ConfigurationDefinitionLoader
     private function createDefinition(Bean $beanAnnotation, object $configuration, \ReflectionMethod $method): FactoryDefinition
     {
         $name = $beanAnnotation->name;
-        if (Text::isNotEmpty($name)) {
+        if (Text::isEmpty($name)) {
             if (null !== $method->getReturnType() && !$method->getReturnType()->isBuiltin()) {
                 /** @phpstan-ignore-next-line */
                 $name = $method->getReturnType()->getName();

@@ -42,7 +42,7 @@ class ServerCommand extends Command
         $this->addOption('reload', null, InputOption::VALUE_NONE, 'reload the server');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if ($input->getOption('stop')) {
             $this->stop($input, $output);
@@ -51,6 +51,8 @@ class ServerCommand extends Command
         } else {
             $this->start($input, $output);
         }
+
+        return 0;
     }
 
     protected function start(InputInterface $input, OutputInterface $output): void

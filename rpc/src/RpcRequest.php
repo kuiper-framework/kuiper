@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
-use Psr\Http\Message\RequestInterface as HttpRequestInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
 
-class RpcRpcRequest implements RpcRequestInterface
+class RpcRequest implements RpcRequestInterface
 {
     /**
-     * @var HttpRequestInterface
+     * @var RequestInterface
      */
     protected $httpRequest;
 
@@ -28,7 +28,7 @@ class RpcRpcRequest implements RpcRequestInterface
     /**
      * RpcRequest constructor.
      */
-    public function __construct(HttpRequestInterface $httpRequest, InvokingMethod $invokingMethod)
+    public function __construct(RequestInterface $httpRequest, InvokingMethod $invokingMethod)
     {
         $this->httpRequest = $httpRequest;
         $this->invokingMethod = $invokingMethod;
@@ -170,6 +170,12 @@ class RpcRpcRequest implements RpcRequestInterface
         $new->attributes[$name] = $value;
 
         return $new;
+    }
+
+
+    public function getHttpRequest(): RequestInterface
+    {
+        return $this->httpRequest;
     }
 
     public function getInvokingMethod(): InvokingMethod

@@ -13,11 +13,11 @@ class RpcExecutor implements RpcExecutorInterface
      */
     private $request;
     /**
-     * @var RpcClientInterfaceRpc
+     * @var RpcClientInterface
      */
     private $client;
 
-    public function __construct(RpcClientInterfaceRpc $client, RpcRequestInterface $request)
+    public function __construct(RpcClientInterface $client, RpcRequestInterface $request)
     {
         $this->request = $request;
         $this->client = $client;

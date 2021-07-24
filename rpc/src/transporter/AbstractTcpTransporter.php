@@ -9,6 +9,7 @@ use kuiper\rpc\exception\ConnectFailedException;
 use kuiper\rpc\exception\ConnectionClosedException;
 use kuiper\rpc\exception\ConnectionException;
 use kuiper\rpc\exception\ErrorCode;
+use kuiper\rpc\exception\InvalidRequestException;
 use kuiper\rpc\exception\TimedOutException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -66,6 +67,9 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     public function setOptions(array $options): void
     {
         $this->options = array_merge($this->options, $options);
+        if (isset($this->options['endpoint'])) {
+            $this->endpoint = Endpoint::fromString($this->options['endpoint']);
+        }
     }
 
     /**
@@ -83,14 +87,19 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     }
 
     /**
-     * @throws CommunicationException
+     * @throws CommunicationException|InvalidRequestException
      */
-    public function connect(Endpoint $endpoint): void
+    public function connect(?Endpoint $endpoint): void
     {
-        if (null !== $this->endpoint && !$this->endpoint->equals($endpoint)) {
+        if (null !== $endpoint && null !== $this->endpoint && !$this->endpoint->equals($endpoint)) {
             $this->disconnect();
         }
-        $this->endpoint = $endpoint;
+        if (null !== $endpoint) {
+            $this->endpoint = $endpoint;
+        }
+        if (null === $this->endpoint) {
+            throw new InvalidRequestException('endpoint is empty');
+        }
         if (!$this->isConnected()) {
             $this->resource = $this->createResource();
         }
@@ -118,7 +127,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     public function send(RequestInterface $request): ResponseInterface
     {
         $endpoint = Endpoint::fromUri($request->getUri());
-        $this->connect($endpoint);
+        $this->connect($endpoint->getPort() > 0 ? $endpoint : null);
         $this->beforeSend();
         try {
             return $this->doSend((string) $request->getBody());

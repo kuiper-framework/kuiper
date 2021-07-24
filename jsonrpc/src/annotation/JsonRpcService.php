@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\annotation;
 
-use kuiper\di\annotation\ComponentInterface;
-use kuiper\di\annotation\ComponentTrait;
+use kuiper\di\annotation\Service;
 
 /**
  * @Annotation
  * @Target({"CLASS"})
  */
-class JsonRpcService implements ComponentInterface
+class JsonRpcService extends Service
 {
-    use ComponentTrait;
+    /**
+     * @var string
+     */
+    public $service;
 }

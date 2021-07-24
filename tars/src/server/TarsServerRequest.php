@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace kuiper\tars\server;
 
 use kuiper\rpc\InvokingMethod;
-use kuiper\rpc\RpcRpcRequest;
+use kuiper\rpc\RpcRequest;
 use kuiper\tars\core\MethodMetadataInterface;
 use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\stream\RequestPacket;
 use kuiper\tars\stream\RequestPacketTrait;
 use Psr\Http\Message\RequestInterface;
 
-class TarsServerRequest extends RpcRpcRequest implements TarsRequestInterface
+class TarsServerRequest extends RpcRequest implements TarsRequestInterface
 {
     use RequestPacketTrait;
 

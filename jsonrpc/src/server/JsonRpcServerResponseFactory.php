@@ -7,9 +7,9 @@ namespace kuiper\jsonrpc\server;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
-use kuiper\rpc\RpcRpcResponse;
 use kuiper\rpc\server\RpcServerResponseFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Webmozart\Assert\Assert;
 
 class JsonRpcServerResponseFactory implements RpcServerResponseFactoryInterface
@@ -20,11 +20,19 @@ class JsonRpcServerResponseFactory implements RpcServerResponseFactoryInterface
     private $httpResponseFactory;
 
     /**
-     * JsonRpcServerResponseFactory constructor.
+     * @var StreamFactoryInterface
      */
-    public function __construct(ResponseFactoryInterface $httpResponseFactory)
+    private $streamFactory;
+    /**
+     * @var string
+     */
+    private $responseClass;
+
+    public function __construct(ResponseFactoryInterface $httpResponseFactory, StreamFactoryInterface $streamFactory, string $responseClass = JsonRpcServerResponse::class)
     {
         $this->httpResponseFactory = $httpResponseFactory;
+        $this->streamFactory = $streamFactory;
+        $this->responseClass = $responseClass;
     }
 
     /**
@@ -34,21 +42,8 @@ class JsonRpcServerResponseFactory implements RpcServerResponseFactoryInterface
     {
         Assert::isInstanceOf($request, JsonRpcRequestInterface::class);
         $response = $this->httpResponseFactory->createResponse();
-        /* @var JsonRpcRequestInterface $request */
-        $response->getBody()->write(json_encode([
-            'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
-            'id' => $request->getRequestId(),
-            'result' => $this->getResult($request),
-        ]));
-
-        return new RpcRpcResponse($request, $response->withHeader('content-type', 'application/json'));
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function getResult(RpcRequestInterface $request)
-    {
-        return $request->getInvokingMethod()->getResult();
+        $class = $this->responseClass;
+        /** @var JsonRpcRequestInterface $request */
+        return new $class($request, $response->withHeader('content-type', 'application/json'), $this->streamFactory);
     }
 }
