@@ -172,7 +172,6 @@ class RpcRequest implements RpcRequestInterface
         return $new;
     }
 
-
     public function getHttpRequest(): RequestInterface
     {
         return $this->httpRequest;

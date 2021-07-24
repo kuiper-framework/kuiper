@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection\type;
 
 use kuiper\reflection\ReflectionType;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection;
 
 interface ReflectionTypeInterface extends TypeFilterInterface
@@ -24,14 +26,24 @@ interface ReflectionTypeInterface extends TypeFilterInterface
     public function __toString(): string;
 
     public function isPrimitive(): bool;
+
     public function isArray(): bool;
+
     public function isScalar(): bool;
+
     public function isCompound(): bool;
+
     public function isPseudo(): bool;
+
     public function isNull(): bool;
+
     public function isResource(): bool;
+
     public function isClass(): bool;
+
     public function isObject(): bool;
+
     public function isComposite(): bool;
+
     public function isUnknown(): bool;
 }

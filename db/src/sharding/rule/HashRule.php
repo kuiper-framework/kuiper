@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace kuiper\db\sharding\rule;
 
-use Webmozart\Assert\Assert;
-
 class HashRule extends AbstractRule
 {
     /**

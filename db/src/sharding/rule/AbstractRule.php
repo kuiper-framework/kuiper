@@ -17,15 +17,16 @@ abstract class AbstractRule implements RuleInterface
     }
 
     /**
-     * Gets the sharding partition by value
+     * Gets the sharding partition by value.
      *
      * @param mixed $value
+     *
      * @return int|string
      */
     abstract protected function getPartitionFor($value);
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getPartition(array $fields)
     {

@@ -18,7 +18,7 @@ class File
     /**
      * File constructor.
      *
-     * @param string $path
+     * @param string      $path
      * @param string|null $name
      */
     public function __construct(string $path, string $name = null)

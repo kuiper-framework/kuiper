@@ -137,7 +137,7 @@ class Statement implements StatementInterface
         if (!$query instanceof SelectInterface) {
             throw new \InvalidArgumentException('Cannot not call use index for '.get_class($query));
         }
-        /* @var Select $query */
+        /** @var Select $query */
         $query->resetTables();
         $query->fromRaw($this->getTableName().(null !== $this->tableAlias ? ' as '.$this->tableAlias : '')
             ." use index ({$indexName})");

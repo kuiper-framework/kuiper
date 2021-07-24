@@ -39,11 +39,12 @@ class HttpMessageFactoryHolder
 
     /**
      * HttpMessageFactoryHolder constructor.
+     *
      * @param ServerRequestFactoryInterface $serverRequestFactory
-     * @param ResponseFactoryInterface $responseFactory
-     * @param StreamFactoryInterface $streamFactory
-     * @param UriFactoryInterface $uriFactory
-     * @param UploadedFileFactoryInterface $uploadFileFactory
+     * @param ResponseFactoryInterface      $responseFactory
+     * @param StreamFactoryInterface        $streamFactory
+     * @param UriFactoryInterface           $uriFactory
+     * @param UploadedFileFactoryInterface  $uploadFileFactory
      */
     public function __construct(ServerRequestFactoryInterface $serverRequestFactory, ResponseFactoryInterface $responseFactory, StreamFactoryInterface $streamFactory, UriFactoryInterface $uriFactory, UploadedFileFactoryInterface $uploadFileFactory)
     {

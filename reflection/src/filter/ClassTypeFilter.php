@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\reflection\filter;
 
 use kuiper\reflection\type\ClassType;

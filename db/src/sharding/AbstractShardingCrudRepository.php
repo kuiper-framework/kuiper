@@ -77,7 +77,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
                 $this->update($partEntities[0]);
             } else {
                 $stmt = $this->buildBatchUpdateStatement($partEntities);
-                /* @var StatementInterface $stmt */
+                /** @var StatementInterface $stmt */
                 $stmt->shardBy($this->getShardFields($partEntities[0]));
                 $this->doExecute($stmt);
             }
@@ -142,7 +142,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
     protected function doExecute(\kuiper\db\StatementInterface $stmt): void
     {
         Assert::isInstanceOf($stmt, StatementInterface::class);
-        /* @var StatementInterface $stmt */
+        /** @var StatementInterface $stmt */
         $this->checkShardFields($stmt);
 
         parent::doExecute($stmt);
@@ -151,7 +151,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
     protected function doQuery(\kuiper\db\StatementInterface $stmt): \kuiper\db\StatementInterface
     {
         Assert::isInstanceOf($stmt, StatementInterface::class);
-        /* @var StatementInterface $stmt */
+        /** @var StatementInterface $stmt */
         $this->checkShardFields($stmt);
 
         return parent::doQuery($stmt);
@@ -160,7 +160,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
     protected function buildStatementByCriteria(\kuiper\db\StatementInterface $stmt, Criteria $criteria): \kuiper\db\StatementInterface
     {
         Assert::isInstanceOf($stmt, StatementInterface::class);
-        /* @var StatementInterface $stmt */
+        /** @var StatementInterface $stmt */
         $stmt->shardBy($criteria->getBindValues());
 
         return parent::buildStatementByCriteria($stmt, $criteria);
