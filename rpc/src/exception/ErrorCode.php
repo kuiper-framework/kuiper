@@ -25,6 +25,7 @@ class ErrorCode extends Enum
 
     public const UNKNOWN = 99999;
     public const INVALID_ARGUMENT = 100000;
+    public const INVALID_ENDPOINT = 100001;
 
     /**
      * @var array
@@ -42,6 +43,7 @@ class ErrorCode extends Enum
 
             self::UNKNOWN => '未定义异常',
             self::INVALID_ARGUMENT => '参数不正确',
+            self::INVALID_ENDPOINT => '服务地址不正确',
         ],
     ];
 }

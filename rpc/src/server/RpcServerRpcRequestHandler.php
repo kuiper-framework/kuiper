@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\server;
 
-use kuiper\rpc\exception\ServiceNotFoundException;
+use kuiper\rpc\exception\ErrorCode;
+use kuiper\rpc\exception\InvalidRequestException;
 use kuiper\rpc\MiddlewareSupport;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
+use ReflectionException;
 
 class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
 {
@@ -54,13 +56,17 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
         })->handle($request);
     }
 
+    /**
+     * @throws ReflectionException
+     * @throws InvalidRequestException
+     */
     public function serve(RpcRequestInterface $request): RpcResponseInterface
     {
         $method = $request->getRpcMethod();
         $args = $method->getArguments();
         $target = $method->getTarget();
         if (!is_object($target)) {
-            $target = $this->resolve($method->getServiceName());
+            $target = $this->resolve($request, $method->getServiceName());
         }
         $reflectionMethod = new \ReflectionMethod($target, $method->getMethodName());
         $parameters = [];
@@ -81,10 +87,13 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
         return $this->responseFactory->createResponse($request);
     }
 
-    private function resolve(string $serviceName): object
+    /**
+     * @throws InvalidRequestException
+     */
+    private function resolve(RpcRequestInterface $request, string $serviceName): object
     {
         if (!isset($this->services[$serviceName])) {
-            throw new ServiceNotFoundException("Service {$serviceName} not found");
+            throw new InvalidRequestException($request, "Service {$serviceName} not found", ErrorCode::INVALID_ARGUMENT);
         }
 
         return $this->services[$serviceName];

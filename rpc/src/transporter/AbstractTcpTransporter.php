@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
+use kuiper\rpc\exception\CannotResolveEndpointException;
 use kuiper\rpc\exception\CommunicationException;
 use kuiper\rpc\exception\ConnectFailedException;
 use kuiper\rpc\exception\ConnectionClosedException;
 use kuiper\rpc\exception\ConnectionException;
 use kuiper\rpc\exception\ErrorCode;
-use kuiper\rpc\exception\InvalidRequestException;
 use kuiper\rpc\exception\TimedOutException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -48,16 +48,21 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     private $resource;
 
     /**
-     * @var Endpoint
+     * @var Endpoint|null
      */
     private $endpoint;
+    /**
+     * @var EndpointHolderInterface|null
+     */
+    private $endpointHolder;
 
     /**
      * AbstractTcpTransporter constructor.
      */
-    public function __construct(ResponseFactoryInterface $responseFactory, array $options = [], ?LoggerInterface $logger = null)
+    public function __construct(ResponseFactoryInterface $responseFactory, ?EndpointHolderInterface $endpointHolder, array $options = [], ?LoggerInterface $logger = null)
     {
         $this->responseFactory = $responseFactory;
+        $this->endpointHolder = $endpointHolder;
         $this->setOptions($options);
         $this->setLogger($logger ?? new NullLogger());
     }
@@ -71,7 +76,11 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     {
         $this->options = array_merge($this->options, $options);
         if (isset($this->options['endpoint'])) {
-            $this->endpoint = Endpoint::fromString($this->options['endpoint']);
+            $endpoint = $this->options['endpoint'];
+            if (is_string($endpoint)) {
+                $endpoint = Endpoint::fromString($endpoint);
+            }
+            $this->endpoint = $endpoint;
         }
     }
 
@@ -90,19 +99,11 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     }
 
     /**
-     * @throws CommunicationException|InvalidRequestException
+     * @throws CommunicationException|CannotResolveEndpointException
      */
     public function connect(?Endpoint $endpoint): void
     {
-        if (null !== $endpoint && null !== $this->endpoint && !$this->endpoint->equals($endpoint)) {
-            $this->disconnect();
-        }
-        if (null !== $endpoint) {
-            $this->endpoint = $endpoint;
-        }
-        if (null === $this->endpoint) {
-            throw new InvalidRequestException('endpoint is empty');
-        }
+        $this->resolveEndpoint($endpoint);
         if (!$this->isConnected()) {
             $this->resource = $this->createResource();
         }
@@ -136,6 +137,26 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
             return $this->doSend((string) $request->getBody());
         } finally {
             $this->afterSend();
+        }
+    }
+
+    /**
+     * @throws CannotResolveEndpointException
+     * @throws ConnectionException
+     */
+    protected function resolveEndpoint(?Endpoint $endpoint): void
+    {
+        if (null !== $endpoint && null !== $this->endpoint && !$this->endpoint->equals($endpoint)) {
+            $this->disconnect();
+        }
+        if (null !== $endpoint) {
+            $this->endpoint = $endpoint;
+        }
+        if (null === $this->endpoint && null !== $this->endpointHolder) {
+            $this->endpoint = $this->endpointHolder->get();
+        }
+        if (null === $this->endpoint) {
+            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::INVALID_ENDPOINT), 'endpoint is empty');
         }
     }
 

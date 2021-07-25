@@ -4,6 +4,6 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\exception;
 
-class ServiceNotFoundException extends ServerException
+class ServiceNotFoundException extends \Exception
 {
 }

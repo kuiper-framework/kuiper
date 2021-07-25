@@ -8,7 +8,9 @@ use DI\Annotation\Inject;
 use function DI\autowire;
 use DI\Container;
 use function DI\factory;
-use GuzzleHttp\Psr7\HttpFactory;
+use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\cache\ArrayCache;
+use kuiper\cache\ChainedCache;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -18,28 +20,26 @@ use kuiper\helper\Text;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\rpc\client\ProxyGeneratorInterface;
-use kuiper\rpc\client\RpcRequestFactoryInterface;
-use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\server\middleware\AccessLog;
-use kuiper\rpc\transporter\PooledTransporter;
-use kuiper\rpc\transporter\SwooleCoroutineTcpTransporter;
-use kuiper\rpc\transporter\SwooleTcpTransporter;
-use kuiper\rpc\transporter\TransporterInterface;
+use kuiper\rpc\transporter\CachedServiceResolver;
+use kuiper\rpc\transporter\ChainedServiceResolver;
+use kuiper\rpc\transporter\InMemoryServiceRegistry;
+use kuiper\rpc\transporter\ServiceResolverInterface;
+use kuiper\rpc\transporter\SwooleTableServiceEndpointCache;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
-use kuiper\swoole\coroutine\Coroutine;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\tars\annotation\TarsClient;
+use kuiper\tars\client\TarsProxyFactory;
 use kuiper\tars\client\TarsProxyGenerator;
-use kuiper\tars\client\TarsRequestFactory;
-use kuiper\tars\client\TarsResponseFactory;
+use kuiper\tars\client\TarsRegistryServiceResolver;
+use kuiper\tars\core\EndpointParser;
 use kuiper\tars\core\TarsMethodFactory;
+use kuiper\tars\integration\QueryFServant;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\ResponseFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
+use Psr\SimpleCache\CacheInterface;
 
 class TarsClientConfiguration implements DefinitionConfiguration
 {
@@ -83,86 +83,98 @@ class TarsClientConfiguration implements DefinitionConfiguration
         foreach (ComponentCollection::getAnnotations(TarsClient::class) as $annotation) {
             /** @var Container $container */
             $container->set($annotation->getTargetClass(), factory(function () use ($container, $annotation) {
-                $clientInterfaceName = $annotation->getTargetClass();
-                $proxyClass = $container->get('tarsProxyGenerator')->generate($clientInterfaceName);
-                $proxyClass->eval();
-                $class = $proxyClass->getClassName();
-
                 $options = array_merge(
                     Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
                     Application::getInstance()->getConfig()
-                        ->get('application.tars.client.options', [])[$clientInterfaceName] ?? []
+                        ->get('application.tars.client.options', [])[$annotation->value] ?? []
                 );
-                $client = $container->get('tarsClientFactory')($clientInterfaceName, $options);
 
-                return new $class($client);
+                return $container->get(TarsProxyFactory::class)->create($annotation->getTargetClass(), $options);
             }));
         }
     }
 
     /**
-     * @param string $clientInterfaceClass
-     *
-     * @return object
-     *
-     * @throws \ReflectionException
+     * @Bean
+     * @Inject({"serviceResolver": "tarsRegistryServiceResolver", "middlewares": "tarsClientMiddlewares"})
      */
+    public function tarsProxyFactory(
+        ServiceResolverInterface $serviceResolver,
+        AnnotationReaderInterface $annotationReader,
+        PoolFactoryInterface $poolFactory,
+        LoggerFactoryInterface $loggerFactory,
+        array $middlewares): TarsProxyFactory
+    {
+        $tarsProxyFactory = new TarsProxyFactory($serviceResolver, $annotationReader);
+        $tarsProxyFactory->setLoggerFactory($loggerFactory);
+        $tarsProxyFactory->setPoolFactory($poolFactory);
+        $tarsProxyFactory->setMiddlewares($middlewares);
+
+        return $tarsProxyFactory;
+    }
+
     public function createClient(string $clientInterfaceClass, array $options = [])
     {
-        $proxyGenerator = new TarsProxyGenerator();
-        $proxyClass = $proxyGenerator->generate($clientInterfaceClass);
-        $proxyClass->eval();
-        $class = $proxyClass->getClassName();
-        $httpFactory = new HttpFactory();
-        $transporter = new SwooleTcpTransporter($httpFactory, $options);
-        $tarsMethodFactory = new TarsMethodFactory();
-        $responseFactory = new TarsResponseFactory();
-        $requestFactory = new TarsRequestFactory($httpFactory, $httpFactory, $tarsMethodFactory);
-        $tarsClient = new \kuiper\tars\client\TarsClient($transporter, $requestFactory, $responseFactory);
+        $tarsProxyFactory = new TarsProxyFactory(new TarsRegistryServiceResolver($this->tarsRegistryClient()));
 
-        return new $class($tarsClient);
+        return $tarsProxyFactory->create($clientInterfaceClass, $options);
+    }
+
+    public function tarsRegistryClient(): QueryFServant
+    {
+        $tarsProxyFactory = new TarsProxyFactory($this->inMemoryServiceRegistry());
+
+        return $tarsProxyFactory->create(QueryFServant::class);
     }
 
     /**
-     * @Bean("tarsClientFactory")
-     * @Inject({
-     *     "requestFactory": "tarsRequestFactory",
-     *     "middlewares": "tarsClientMiddlewares"
-     *     })
+     * @Bean("tarsRegistryServiceResolver")
+     * @Inject({"cache": "tarsServiceEndpointCache"})
      */
-    public function tarsClientFactory(
-        LoggerFactoryInterface $loggerFactory,
-        PoolFactoryInterface $poolFactory,
-        ResponseFactoryInterface $httpResponseFactory,
-        RpcRequestFactoryInterface $requestFactory,
-        array $middlewares): callable
+    public function tarsRegistryServiceResolver(QueryFServant $queryFServant, CacheInterface $cache): ServiceResolverInterface
     {
-        return static function (string $clientInterfaceName, array $options) use ($loggerFactory, $poolFactory, $requestFactory, $httpResponseFactory, $middlewares): \kuiper\tars\client\TarsClient {
-            $logger = $loggerFactory->create($clientInterfaceName);
-            $transporter = new PooledTransporter($poolFactory->create($clientInterfaceName, function ($connId) use ($logger, $clientInterfaceName, $options, $httpResponseFactory): TransporterInterface {
-                $connectionClass = Coroutine::isEnabled() ? SwooleCoroutineTcpTransporter::class : SwooleTcpTransporter::class;
-                $logger->info("[$clientInterfaceName] create connection $connId", ['class' => $connectionClass]);
-                $transporter = new $connectionClass($httpResponseFactory, $options);
-                $transporter->setLogger($logger);
-
-                return $transporter;
-            }));
-            $responseFactory = new TarsResponseFactory();
-
-            return new \kuiper\tars\client\TarsClient($transporter, $requestFactory, $responseFactory, $middlewares);
-        };
+        return new ChainedServiceResolver([
+            $this->inMemoryServiceRegistry(),
+            new CachedServiceResolver(new TarsRegistryServiceResolver($queryFServant), $cache),
+        ]);
     }
 
     /**
-     * @Bean("tarsRequestFactory")
-     * @Inject({"rpcMethodFactory": "tarsMethodFactory"})
+     * @Bean("tarsServiceEndpointCache")
+     * @Inject({"options": "application.tars.client.registry"})
      */
-    public function tarsRequestFactory(
-        RequestFactoryInterface $httpRequestFactory,
-        StreamFactoryInterface $streamFactory,
-        RpcMethodFactoryInterface $rpcMethodFactory): RpcRequestFactoryInterface
+    public function tarsServiceEndpointCache(?array $options): CacheInterface
     {
-        return new TarsRequestFactory($httpRequestFactory, $streamFactory, $rpcMethodFactory);
+        $ttl = $options['ttl'] ?? 60;
+        $capacity = $options['capacity'] ?? 256;
+        $registryCache = new SwooleTableServiceEndpointCache($ttl, $capacity, $options['size'] ?? 2048);
+
+        return new ChainedCache([
+            new ArrayCache($options['memory-ttl'] ?? 1, $capacity),
+            $registryCache,
+        ]);
+    }
+
+    /**
+     * @Bean
+     */
+    public function inMemoryServiceRegistry(): InMemoryServiceRegistry
+    {
+        $config = Application::getInstance()->getConfig();
+        $registry = new InMemoryServiceRegistry();
+        if ($config->has('application.tars.client.locator')) {
+            $registry->registerService(EndpointParser::parseServiceEndpoint(
+                $config->getString('application.tars.client.locator')));
+        }
+        if ($config->has('application.tars.server.node')) {
+            $registry->registerService(EndpointParser::parseServiceEndpoint(
+                $config->getString('application.tars.server.node')));
+        }
+        foreach ($config->get('application.tars.client.routes', []) as $str) {
+            $registry->registerService(EndpointParser::parseServiceEndpoint($str));
+        }
+
+        return $registry;
     }
 
     /**

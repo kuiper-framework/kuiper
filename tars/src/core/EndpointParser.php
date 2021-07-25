@@ -28,13 +28,17 @@ class EndpointParser
             throw new \InvalidArgumentException("No servant name in '$str'");
         }
         $servantName = substr($str, 0, $pos);
-        $str = substr($str, $pos + 1);
+        $endpointList = substr($str, $pos + 1);
 
-        $endpoints = array_map([static::class, 'parse'], explode(':', $str));
+        $endpoints = [];
+        $weights = [];
+        foreach (explode(':', $endpointList) as $endpointStr) {
+            $endpoint = self::parse($endpointStr);
+            $endpoints[] = $endpoint;
+            $weights[$endpoint->getAddress()] = (int) ($endpoint->getOption('weight') ?? 100);
+        }
 
-        return new ServiceEndpoint($servantName, $endpoints, array_map(static function (Endpoint $endpoint): int {
-            return $endpoint->getOption('weight') ?? 100;
-        }, $endpoints));
+        return new ServiceEndpoint($servantName, $endpoints, $weights);
     }
 
     public static function fromEndpointF(EndpointF $endpointF): Endpoint
