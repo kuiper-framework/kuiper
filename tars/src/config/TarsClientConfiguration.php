@@ -137,11 +137,11 @@ class TarsClientConfiguration implements DefinitionConfiguration
         RpcRequestFactoryInterface $requestFactory,
         array $middlewares): callable
     {
-        return static function (string $name, array $options) use ($loggerFactory, $poolFactory, $requestFactory, $httpResponseFactory, $middlewares): \kuiper\tars\client\TarsClient {
-            $logger = $loggerFactory->create($name);
-            $transporter = new PooledTransporter($poolFactory->create($name, function ($connId) use ($logger, $name, $options, $httpResponseFactory): TransporterInterface {
+        return static function (string $clientInterfaceName, array $options) use ($loggerFactory, $poolFactory, $requestFactory, $httpResponseFactory, $middlewares): \kuiper\tars\client\TarsClient {
+            $logger = $loggerFactory->create($clientInterfaceName);
+            $transporter = new PooledTransporter($poolFactory->create($clientInterfaceName, function ($connId) use ($logger, $clientInterfaceName, $options, $httpResponseFactory): TransporterInterface {
                 $connectionClass = Coroutine::isEnabled() ? SwooleCoroutineTcpTransporter::class : SwooleTcpTransporter::class;
-                $logger->info("[$name] create connection $connId", ['class' => $connectionClass]);
+                $logger->info("[$clientInterfaceName] create connection $connId", ['class' => $connectionClass]);
                 $transporter = new $connectionClass($httpResponseFactory, $options);
                 $transporter->setLogger($logger);
 

@@ -98,6 +98,7 @@ class TarsTcpReceiveEventListener implements EventListenerInterface, LoggerAware
         $packet->iMessageType = $requestPacket->iMessageType;
         $packet->iRet = $e->getCode();
         $packet->sResultDesc = $e->getMessage();
+        $packet->sBuffer = '';
 
         return $packet;
     }
@@ -107,6 +108,7 @@ class TarsTcpReceiveEventListener implements EventListenerInterface, LoggerAware
         $packet = ResponsePacket::createFromRequest($request);
         $packet->iRet = $e->getCode();
         $packet->sResultDesc = $e->getMessage();
+        $packet->sBuffer = '';
 
         return $packet;
     }
@@ -116,6 +118,7 @@ class TarsTcpReceiveEventListener implements EventListenerInterface, LoggerAware
         $packet = new ResponsePacket();
         $packet->iRet = $e->getCode();
         $packet->sResultDesc = $e->getMessage();
+        $packet->sBuffer = '';
 
         return $packet;
     }

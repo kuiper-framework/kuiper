@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace kuiper\tars\config;
 
 use DI\Annotation\Inject;
+use function DI\get;
+use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\server\middleware\AccessLog;
@@ -27,12 +30,16 @@ use kuiper\tars\server\TarsServerRequestFactory;
 use kuiper\tars\server\TarsServerResponseFactory;
 use kuiper\tars\server\TarsTcpReceiveEventListener;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Log\LoggerInterface;
 
 class TarsServerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
+
+    protected const TAG = '['.__CLASS__.'] ';
 
     public function getDefinitions(): array
     {
@@ -57,7 +64,28 @@ class TarsServerConfiguration implements DefinitionConfiguration
         ]);
 
         return [
+            'guzzleHttpFactory' => get(HttpFactory::class),
         ];
+    }
+
+    /**
+     * @Bean
+     * @Inject({
+     *     "httpRequestFactory": "guzzleHttpFactory",
+     *     "serverRequestFactory": "tarsServerRequestFactory",
+     *     "requestHandler": "tarsRequestHandler"
+     *     })
+     */
+    public function tarsTcpReceiveEventListener(
+        RequestFactoryInterface $httpRequestFactory,
+        RpcServerRequestFactoryInterface $serverRequestFactory,
+        RpcRequestHandlerInterface $requestHandler,
+        LoggerFactoryInterface $loggerFactory): TarsTcpReceiveEventListener
+    {
+        $tarsTcpReceiveEventListener = new TarsTcpReceiveEventListener($httpRequestFactory, $serverRequestFactory, $requestHandler);
+        $tarsTcpReceiveEventListener->setLogger($loggerFactory->create(TarsTcpReceiveEventListener::class));
+
+        return $tarsTcpReceiveEventListener;
     }
 
     /**
@@ -65,11 +93,14 @@ class TarsServerConfiguration implements DefinitionConfiguration
      */
     public function tarsServices(ContainerInterface $container, ServerProperties $serverProperties): array
     {
+        $logger = $container->get(LoggerInterface::class);
         $services = [];
         /** @var TarsServant $annotation */
         foreach (ComponentCollection::getAnnotations(TarsServant::class) as $annotation) {
             $serviceImpl = $container->get($annotation->getComponentId());
-            $services[$serverProperties->getServerName().'.'.$annotation->value] = $serviceImpl;
+            $servantName = $serverProperties->getServerName().'.'.$annotation->value;
+            $services[$servantName] = $serviceImpl;
+            $logger->info(self::TAG."register servant $servantName");
         }
 
         return $services;
@@ -77,6 +108,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean("tarsServerMethodFactory")
+     * @Inject({"services": "tarsServices"})
      */
     public function tarsServerMethodFactory(ServerProperties $serverProperties, array $services, AnnotationReaderInterface $annotationReader): RpcMethodFactoryInterface
     {
@@ -84,22 +116,23 @@ class TarsServerConfiguration implements DefinitionConfiguration
     }
 
     /**
-     * @Bean
+     * @Bean("tarsServerResponseFactory")
      */
-    public function tarsServerResponseFactory(
-        ResponseFactoryInterface $httpResponseFactory,
-        StreamFactoryInterface $streamFactory
-    ): RpcServerResponseFactoryInterface {
+    public function tarsServerResponseFactory(ResponseFactoryInterface $httpResponseFactory, StreamFactoryInterface $streamFactory): RpcServerResponseFactoryInterface
+    {
         return new TarsServerResponseFactory($httpResponseFactory, $streamFactory);
     }
 
     /**
-     * @Bean
+     * @Bean("tarsServerRequestFactory")
      * @Inject({"rpcMethodFactory": "tarsServerMethodFactory"})
      */
-    public function tarsServerRequestFactory(ServerProperties $serverProperties, RpcMethodFactoryInterface $rpcMethodFactory): RpcServerRequestFactoryInterface
+    public function tarsServerRequestFactory(ServerProperties $serverProperties, RpcMethodFactoryInterface $rpcMethodFactory, LoggerFactoryInterface $loggerFactory): RpcServerRequestFactoryInterface
     {
-        return new TarsServerRequestFactory($serverProperties, $rpcMethodFactory);
+        $tarsServerRequestFactory = new TarsServerRequestFactory($serverProperties, $rpcMethodFactory);
+        $tarsServerRequestFactory->setLogger($loggerFactory->create(TarsServerRequestFactory::class));
+
+        return $tarsServerRequestFactory;
     }
 
     /**
@@ -116,8 +149,12 @@ class TarsServerConfiguration implements DefinitionConfiguration
     }
 
     /**
-     * @Bean
-     * @Inject({"services": "tarsServices", "middlewares": "tarsServerMiddlewares"})
+     * @Bean("tarsRequestHandler")
+     * @Inject({
+     *     "services": "tarsServices",
+     *     "middlewares": "tarsServerMiddlewares",
+     *     "responseFactory": "tarsServerResponseFactory"
+     * })
      */
     public function tarsRequestHandler(RpcServerResponseFactoryInterface $responseFactory, array $services, array $middlewares): RpcRequestHandlerInterface
     {

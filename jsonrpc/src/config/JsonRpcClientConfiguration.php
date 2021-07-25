@@ -65,7 +65,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         return [
             ProxyGeneratorInterface::class => autowire(ProxyGenerator::class),
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
-            'guzzleHttpRequestFactory' => get(HttpFactory::class),
+            'guzzleHttpFactory' => get(HttpFactory::class),
         ];
     }
 
@@ -128,6 +128,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
      * @Bean("jsonrpcTcpClientFactory")
      * @Inject({
      *     "requestFactory": "jsonrpcRequestFactory",
+     *     "httpResponseFactory": "guzzleHttpFactory",
      *     "middlewares": "jsonrpcClientMiddlewares"
      *     })
      */
@@ -196,7 +197,8 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
     /**
      * @Bean("jsonrpcRequestFactory")
      * @Inject({
-     *     "httpRequestFactory": "guzzleHttpRequestFactory",
+     *     "httpRequestFactory": "guzzleHttpFactory",
+     *     "streamFactory": "guzzleHttpFactory",
      *     "rpcMethodFactory": "jsonrpcMethodFactory"
      * })
      */

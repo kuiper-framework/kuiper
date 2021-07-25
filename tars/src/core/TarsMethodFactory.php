@@ -13,9 +13,6 @@ use kuiper\rpc\RpcMethodInterface;
 use kuiper\tars\annotation\TarsParameter;
 use kuiper\tars\annotation\TarsReturnType;
 use kuiper\tars\annotation\TarsServant;
-use kuiper\tars\core\Parameter;
-use kuiper\tars\core\TarsMethod;
-use kuiper\tars\core\TarsMethodInterface;
 use kuiper\tars\exception\SyntaxErrorException;
 use kuiper\tars\type\TypeParser;
 use kuiper\tars\type\VoidType;
@@ -58,10 +55,11 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
         if (!isset($this->cache[$key])) {
             try {
                 $this->cache[$key] = $this->extractMethod($service, $method);
-            } catch (ReflectionException|SyntaxErrorException $e) {
-                throw new InvalidMethodException('read method metadata failed: ' . $e->getMessage(), $e->getCode(), $e);
+            } catch (ReflectionException | SyntaxErrorException $e) {
+                throw new InvalidMethodException('read method metadata failed: '.$e->getMessage(), $e->getCode(), $e);
             }
         }
+
         return $this->cache[$key]->withArguments($args);
     }
 
@@ -75,14 +73,30 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
     {
         $reflectionClass = new \ReflectionClass($servant);
         if (!$reflectionClass->hasMethod($method)) {
-            throw new InvalidMethodException(sprintf("%s does not contain method '$method'", $reflectionClass));
+            throw new InvalidMethodException(sprintf("%s does not contain method '$method'", $reflectionClass->getName()));
         }
         $servantAnnotation = $this->getTarsServantAnnotation($reflectionClass);
 
+        $reflectionMethod = null;
         if ($reflectionClass->isInterface()) {
             $reflectionMethod = $reflectionClass->getMethod($method);
         } else {
-            $reflectionMethod = new \ReflectionMethod(ProxyGenerator::getInterfaceName($reflectionClass->getName()), $method);
+            $proxyClass = ProxyGenerator::getInterfaceName($reflectionClass->getName());
+            if (null !== $proxyClass) {
+                $reflectionMethod = new \ReflectionMethod($proxyClass, $method);
+            } else {
+                foreach ($reflectionClass->getInterfaceNames() as $interfaceName) {
+                    $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($interfaceName), TarsServant::class);
+                    if (null !== $annotation) {
+                        $reflectionMethod = new \ReflectionMethod($interfaceName, $method);
+                        $reflectionClass = $reflectionMethod->getDeclaringClass();
+                        break;
+                    }
+                }
+            }
+        }
+        if (null === $reflectionMethod) {
+            throw new InvalidMethodException("Cannot find method %s::$method", $reflectionClass->getName());
         }
         $namespace = $reflectionClass->getNamespaceName();
         $parameters = [];

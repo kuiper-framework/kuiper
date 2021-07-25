@@ -101,6 +101,15 @@ class TarsInputStream implements TarsInputStreamInterface
         }
     }
 
+    /**
+     * @param int      $tag     the tag value
+     * @param int|null $type    the expected type
+     * @param bool     $require
+     *
+     * @return int|null the real type
+     *
+     * @throws TarsStreamException
+     */
     private function match(int $tag, ?int $type, bool $require): ?int
     {
         if (!$this->readHead($nextTag, $nextType, $require)) {
@@ -108,11 +117,9 @@ class TarsInputStream implements TarsInputStreamInterface
         }
         if (Type::STRUCT_END === $nextType) {
             if (Type::STRUCT_END === $type || !$require) {
-                $this->pushHeadBack($nextTag);
-
                 return null;
             }
-            throw TarsStreamException::tagNotMatch();
+            throw TarsStreamException::typeNotMatch('expected struct end, got '.self::getTypeName($type));
         }
         if (Type::STRUCT_END !== $type) {
             if ($nextTag === $tag) {

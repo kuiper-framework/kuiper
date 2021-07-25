@@ -16,6 +16,8 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwareInterface
 {
@@ -53,10 +55,11 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     /**
      * AbstractTcpTransporter constructor.
      */
-    public function __construct(ResponseFactoryInterface $responseFactory, array $options = [])
+    public function __construct(ResponseFactoryInterface $responseFactory, array $options = [], ?LoggerInterface $logger = null)
     {
         $this->responseFactory = $responseFactory;
         $this->setOptions($options);
+        $this->setLogger($logger ?? new NullLogger());
     }
 
     public function getEndpoint(): Endpoint

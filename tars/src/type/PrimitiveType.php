@@ -8,14 +8,9 @@ namespace kuiper\tars\type;
  * @method static PrimitiveType string(): static
  * @method static PrimitiveType bool(): static
  * @method static PrimitiveType char(): static
- * @method static PrimitiveType int8(): static
+ * @method static PrimitiveType int(): static
  * @method static PrimitiveType double(): static
  * @method static PrimitiveType float(): static
- * @method static PrimitiveType int32(): static
- * @method static PrimitiveType int64(): static
- * @method static PrimitiveType uint8(): static
- * @method static PrimitiveType uint16(): static
- * @method static PrimitiveType uint32(): static
  */
 final class PrimitiveType extends AbstractType
 {

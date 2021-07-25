@@ -16,6 +16,7 @@ use kuiper\jsonrpc\server\JsonRpcServerResponse;
 use kuiper\jsonrpc\server\JsonRpcServerResponseFactory;
 use kuiper\jsonrpc\server\JsonRpcTcpReceiveEventListener;
 use kuiper\jsonrpc\server\OutParamJsonRpcServerResponse;
+use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
@@ -85,6 +86,9 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
 
     /**
      * @Bean("jsonrpcServerMethodFactory")
+     * @Inject({
+     *     "services": "jsonrpcServices"
+     *     })
      */
     public function jsonrpcServerMethodFactory(array $services, NormalizerInterface $normalizer, ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory): RpcMethodFactoryInterface
     {
@@ -107,7 +111,7 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
     /**
      * @Bean("jsonrpcRequestHandler")
      * @Inject({
-     *     "responseFactory": "jsonrpcServerRequestFactory",
+     *     "responseFactory": "jsonrpcServerResponseFactory",
      *     "services": "jsonrpcServices",
      *     "middlewares": "jsonrpcServerMiddlewares"
      * })
@@ -128,8 +132,12 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
         RequestFactoryInterface $httpRequestFactory,
         RpcServerRequestFactoryInterface $serverRequestFactory,
         RpcRequestHandlerInterface $requestHandler,
-        ExceptionNormalizer $exceptionNormalizer
+        ExceptionNormalizer $exceptionNormalizer,
+        LoggerFactoryInterface $loggerFactory
     ): JsonRpcTcpReceiveEventListener {
-        return new JsonRpcTcpReceiveEventListener($httpRequestFactory, $serverRequestFactory, $requestHandler, $exceptionNormalizer);
+        $listener = new JsonRpcTcpReceiveEventListener($httpRequestFactory, $serverRequestFactory, $requestHandler, $exceptionNormalizer);
+        $listener->setLogger($loggerFactory->create(JsonRpcTcpReceiveEventListener::class));
+
+        return $listener;
     }
 }

@@ -37,7 +37,7 @@ final class ResponsePacket
     public $iRet = ErrorCode::SERVER_SUCCESS;
 
     /**
-     * @var string|null
+     * @var string
      */
     public $sBuffer;
 

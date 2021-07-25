@@ -345,7 +345,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
                 throw TarsStreamException::typeNotMatch('expect object, got '.gettype($value));
             }
             $this->writeStruct($tag, $value, $type->asStructType());
-        } else {
+        } elseif (!$type->isVoid()) {
             throw TarsStreamException::typeNotMatch('Expect type one of primitive,enum,struct,vector,map, got '.get_class($type));
         }
     }
