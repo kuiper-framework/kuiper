@@ -6,8 +6,8 @@ namespace kuiper\tars\type;
 
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\helper\Enum;
-use kuiper\reflection\exception\SyntaxErrorException;
 use kuiper\tars\annotation\TarsProperty;
+use kuiper\tars\exception\SyntaxErrorException;
 
 /**
  * tars_type: vector< vector_sub_type > :

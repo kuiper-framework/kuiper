@@ -50,6 +50,6 @@ class JsonRpcServerResponse extends RpcResponse
      */
     protected function getResult()
     {
-        return $this->request->getInvokingMethod()->getResult()[0];
+        return $this->getRequest()->getRpcMethod()->getResult()[0];
     }
 }

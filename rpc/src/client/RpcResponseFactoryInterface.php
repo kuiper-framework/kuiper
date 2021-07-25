@@ -12,6 +12,8 @@ interface RpcResponseFactoryInterface
 {
     /**
      * Creates the rpc response from http response.
+     *
+     * @throws \Exception
      */
     public function createResponse(RpcRequestInterface $request, ResponseInterface $response): RpcResponseInterface;
 }

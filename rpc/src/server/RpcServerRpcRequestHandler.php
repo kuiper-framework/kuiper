@@ -56,11 +56,11 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
 
     public function serve(RpcRequestInterface $request): RpcResponseInterface
     {
-        $method = $request->getInvokingMethod();
+        $method = $request->getRpcMethod();
         $args = $method->getArguments();
         $target = $method->getTarget();
         if (!is_object($target)) {
-            $target = $this->resolve($method->getTargetClass());
+            $target = $this->resolve($method->getServiceName());
         }
         $reflectionMethod = new \ReflectionMethod($target, $method->getMethodName());
         $parameters = [];
@@ -76,17 +76,17 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
             }
         }
         $return = call_user_func_array([$target, $method->getMethodName()], $parameters);
-        $method->setResult(array_merge([$return], $out));
+        $request = $request->withRpcMethod($method->withResult(array_merge([$return], $out)));
 
         return $this->responseFactory->createResponse($request);
     }
 
-    private function resolve(string $targetClass): object
+    private function resolve(string $serviceName): object
     {
-        if (!isset($this->services[$targetClass])) {
-            throw new ServiceNotFoundException("Service {$targetClass} not found");
+        if (!isset($this->services[$serviceName])) {
+            throw new ServiceNotFoundException("Service {$serviceName} not found");
         }
 
-        return $this->services[$targetClass];
+        return $this->services[$serviceName];
     }
 }

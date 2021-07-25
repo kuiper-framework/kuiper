@@ -7,10 +7,10 @@ namespace kuiper\jsonrpc\server;
 class OutParamJsonRpcServerResponse extends JsonRpcServerResponse
 {
     /**
-     * @return mixed
+     * @return array
      */
-    protected function getResult()
+    protected function getResult(): array
     {
-        return $this->request->getInvokingMethod()->getResult();
+        return $this->request->getRpcMethod()->getResult();
     }
 }

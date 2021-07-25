@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use kuiper\rpc\transporter\Endpoint;
 use kuiper\swoole\constants\ServerType;
-use kuiper\tars\core\Endpoint;
+use kuiper\tars\core\EndpointParser;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class Adapter
@@ -31,8 +32,6 @@ class Adapter
      */
     private $endpoint;
     /**
-     * @ConfigItem(name="maxconns")
-     *
      * @var int
      */
     private $maxConns = 10000;
@@ -85,7 +84,7 @@ class Adapter
     public function setEndpoint($endpoint): void
     {
         if (is_string($endpoint)) {
-            $this->endpoint = Endpoint::fromString($endpoint);
+            $this->endpoint = EndpointParser::parse($endpoint);
         } else {
             $this->endpoint = $endpoint;
         }

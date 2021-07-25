@@ -7,7 +7,7 @@ namespace kuiper\web;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
-interface RequestLogFormatter
+interface RequestLogFormatterInterface
 {
     /**
      * @param RequestInterface       $request

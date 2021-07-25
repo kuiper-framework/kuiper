@@ -8,6 +8,8 @@ use DI\Annotation\Inject;
 use function DI\autowire;
 use DI\Container;
 use function DI\factory;
+use function DI\get;
+use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -16,6 +18,7 @@ use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\annotation\JsonRpcClient;
+use kuiper\jsonrpc\client\JsonRpcMethodFactory;
 use kuiper\jsonrpc\client\JsonRpcRequestFactory;
 use kuiper\jsonrpc\client\JsonRpcResponseFactory;
 use kuiper\jsonrpc\client\NoOutParamJsonRpcResponseFactory;
@@ -24,7 +27,9 @@ use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\ProxyGeneratorInterface;
 use kuiper\rpc\client\RpcRequestFactoryInterface;
+use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\client\RpcResponseNormalizer;
+use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\rpc\transporter\HttpTransporter;
@@ -32,6 +37,7 @@ use kuiper\rpc\transporter\PooledTransporter;
 use kuiper\rpc\transporter\SwooleCoroutineTcpTransporter;
 use kuiper\rpc\transporter\SwooleTcpTransporter;
 use kuiper\rpc\transporter\TransporterInterface;
+use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ClientSettings;
@@ -39,7 +45,7 @@ use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\coroutine\Coroutine;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\web\LineRequestLogFormatter;
-use kuiper\web\RequestLogFormatter;
+use kuiper\web\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -58,14 +64,15 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
 
         return [
             ProxyGeneratorInterface::class => autowire(ProxyGenerator::class),
-            RequestLogFormatter::class => autowire(LineRequestLogFormatter::class),
+            RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
+            'guzzleHttpRequestFactory' => get(HttpFactory::class),
         ];
     }
 
     /**
      * @Bean("jsonrpcRequestLog")
      */
-    public function jsonrpcRequestLog(RequestLogFormatter $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
+    public function jsonrpcRequestLog(RequestLogFormatterInterface $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
     {
         $middleware = new AccessLog($requestLogFormatter);
         $middleware->setLogger($loggerFactory->create('JsonRpcRequestLogger'));
@@ -79,7 +86,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         $services = $container->has('jsonrpcServices');
         /** @var JsonRpcClient $annotation */
         foreach (ComponentCollection::getAnnotations(JsonRpcClient::class) as $annotation) {
-            $clientInterfaceName = $annotation->getTarget()->getName();
+            $clientInterfaceName = $annotation->getTargetClass();
             $service = $annotation->service ?? $clientInterfaceName;
             if (isset($services[$service])) {
                 continue;
@@ -130,14 +137,13 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         ResponseFactoryInterface $httpResponseFactory,
         RpcRequestFactoryInterface $requestFactory,
         RpcResponseNormalizer $responseNormalizer,
+        ExceptionNormalizer $exceptionNormalizer,
         array $middlewares): callable
     {
-        return static function (string $name, array $options) use ($loggerFactory, $poolFactory, $requestFactory, $httpResponseFactory, $responseNormalizer, $middlewares): \kuiper\jsonrpc\client\JsonRpcClient {
-            if ($options['out_params'] ?? false) {
-                $responseFactory = new JsonRpcResponseFactory($responseNormalizer);
-            } else {
-                $responseFactory = new NoOutParamJsonRpcResponseFactory($responseNormalizer);
-            }
+        return function (string $name, array $options) use (
+            $loggerFactory, $poolFactory, $requestFactory, $httpResponseFactory, $responseNormalizer, $exceptionNormalizer, $middlewares
+        ): \kuiper\jsonrpc\client\JsonRpcClient {
+            $responseFactory = $this->createJsonRpcResponseFactory($responseNormalizer, $exceptionNormalizer, $options['out_params'] ?? false);
             $logger = $loggerFactory->create($name);
             $transporter = new PooledTransporter($poolFactory->create($name, function ($connId) use ($logger, $name, $options, $httpResponseFactory): TransporterInterface {
                 $options = array_merge([
@@ -168,14 +174,11 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         HttpClientFactoryInterface $httpClientFactory,
         RpcRequestFactoryInterface $requestFactory,
         RpcResponseNormalizer $responseNormalizer,
+        ExceptionNormalizer $exceptionNormalizer,
         array $middlewares): callable
     {
-        return static function (string $name, array $options) use ($httpClientFactory, $requestFactory, $responseNormalizer, $middlewares): \kuiper\jsonrpc\client\JsonRpcClient {
-            if ($options['out_params'] ?? false) {
-                $responseFactory = new JsonRpcResponseFactory($responseNormalizer);
-            } else {
-                $responseFactory = new NoOutParamJsonRpcResponseFactory($responseNormalizer);
-            }
+        return function (string $name, array $options) use ($httpClientFactory, $requestFactory, $responseNormalizer, $exceptionNormalizer, $middlewares): \kuiper\jsonrpc\client\JsonRpcClient {
+            $responseFactory = $this->createJsonRpcResponseFactory($responseNormalizer, $exceptionNormalizer, $options['out_params'] ?? false);
             $transporter = new HttpTransporter($httpClientFactory->create($options));
 
             return new \kuiper\jsonrpc\client\JsonRpcClient($transporter, $requestFactory, $responseFactory, $middlewares);
@@ -183,11 +186,23 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
     }
 
     /**
-     * @Bean("jsonrpcRequestFactory")
+     * @Bean("jsonrpcMethodFactory")
      */
-    public function jsonrpcRequestFactory(RequestFactoryInterface $httpRequestFactory, StreamFactoryInterface $streamFactory): RpcRequestFactoryInterface
+    public function jsonrpcMethodFactory(): RpcMethodFactoryInterface
     {
-        return new JsonRpcRequestFactory($httpRequestFactory, $streamFactory);
+        return new JsonRpcMethodFactory();
+    }
+
+    /**
+     * @Bean("jsonrpcRequestFactory")
+     * @Inject({
+     *     "httpRequestFactory": "guzzleHttpRequestFactory",
+     *     "rpcMethodFactory": "jsonrpcMethodFactory"
+     * })
+     */
+    public function jsonrpcRequestFactory(RequestFactoryInterface $httpRequestFactory, StreamFactoryInterface $streamFactory, RpcMethodFactoryInterface $rpcMethodFactory): RpcRequestFactoryInterface
+    {
+        return new JsonRpcRequestFactory($httpRequestFactory, $streamFactory, $rpcMethodFactory);
     }
 
     /**
@@ -230,5 +245,21 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 ],
             ],
         ]);
+    }
+
+    /**
+     * @param bool                  $outParams
+     * @param RpcResponseNormalizer $responseNormalizer
+     * @param ExceptionNormalizer   $exceptionNormalizer
+     *
+     * @return JsonRpcResponseFactory|NoOutParamJsonRpcResponseFactory
+     */
+    protected function createJsonRpcResponseFactory(RpcResponseNormalizer $responseNormalizer, ExceptionNormalizer $exceptionNormalizer, bool $outParams): RpcResponseFactoryInterface
+    {
+        if ($outParams) {
+            return new JsonRpcResponseFactory($responseNormalizer, $exceptionNormalizer);
+        }
+
+        return new NoOutParamJsonRpcResponseFactory($responseNormalizer, $exceptionNormalizer);
     }
 }

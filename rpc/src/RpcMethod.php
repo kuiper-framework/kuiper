@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
-class InvokingMethod
+class RpcMethod implements RpcMethodInterface
 {
     /**
      * @var object|string
      */
     private $target;
+
+    /**
+     * @var string
+     */
+    private $serviceName;
 
     /**
      * @var string
@@ -33,13 +38,14 @@ class InvokingMethod
      *
      * @param object|string|mixed $target
      */
-    public function __construct($target, string $methodName, array $arguments)
+    public function __construct($target, ?string $serviceName, string $methodName, array $arguments)
     {
         if (is_object($target) || is_string($target)) {
             $this->target = $target;
         } else {
             throw new \InvalidArgumentException('expect target is an object or class name, got '.gettype($target));
         }
+        $this->serviceName = $serviceName ?? $this->getTargetClass();
         $this->methodName = $methodName;
         $this->arguments = $arguments;
     }
@@ -54,7 +60,12 @@ class InvokingMethod
 
     public function getTargetClass(): string
     {
-        return is_object($this->target) ? get_class($this->target) : $this->target;
+        return is_string($this->target) ? $this->target : get_class($this->target);
+    }
+
+    public function getServiceName(): string
+    {
+        return $this->serviceName;
     }
 
     public function getMethodName(): string
@@ -67,18 +78,33 @@ class InvokingMethod
         return $this->arguments;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function withArguments(array $args)
+    {
+        $copy = clone $this;
+        $copy->arguments = $args;
+        return $copy;
+    }
+
     public function getResult(): array
     {
         return $this->result;
     }
 
-    public function setResult(array $result): void
+    /**
+     * @inheritDoc
+     */
+    public function withResult(array $result)
     {
-        $this->result = $result;
+        $copy = clone $this;
+        $copy->result = $result;
+        return $copy;
     }
 
-    public function getFullMethodName(): string
+    public function __toString(): string
     {
-        return $this->getTargetClass().'::'.$this->methodName;
+        return $this->getServiceName().'::'.$this->methodName;
     }
 }

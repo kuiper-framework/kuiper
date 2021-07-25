@@ -35,15 +35,21 @@ final class Endpoint
     private $receiveTimeout;
 
     /**
+     * @var array
+     */
+    private $options;
+
+    /**
      * Endpoint constructor.
      */
-    public function __construct(string $protocol, string $host, int $port, ?float $connectTimeout, ?float $receiveTimeout)
+    public function __construct(string $protocol, string $host, int $port, ?float $connectTimeout, ?float $receiveTimeout, array $options = [])
     {
         $this->protocol = $protocol;
         $this->host = $host;
         $this->port = $port;
         $this->connectTimeout = $connectTimeout;
         $this->receiveTimeout = $receiveTimeout;
+        $this->options = $options;
     }
 
     public function getProtocol(): string
@@ -77,9 +83,33 @@ final class Endpoint
         return $this->receiveTimeout;
     }
 
+    /**
+     * @return array
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return mixed
+     */
+    public function getOption(string $name)
+    {
+        return $this->options[$name];
+    }
+
+    public function getAddress(): string
+    {
+        return $this->host.':'.$this->port;
+    }
+
     public function equals(Endpoint $other): bool
     {
-        return $this->getHost() === $other->getHost()
+        return $this->getProtocol() === $other->getProtocol()
+            && $this->getHost() === $other->getHost()
             && $this->getPort() === $other->getPort();
     }
 
@@ -96,6 +126,16 @@ final class Endpoint
         );
     }
 
+    public static function fromAddress(string $address): self
+    {
+        if (false === strpos($address, ':')) {
+            throw new \InvalidArgumentException("invalid server address '$address'");
+        }
+        [$host, $port] = explode(':', $address);
+
+        return new self('tcp', $host, (int) $port, null, null);
+    }
+
     public static function fromString(string $uri): Endpoint
     {
         $parts = parse_url($uri);
@@ -109,7 +149,8 @@ final class Endpoint
             $parts['host'] ?? '',
             $parts['port'] ?? 0,
             self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null),
-            self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null)
+            self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null),
+            $options
         );
     }
 
@@ -132,7 +173,8 @@ final class Endpoint
             $uri->getHost(),
             $uri->getPort() ?? 0,
             self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null),
-            self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null)
+            self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null),
+            $options
         );
     }
 }

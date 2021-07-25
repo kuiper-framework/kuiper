@@ -30,7 +30,7 @@ class UserService287144eeac08b48f7713f40fc08f345d implements UserService
     {
         list($ret, $total) = $this->client->sendRequest($this->client->createRequest($this, __FUNCTION__, []));
 
-        return $total;
+        return $ret;
     }
 
     /**

@@ -13,5 +13,6 @@ class EndpointTest extends TestCase
     {
         $uri = new Uri('tcp://server:18000?connectTimeout=100&receiveTimeout=300');
         $endpoint = Endpoint::fromUri($uri);
+        $this->assertEquals('server', $endpoint->getHost());
     }
 }

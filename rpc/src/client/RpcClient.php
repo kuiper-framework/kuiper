@@ -84,6 +84,6 @@ class RpcClient implements RpcClientInterface, RpcRequestHandlerInterface
     {
         $response = $this->buildMiddlewareStack($this)->handle($request);
 
-        return $response->getRequest()->getInvokingMethod()->getResult() ?? [];
+        return $response->getRequest()->getRpcMethod()->getResult() ?? [];
     }
 }

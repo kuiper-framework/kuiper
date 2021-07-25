@@ -21,17 +21,17 @@ class RpcRequest implements RpcRequestInterface
     protected $attributes;
 
     /**
-     * @var InvokingMethod
+     * @var RpcMethodInterface
      */
-    protected $invokingMethod;
+    protected $rpcMethod;
 
     /**
      * RpcRequest constructor.
      */
-    public function __construct(RequestInterface $httpRequest, InvokingMethod $invokingMethod)
+    public function __construct(RequestInterface $httpRequest, RpcMethodInterface $rpcMethod)
     {
         $this->httpRequest = $httpRequest;
-        $this->invokingMethod = $invokingMethod;
+        $this->rpcMethod = $rpcMethod;
         $this->attributes = [];
     }
 
@@ -177,8 +177,19 @@ class RpcRequest implements RpcRequestInterface
         return $this->httpRequest;
     }
 
-    public function getInvokingMethod(): InvokingMethod
+    public function getRpcMethod(): RpcMethodInterface
     {
-        return $this->invokingMethod;
+        return $this->rpcMethod;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function withRpcMethod(RpcMethodInterface $rpcMethod)
+    {
+        $copy = clone $this;
+        $copy->rpcMethod = $rpcMethod;
+
+        return $copy;
     }
 }

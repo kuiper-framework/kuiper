@@ -4,24 +4,16 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
-use kuiper\swoole\constants\ServerSetting;
+use InvalidArgumentException;
+use kuiper\rpc\transporter\Endpoint;
+use kuiper\rpc\transporter\ServiceEndpoint;
+use kuiper\serializer\annotation\SerializeName;
 use kuiper\swoole\constants\ServerType;
-use kuiper\tars\core\Endpoint;
-use kuiper\tars\core\Route;
+use kuiper\tars\core\EndpointParser;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ServerProperties
 {
-    private const DEFAULT_SETTINGS = [
-        ServerSetting::OPEN_LENGTH_CHECK => true,
-        ServerSetting::PACKAGE_LENGTH_TYPE => 'N',
-        'package_length_offset' => 0,
-        'package_body_offset' => 0,
-        ServerSetting::MAX_WAIT_TIME => 60,
-        ServerSetting::RELOAD_ASYNC => true,
-        ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
-    ];
-
     /**
      * The App namespace.
      *
@@ -51,6 +43,7 @@ class ServerProperties
      * The basepath config value, equal to "$TARSPATH/tarsnode/data/$app.$server/bin".
      *
      * @Assert\NotBlank()
+     * @SerializeName("basepath")
      *
      * @var string|null
      */
@@ -59,6 +52,7 @@ class ServerProperties
      * The datapath config value, equal to "$TARSPATH/tarsnode/data/$app.$server/data".
      *
      * @Assert\NotBlank()
+     * @SerializeName("datapath")
      *
      * @var string|null
      */
@@ -67,6 +61,7 @@ class ServerProperties
      * The logpath config value, equal to "$TARSPATH/app_log".
      *
      * @Assert\NotBlank()
+     * @SerializeName("logpath")
      *
      * @var string|null
      */
@@ -83,7 +78,7 @@ class ServerProperties
     private $logSize = 15728640;  // 15M
 
     /**
-     * @var Route|null
+     * @var ServiceEndpoint|null
      */
     private $node;
     /**
@@ -92,6 +87,8 @@ class ServerProperties
     private $local;
 
     /**
+     * @SerializeName("localip")
+     *
      * @var string|null
      */
     private $localIp;
@@ -108,6 +105,11 @@ class ServerProperties
      * @var string
      */
     private $notifyServantName = 'tars.tarsnotify.NotifyObj';
+
+    /**
+     * @var bool
+     */
+    private $daemonize;
 
     /**
      * @var int|null
@@ -166,7 +168,7 @@ class ServerProperties
 
     public function getServerSettings(): array
     {
-        return array_merge(self::DEFAULT_SETTINGS, $this->serverSettings);
+        return $this->serverSettings;
     }
 
     public function setServerSettings(array $serverSettings): void
@@ -209,18 +211,18 @@ class ServerProperties
         }
     }
 
-    public function getNode(): ?Route
+    public function getNode(): ?ServiceEndpoint
     {
         return $this->node;
     }
 
     /**
-     * @param string|Route $node
+     * @param string|ServiceEndpoint $node
      */
     public function setNode($node): void
     {
         if (is_string($node)) {
-            $node = Route::fromString($node);
+            $node = EndpointParser::parseServiceEndpoint($node);
         }
         $this->node = $node;
     }
@@ -236,7 +238,7 @@ class ServerProperties
     public function setLocal($local): void
     {
         if (is_string($local)) {
-            $local = Endpoint::fromString($local);
+            $local = EndpointParser::parse($local);
         }
         $this->local = $local;
     }
@@ -279,6 +281,23 @@ class ServerProperties
     public function setNotifyServantName(string $notifyServantName): void
     {
         $this->notifyServantName = $notifyServantName;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDaemonize(): bool
+    {
+        return $this->daemonize;
+    }
+
+    /**
+     * @param bool $daemonize
+     */
+    public function setDaemonize(bool $daemonize): void
+    {
+        $this->daemonize = $daemonize;
+        $this->serverSettings['daemonize'] = $daemonize;
     }
 
     public function getEnv(): ?string
@@ -366,7 +385,7 @@ class ServerProperties
     public function setBasePath(string $basePath): void
     {
         if (!is_dir($basePath)) {
-            throw new \InvalidArgumentException("basepath '$basePath' does not exist");
+            throw new InvalidArgumentException("basepath '$basePath' does not exist");
         }
         $this->basePath = rtrim(realpath($basePath), '/');
     }
@@ -384,7 +403,7 @@ class ServerProperties
     public function setDataPath(string $dataPath): void
     {
         if (!is_dir($dataPath) && !mkdir($dataPath) && !is_dir($dataPath)) {
-            throw new \InvalidArgumentException("datapath '$dataPath' does not exist");
+            throw new InvalidArgumentException("datapath '$dataPath' does not exist");
         }
         $this->dataPath = rtrim(realpath($dataPath), '/');
     }
@@ -397,7 +416,7 @@ class ServerProperties
     public function setLogPath(string $logPath): void
     {
         if (!is_dir($logPath) && !mkdir($logPath) && !is_dir($logPath)) {
-            throw new \InvalidArgumentException("logpath '$logPath' does not exist");
+            throw new InvalidArgumentException("logpath '$logPath' does not exist");
         }
         $this->logPath = rtrim(realpath($logPath), '/');
     }

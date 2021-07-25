@@ -14,7 +14,7 @@ use kuiper\http\client\request\File;
 use kuiper\http\client\request\Request;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\RpcRequestFactoryInterface;
-use kuiper\rpc\InvokingMethod;
+use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcRequest;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\serializer\NormalizerInterface;
@@ -31,17 +31,22 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
      * @var NormalizerInterface
      */
     private $normalizer;
+    /**
+     * @var RpcMethodFactoryInterface
+     */
+    private $rpcMethodFactory;
 
-    public function __construct(AnnotationReaderInterface $annotationReader, NormalizerInterface $normalizer)
+    public function __construct(AnnotationReaderInterface $annotationReader, NormalizerInterface $normalizer, RpcMethodFactoryInterface $rpcMethodFactory)
     {
         $this->annotationReader = $annotationReader;
         $this->normalizer = $normalizer;
+        $this->rpcMethodFactory = $rpcMethodFactory;
     }
 
     public function createRequest(object $proxy, string $method, array $args): RpcRequestInterface
     {
-        $invokingMethod = new InvokingMethod($proxy, $method, $args);
-        $reflectionMethod = new \ReflectionMethod(ProxyGenerator::getInterfaceName($invokingMethod->getTargetClass()), $method);
+        $invokingMethod = $this->rpcMethodFactory->create($proxy, $method, $args);
+        $reflectionMethod = new \ReflectionMethod(ProxyGenerator::getInterfaceName(get_class($proxy)), $method);
         /** @var HttpClient|null $classAnnotation */
         $classAnnotation = $this->annotationReader->getClassAnnotation($reflectionMethod->getDeclaringClass(), HttpClient::class);
         $parameters = [];
@@ -59,7 +64,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
                 return $value['value'];
             }
 
-            throw new \InvalidArgumentException($invokingMethod->getFullMethodName()." should have parameter \${$matches[1]}");
+            throw new \InvalidArgumentException($invokingMethod." should have parameter \${$matches[1]}");
         };
         $placeholderRe = '/\{(\w+)(:.*)?\}/';
 

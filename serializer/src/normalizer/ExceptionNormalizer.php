@@ -40,8 +40,8 @@ class ExceptionNormalizer implements NormalizerInterface
             return $exception;
         }
         if (is_array($exception) && isset($exception['class'], $exception['message'], $exception['code'])) {
-            $className = $exception['class'];
-            $class = new \ReflectionClass($className);
+            $exceptionClass = $exception['class'];
+            $class = new \ReflectionClass($exceptionClass);
             $constructor = $class->getConstructor();
             if ($class->isSubclassOf(\Exception::class) && null !== $constructor) {
                 $params = $constructor->getParameters();
@@ -50,7 +50,7 @@ class ExceptionNormalizer implements NormalizerInterface
                     $paramNames[$param->getName()] = true;
                 }
                 if (isset($paramNames['message']) && isset($paramNames['code'])) {
-                    return new $className($exception['message'], $exception['code']);
+                    return new $exceptionClass($exception['message'], $exception['code']);
                 }
             }
         }

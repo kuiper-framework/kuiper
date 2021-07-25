@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
-use kuiper\tars\core\Route;
+use kuiper\rpc\transporter\ServiceEndpoint;
+use kuiper\tars\core\EndpointParser;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ClientProperties
@@ -14,7 +15,7 @@ class ClientProperties
      */
     private $asyncThread = 3;
     /**
-     * @var Route|null
+     * @var ServiceEndpoint|null
      */
     private $locator;
     /**
@@ -74,18 +75,18 @@ class ClientProperties
         $this->asyncThread = $asyncThread;
     }
 
-    public function getLocator(): ?Route
+    public function getLocator(): ?ServiceEndpoint
     {
         return $this->locator;
     }
 
     /**
-     * @param string|Route $locator
+     * @param string|ServiceEndpoint $locator
      */
     public function setLocator($locator): void
     {
         if (is_string($locator)) {
-            $locator = Route::fromString($locator);
+            $locator = EndpointParser::parseServiceEndpoint($locator);
         }
         $this->locator = $locator;
     }

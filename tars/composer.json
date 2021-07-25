@@ -14,8 +14,9 @@
     ],
     "require": {
         "php": ">=7.2",
-        "laminas/laminas-code": "^3.4",
-        "kuiper/helper": "^0.5"
+        "kuiper/rpc": "^0.5",
+        "guzzlehttp/psr7": "^2.0",
+        "symfony/validator": "^5.3"
     },
     "autoload": {
         "psr-4": {

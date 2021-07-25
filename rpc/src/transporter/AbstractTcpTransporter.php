@@ -53,7 +53,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     /**
      * AbstractTcpTransporter constructor.
      */
-    public function __construct(ResponseFactoryInterface $responseFactory, array $options)
+    public function __construct(ResponseFactoryInterface $responseFactory, array $options = [])
     {
         $this->responseFactory = $responseFactory;
         $this->setOptions($options);

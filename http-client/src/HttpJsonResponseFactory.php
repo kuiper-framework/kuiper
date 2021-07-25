@@ -7,9 +7,10 @@ namespace kuiper\http\client;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\client\RpcResponseNormalizer;
 use kuiper\rpc\exception\BadResponseException;
-use kuiper\rpc\InvokingMethod;
+use kuiper\rpc\RpcMethodInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponse;
+use kuiper\rpc\RpcResponseInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class HttpJsonResponseFactory implements RpcResponseFactoryInterface
@@ -27,18 +28,18 @@ class HttpJsonResponseFactory implements RpcResponseFactoryInterface
         $this->normalizer = $normalizer;
     }
 
-    public function createResponse(RpcRequestInterface $request, ResponseInterface $response): \kuiper\rpc\RpcResponseInterface
+    public function createResponse(RpcRequestInterface $request, ResponseInterface $response): RpcResponseInterface
     {
         try {
-            $request->getInvokingMethod()->setResult($this->buildResult($request->getInvokingMethod(), $response));
+            $method = $request->getRpcMethod()->withResult($this->buildResult($request->getRpcMethod(), $response));
         } catch (\InvalidArgumentException $e) {
             throw new BadResponseException($request, $response);
         }
 
-        return new RpcResponse($request, $response);
+        return new RpcResponse($request->withRpcMethod($method), $response);
     }
 
-    protected function buildResult(InvokingMethod $method, ResponseInterface $response): array
+    protected function buildResult(RpcMethodInterface $method, ResponseInterface $response): array
     {
         $contentType = $response->getHeaderLine('content-type');
         if (false !== stripos($contentType, 'application/json')) {

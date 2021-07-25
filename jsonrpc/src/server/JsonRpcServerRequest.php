@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
-use kuiper\rpc\InvokingMethod;
+use kuiper\rpc\RpcMethodInterface;
 use kuiper\rpc\RpcRequest;
 use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 
@@ -16,9 +16,9 @@ class JsonRpcServerRequest extends RpcRequest implements JsonRpcRequestInterface
      */
     private $requestId;
 
-    public function __construct(HttpRequestInterface $httpRequest, InvokingMethod $invokingMethod, int $requestId)
+    public function __construct(HttpRequestInterface $httpRequest, RpcMethodInterface $rpcMethod, int $requestId)
     {
-        parent::__construct($httpRequest, $invokingMethod);
+        parent::__construct($httpRequest, $rpcMethod);
         $this->requestId = $requestId;
     }
 

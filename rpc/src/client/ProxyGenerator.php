@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\rpc\client;
 
 use kuiper\helper\Text;
+use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\reflection\type\VoidType;
 use Laminas\Code\Generator\ClassGenerator;
@@ -26,9 +27,9 @@ class ProxyGenerator implements ProxyGeneratorInterface
      */
     private $reflectionDocBlockFactory;
 
-    public function __construct(ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
+    public function __construct(?ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory = null)
     {
-        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
+        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory ?? new ReflectionDocBlockFactory();
     }
 
     /**

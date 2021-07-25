@@ -11,7 +11,7 @@ use kuiper\di\annotation\ComponentTrait;
  * @Annotation
  * @Target({"CLASS"})
  */
-final class TarsServant implements ComponentInterface
+class TarsServant implements ComponentInterface
 {
     use ComponentTrait;
 

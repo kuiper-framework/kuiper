@@ -4,20 +4,17 @@ declare(strict_types=1);
 
 namespace kuiper\tars\core;
 
-interface MethodMetadataInterface
+use kuiper\rpc\RpcMethodInterface;
+
+interface TarsMethodInterface extends RpcMethodInterface
 {
-    public function getNamespace(): string;
-
-    public function getClassName(): string;
-
-    public function getMethodName(): string;
-
-    public function getServantName(): string;
-
     /**
      * @return ParameterInterface[]
      */
     public function getParameters(): array;
 
+    /**
+     * @return ParameterInterface
+     */
     public function getReturnValue(): ParameterInterface;
 }

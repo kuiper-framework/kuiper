@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\serializer;
 
+use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
@@ -35,9 +36,9 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
      */
     private $normalizers = [];
 
-    public function __construct(AnnotationReaderInterface $reader, ?ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory = null, array $normalizers = [])
+    public function __construct(?AnnotationReaderInterface $reader = null, ?ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory = null, array $normalizers = [])
     {
-        $classMetadataFactory = new ClassMetadataFactory($reader, $reflectionDocBlockFactory ?? new ReflectionDocBlockFactory());
+        $classMetadataFactory = new ClassMetadataFactory($reader ?? AnnotationReader::getInstance(), $reflectionDocBlockFactory ?? new ReflectionDocBlockFactory());
         $this->objectNormalizer = new ObjectNormalizer($classMetadataFactory, $this);
         foreach ($normalizers as $className => $normalizer) {
             $this->addObjectNormalizer($className, $normalizer);

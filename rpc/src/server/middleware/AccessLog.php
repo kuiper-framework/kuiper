@@ -8,7 +8,7 @@ use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
-use kuiper\web\RequestLogFormatter;
+use kuiper\web\RequestLogFormatterInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 
@@ -17,7 +17,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
     use LoggerAwareTrait;
 
     /**
-     * @var RequestLogFormatter
+     * @var RequestLogFormatterInterface
      */
     private $formatter;
     /**
@@ -25,7 +25,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
      */
     private $requestFilter;
 
-    public function __construct(RequestLogFormatter $formatter, ?callable $requestFilter = null)
+    public function __construct(RequestLogFormatterInterface $formatter, ?callable $requestFilter = null)
     {
         $this->formatter = $formatter;
         $this->requestFilter = $requestFilter;

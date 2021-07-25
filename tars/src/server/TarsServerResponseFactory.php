@@ -7,7 +7,6 @@ namespace kuiper\tars\server;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
 use kuiper\rpc\server\RpcServerResponseFactoryInterface;
-use kuiper\tars\core\MethodMetadataFactoryInterface;
 use kuiper\tars\core\TarsRequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -20,10 +19,6 @@ class TarsServerResponseFactory implements RpcServerResponseFactoryInterface
      */
     private $httpResponseFactory;
     /**
-     * @var MethodMetadataFactoryInterface
-     */
-    private $methodMetadataFactory;
-    /**
      * @var StreamFactoryInterface
      */
     private $streamFactory;
@@ -31,10 +26,9 @@ class TarsServerResponseFactory implements RpcServerResponseFactoryInterface
     /**
      * JsonRpcServerResponseFactory constructor.
      */
-    public function __construct(ResponseFactoryInterface $httpResponseFactory, MethodMetadataFactoryInterface $methodMetadataFactory, StreamFactoryInterface $streamFactory)
+    public function __construct(ResponseFactoryInterface $httpResponseFactory, StreamFactoryInterface $streamFactory)
     {
         $this->httpResponseFactory = $httpResponseFactory;
-        $this->methodMetadataFactory = $methodMetadataFactory;
         $this->streamFactory = $streamFactory;
     }
 
@@ -43,12 +37,7 @@ class TarsServerResponseFactory implements RpcServerResponseFactoryInterface
         Assert::isInstanceOf($request, TarsRequestInterface::class);
         $response = $this->httpResponseFactory->createResponse();
 
-        $metadata = $this->methodMetadataFactory->create(
-            $request->getInvokingMethod()->getTarget(),
-            $request->getInvokingMethod()->getMethodName()
-        );
-
         /** @var TarsRequestInterface $request */
-        return new TarsServerRpcResponse($request, $response, $metadata, $this->streamFactory);
+        return new TarsServerRpcResponse($request, $response, $this->streamFactory);
     }
 }

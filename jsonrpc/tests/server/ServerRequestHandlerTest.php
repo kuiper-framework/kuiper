@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\server;
 
+use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Request;
 use kuiper\annotations\AnnotationReader;
+use kuiper\jsonrpc\JsonRpcProtocol;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\rpc\fixtures\User;
 use kuiper\rpc\fixtures\UserService;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\serializer\Serializer;
 use Laminas\Diactoros\ResponseFactory;
+use Laminas\Diactoros\StreamFactory;
 use PHPUnit\Framework\TestCase;
 
 class ServerRequestHandlerTest extends TestCase
@@ -33,7 +36,7 @@ class ServerRequestHandlerTest extends TestCase
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
         $handler = new RpcServerRpcRequestHandler([
             UserService::class => $userService,
-        ], new JsonRpcServerResponseFactory(new ResponseFactory()));
+        ], new JsonRpcServerResponseFactory(new ResponseFactory(), new StreamFactory(), OutParamJsonRpcServerResponse::class));
 
         $request = new Request('POST', '/', [], json_encode([
             'jsonrpc' => '2.0',
@@ -41,9 +44,12 @@ class ServerRequestHandlerTest extends TestCase
             'method' => 'kuiper.rpc.fixtures.UserService.findUser',
             'params' => [1],
         ]));
-        $requestFactory = new JsonRpcServerRequestFactory($normalizer, $reflectionDocBlockFactory);
+        $rpcMethodFactory = new JsonRpcServerMethodFactory([
+            UserService::class => $userService,
+        ], $normalizer, $reflectionDocBlockFactory);
+        $requestFactory = new JsonRpcServerRequestFactory($rpcMethodFactory);
         $response = $handler->handle($requestFactory->createRequest($request));
-        $this->assertEquals('{"jsonrpc":"2.0","id":1,"result":[{"id":1,"name":"john"}]}', (string) $response->getBody());
+        $this->assertEquals('{"jsonrpc":"2.0","id":1,"result":[{"id":1,"name":"john"}]}'.JsonRpcProtocol::EOF, (string) $response->getBody());
 
         $request = new Request('POST', '/', [], json_encode([
             'jsonrpc' => '2.0',
@@ -63,6 +69,8 @@ class ServerRequestHandlerTest extends TestCase
         $user->setId(1);
         $user->setName('john');
 
+        $httpFactory = new HttpFactory();
+
         $userService = \Mockery::mock(UserService::class);
         $userService->shouldReceive('findUser')
             ->with(1)
@@ -72,9 +80,12 @@ class ServerRequestHandlerTest extends TestCase
 
         $reflectionDocBlockFactory = new ReflectionDocBlockFactory();
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
-        $handler = new RpcServerRpcRequestHandler([
+
+        $services = [
             UserService::class => $userService,
-        ], new NoOutParamJsonRpcServerResponseFactory(new ResponseFactory()));
+        ];
+        $rpcMethodFactory = new JsonRpcServerMethodFactory($services, $normalizer, $reflectionDocBlockFactory);
+        $handler = new RpcServerRpcRequestHandler($services, new JsonRpcServerResponseFactory($httpFactory, $httpFactory));
 
         $request = new Request('POST', '/', [], json_encode([
             'jsonrpc' => '2.0',
@@ -82,8 +93,9 @@ class ServerRequestHandlerTest extends TestCase
             'method' => 'kuiper.rpc.fixtures.UserService.findUser',
             'params' => [1],
         ]));
-        $requestFactory = new JsonRpcServerRequestFactory($normalizer, $reflectionDocBlockFactory);
+        $requestFactory = new JsonRpcServerRequestFactory($rpcMethodFactory);
         $response = $handler->handle($requestFactory->createRequest($request));
-        $this->assertEquals('{"jsonrpc":"2.0","id":1,"result":{"id":1,"name":"john"}}', (string) $response->getBody());
+        $this->assertEquals('{"jsonrpc":"2.0","id":1,"result":{"id":1,"name":"john"}}'.JsonRpcProtocol::EOF,
+            (string) $response->getBody());
     }
 }

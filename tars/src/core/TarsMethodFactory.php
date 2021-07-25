@@ -4,20 +4,29 @@ declare(strict_types=1);
 
 namespace kuiper\tars\core;
 
+use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\exception\InvalidMethodException;
+use kuiper\rpc\RpcMethodFactoryInterface;
+use kuiper\rpc\RpcMethodInterface;
 use kuiper\tars\annotation\TarsParameter;
 use kuiper\tars\annotation\TarsReturnType;
 use kuiper\tars\annotation\TarsServant;
+use kuiper\tars\core\Parameter;
+use kuiper\tars\core\TarsMethod;
+use kuiper\tars\core\TarsMethodInterface;
+use kuiper\tars\exception\SyntaxErrorException;
 use kuiper\tars\type\TypeParser;
+use kuiper\tars\type\VoidType;
+use ReflectionException;
 
 /**
  * 读取调用方法 rpc ServantName, 参数，返回值等信息.
  *
  * Class MethodMetadataFactory
  */
-class MethodMetadataFactory implements MethodMetadataFactoryInterface
+class TarsMethodFactory implements RpcMethodFactoryInterface
 {
     /**
      * @var AnnotationReaderInterface
@@ -30,38 +39,39 @@ class MethodMetadataFactory implements MethodMetadataFactoryInterface
     private $typeParser;
 
     /**
-     * @var MethodMetadata[]
+     * @var TarsMethodInterface[]
      */
     private $cache;
 
-    public function __construct(AnnotationReaderInterface $annotationReader)
+    public function __construct(?AnnotationReaderInterface $annotationReader = null)
     {
-        $this->annotationReader = $annotationReader;
-        $this->typeParser = new TypeParser($annotationReader);
+        $this->annotationReader = $annotationReader ?? AnnotationReader::getInstance();
+        $this->typeParser = new TypeParser($this->annotationReader);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function create($servant, string $method): MethodMetadata
+    public function create($service, string $method, array $args): RpcMethodInterface
     {
-        $key = (is_string($servant) ? $servant : get_class($servant)).'::'.$method;
-        if (isset($this->cache[$key])) {
-            return $this->cache[$key];
+        $key = (is_string($service) ? $service : get_class($service)).'::'.$method;
+        if (!isset($this->cache[$key])) {
+            try {
+                $this->cache[$key] = $this->extractMethod($service, $method);
+            } catch (ReflectionException|SyntaxErrorException $e) {
+                throw new InvalidMethodException('read method metadata failed: ' . $e->getMessage(), $e->getCode(), $e);
+            }
         }
-        try {
-            return $this->cache[$key] = $this->getMetadataFromAnnotation($servant, $method);
-        } catch (\ReflectionException $e) {
-            throw new InvalidMethodException('read method metadata failed', $e->getCode(), $e);
-        }
+        return $this->cache[$key]->withArguments($args);
     }
 
     /**
      * @param object|string $servant
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
+     * @throws SyntaxErrorException
      */
-    private function getMetadataFromAnnotation($servant, string $method): MethodMetadata
+    protected function extractMethod($servant, string $method): TarsMethodInterface
     {
         $reflectionClass = new \ReflectionClass($servant);
         if (!$reflectionClass->hasMethod($method)) {
@@ -90,18 +100,12 @@ class MethodMetadataFactory implements MethodMetadataFactoryInterface
                 $returnType = $this->typeParser->parse($methodAnnotation->value, $namespace);
             }
         }
+        $returnValue = Parameter::asReturnValue($returnType ?? VoidType::instance());
 
-        return new MethodMetadata(
-            $reflectionClass->getName(),
-            $reflectionClass->getNamespaceName(),
-            $method,
-            $servantAnnotation->value,
-            $parameters,
-            $returnType
-        );
+        return new TarsMethod($servant, $servantAnnotation->value, $method, [], $parameters, $returnValue);
     }
 
-    private function getTarsServantAnnotation(\ReflectionClass $reflectionClass): TarsServant
+    protected function getTarsServantAnnotation(\ReflectionClass $reflectionClass): TarsServant
     {
         /** @var TarsServant|null $annotation */
         $annotation = $this->annotationReader->getClassAnnotation($reflectionClass, TarsServant::class);
@@ -109,6 +113,13 @@ class MethodMetadataFactory implements MethodMetadataFactoryInterface
             $interfaceName = ProxyGenerator::getInterfaceName($reflectionClass->getName());
             if (null !== $interfaceName) {
                 $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($interfaceName), TarsServant::class);
+            } else {
+                foreach ($reflectionClass->getInterfaceNames() as $servantInterface) {
+                    $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($servantInterface), TarsServant::class);
+                    if (null !== $annotation) {
+                        break;
+                    }
+                }
             }
         }
         if (null !== $annotation) {

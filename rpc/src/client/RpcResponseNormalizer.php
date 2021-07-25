@@ -8,7 +8,7 @@ use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\reflection\ReflectionType;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\reflection\type\VoidType;
-use kuiper\rpc\InvokingMethod;
+use kuiper\rpc\RpcMethodInterface;
 use kuiper\serializer\NormalizerInterface;
 use Webmozart\Assert\Assert;
 
@@ -41,7 +41,7 @@ class RpcResponseNormalizer
     /**
      * @return array|null[]
      */
-    public function normalize(InvokingMethod $method, array $result): array
+    public function normalize(RpcMethodInterface $method, array $result): array
     {
         [$returnType, $outParamTypes] = $this->getMethodReturnTypes($method);
         if (empty($outParamTypes)) {
@@ -80,9 +80,9 @@ class RpcResponseNormalizer
         return $ret;
     }
 
-    private function getMethodReturnTypes(InvokingMethod $method): array
+    private function getMethodReturnTypes(RpcMethodInterface $method): array
     {
-        $key = $method->getFullMethodName();
+        $key = (string) $method;
         if (isset($this->cachedTypes[$key])) {
             return $this->cachedTypes[$key];
         }

@@ -9,10 +9,9 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
-use kuiper\annotations\AnnotationReader;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\rpc\transporter\HttpTransporter;
-use kuiper\tars\core\MethodMetadataFactory;
+use kuiper\tars\core\TarsMethodFactory;
 use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\fixtures\HelloService;
 use kuiper\tars\stream\RequestPacket;
@@ -32,7 +31,6 @@ class TarsClientTest extends TestCase
         $generatedClass = $proxyGenerator->generate(HelloService::class);
         $generatedClass->eval();
         $class = $generatedClass->getClassName();
-        $methodMetadataFactory = new MethodMetadataFactory(AnnotationReader::getInstance());
         $packet = new ResponsePacket();
         $packet->iRequestId = 1;
         $packet->sBuffer = TarsOutputStream::pack(MapType::byteArrayMap(), [
@@ -48,8 +46,9 @@ class TarsClientTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $transporter = new HttpTransporter($client);
-        $requestFactory = new TarsRequestFactory(new RequestFactory(), new StreamFactory(), $methodMetadataFactory, 1);
-        $responseFactory = new TarsResponseFactory($methodMetadataFactory);
+        $methodFactory = new TarsMethodFactory();
+        $requestFactory = new TarsRequestFactory(new RequestFactory(), new StreamFactory(), $methodFactory, 1);
+        $responseFactory = new TarsResponseFactory();
         /** @var HelloService $proxy */
         $proxy = new $class(new TarsClient($transporter, $requestFactory, $responseFactory));
         $result = $proxy->hello('world');

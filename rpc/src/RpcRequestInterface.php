@@ -8,7 +8,15 @@ use Psr\Http\Message\RequestInterface;
 
 interface RpcRequestInterface extends RequestInterface
 {
-    public function getInvokingMethod(): InvokingMethod;
+    /**
+     * @return RpcMethodInterface
+     */
+    public function getRpcMethod(): RpcMethodInterface;
+
+    /**
+     * @return static
+     */
+    public function withRpcMethod(RpcMethodInterface $rpcMethod);
 
     /**
      * Retrieve attributes derived from the request.

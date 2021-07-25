@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
 use kuiper\annotations\AnnotationReader;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
@@ -18,6 +19,7 @@ use kuiper\rpc\fixtures\HelloService;
 use kuiper\rpc\fixtures\User;
 use kuiper\rpc\fixtures\UserService;
 use kuiper\rpc\transporter\HttpTransporter;
+use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\serializer\Serializer;
 use Laminas\Diactoros\RequestFactory;
 use PHPUnit\Framework\TestCase;
@@ -44,7 +46,9 @@ class JsonRpcClientTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $transporter = new HttpTransporter($client);
-        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), 1, 1);
+        $rpcMethodFactory = new JsonRpcMethodFactory();
+        $httpFactory = new HttpFactory();
+        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), $httpFactory, $rpcMethodFactory, 1);
         $responseFactory = new SimpleJsonRpcResponseFactory();
         /** @var HelloService $proxy */
         $proxy = new $class(new JsonRpcClient($transporter, $requestFactory, $responseFactory));
@@ -92,9 +96,11 @@ class JsonRpcClientTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $transporter = new HttpTransporter($client);
-        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), 1, 1);
+        $httpFactory = new HttpFactory();
+        $rpcMethodFactory = new JsonRpcMethodFactory();
+        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), $httpFactory, $rpcMethodFactory, 1);
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
-        $responseFactory = new JsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory));
+        $responseFactory = new JsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory), new ExceptionNormalizer());
         /** @var UserService $proxy */
         $proxy = new $class(new JsonRpcClient($transporter, $requestFactory, $responseFactory));
         $result = $proxy->findUser(1);
@@ -145,9 +151,11 @@ class JsonRpcClientTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $transporter = new HttpTransporter($client);
-        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), 1, 1);
+        $httpFactory = new HttpFactory();
+        $rpcMethodFactory = new JsonRpcMethodFactory();
+        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), $httpFactory, $rpcMethodFactory, 1);
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
-        $responseFactory = new NoOutParamJsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory));
+        $responseFactory = new NoOutParamJsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory), new ExceptionNormalizer());
         /** @var UserService $proxy */
         $proxy = new $class(new JsonRpcClient($transporter, $requestFactory, $responseFactory));
         $result = $proxy->findUser(1);

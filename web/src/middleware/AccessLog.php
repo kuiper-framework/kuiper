@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\middleware;
 
-use kuiper\web\RequestLogFormatter;
+use kuiper\web\RequestLogFormatterInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -17,7 +17,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
     use LoggerAwareTrait;
 
     /**
-     * @var RequestLogFormatter
+     * @var RequestLogFormatterInterface
      */
     private $formatter;
 
@@ -29,10 +29,10 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
     /**
      * AccessLog constructor.
      *
-     * @param RequestLogFormatter $formatter
-     * @param callable|null       $requestFilter
+     * @param RequestLogFormatterInterface $formatter
+     * @param callable|null                $requestFilter
      */
-    public function __construct(RequestLogFormatter $formatter, ?callable $requestFilter)
+    public function __construct(RequestLogFormatterInterface $formatter, ?callable $requestFilter)
     {
         $this->formatter = $formatter;
         $this->requestFilter = $requestFilter;

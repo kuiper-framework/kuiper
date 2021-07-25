@@ -6,8 +6,7 @@ namespace kuiper\jsonrpc\client;
 
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\JsonRpcProtocol;
-use kuiper\rpc\client\ProxyGenerator;
-use kuiper\rpc\InvokingMethod;
+use kuiper\rpc\RpcMethodInterface;
 use kuiper\rpc\RpcRequest;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -30,9 +29,9 @@ class JsonRpcRequest extends RpcRequest implements JsonRpcRequestInterface
      */
     private $requestId;
 
-    public function __construct(RequestInterface $request, InvokingMethod $invokingMethod, StreamFactoryInterface $streamFactory, int $requestId)
+    public function __construct(RequestInterface $request, RpcMethodInterface $rpcMethod, StreamFactoryInterface $streamFactory, int $requestId)
     {
-        parent::__construct($request, $invokingMethod);
+        parent::__construct($request, $rpcMethod);
         $this->requestId = $requestId;
         $this->streamFactory = $streamFactory;
     }
@@ -44,9 +43,7 @@ class JsonRpcRequest extends RpcRequest implements JsonRpcRequestInterface
 
     protected function getJsonRpcMethod(): string
     {
-        $method = $this->getInvokingMethod();
-
-        return str_replace('\\', '.', ProxyGenerator::getInterfaceName($method->getTargetClass())).'.'.$method->getMethodName();
+        return $this->getRpcMethod()->getServiceName().'.'.$this->getRpcMethod()->getMethodName();
     }
 
     /**
@@ -59,7 +56,7 @@ class JsonRpcRequest extends RpcRequest implements JsonRpcRequestInterface
                 'id' => $this->requestId,
                 'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
                 'method' => $this->getJsonRpcMethod(),
-                'params' => $this->getInvokingMethod()->getArguments(),
+                'params' => $this->getRpcMethod()->getArguments(),
             ]));
         }
 

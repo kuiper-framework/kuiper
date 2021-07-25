@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\tars\server;
 
 use kuiper\rpc\RpcResponse;
-use kuiper\tars\core\MethodMetadataInterface;
+use kuiper\tars\core\TarsMethodInterface;
 use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\stream\ResponsePacket;
 use kuiper\tars\stream\TarsConst;
@@ -21,34 +21,26 @@ class TarsServerRpcResponse extends RpcResponse
      */
     private $packet;
     /**
-     * @var MethodMetadataInterface
-     */
-    private $metadata;
-    /**
      * @var StreamFactoryInterface
      */
     private $streamFactory;
 
-    public function __construct(TarsRequestInterface $request, ResponseInterface $response, MethodMetadataInterface $metadata, StreamFactoryInterface $streamFactory)
+    public function __construct(TarsRequestInterface $request, ResponseInterface $response, StreamFactoryInterface $streamFactory)
     {
         parent::__construct($request, $response);
         $this->packet = ResponsePacket::createFromRequest($request);
-        $this->metadata = $metadata;
         $this->streamFactory = $streamFactory;
-    }
-
-    public function getMetadata(): MethodMetadataInterface
-    {
-        return $this->metadata;
     }
 
     public function getBody()
     {
         $packet = $this->packet;
         if (null === $packet->sBuffer) {
-            $returnValues = $this->getRequest()->getInvokingMethod()->getResult();
-            $out = [$this->metadata->getReturnValue()];
-            foreach ($this->metadata->getParameters() as $parameter) {
+            /** @var TarsMethodInterface $rpcMethod */
+            $rpcMethod = $this->getRequest()->getRpcMethod();
+            $returnValues = $rpcMethod->getResult();
+            $out = [$rpcMethod->getReturnValue()];
+            foreach ($rpcMethod->getParameters() as $parameter) {
                 if ($parameter->isOut()) {
                     $out[] = $parameter;
                 }

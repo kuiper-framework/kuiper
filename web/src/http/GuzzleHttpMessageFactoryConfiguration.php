@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace kuiper\web\http;
 
-use function DI\autowire;
 use function DI\get;
 use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
-use kuiper\swoole\http\GuzzleSwooleRequestBridge;
-use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
@@ -37,7 +34,6 @@ class GuzzleHttpMessageFactoryConfiguration implements DefinitionConfiguration
             UriFactoryInterface::class => get(HttpFactory::class),
             UploadedFileFactoryInterface::class => get(HttpFactory::class),
             ServerRequestFactoryInterface::class => get(HttpFactory::class),
-            SwooleRequestBridgeInterface::class => autowire(GuzzleSwooleRequestBridge::class),
         ];
     }
 }

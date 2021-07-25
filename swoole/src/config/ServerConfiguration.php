@@ -24,6 +24,7 @@ use kuiper\swoole\http\SwooleResponseBridge;
 use kuiper\swoole\http\SwooleResponseBridgeInterface;
 use kuiper\swoole\listener\ManagerStartEventListener;
 use kuiper\swoole\listener\StartEventListener;
+use kuiper\swoole\listener\TaskEventListener;
 use kuiper\swoole\listener\WorkerStartEventListener;
 use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\swoole\server\ServerInterface;
@@ -33,7 +34,7 @@ use kuiper\swoole\ServerFactory;
 use kuiper\swoole\ServerPort;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\middleware\AccessLog;
-use kuiper\web\RequestLogFormatter;
+use kuiper\web\RequestLogFormatterInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
@@ -48,6 +49,8 @@ class ServerConfiguration implements DefinitionConfiguration
         $config = Application::getInstance()->getConfig();
         $config->mergeIfNotExists([
             'application' => [
+                'name' => 'app',
+                'base-path' => Application::getInstance()->getBasePath(),
                 'default_command' => ServerCommand::NAME,
                 'commands' => [
                     ServerCommand::NAME => ServerCommand::class,
@@ -59,7 +62,7 @@ class ServerConfiguration implements DefinitionConfiguration
 
         return [
             SwooleResponseBridgeInterface::class => autowire(SwooleResponseBridge::class),
-            RequestLogFormatter::class => autowire(LineRequestLogFormatter::class),
+            RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
         ];
     }
 
@@ -101,9 +104,9 @@ class ServerConfiguration implements DefinitionConfiguration
             ServerSetting::MAX_WAIT_TIME => 60,
             ServerSetting::RELOAD_ASYNC => true,
             ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
-            ServerSetting::OPEN_TCP_NODELAY => 1,
-            ServerSetting::OPEN_EOF_CHECK => 0,
-            ServerSetting::OPEN_EOF_SPLIT => 0,
+            ServerSetting::OPEN_TCP_NODELAY => true,
+            ServerSetting::OPEN_EOF_CHECK => false,
+            ServerSetting::OPEN_EOF_SPLIT => false,
             ServerSetting::DISPATCH_MODE => 2,
         ], $settings);
 
@@ -112,8 +115,8 @@ class ServerConfiguration implements DefinitionConfiguration
             if (Text::isInteger((string) $address)) {
                 $port = $address;
                 $host = '0.0.0.0';
-            } elseif (false === strpos($address, ':')) {
-                [$host, $port] = explode($address, ':');
+            } elseif (false !== strpos($address, ':')) {
+                [$host, $port] = explode(':', $address);
             } else {
                 throw new \InvalidArgumentException('');
             }
@@ -195,6 +198,7 @@ class ServerConfiguration implements DefinitionConfiguration
             $dispatcher->addListener(StartEvent::class, $container->get(StartEventListener::class));
             $dispatcher->addListener(ManagerStartEvent::class, $container->get(ManagerStartEventListener::class));
             $dispatcher->addListener(WorkerStartEvent::class, $container->get(WorkerStartEventListener::class));
+            $dispatcher->addListener(TaskEventListener::class, $container->get(TaskEventListener::class));
         });
     }
 }

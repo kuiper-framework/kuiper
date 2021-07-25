@@ -18,6 +18,8 @@ use function DI\create;
  */
 final class Properties extends \ArrayIterator implements PropertyResolverInterface
 {
+    private const PLACEHOLDER_REGEXP = '#\{([^\{\}]+)\}#';
+
     private function __construct()
     {
         parent::__construct([]);
@@ -222,6 +224,34 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         }
 
         return $config;
+    }
+
+    public function replacePlaceholder(): void
+    {
+        $this->replacePlaceholderRecursive($this, function (array $matches) {
+            $name = $matches[1];
+            if (!$this->has($name)) {
+                throw new \RuntimeException("Unknown config entry: '$name'");
+            }
+
+            return $this->get($name);
+        });
+    }
+
+    protected function replacePlaceholderRecursive(Properties $properties, callable $replacer): void
+    {
+        $re = self::PLACEHOLDER_REGEXP;
+        foreach ($properties as $key => $value) {
+            if (is_string($value) && preg_match(self::PLACEHOLDER_REGEXP, $value)) {
+                do {
+                    $value = preg_replace_callback($re, $replacer, $value);
+                } while (preg_match(self::PLACEHOLDER_REGEXP, $value));
+
+                $properties[$key] = $value;
+            } elseif ($value instanceof self) {
+                $this->replacePlaceholderRecursive($value, $replacer);
+            }
+        }
     }
 
     /**
