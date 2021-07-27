@@ -79,11 +79,11 @@ class WebConfiguration
 
     /**
      * @Bean()
-     * @Inject({"contextUrl": "application.web.context-url"})
+     * @Inject({"contextUrl": "application.web.context-url", "namespace": "application.web.namespace"})
      */
-    public function annotationProcessor(ContainerInterface $container, AnnotationReaderInterface $annotationReader, App $app, ?string $contextUrl): AnnotationProcessorInterface
+    public function annotationProcessor(ContainerInterface $container, AnnotationReaderInterface $annotationReader, App $app, ?string $contextUrl, ?string $namespace): AnnotationProcessorInterface
     {
-        return new AnnotationProcessor($container, $annotationReader, $app, $contextUrl);
+        return new AnnotationProcessor($container, $annotationReader, $app, $contextUrl, $namespace);
     }
 
     /**
