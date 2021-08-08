@@ -11,7 +11,6 @@ use kuiper\reflection\type\VoidType;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
-use Laminas\Code\Generator\ParameterGenerator;
 use Laminas\Code\Generator\PropertyGenerator;
 use Laminas\Code\Reflection\DocBlockReflection;
 
@@ -43,6 +42,57 @@ class ProxyGenerator implements ProxyGeneratorInterface
         self::$PROXY_INTERFACES[$className] = $interfaceName;
 
         return new GeneratedClass($phpClass->getNamespaceName().'\\'.$phpClass->getName(), $phpClass->generate());
+    }
+
+    /**
+     * @throws \ReflectionException
+     */
+    protected function createClassGenerator(string $interfaceName, array $context = []): ClassGenerator
+    {
+        $class = new \ReflectionClass($interfaceName);
+        if (!$class->isInterface()) {
+            throw new \InvalidArgumentException("$interfaceName should be an interface");
+        }
+        if (false !== $class->getFileName()) {
+            $hash = md5_file($class->getFileName());
+        } else {
+            $hash = md5(uniqid('', true));
+        }
+        $phpClass = new ClassGenerator(
+            $class->getShortName().$hash,
+            Text::isNotEmpty($class->getNamespaceName()) ? $class->getNamespaceName() : null
+        );
+
+        $phpClass->setImplementedInterfaces([$class->getName()]);
+        $phpClass->addProperty('rpcExecutorFactory', null, PropertyGenerator::FLAG_PRIVATE);
+        $phpClass->addMethod('__construct',
+            [
+                [
+                    'type' => RpcExecutorFactoryInterface::class,
+                    'name' => 'rpcExecutorFactory',
+                ],
+            ],
+            MethodGenerator::FLAG_PUBLIC,
+            '$this->rpcExecutorFactory = $rpcExecutorFactory;'
+        );
+
+        foreach ($class->getMethods() as $reflectionMethod) {
+            $methodBody = $this->createBody($reflectionMethod);
+            $methodGenerator = new MethodGenerator(
+                $reflectionMethod->getName(),
+                array_map(function ($parameter): array {
+                    return $this->createParameter($parameter);
+                }, $reflectionMethod->getParameters()),
+                MethodGenerator::FLAG_PUBLIC,
+                $methodBody,
+                DocBlockGenerator::fromReflection(new DocBlockReflection('/** @inheritdoc */'))
+            );
+            /* @phpstan-ignore-next-line */
+            $methodGenerator->setReturnType($reflectionMethod->getReturnType());
+            $phpClass->addMethodFromGenerator($methodGenerator);
+        }
+
+        return $phpClass;
     }
 
     private function createParameter(\ReflectionParameter $parameter): array
@@ -77,8 +127,8 @@ class ProxyGenerator implements ProxyGeneratorInterface
         }
         array_unshift($outParameters, $returnValueName);
         // 参数顺序 $returnValue, ...$out
-        $call = '$this->client->sendRequest($this->client->createRequest($this, __FUNCTION__, ['.
-            (empty($parameters) ? '' : $this->buildParameters($parameters)).']));';
+        $call = '$this->rpcExecutorFactory->createExecutor($this, __FUNCTION__, ['.
+            (empty($parameters) ? '' : $this->buildParameters($parameters)).'])->execute();';
         if (empty($outParameters)) {
             return $call;
         }
@@ -97,86 +147,8 @@ class ProxyGenerator implements ProxyGeneratorInterface
         }, $parameters));
     }
 
-    /**
-     * @throws \ReflectionException
-     */
-    protected function createClassGenerator(string $interfaceName, array $context = []): ClassGenerator
-    {
-        $class = new \ReflectionClass($interfaceName);
-        if (!$class->isInterface()) {
-            throw new \InvalidArgumentException("$interfaceName should be an interface");
-        }
-        if (false !== $class->getFileName()) {
-            $hash = md5_file($class->getFileName());
-        } else {
-            $hash = md5(uniqid('', true));
-        }
-        $phpClass = new ClassGenerator(
-            $class->getShortName().$hash,
-            Text::isNotEmpty($class->getNamespaceName()) ? $class->getNamespaceName() : null
-        );
-
-        $phpClass->setImplementedInterfaces([$class->getName()]);
-        $phpClass->addProperty('client', null, PropertyGenerator::FLAG_PRIVATE);
-        $phpClass->addMethod('__construct',
-            [
-                [
-                    'type' => RpcClientInterface::class,
-                    'name' => 'client',
-                ],
-            ],
-            MethodGenerator::FLAG_PUBLIC,
-            '$this->client = $client;'
-        );
-
-        $methodCreateExecutor = 'createExecutor';
-        foreach ($class->getMethods() as $reflectionMethod) {
-            if ($reflectionMethod->getName() === $methodCreateExecutor) {
-                $methodCreateExecutor = null;
-            }
-
-            $methodBody = $this->createBody($reflectionMethod);
-            $methodGenerator = new MethodGenerator(
-                $reflectionMethod->getName(),
-                array_map(function ($parameter): array {
-                    return $this->createParameter($parameter);
-                }, $reflectionMethod->getParameters()),
-                MethodGenerator::FLAG_PUBLIC,
-                $methodBody,
-                DocBlockGenerator::fromReflection(new DocBlockReflection('/** @inheritdoc */'))
-            );
-            /* @phpstan-ignore-next-line */
-            $methodGenerator->setReturnType($reflectionMethod->getReturnType());
-            $phpClass->addMethodFromGenerator($methodGenerator);
-        }
-        if (null !== $methodCreateExecutor) {
-            $phpClass->addMethodFromGenerator($this->createRpcExecutorMethod($methodCreateExecutor));
-        }
-
-        return $phpClass;
-    }
-
     public static function getInterfaceName(string $proxyClass): ?string
     {
         return self::$PROXY_INTERFACES[$proxyClass] ?? null;
-    }
-
-    private function createRpcExecutorMethod(string $methodName): MethodGenerator
-    {
-        $argsParam = new ParameterGenerator();
-        $argsParam->setName('args');
-        $argsParam->setVariadic(true);
-        $methodGenerator = new MethodGenerator(
-            $methodName,
-            [
-                ['name' => 'method', 'type' => 'string'],
-                $argsParam,
-            ],
-            MethodGenerator::FLAG_PUBLIC,
-            'return new \\'.RpcExecutor::class.'($this->client, $this->client->createRequest($this, $method, $args));'
-        );
-        $methodGenerator->setReturnType(RpcExecutorInterface::class);
-
-        return $methodGenerator;
     }
 }

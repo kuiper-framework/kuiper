@@ -69,6 +69,9 @@
         "kuiper/resilience": "self.version",
         "kuiper/serializer": "self.version",
         "kuiper/swoole": "self.version",
+        "kuiper/rpc": "self.version",
+        "kuiper/rpc-registry": "self.version",
+        "kuiper/jsonrpc": "self.version",
         "kuiper/tars": "self.version",
         "kuiper/web": "self.version"
     },
@@ -85,6 +88,7 @@
             "kuiper\\reflection\\": "reflection/src/",
             "kuiper\\resilience\\": "resilience/src/",
             "kuiper\\rpc\\": "rpc/src/",
+            "kuiper\\rpc\\registry\\": "rpc-registry/src/",
             "kuiper\\jsonrpc\\": "jsonrpc/src/",
             "kuiper\\serializer\\": "serializer/src/",
             "kuiper\\swoole\\": "swoole/src/",
@@ -98,6 +102,7 @@
     "autoload-dev": {
         "psr-4": {
             "kuiper\\cache\\": "cache/tests/",
+            "kuiper\\annotations\\": "annotations/tests/",
             "kuiper\\db\\": "db/tests/",
             "kuiper\\di\\": "di/tests/",
             "kuiper\\helper\\": "helper/tests/",
@@ -106,6 +111,7 @@
             "kuiper\\jsonrpc\\": "jsonrpc/tests/",
             "kuiper\\reflection\\": "reflection/tests/",
             "kuiper\\resilience\\": "resilience/tests/",
+            "kuiper\\rpc\\registry\\": "rpc-registry/tests/",
             "kuiper\\rpc\\": "rpc/tests/",
             "kuiper\\swoole\\": "swoole/tests/",
             "kuiper\\serializer\\": "serializer/tests/",

@@ -9,6 +9,8 @@ use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\MiddlewareInterface;
+use kuiper\rpc\transporter\CachedServiceResolver;
+use kuiper\rpc\transporter\InMemoryServiceRegistry;
 use kuiper\rpc\transporter\LoadBalanceAlgorithm;
 use kuiper\rpc\transporter\LoadBalanceHolder;
 use kuiper\rpc\transporter\PooledTransporter;
@@ -20,7 +22,9 @@ use kuiper\swoole\coroutine\Coroutine;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\tars\annotation\TarsClient;
 use kuiper\tars\core\TarsMethodFactory;
+use kuiper\tars\integration\QueryFServant;
 use Psr\Log\NullLogger;
+use Psr\SimpleCache\CacheInterface;
 
 class TarsProxyFactory
 {
@@ -32,6 +36,11 @@ class TarsProxyFactory
      * @var ServiceResolverInterface|null
      */
     private $serviceResolver;
+
+    /**
+     * @var CacheInterface|null
+     */
+    private $cache;
 
     /**
      * @var PoolFactoryInterface|null
@@ -58,6 +67,16 @@ class TarsProxyFactory
     {
         $this->serviceResolver = $serviceResolver;
         $this->annotationReader = $annotationReader ?? AnnotationReader::getInstance();
+    }
+
+    public function setRegistryServiceEndpoint($serviceEndpoint): void
+    {
+        $proxyFactory = new self(InMemoryServiceRegistry::create([$serviceEndpoint]));
+        $resolver = new TarsRegistryServiceResolver($proxyFactory->create(QueryFServant::class));
+        if (null !== $this->cache) {
+            $resolver = new CachedServiceResolver($resolver, $this->cache);
+        }
+        $this->serviceResolver = $resolver;
     }
 
     /**

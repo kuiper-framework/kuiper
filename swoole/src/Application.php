@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use Dotenv\Dotenv;
 use kuiper\di\annotation\Command;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilder;
@@ -95,13 +96,37 @@ class Application
 
     protected function loadConfig(): Properties
     {
+        $properties = $this->createDefaultConfig();
+        $this->loadEnv($properties->get('application.env'));
         $configFile = $this->basePath.'/src/config.php';
         if (file_exists($configFile)) {
             /* @noinspection PhpIncludeInspection */
-            return Properties::create(require $configFile);
+            $properties->merge(require $configFile);
         }
 
-        return Properties::create();
+        return $properties;
+    }
+
+    /**
+     * @return Properties
+     */
+    protected function createDefaultConfig(): Properties
+    {
+        return Properties::create([
+            'application' => [
+                'env' => $_ENV['ENV'] ?? 'dev',
+            ],
+        ]);
+    }
+
+    protected function loadEnv(string $staging, array $envFiles = []): void
+    {
+        if (!class_exists(Dotenv::class)) {
+            return;
+        }
+        $envFiles = array_merge($envFiles, ['.env', '.env.local', ".env.{$staging}", ".env.{$staging}.local"]);
+        Dotenv::createImmutable($this->getBasePath(), $envFiles, false)
+            ->safeLoad();
     }
 
     public function getContainer(): ContainerInterface
@@ -139,17 +164,23 @@ class Application
 
     public static function detectBasePath(): string
     {
+        $basePath = null;
         if (defined('APP_PATH')) {
             $basePath = APP_PATH;
         } else {
-            $libraryComposerJson = Composer::detect(__DIR__);
-            $basePath = dirname($libraryComposerJson, 4);
-            define('APP_PATH', $basePath);
+            $pos = strrpos(__DIR__, '/vendor/');
+            if (false !== $pos) {
+                $basePath = Composer::detect(substr(__DIR__, 0, $pos));
+            }
         }
 
-        if (!file_exists($basePath.'/vendor/autoload.php')
+        if (!isset($basePath)
+            || !file_exists($basePath.'/vendor/autoload.php')
             || !file_exists($basePath.'/composer.json')) {
             throw new \InvalidArgumentException("Cannot detect project path, expected composer.json in $basePath");
+        }
+        if (!defined('APP_PATH')) {
+            define('APP_PATH', $basePath);
         }
 
         return $basePath;

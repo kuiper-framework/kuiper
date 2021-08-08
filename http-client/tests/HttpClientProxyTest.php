@@ -15,7 +15,9 @@ use kuiper\http\client\fixtures\GitRepository;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\RpcClient;
+use kuiper\rpc\client\RpcExecutorFactory;
 use kuiper\rpc\client\RpcResponseNormalizer;
+use kuiper\rpc\RpcMethodFactory;
 use kuiper\rpc\transporter\HttpTransporter;
 use kuiper\serializer\Serializer;
 use PHPUnit\Framework\TestCase;
@@ -48,8 +50,11 @@ class HttpClientProxyTest extends TestCase
         $generatedClass = $proxyGenerator->generate(GithubService::class);
         $generatedClass->eval();
         $class = $generatedClass->getClassName();
+        $rpcClient = new RpcClient($httpTransporter, $responseFactory);
+        $requestFactory = new HttpRpcRequestFactory($annotationReader, $normalizer, new RpcMethodFactory());
+        $rpcExecutorFactory = new RpcExecutorFactory($requestFactory, $rpcClient);
         /** @var GithubService $proxy */
-        $proxy = new $class(new RpcClient($httpTransporter, new HttpRpcRequestFactory($annotationReader, $normalizer), $responseFactory));
+        $proxy = new $class($rpcExecutorFactory);
         $repos = $proxy->listRepos('john');
         // var_export($repos);
         $this->assertIsArray($repos);

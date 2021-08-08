@@ -4,22 +4,15 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client;
 
-use kuiper\rpc\MiddlewareInterface;
-use kuiper\rpc\MiddlewareSupport;
+use kuiper\rpc\exception\RequestIdMismatchException;
+use kuiper\rpc\HasRequestIdInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
 use kuiper\rpc\transporter\TransporterInterface;
 
-class RpcClient implements RpcClientInterface, RpcRequestHandlerInterface
+class RpcClient implements RpcRequestHandlerInterface
 {
-    use MiddlewareSupport;
-
-    /**
-     * @var RpcRequestFactoryInterface
-     */
-    private $requestFactory;
-
     /**
      * @var TransporterInterface
      */
@@ -33,21 +26,18 @@ class RpcClient implements RpcClientInterface, RpcRequestHandlerInterface
     /**
      * AbstractRpcClient constructor.
      *
-     * @param MiddlewareInterface[] $middlewares
+     * @param TransporterInterface        $transporter
+     * @param RpcResponseFactoryInterface $responseFactory
      */
-    public function __construct(TransporterInterface $transporter, RpcRequestFactoryInterface $requestFactory, RpcResponseFactoryInterface $responseFactory, array $middlewares = [])
+    public function __construct(TransporterInterface $transporter, RpcResponseFactoryInterface $responseFactory)
     {
-        $this->requestFactory = $requestFactory;
-        $this->middlewares = $middlewares;
         $this->transporter = $transporter;
         $this->responseFactory = $responseFactory;
     }
 
-    public function getRequestFactory(): RpcRequestFactoryInterface
-    {
-        return $this->requestFactory;
-    }
-
+    /**
+     * @return TransporterInterface
+     */
     public function getTransporter(): TransporterInterface
     {
         return $this->transporter;
@@ -56,7 +46,7 @@ class RpcClient implements RpcClientInterface, RpcRequestHandlerInterface
     /**
      * @return RpcResponseFactoryInterface
      */
-    public function getResponseFactory()
+    public function getResponseFactory(): RpcResponseFactoryInterface
     {
         return $this->responseFactory;
     }
@@ -66,24 +56,25 @@ class RpcClient implements RpcClientInterface, RpcRequestHandlerInterface
      */
     public function handle(RpcRequestInterface $request): RpcResponseInterface
     {
+        if ($request instanceof HasRequestIdInterface) {
+            try {
+                return $this->send($request);
+            } catch (RequestIdMismatchException $e) {
+                do {
+                    try {
+                        return $this->responseFactory->createResponse($request, $this->transporter->recv());
+                    } catch (RequestIdMismatchException $e) {
+                        // noOp
+                    }
+                } while (true);
+            }
+        } else {
+            return $this->send($request);
+        }
+    }
+
+    private function send(RpcRequestInterface $request): RpcResponseInterface
+    {
         return $this->responseFactory->createResponse($request, $this->transporter->send($request));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function createRequest(object $proxy, string $method, array $args): RpcRequestInterface
-    {
-        return $this->requestFactory->createRequest($proxy, $method, $args);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function sendRequest(RpcRequestInterface $request): array
-    {
-        $response = $this->buildMiddlewareStack($this)->handle($request);
-
-        return $response->getRequest()->getRpcMethod()->getResult() ?? [];
     }
 }

@@ -29,6 +29,8 @@ class PooledHttpClient implements ClientInterface
 
     /**
      * @return mixed
+     *
+     * @throws \kuiper\swoole\exception\PoolTimeoutException
      */
     public function __call(string $method, array $args)
     {

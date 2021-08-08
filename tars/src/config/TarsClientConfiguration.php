@@ -33,7 +33,6 @@ use kuiper\tars\annotation\TarsClient;
 use kuiper\tars\client\TarsProxyFactory;
 use kuiper\tars\client\TarsProxyGenerator;
 use kuiper\tars\client\TarsRegistryServiceResolver;
-use kuiper\tars\core\EndpointParser;
 use kuiper\tars\core\TarsMethodFactory;
 use kuiper\tars\integration\QueryFServant;
 use kuiper\web\LineRequestLogFormatter;
@@ -113,20 +112,6 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return $tarsProxyFactory;
     }
 
-    public function createClient(string $clientInterfaceClass, array $options = [])
-    {
-        $tarsProxyFactory = new TarsProxyFactory(new TarsRegistryServiceResolver($this->tarsRegistryClient()));
-
-        return $tarsProxyFactory->create($clientInterfaceClass, $options);
-    }
-
-    public function tarsRegistryClient(): QueryFServant
-    {
-        $tarsProxyFactory = new TarsProxyFactory($this->inMemoryServiceRegistry());
-
-        return $tarsProxyFactory->create(QueryFServant::class);
-    }
-
     /**
      * @Bean("tarsRegistryServiceResolver")
      * @Inject({"cache": "tarsServiceEndpointCache"})
@@ -134,7 +119,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
     public function tarsRegistryServiceResolver(QueryFServant $queryFServant, CacheInterface $cache): ServiceResolverInterface
     {
         return new ChainedServiceResolver([
-            $this->inMemoryServiceRegistry(),
+            $this->inMemoryServiceRegistry($this->tarsServiceEndpoints()),
             new CachedServiceResolver(new TarsRegistryServiceResolver($queryFServant), $cache),
         ]);
     }
@@ -156,25 +141,25 @@ class TarsClientConfiguration implements DefinitionConfiguration
     }
 
     /**
-     * @Bean
+     * @Bean("tarsServiceEndpoints")
      */
-    public function inMemoryServiceRegistry(): InMemoryServiceRegistry
+    public function tarsServiceEndpoints(): array
     {
         $config = Application::getInstance()->getConfig();
-        $registry = new InMemoryServiceRegistry();
-        if ($config->has('application.tars.client.locator')) {
-            $registry->registerService(EndpointParser::parseServiceEndpoint(
-                $config->getString('application.tars.client.locator')));
-        }
-        if ($config->has('application.tars.server.node')) {
-            $registry->registerService(EndpointParser::parseServiceEndpoint(
-                $config->getString('application.tars.server.node')));
-        }
-        foreach ($config->get('application.tars.client.routes', []) as $str) {
-            $registry->registerService(EndpointParser::parseServiceEndpoint($str));
-        }
+        $endpoints = $config->get('application.tars.client.endpoints', []);
+        $endpoints[] = $config->getString('application.tars.client.locator');
+        $endpoints[] = $config->getString('application.tars.server.node');
 
-        return $registry;
+        return array_values(array_filter($endpoints));
+    }
+
+    /**
+     * @Bean
+     * @Inject({"serviceEndpoints": "tarsServiceEndpoints"})
+     */
+    public function inMemoryServiceRegistry(array $serviceEndpoints): InMemoryServiceRegistry
+    {
+        return InMemoryServiceRegistry::create($serviceEndpoints);
     }
 
     /**

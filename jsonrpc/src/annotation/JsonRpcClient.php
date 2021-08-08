@@ -28,5 +28,5 @@ class JsonRpcClient implements ComponentInterface
     /**
      * @var bool
      */
-    public $outParams;
+    public $outParams = true;
 }

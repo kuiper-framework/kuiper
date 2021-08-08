@@ -78,4 +78,12 @@ abstract class AbstractServer implements ServerInterface, LoggerAwareInterface
     {
         return $this->eventDispatcher;
     }
+
+    public function sendMessage(string $message, int $workerId): void
+    {
+    }
+
+    public function sendMessageToAll(string $message): void
+    {
+    }
 }

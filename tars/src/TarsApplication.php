@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace kuiper\tars;
 
-use Dotenv\Dotenv;
 use kuiper\helper\Properties;
 use kuiper\swoole\Application;
-use kuiper\tars\config\TarsClientConfiguration;
-use kuiper\tars\core\EndpointParser;
+use kuiper\tars\client\TarsProxyFactory;
 use kuiper\tars\integration\ConfigServant;
-use kuiper\tars\integration\QueryFServant;
 use kuiper\tars\server\Config;
 
 class TarsApplication extends Application
@@ -27,7 +24,7 @@ class TarsApplication extends Application
         $config = Config::parseFile($configFile);
         $this->addDefaultConfig($config);
         $this->addCommandLineOptions($config, $properties);
-        $this->loadEnvFile($config);
+        $this->loadEnv($config->getString('application.env'), $this->downloadEnvFile($config));
         /** @phpstan-ignore-next-line */
         $configFile = APP_PATH.'/src/config.php';
         if (file_exists($configFile)) {
@@ -59,6 +56,7 @@ class TarsApplication extends Application
     {
         $config->merge([
             'application' => [
+                'env' => $config->getString('application.tars.server.env', 'prod'),
                 'name' => $config->getString('application.tars.server.server'),
                 'base-path' => $config->getString('application.tars.server.basepath'),
                 'data-path' => $config->getString('application.tars.server.datapath'),
@@ -102,39 +100,27 @@ class TarsApplication extends Application
         ]);
     }
 
-    protected function loadEnvFile(Properties $config): void
+    protected function downloadEnvFile(Properties $config): array
     {
-        if (!class_exists(Dotenv::class)) {
-            return;
-        }
-        $envFiles = ['.env'];
         $env = $config->getString('application.tars.server.env_file');
         $app = $config->getString('application.tars.server.app');
         $server = $config->getString('application.tars.server.server');
         $locator = $config->getString('application.tars.client.locator');
         if ('' !== $env && '' !== $locator) {
+            $proxyFactory = new TarsProxyFactory();
+            $proxyFactory->setRegistryServiceEndpoint($locator);
             $localFile = $this->getBasePath().'/'.$env;
-            $clientFactory = new TarsClientConfiguration();
-            /** @var QueryFServant $registry */
-            $registry = $clientFactory->createClient(QueryFServant::class, [
-                'endpoint' => EndpointParser::parseServiceEndpoint($locator)->getEndpoints()[0],
-            ]);
-            $endpoints = $registry->findObjectById('tars.tarsconfig.ConfigObj');
-
             /** @var ConfigServant $configServant */
-            $configServant = $clientFactory->createClient(ConfigServant::class, [
-                'endpoint' => EndpointParser::fromEndpointF($endpoints[0]),
-            ]);
+            $configServant = $proxyFactory->create(ConfigServant::class);
             $ret = $configServant->loadConfig($app, $server, $env, $content);
             if (0 === $ret && !empty($content)) {
                 file_put_contents($localFile, $content);
             }
-            if (is_readable($localFile)) {
-                array_unshift($envFiles, $env);
-            }
+
+            return [$localFile];
         }
-        Dotenv::createImmutable($this->getBasePath(), $envFiles, false)
-            ->safeLoad();
+
+        return [];
     }
 
     private function parseArgv(): array

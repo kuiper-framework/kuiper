@@ -1,0 +1,36 @@
+module admin {
+    struct Stat {
+        0 require string startTime;
+        1 require int connections;
+        2 require int acceptCount;
+        3 require int closeCount;
+        4 require int requestCount;
+        5 require int dispatchCount;
+        6 require int pendingTasks;
+    };
+
+    struct Notification {
+        0 require string createTime;
+        1 require string eventId;
+        2 require string topic;
+        3 require string eventName;
+        4 require string payload;
+    };
+
+    interface Admin {
+        /**
+         * For healthy check
+         */
+        string ping();
+
+        /**
+         * Get server stat
+         */
+        Stat stats();
+
+        /**
+         * receive notification
+         */
+        void notify(Notification notification);
+    };
+};

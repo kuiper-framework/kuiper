@@ -3,11 +3,11 @@ namespace kuiper\rpc\fixtures;
 class UserService287144eeac08b48f7713f40fc08f345d implements UserService
 {
 
-    private $client = null;
+    private $rpcExecutorFactory = null;
 
-    public function __construct(\kuiper\rpc\client\RpcClientInterface $client)
+    public function __construct(\kuiper\rpc\client\RpcExecutorFactoryInterface $rpcExecutorFactory)
     {
-        $this->client = $client;
+        $this->rpcExecutorFactory = $rpcExecutorFactory;
     }
 
     /**
@@ -15,7 +15,7 @@ class UserService287144eeac08b48f7713f40fc08f345d implements UserService
      */
     public function findUser(int $id) : \kuiper\rpc\fixtures\User
     {
-        list ($ret) = $this->client->sendRequest($this->client->createRequest($this, __FUNCTION__, [$id]));
+        list ($ret) = $this->rpcExecutorFactory->createExecutor($this, __FUNCTION__, [$id])->execute();
         return $ret;
     }
 
@@ -24,7 +24,7 @@ class UserService287144eeac08b48f7713f40fc08f345d implements UserService
      */
     public function findAllUser(?int &$total) : array
     {
-        list ($ret, $total) = $this->client->sendRequest($this->client->createRequest($this, __FUNCTION__, []));
+        list ($ret, $total) = $this->rpcExecutorFactory->createExecutor($this, __FUNCTION__, [])->execute();
         return $ret;
     }
 
@@ -33,12 +33,7 @@ class UserService287144eeac08b48f7713f40fc08f345d implements UserService
      */
     public function saveUser(\kuiper\rpc\fixtures\User $user) : void
     {
-        list ($ret) = $this->client->sendRequest($this->client->createRequest($this, __FUNCTION__, [$user]));
-    }
-
-    public function createExecutor(string $method, ... $args) : \kuiper\rpc\client\RpcExecutorInterface
-    {
-        return new \kuiper\rpc\client\RpcExecutor($this->client, $this->client->createRequest($this, $method, $args));
+        list ($ret) = $this->rpcExecutorFactory->createExecutor($this, __FUNCTION__, [$user])->execute();
     }
 
 

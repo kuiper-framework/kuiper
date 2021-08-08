@@ -198,6 +198,23 @@ class SwooleServer extends AbstractServer
         return $connectionInfo;
     }
 
+    public function sendMessage(string $message, int $workerId): void
+    {
+        if ($workerId === $this->resource->worker_id) {
+            $this->dispatch(Event::PIPE_MESSAGE, [$message, $workerId]);
+        } else {
+            $this->resource->sendMessage($message, $workerId);
+        }
+    }
+
+    public function sendMessageToAll(string $message): void
+    {
+        $workers = $this->resource->setting['worker_num'] + $this->resource->setting['task_worker_num'];
+        foreach (range(0, $workers - 1) as $workerId) {
+            $this->sendMessage($message, $workerId);
+        }
+    }
+
     private function createSwooleServer(ServerPort $port): void
     {
         $serverType = ServerType::fromValue($port->getServerType());

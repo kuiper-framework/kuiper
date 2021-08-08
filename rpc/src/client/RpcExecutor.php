@@ -4,30 +4,28 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client;
 
+use kuiper\rpc\MiddlewareSupport;
+use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 
 class RpcExecutor implements RpcExecutorInterface
 {
+    use MiddlewareSupport;
+
     /**
      * @var RpcRequestInterface
      */
     private $request;
     /**
-     * @var RpcClientInterface
+     * @var RpcRequestHandlerInterface
      */
-    private $client;
+    private $requestHandler;
 
-    public function __construct(RpcClientInterface $client, RpcRequestInterface $request)
+    public function __construct(RpcRequestHandlerInterface $requestHandler, RpcRequestInterface $request, array $middlewares)
     {
         $this->request = $request;
-        $this->client = $client;
-    }
-
-    public function mapRequest(callable $mapper): self
-    {
-        $this->request = $mapper($this->request);
-
-        return $this;
+        $this->requestHandler = $requestHandler;
+        $this->middlewares = $middlewares;
     }
 
     /**
@@ -35,6 +33,8 @@ class RpcExecutor implements RpcExecutorInterface
      */
     public function execute(): array
     {
-        return $this->client->sendRequest($this->request);
+        $response = $this->buildMiddlewareStack($this->requestHandler)->handle($this->request);
+
+        return $response->getRequest()->getRpcMethod()->getResult() ?? [];
     }
 }

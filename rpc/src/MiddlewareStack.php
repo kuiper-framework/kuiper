@@ -44,25 +44,10 @@ class MiddlewareStack implements RpcRequestHandlerInterface
         if (!isset($this->middlewares[$index])) {
             return $this->final->handle($request);
         }
-        $next = function (RpcRequestInterface $request) use ($index): RpcResponseInterface {
+
+        $handler = new DelegateRequestHandler(function (RpcRequestInterface $request) use ($index): RpcResponseInterface {
             return $this->callNext($request, $index + 1);
-        };
-        $handler = new class($next) implements RpcRequestHandlerInterface {
-            /**
-             * @var callable
-             */
-            private $next;
-
-            public function __construct(callable $next)
-            {
-                $this->next = $next;
-            }
-
-            public function handle(RpcRequestInterface $request): RpcResponseInterface
-            {
-                return call_user_func($this->next, $request);
-            }
-        };
+        });
 
         return $this->middlewares[$index]->process($request, $handler);
     }

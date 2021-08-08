@@ -10,6 +10,8 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use kuiper\reflection\ReflectionDocBlockFactory;
+use kuiper\rpc\client\RpcClient;
+use kuiper\rpc\client\RpcExecutorFactory;
 use kuiper\rpc\transporter\HttpTransporter;
 use kuiper\tars\core\TarsMethodFactory;
 use kuiper\tars\core\TarsRequestInterface;
@@ -49,8 +51,9 @@ class TarsClientTest extends TestCase
         $methodFactory = new TarsMethodFactory();
         $requestFactory = new TarsRequestFactory(new RequestFactory(), new StreamFactory(), $methodFactory, 1);
         $responseFactory = new TarsResponseFactory();
+        $rpcClient = new RpcClient($transporter, $responseFactory);
         /** @var HelloService $proxy */
-        $proxy = new $class(new TarsClient($transporter, $requestFactory, $responseFactory));
+        $proxy = new $class(new RpcExecutorFactory($requestFactory, $rpcClient));
         $result = $proxy->hello('world');
         $this->assertEquals($result, 'hello world');
 

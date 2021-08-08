@@ -69,12 +69,35 @@ interface ServerInterface
      */
     public function finish($data): void;
 
+    /**
+     * @param int      $millisecond
+     * @param callable $callback
+     *
+     * @return int
+     */
     public function tick(int $millisecond, callable $callback): int;
 
+    /**
+     * @param int      $millisecond
+     * @param callable $callback
+     *
+     * @return int
+     */
     public function after(int $millisecond, callable $callback): int;
 
     /**
      * @return ConnectionInfo
      */
     public function getConnectionInfo(int $clientId): ?ConnectionInfo;
+
+    /**
+     * @param string $message
+     * @param int    $workerId
+     */
+    public function sendMessage(string $message, int $workerId): void;
+
+    /**
+     * @param string $message
+     */
+    public function sendMessageToAll(string $message): void;
 }

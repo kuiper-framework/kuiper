@@ -7,7 +7,11 @@ namespace kuiper\rpc\client;
 interface RpcExecutorFactoryInterface
 {
     /**
-     * @param mixed ...$args
+     * @param object $proxy
+     * @param string $method
+     * @param mixed  ...$args
+     *
+     * @return RpcExecutorInterface
      */
-    public function createExecutor(string $method, ...$args): RpcExecutorInterface;
+    public function createExecutor(object $proxy, string $method, array $args): RpcExecutorInterface;
 }

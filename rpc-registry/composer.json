@@ -1,0 +1,29 @@
+{
+    "name": "kuiper/rpc-registry",
+    "type": "library",
+    "description": "RPC registry using consul, nacos, etc",
+    "keywords": [
+        "framework"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "kuiper/http-client": "^0.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\rpc\\registry\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\rpc\\registry\\": "tests/"
+        }
+    }
+}

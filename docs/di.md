@@ -1,11 +1,10 @@
 # Kuiper DI
 
-Kuiper DI 是基于 [php-di](http://php-di.org/) 实现。在 php-di 基础上实现类似 springboot
-`@ComponentScan` 包扫描及条件注解特性。
+Kuiper DI 是基于 [php-di](http://php-di.org/) 实现，增加命名空间扫描、条件注解等特性。
 
 ## ContainerBuilder 
 
-DI 容器必须使用 `\kuiper\di\ContainerBuilder` 创建，例如：
+容器对象使用 `\kuiper\di\ContainerBuilder` 创建，例如：
 
 ```php
 <?php

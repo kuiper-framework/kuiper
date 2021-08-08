@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
+use kuiper\tars\core\EndpointParser;
+
 class InMemoryServiceRegistry implements ServiceRegistryInterface, ServiceResolverInterface
 {
     /**
@@ -46,5 +48,18 @@ class InMemoryServiceRegistry implements ServiceRegistryInterface, ServiceResolv
     public function resolve(string $service): ?ServiceEndpoint
     {
         return $this->serviceEndpoints[$service] ?? null;
+    }
+
+    public static function create(array $serviceEndpoints): self
+    {
+        $registry = new self();
+        foreach ($serviceEndpoints as $serviceEndpoint) {
+            if (is_string($serviceEndpoint)) {
+                $serviceEndpoint = EndpointParser::parseServiceEndpoint($serviceEndpoint);
+            }
+            $registry->registerService($serviceEndpoint);
+        }
+
+        return $registry;
     }
 }
