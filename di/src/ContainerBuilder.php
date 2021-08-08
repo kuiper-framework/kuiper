@@ -124,10 +124,10 @@ class ContainerBuilder implements ContainerBuilderInterface
     /**
      * @var ConfigurationDefinitionLoader|null
      */
-    private $configurationDefinition;
+    private $configurationDefinitionLoader;
 
     /**
-     * @var ConditionalDefinitionSource|null
+     * @var ConditionDefinitionSource|null
      */
     private $conditionalDefinitionSource;
 
@@ -152,9 +152,9 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $deferCallbacks = [];
 
     /**
-     * @var ConditionalDefinition[]
+     * @var ConditionDefinition[]
      */
-    private $conditionalDefinitions = [];
+    private $conditionDefinitions = [];
 
     /**
      * @var DefinitionArray|null
@@ -222,8 +222,11 @@ class ContainerBuilder implements ContainerBuilderInterface
             $this->conditionalDefinitionSource->setContainer($container);
         }
         if (!empty($this->deferCallbacks)) {
-            foreach ($this->deferCallbacks as $deferCallback) {
-                $deferCallback($container);
+            ksort($this->deferCallbacks);
+            foreach ($this->deferCallbacks as $priority => $callbacks) {
+                foreach ($callbacks as $callback) {
+                    $callback($container);
+                }
             }
         }
 
@@ -233,9 +236,9 @@ class ContainerBuilder implements ContainerBuilderInterface
     /**
      * {@inheritDoc}
      */
-    public function defer(callable $callback): ContainerBuilderInterface
+    public function defer(callable $callback, int $priority = DefinitionConfiguration::LOW_PRIORITY): ContainerBuilderInterface
     {
-        $this->deferCallbacks[] = $callback;
+        $this->deferCallbacks[$priority][] = $callback;
 
         return $this;
     }
@@ -383,15 +386,15 @@ class ContainerBuilder implements ContainerBuilderInterface
                     if ($def instanceof ComponentDefinition) {
                         $condition = AllCondition::create($this->getAnnotationReader(), $def->getComponent()->getTarget());
                         if (null !== $condition) {
-                            $def = new ConditionalDefinition($def->getDefinition(), $condition);
+                            $def = new ConditionDefinition($def->getDefinition(), $condition);
                         } else {
                             $def = $def->getDefinition();
                         }
                     } elseif ($def instanceof FactoryDefinitionHelper) {
                         $def = $def->getDefinition($key);
                     }
-                    if ($def instanceof ConditionalDefinition) {
-                        $this->conditionalDefinitions[$def->getName()][] = $def;
+                    if ($def instanceof ConditionDefinition) {
+                        $this->conditionDefinitions[$def->getName()][] = $def;
                     } elseif (!($def instanceof ExtendsPreviousDefinition)) {
                         $this->definitions[$key] = $def;
                     } else {
@@ -476,18 +479,18 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $this;
     }
 
-    public function getConfigurationDefinition(): ConfigurationDefinitionLoader
+    public function getConfigurationDefinitionLoader(): ConfigurationDefinitionLoader
     {
-        if (null === $this->configurationDefinition) {
-            $this->configurationDefinition = new ConfigurationDefinitionLoader($this, $this->getAnnotationReader());
+        if (null === $this->configurationDefinitionLoader) {
+            $this->configurationDefinitionLoader = new ConfigurationDefinitionLoader($this, $this->getAnnotationReader());
         }
 
-        return $this->configurationDefinition;
+        return $this->configurationDefinitionLoader;
     }
 
-    public function setConfigurationDefinition(ConfigurationDefinitionLoader $configurationDefinition): self
+    public function setConfigurationDefinitionLoader(ConfigurationDefinitionLoader $configurationDefinitionLoader): self
     {
-        $this->configurationDefinition = $configurationDefinition;
+        $this->configurationDefinitionLoader = $configurationDefinitionLoader;
 
         return $this;
     }
@@ -580,7 +583,7 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
         if (!empty($this->configurations)) {
             foreach ($this->configurations as $configuration) {
-                $this->addDefinitions($this->getConfigurationDefinition()->getDefinitions($configuration));
+                $this->addDefinitions($this->getConfigurationDefinitionLoader()->getDefinitions($configuration));
             }
         }
     }
@@ -593,8 +596,8 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
 
         $autowiring = $this->getAutowiring();
-        if (!empty($this->conditionalDefinitions)) {
-            $sources[] = $this->conditionalDefinitionSource = new ConditionalDefinitionSource($this->conditionalDefinitions, $autowiring);
+        if (!empty($this->conditionDefinitions)) {
+            $sources[] = $this->conditionalDefinitionSource = new ConditionDefinitionSource($this->conditionDefinitions, $autowiring);
         }
         $sources = array_map(static function ($definitions) use ($autowiring): DefinitionSource {
             if (is_array($definitions)) {

@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace kuiper\di\annotation;
 
+use kuiper\di\Condition;
 use kuiper\helper\PropertyResolverInterface;
 use Psr\Container\ContainerInterface;
 
 /**
  * @Annotation
- * @Target({"CLASS", "METHOD"})
+ * @Target({"CLASS", "METHOD", "ANNOTATION"})
  */
-class ConditionalOnProperty implements Conditional
+class ConditionalOnProperty implements Condition
 {
     /**
      * @var string
@@ -28,7 +29,7 @@ class ConditionalOnProperty implements Conditional
      */
     public $matchIfMissing = false;
 
-    public function match(ContainerInterface $container): bool
+    public function matches(ContainerInterface $container): bool
     {
         if (!$container->has(PropertyResolverInterface::class)) {
             throw new \InvalidArgumentException(PropertyResolverInterface::class.' should be registered in container');

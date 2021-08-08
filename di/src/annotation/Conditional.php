@@ -4,9 +4,22 @@ declare(strict_types=1);
 
 namespace kuiper\di\annotation;
 
+use kuiper\di\Condition;
 use Psr\Container\ContainerInterface;
 
-interface Conditional
+/**
+ * @Annotation
+ * @Target({"CLASS", "METHOD", "ANNOTATION"})
+ */
+class Conditional implements Condition
 {
-    public function match(ContainerInterface $container): bool;
+    /**
+     * @var string
+     */
+    public $value;
+
+    public function matches(ContainerInterface $container): bool
+    {
+        return $container->get($this->value)->matches();
+    }
 }

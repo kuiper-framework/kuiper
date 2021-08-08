@@ -37,7 +37,7 @@ class ConditionalConfigurationTest extends TestCase
     public function testIgnoreCondition()
     {
         $builder = new ContainerBuilder();
-        $builder->addDefinitions($builder->getConfigurationDefinition()
+        $builder->addDefinitions($builder->getConfigurationDefinitionLoader()
             ->getDefinitions(new DependOnNonExistClassConfiguration(), true));
         $container = $builder->build();
         $foo = $container->get('foo');

@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace kuiper\di\annotation;
 
+use kuiper\di\Condition;
 use Psr\Container\ContainerInterface;
 
 /**
  * @Annotation
- * @Target({"CLASS", "METHOD"})
+ * @Target({"CLASS", "METHOD", "ANNOTATION"})
  */
-class ConditionalOnMissingBean implements Conditional
+class ConditionalOnMissingBean implements Condition
 {
     /**
      * @var string
      */
     public $value;
 
-    public function match(ContainerInterface $container): bool
+    public function matches(ContainerInterface $container): bool
     {
         return !$container->has($this->value);
     }

@@ -43,11 +43,14 @@ class Component implements ComponentInterface, ContainerBuilderAwareInterface
             $definitions[$name] = new ComponentDefinition($definition, $this);
             ComponentCollection::register($name, $this);
         }
+        if (empty($names)) {
+            ComponentCollection::register($className, $this);
+        }
         $this->containerBuilder->addDefinitions($definitions);
     }
 
     protected function getBeanNames(): array
     {
-        return array_merge($this->class->getInterfaceNames() ?? [], [$this->class->getName()]);
+        return $this->class->getInterfaceNames() ?? [];
     }
 }

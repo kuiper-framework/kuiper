@@ -10,16 +10,24 @@ use Psr\Container\ContainerInterface;
 /**
  * @Annotation
  * @Target({"CLASS", "METHOD", "ANNOTATION"})
+ *
+ * @property Condition[] $value
  */
-class ConditionalOnMissingClass implements Condition
+class NoneCondition implements Condition
 {
     /**
-     * @var string
+     * @var array
      */
     public $value;
 
     public function matches(ContainerInterface $container): bool
     {
-        return !class_exists($this->value) && !interface_exists($this->value);
+        foreach ($this->value as $condition) {
+            if ($condition->matches($container)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

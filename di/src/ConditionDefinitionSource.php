@@ -9,12 +9,12 @@ use DI\Definition\Source\DefinitionArray;
 use DI\Definition\Source\DefinitionSource;
 use DI\DependencyException;
 
-class ConditionalDefinitionSource implements DefinitionSource, ContainerAwareInterface
+class ConditionDefinitionSource implements DefinitionSource, ContainerAwareInterface
 {
     use ContainerAwareTrait;
 
     /**
-     * @var array
+     * @var ConditionDefinition[]
      */
     private $definitions;
 
@@ -52,10 +52,10 @@ class ConditionalDefinitionSource implements DefinitionSource, ContainerAwareInt
         $this->resolving[$name] = true;
         $conditionDefs = $this->definitions[$name];
         foreach (array_reverse($conditionDefs) as $conditionDef) {
-            if (!$conditionDef instanceof ConditionalDefinition) {
+            if (!$conditionDef instanceof ConditionDefinition) {
                 throw new \InvalidArgumentException("Definition '$name' is not ConditionalDefinition");
             }
-            if (!$conditionDef->match($this->container)) {
+            if (!$conditionDef->matches($this->container)) {
                 continue;
             }
             unset($this->resolving[$name]);

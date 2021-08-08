@@ -5,20 +5,19 @@ declare(strict_types=1);
 namespace kuiper\di;
 
 use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\Conditional;
 use Psr\Container\ContainerInterface;
 
-class AllCondition implements Conditional
+class AllCondition implements Condition
 {
     /**
-     * @var Conditional[]
+     * @var Condition[]
      */
     private $conditions;
 
     /**
      * AllCondition constructor.
      *
-     * @param Conditional ...$conditions
+     * @param Condition ...$conditions
      */
     public function __construct(...$conditions)
     {
@@ -27,15 +26,15 @@ class AllCondition implements Conditional
         }
     }
 
-    public function addCondition(Conditional $condition): void
+    public function addCondition(Condition $condition): void
     {
         $this->conditions[] = $condition;
     }
 
-    public function match(ContainerInterface $container): bool
+    public function matches(ContainerInterface $container): bool
     {
         foreach ($this->conditions as $condition) {
-            if (!$condition->match($container)) {
+            if (!$condition->matches($container)) {
                 return false;
             }
         }
@@ -57,7 +56,7 @@ class AllCondition implements Conditional
             throw new \InvalidArgumentException('invalid reflector '.get_class($reflector));
         }
         foreach ($annotations as $annotation) {
-            if ($annotation instanceof Conditional) {
+            if ($annotation instanceof Condition) {
                 $conditions[] = $annotation;
             }
         }

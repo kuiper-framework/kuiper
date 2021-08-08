@@ -56,9 +56,9 @@ class ConfigurationDefinitionLoader
             }
 
             if (null !== $condition) {
-                $definitions[] = new ConditionalDefinition($definition, $condition);
+                $definitions[] = new ConditionDefinition($definition, $condition);
                 $this->containerBuilder->defer(function ($container) use ($condition, $definition, $method): void {
-                    if ($condition->match($container)) {
+                    if ($condition->matches($container)) {
                         $this->processComponentAnnotation($definition->getName(), $method);
                     }
                 });
@@ -70,7 +70,7 @@ class ConfigurationDefinitionLoader
         if ($configuration instanceof DefinitionConfiguration) {
             foreach ($configuration->getDefinitions() as $name => $def) {
                 if (null !== $configurationCondition && !$ignoreCondition) {
-                    $definitions[] = new ConditionalDefinition($this->normalizeDefinition($def, $name), $configurationCondition);
+                    $definitions[] = new ConditionDefinition($this->normalizeDefinition($def, $name), $configurationCondition);
                 } else {
                     $definitions[$name] = $def;
                 }

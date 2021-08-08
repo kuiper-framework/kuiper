@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
+use kuiper\di\annotation\ComponentInterface;
+
 class ComponentCollection
 {
     /**
@@ -14,7 +16,7 @@ class ComponentCollection
     /**
      * @param object $annotation
      */
-    public static function register(string $componentId, $annotation): void
+    public static function register(string $componentId, ComponentInterface $annotation): void
     {
         self::$COMPONENTS[get_class($annotation)][$componentId] = $annotation;
     }

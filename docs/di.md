@@ -1,6 +1,6 @@
 # Kuiper DI
 
-Kuiper DI 是基于 [php-di](http://php-di.org/) 实现，增加命名空间扫描、条件注解等特性。
+Kuiper DI 是基于 [php-di](http://php-di.org/) 实现，增加 Configuration 类声明定义、命名空间扫描、条件注解等特性。
 
 ## ContainerBuilder 
 
@@ -10,21 +10,23 @@ Kuiper DI 是基于 [php-di](http://php-di.org/) 实现，增加命名空间扫�
 <?php
 use kuiper\di\ContainerBuilder;
 
-$builder = new ContainerBuilder(); 
+$builder = new ContainerBuilder();
+// configure the container 
+$container = $builder->build();
 ```
 
-`ContainerBuilder` 的使用方法和 [php-di](http://php-di.org/doc/container-configuration.html) 介绍的完全一致。 
+`ContainerBuilder` 兼容 [php-di](http://php-di.org/doc/container-configuration.html) 文档中的相关说明。 
 
 ## Configuration 
 
-DI 容器支持使用 `Configuration` 类配置注入对象。`Configuration` 类就是一般的 PHP 类，只是所有的添加 `@\kuiper\di\annotation\Bean` 
-注解的方法将注册到容器中。例如：
+容器支持使用 `Configuration` 类配置注入对象。在 `Configuration` 类中，所有添加了 `@\kuiper\di\annotation\Bean` 
+注解的方法将以 [factory](https://php-di.org/doc/php-definitions.html#factories) 的方式注册到容器中。例如：
 
 ```php
 <?php
 use kuiper\di\annotation\Bean;
 
-class Configuration
+class MyConfiguration
 {
     /**
      * @Bean()
@@ -35,10 +37,10 @@ class Configuration
     }
 }
 
-$builer->addConfiguration(new Configuration());
+$builer->addConfiguration(new MyConfiguration());
 ```
 
-需要注意的是容器中对象定义名字默认使用函数的返回类型。如果函数无返回类型或需要指定定义名字，需要使用 `@Bean` 注解的 `name` 值，例如：
+需要注意的是容器中定义名字默认使用函数的返回类型。如果函数无返回类型或需要指定定义名字，需要使用 `@Bean` 注解的 `name` 值，例如：
 
 ```php
 <?php
@@ -56,9 +58,13 @@ class Configuration
 }
 ```
 
-函数参数默认使用函数类型查询容器中的对象，如果需要指定参数，需要使用 `@\DI\Annotation\Inject` 注解。注解的使用方式参考 [php-di 文档](http://php-di.org/doc/annotations.html)。
+> Doctrine Annotation 会把注解第一个属性设置为默认属性，设置注解属性值时可以忽略属性名称，例如这里也可以使用 
+> `@Bean("userRegistrationService")` 。
 
-如果需要创建简单定义，或者无法使用方法添加定义，可以通过实现 `\kuiper\di\DefinitionConfiguration` 接口进行定义声明，例如：
+在 php-di 中，factory 参数解析是使用参数类型。如果参数不是一个 class 类型或者容器中定义名不是 class 类型，则需要使用
+`@\DI\Annotation\Inject` 注解来设置参数。注解的使用方式参考 [php-di 文档](https://php-di.org/doc/annotations.html#inject) 。
+
+如果需要使用 php-di 提供的方法来创建定义，可以通过实现 `\kuiper\di\DefinitionConfiguration` 接口进行定义声明，例如：
 
 ```php
 <?php
@@ -66,7 +72,7 @@ class Configuration
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 
-class Configuration implements DefinitionConfiguration
+class MyConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
 
@@ -79,52 +85,83 @@ class Configuration implements DefinitionConfiguration
 }
 ```
 
-`getDefinitions()` 方法中数组定义和 [php-di PHP 定义方式](http://php-di.org/doc/php-definitions.html)相同。
+`getDefinitions()` 方法中数组定义和 [php-di](https://php-di.org/doc/php-definitions.html#syntax) 相同。
 
 ## ComponentScan
 
-DI 容器支持按名字空间扫描名字空间下所有类，识别出所有实现 `\kuiper\di\annotation\ComponentInterface` 接口的注解。
-目前支持的注解包括：
+容器支持按命名空间扫描命名空间下所有类，识别出所有实现 `\kuiper\di\annotation\ComponentInterface` 接口的注解。
 
-- `@\kuiper\di\annotation\Configuration`
-- `@\kuiper\di\annotation\Component`
-- `@\kuiper\di\annotation\Controller`
-- `@\kuiper\di\annotation\Service`
-- `@\kuiper\di\annotation\Repository`
-
-`@Configuration` 注解用于标识该类是一个 Configuration 类，将自动添加到容器定义中。
-
-`@Component`, `@Controller`, `@Service`, `@Repository` 四种注解类似 spring 中的注解，可以将当前类添加到容器定义中。
-如果注解指定名称，则使用注解中指定的名称作为容器定义名字。否则会将当前类名及当前类实现的所有接口名都作为定义名字注册到容器中。
-定义内容为一个 `\DI\Definition\Reference`　类型定义，指向当前类名对应的定义。
-
-扫描过程中如果类使用 `@\kuiper\di\annotation\ComponentScan` 注解，可用于新增新的扫描名字空间。
-
-名字空间扫描是基于 composer PSR-4 规则，使用时必须先注册 Composer Class Loader:
+命名空间扫描是基于 composer PSR-4 规则，通过 Composer ClassLoader 根据命名空间查找到命名空间对应的目录，然后递归扫描
+目录中的文件。使用这个特性必须先向 `ContainerBuilder` 中注册 Composer ClassLoader:
 
 ```php
 <?php
 $loader = require __DIR__ . '/vendor/autoload.php';
 
 $builder->setClassLoader($loader);
+$builder->componentScan(["app\\service"]);
+$container = $builder->build();
 ```
+
+扫描过程中如果类使用 `@\kuiper\di\annotation\ComponentScan` 注解，注解配置的命名空间列表将被继续扫描。
+
+目前支持的扫描的注解包括：
+
+- `@\kuiper\di\annotation\Configuration`
+- `@\kuiper\di\annotation\Component`
+- `@\kuiper\di\annotation\Controller`
+- `@\kuiper\di\annotation\Service`
+
+`@Configuration` 注解用于标识该类是一个 Configuration 类，将自动添加到容器定义中。
+
+`@Component`, `@Controller`, `@Service` 三种注解用于将当前注解标记的类添加到容器定义中。
+默认将当前类实现的所有接口名都注册到容器中。如果注解指定名称，则使用注解中指定的名称作为容器定义名字。
+例如：
+
+```php
+<?php
+
+name app\service;
+
+use kuiper\di\annotation\Service;
+
+/**
+ * @Service
+ */
+class UserServiceImpl implement UserService
+{
+}
+```
+
+获取 `UserService` 对象 `$container->get(\app\service\UserService::class)` 。 
 
 ## Conditional 注解
 
-通过 `@Bean`, `@Component` 等注解注册的定义，可以使用条件注解控制定义生效的条件。目前支持的条件注解包括：
+当开发一个公共库或者一个开源组件时，我们希望应用可以根据用户配置或者用户引入的包自动进行配置。
+在 Kuiper DI 中可以使用条件注解设置定义生效的条件。目前支持的条件注解包括：
 
-- `@\kuiper\di\annotation\ConditionalOnClass`
-- `@\kuiper\di\annotation\ConditionalOnMissingClass`
-- `@\kuiper\di\annotation\ConditionalOnBean`
-- `@\kuiper\di\annotation\ConditionalOnMissingBean`
-- `@\kuiper\di\annotation\ConditionalOnProperty`
+- `@\kuiper\di\annotation\ConditionalOnClass` 当指定的类存在时生效
+- `@\kuiper\di\annotation\ConditionalOnMissingClass` 当指定类不存在才生效
+- `@\kuiper\di\annotation\ConditionalOnBean` 当容器中指定的名字的定义存在时生效
+- `@\kuiper\di\annotation\ConditionalOnMissingBean` 当容器中指定名字的定义不存在才生效
+- `@\kuiper\di\annotation\ConditionalOnProperty` 根据配置项值判断是否生效
+- `@\kuiper\di\annotation\AllConditions` 所有子条件注解都为真时生效
+- `@\kuiper\di\annotation\AnyCondition` 任意一个子条件注解为真时生效
+- `@\kuiper\di\annotation\NoneCondition` 所有子条件注解都为假时生效
+- `@\kuiper\di\annotation\Conditional` 根据自定义实现 Condition 接口的类判断是否生效 
 
-`@ConditionalOnClass` 当指定的类存在时生效，而 `@ConditionalOnMissingClass` 则相反，当指定类不存在才生效。
+使用 ConditionalOnProperty 注解需要先在容器中注册一个 `\kuiper\helper\PropertyResolverInterface` 对象，例如：
 
-`@ConditionalOnBean` 当容器中指定的名字的定义存在时生效，而 `@ConditionalOnMissingBean` 则相反，当容器中指定名字的定义不存在才生效。
+```php
+<?php
+use kuiper\helper\PropertyResolverInterface;
+use kuiper\helper\Property;
 
-使用 `@ConditionalOnProperty` 注解，需要先在容器中添加一个 `\kuiper\helper\PropertyResolverInterface` 定义。
-通过获取对应配置项值判断定义是否生效。
+$builder->addDefinitions([
+    PropertyResolverInterface::class => Properties::create([
+    ])
+]);
+```
 
 ## Aware 类型接口
 
@@ -165,7 +202,6 @@ $builder->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class))
 ## 配置项
 
 通过添加 `PropertiesDefinitionSource` 定义可以从容器中直接读取配置。
-当 `application.` 开头的 id，当配置不存在时会返回 null，而不会抛出 `NotFoundException` 异常。
 
 ```php
 <?php
@@ -183,15 +219,56 @@ $container = $builder->build();
 $container->get('redis.host');
 ```
 
-## 通过 composer.json 声明插件机制
+当调用 `$container->get("some.not.exist.key")` ，当配置项不存在时，将抛出异常。
+`PropertiesDefinitionSource` 构造函数中可设置配置前缀，当配置key和前缀匹配时，如果配置项
+不存在时，只返回 null ，而不抛出异常。默认配置前缀是 `application.` 。
 
-```json
-{
-  "extra": {
-    "kuiper": {
-      "component-scan": [],
-      "configuration": []
-    }
-  }
-}
+## 定义优先级
+
+当调用 `ContainerBuilder::addDefinitions(['foo' => $definition])`，如果 foo 已经存在，会替换
+已经存在的定义，所以后面的定义会优先于之前的定义。
+实际项目中容器的配置会比较复杂，我们需要明确定义的优先级，确保项目中使用的对象定义是需要的定义。
+
+当调用 `ContainerBuilder::build()` 时，才发生命名空间扫描，扫描过程中，当扫描到 `@Component` 注解，
+会调用 `ContainerBuilder::addDefinitions()` 添加定义；如果是 `@Configuration` 注解，
+会调用 `ContainerBuilder::addConfiguration()` 添加定义。
+在扫描结束之后，才会将所有 Configuration 对象提取相应的定义，调用 `ContainerBuilder::addDefinitions()`
+添加到容器配置中。所以对于通过 `ContainterBuilder::addConfiguration()` 添加的定义和 
+`ComponentBuilder::componentScan()` 扫描命名空间的定义，是扫描命名空间的定义优先，在顺序上是后面的覆盖前面。
+
+## 根据项目配置容器
+
+通过使用 Configuration 类和命名空间扫描可以实现所有容器的配置操作。我们可以把所有 Configuration 类名和需要扫描
+的命名空间写到配置文件中，通过调用 `ContainterBuilder::create($path)` 方法完成容器配置。在这个方法中会通过
+`require "$path/vendor/autoload.php"` 配置 Composer ClassLoader，在 `$path/composer.json` 查找
+`extra.kuiper.config-file` 配置项，如果存在就加载此配置文件；否则使用默认配置文件 `config/container.php` 。
+这个配置文件格式如下：
+```php
+<?php
+
+return [
+    'component_scan' => [
+    // namespace to scan
+    ],
+    'configuration' => [
+    // configuration classes
+    ]
+];
 ```
+
+使用 [kuiper/component-installer](https://packagist.org/packages/kuiper/component-installer) 可以自动生成
+这个配置文件。
+
+## 初始化
+
+通过调用 `ContainerBuilder::defer($callback)` 方法可以设置容器创建后需要执行的初始化操作。
+参数中的回调函数的参数为容器对象，例如：
+```php
+<?php
+
+$builder->defer(function(ContainerInterface $container) {
+   // bootstrap
+});
+```
+
+如果需要控制回调运行的顺序，可以使用第二个参数指定优先级，值为 1-1024 的整数，值越小，越早执行。
