@@ -147,6 +147,9 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
     public static function determineContentType(ServerRequestInterface $request, array $contentTypes): ?string
     {
         $acceptHeader = $request->getHeaderLine('Accept');
+        if (false !== strpos($acceptHeader, ';')) {
+            [$acceptHeader, $ignore] = explode(';', $acceptHeader, 2);
+        }
         $selectedContentTypes = array_intersect(
             explode(',', $acceptHeader),
             $contentTypes
