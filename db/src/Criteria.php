@@ -84,11 +84,13 @@ class Criteria
         return $this;
     }
 
-    public function limit(int $limit, int $offset = 0): self
+    public function limit(int $limit, ?int $offset = null): self
     {
         Assert::greaterThan($limit, 0, "limit should greater then 0, got $limit");
         $this->limit = $limit;
-        $this->offset = $offset;
+        if (isset($offset)) {
+            $this->offset = $offset;
+        }
 
         return $this;
     }
