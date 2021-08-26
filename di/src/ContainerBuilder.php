@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace kuiper\di;
 
 use Composer\Autoload\ClassLoader;
-use DI\Container;
 use DI\Definition\Definition;
 use DI\Definition\ExtendsPreviousDefinition;
 use DI\Definition\FactoryDefinition;
@@ -165,7 +164,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     /**
      * Build a container configured for the dev environment.
      */
-    public static function buildDevContainer(): Container
+    public static function buildDevContainer(): ContainerInterface
     {
         return new Container();
     }

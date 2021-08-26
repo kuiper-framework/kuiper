@@ -1,0 +1,55 @@
+<?php
+
+declare(strict_types=1);
+
+namespace kuiper\di;
+
+use DI\DependencyException;
+use function DI\factory;
+use PHPUnit\Framework\TestCase;
+use Swoole\Coroutine;
+
+class CoroutineTest extends TestCase
+{
+    public function testNoLock()
+    {
+        $containerBuilder = new \DI\ContainerBuilder();
+
+        $errors = $this->check($containerBuilder);
+        $this->assertCount(1, $errors);
+    }
+
+    public function testLock()
+    {
+        $errors = $this->check(new ContainerBuilder());
+        $this->assertEmpty($errors);
+    }
+
+    public function check($containerBuilder)
+    {
+        $container = null;
+        $containerBuilder->addDefinitions([
+            'bar' => 1,
+            'foo' => factory(function () use (&$container) {
+                usleep(5000);
+
+                return $container->get('bar') + 1;
+            }),
+        ]);
+        $container = $containerBuilder->build();
+        \kuiper\swoole\coroutine\Coroutine::enable();
+        $c = 2;
+        $errors = [];
+        while ($c--) {
+            go(static function () use ($container, &$errors) {
+                try {
+                    echo sprintf("cid=%d, foo=%d\n", Coroutine::getCid(), $container->get('foo'));
+                } catch (DependencyException $e) {
+                    $errors[] = $e;
+                }
+            });
+        }
+
+        return $errors;
+    }
+}
