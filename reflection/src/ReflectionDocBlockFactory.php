@@ -24,9 +24,26 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
      */
     private static $CACHE;
 
-    public function __construct(?ReflectionFileFactoryInterface $reflectionFileFactory = null)
+    /**
+     * @var ReflectionDocBlockFactoryInterface
+     */
+    private static $INSTANCE;
+
+    private function __construct(?ReflectionFileFactoryInterface $reflectionFileFactory)
     {
-        $this->reflectionFileFactory = $reflectionFileFactory ?? ReflectionFileFactory::getInstance();
+        $this->reflectionFileFactory = $reflectionFileFactory;
+    }
+
+    public static function createInstance(ReflectionFileFactoryInterface $reflectionFileFactory): self
+    {
+        self::$INSTANCE = new self($reflectionFileFactory);
+
+        return self::$INSTANCE;
+    }
+
+    public static function getInstance(): self
+    {
+        return self::$INSTANCE ?? self::createInstance(ReflectionFileFactory::getInstance());
     }
 
     public function createPropertyDocBlock(\ReflectionProperty $property): ReflectionPropertyDocBlockInterface

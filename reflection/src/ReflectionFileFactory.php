@@ -28,17 +28,17 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function create(string $filePath): ReflectionFileInterface
+    public function create(string $file): ReflectionFileInterface
     {
-        $file = realpath($filePath);
-        if (false === $file) {
-            throw new \InvalidArgumentException("File '$filePath' does not exist");
+        $filePath = realpath($file);
+        if (false === $filePath) {
+            throw new \InvalidArgumentException("File '$file' does not exist");
         }
-        if (isset($this->files[$file])) {
-            return $this->files[$file];
+        if (isset($this->files[$filePath])) {
+            return $this->files[$filePath];
         }
 
-        return $this->files[$file] = new ReflectionFile($file);
+        return $this->files[$filePath] = new ReflectionFile($filePath);
     }
 
     public function clearCache(string $filePath = null): bool

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
-interface ReflectionMethodDocBlockInterface
+interface ReflectionMethodDocBlockInterface extends ReflectionDocBlockInterface
 {
     /**
      * Parses the docblock of the method to get all parameters type.

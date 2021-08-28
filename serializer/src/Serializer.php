@@ -38,7 +38,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
 
     public function __construct(?AnnotationReaderInterface $reader = null, ?ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory = null, array $normalizers = [])
     {
-        $classMetadataFactory = new ClassMetadataFactory($reader ?? AnnotationReader::getInstance(), $reflectionDocBlockFactory ?? new ReflectionDocBlockFactory());
+        $classMetadataFactory = new ClassMetadataFactory($reader ?? AnnotationReader::getInstance(), $reflectionDocBlockFactory ?? ReflectionDocBlockFactory::getInstance());
         $this->objectNormalizer = new ObjectNormalizer($classMetadataFactory, $this);
         foreach ($normalizers as $className => $normalizer) {
             $this->addObjectNormalizer($className, $normalizer);

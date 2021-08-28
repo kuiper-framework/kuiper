@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\serializer;
 
 use DI\Annotation\Inject;
-use function DI\autowire;
+use function DI\factory;
 use function DI\get;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
@@ -28,7 +28,7 @@ class SerializerConfiguration implements DefinitionConfiguration
         return [
             NormalizerInterface::class => get(Serializer::class),
             JsonSerializerInterface::class => get(Serializer::class),
-            ReflectionDocBlockFactoryInterface::class => autowire(ReflectionDocBlockFactory::class),
+            ReflectionDocBlockFactoryInterface::class => factory([ReflectionDocBlockFactory::class, 'getInstance']),
         ];
     }
 
