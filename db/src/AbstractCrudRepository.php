@@ -437,6 +437,9 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     {
         $this->setUpdateTimestamp($entity);
         $cols = $this->metaModel->freeze($entity);
+        foreach ($this->metaModel->getIdValues($entity) as $idColumnName => $value) {
+            unset($cols[$idColumnName]);
+        }
         $stmt = $this->queryBuilder->update($this->getTableName())
             ->cols($cols);
 

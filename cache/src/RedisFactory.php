@@ -152,7 +152,7 @@ class RedisFactory
                 }
 
                 if ((null !== $auth && !$redis->auth($auth))
-                    || ($params['dbindex'] && !$redis->select($params['dbindex']))
+                    || ($params['dbindex'] && !$redis->select((int) $params['dbindex']))
                 ) {
                     $e = preg_replace('/^ERR /', '', $redis->getLastError());
                     throw new \InvalidArgumentException(sprintf('Redis connection "%s" failed: ', $dsn).$e.'.');

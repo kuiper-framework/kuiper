@@ -4,13 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\db\sharding\rule;
 
-class StringHashRule extends AbstractRule
+class StringHashRule extends HashRule
 {
-    /**
-     * @var int
-     */
-    protected $bucket;
-
     /**
      * @var callable
      */
@@ -23,8 +18,7 @@ class StringHashRule extends AbstractRule
      */
     public function __construct(string $field, int $bucket, $hashFunction = 'crc32')
     {
-        parent::__construct($field);
-        $this->bucket = $bucket;
+        parent::__construct($field, $bucket);
         $this->hashFunction = $hashFunction;
     }
 
@@ -34,6 +28,6 @@ class StringHashRule extends AbstractRule
             throw new \InvalidArgumentException("Value of column '{$this->field}' must be a string, Got $value");
         }
 
-        return call_user_func($this->hashFunction, $value) % $this->bucket;
+        return parent::getPartitionFor(call_user_func($this->hashFunction, $value));
     }
 }

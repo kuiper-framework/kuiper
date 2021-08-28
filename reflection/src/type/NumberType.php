@@ -18,6 +18,11 @@ class NumberType extends ReflectionType
         return true;
     }
 
+    public function isScalar(): bool
+    {
+        return true;
+    }
+
     public function isPrimitive(): bool
     {
         return true;

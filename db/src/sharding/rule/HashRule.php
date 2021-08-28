@@ -17,6 +17,11 @@ class HashRule extends AbstractRule
         $this->bucket = $bucket;
     }
 
+    public function getBucket(): int
+    {
+        return $this->bucket;
+    }
+
     protected function getPartitionFor($value)
     {
         if (!\is_numeric($value) || $value != (int) $value) {

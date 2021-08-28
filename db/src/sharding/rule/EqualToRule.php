@@ -16,6 +16,11 @@ class EqualToRule implements RuleInterface
         $this->field = $field;
     }
 
+    public function getField(): string
+    {
+        return $this->field;
+    }
+
     public function getPartition(array $fields)
     {
         return $fields[$this->field];

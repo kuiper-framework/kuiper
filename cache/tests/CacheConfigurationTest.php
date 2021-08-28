@@ -68,6 +68,21 @@ class CacheConfigurationTest extends TestCase
         $this->assertEquals(null, $fetch($childKey));
     }
 
+    public function testSimpleCache()
+    {
+        $config = new CacheConfiguration();
+        $cache = $config->simpleCache($this->createCache());
+        $key = 'foo';
+        $cache->delete($key);
+        $value = $cache->get($key);
+
+        $cache->set($key, date('c'));
+        $newValue = $cache->get($key);
+        // var_export([$value, $newValue]);
+        $this->assertNull($value);
+        $this->assertNotNull($newValue);
+    }
+
     private function createFetch($cache): \Closure
     {
         return static function ($key, $data = null) use ($cache) {

@@ -35,6 +35,9 @@ class EnumConverter implements AttributeConverterInterface
      */
     public function convertToEntityAttribute($dbData, Column $column)
     {
+        if (null === $dbData || '' === $dbData) {
+            return null;
+        }
         $enumType = $column->getType()->getName();
 
         return call_user_func([$enumType, $this->ordinal ? 'fromOrdinal' : 'fromName'], $dbData);

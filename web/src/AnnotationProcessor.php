@@ -34,13 +34,23 @@ class AnnotationProcessor implements AnnotationProcessorInterface
      * @var string|null
      */
     private $contextUrl;
+    /**
+     * @var string|null
+     */
+    private $namespace;
 
-    public function __construct(ContainerInterface $container, AnnotationReaderInterface $annotationReader, RouteCollectorProxyInterface $routeCollector, ?string $contextUrl = null)
+    public function __construct(
+        ContainerInterface $container,
+        AnnotationReaderInterface $annotationReader,
+        RouteCollectorProxyInterface $routeCollector,
+        ?string $contextUrl = null,
+        ?string $namespace = null)
     {
         $this->container = $container;
         $this->annotationReader = $annotationReader;
         $this->routeCollector = $routeCollector;
         $this->contextUrl = $contextUrl;
+        $this->namespace = $namespace;
     }
 
     public function process(): void
@@ -49,6 +59,9 @@ class AnnotationProcessor implements AnnotationProcessorInterface
         foreach (ComponentCollection::getAnnotations(Controller::class) as $annotation) {
             /** @var Controller $annotation */
             $controllerClass = $annotation->getTarget();
+            if (null !== $this->namespace && !Text::startsWith($controllerClass->getNamespaceName(), $this->namespace)) {
+                continue;
+            }
             if (isset($seen[$controllerClass->getName()])) {
                 continue;
             }

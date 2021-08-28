@@ -18,7 +18,6 @@ use Stash\Driver\Composite;
 use Stash\Driver\Ephemeral;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\ChainAdapter;
-use Symfony\Component\Cache\Psr16Cache;
 
 /**
  * @Configuration()
@@ -119,6 +118,6 @@ class CacheConfiguration
      */
     public function simpleCache(CacheItemPoolInterface $cacheItemPool): CacheInterface
     {
-        return new Psr16Cache($cacheItemPool);
+        return new SimpleCache($cacheItemPool);
     }
 }
