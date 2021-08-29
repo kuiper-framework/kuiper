@@ -50,6 +50,11 @@ class InMemoryServiceRegistry implements ServiceRegistryInterface, ServiceResolv
         return $this->serviceEndpoints[$service] ?? null;
     }
 
+    /**
+     * @param ServiceEndpoint[]|string[] $serviceEndpoints
+     *
+     * @return self
+     */
     public static function create(array $serviceEndpoints): self
     {
         $registry = new self();

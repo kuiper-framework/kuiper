@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use kuiper\event\EventListenerInterface;
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
-use kuiper\jsonrpc\JsonRpcProtocol;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestHelper;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;

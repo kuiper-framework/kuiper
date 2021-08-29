@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
-use kuiper\jsonrpc\JsonRpcProtocol;
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\server\JsonRpcTcpReceiveEventListener;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\swoole\Application;

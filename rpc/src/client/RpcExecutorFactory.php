@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace kuiper\rpc\client;
 
 use kuiper\rpc\RpcRequestHandlerInterface;
-use kuiper\rpc\transporter\TransporterInterface;
 
 class RpcExecutorFactory implements RpcExecutorFactoryInterface
 {
@@ -24,13 +23,6 @@ class RpcExecutorFactory implements RpcExecutorFactoryInterface
      */
     private $middlewares;
 
-    /**
-     * RpcExecutorFactory constructor.
-     *
-     * @param RpcRequestFactoryInterface $requestFactory
-     * @param TransporterInterface       $transporter
-     * @param array                      $middlewares
-     */
     public function __construct(RpcRequestFactoryInterface $requestFactory, RpcRequestHandlerInterface $requestHandler, array $middlewares = [])
     {
         $this->rpcRequestHandler = $requestHandler;

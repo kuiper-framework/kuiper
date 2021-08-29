@@ -14,7 +14,8 @@ class ComponentCollection
     private static $COMPONENTS;
 
     /**
-     * @param object $annotation
+     * @param string             $componentId
+     * @param ComponentInterface $annotation
      */
     public static function register(string $componentId, ComponentInterface $annotation): void
     {

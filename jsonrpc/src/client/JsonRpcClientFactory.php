@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\client;
 
 use kuiper\http\client\HttpClientFactoryInterface;
-use kuiper\jsonrpc\JsonRpcProtocol;
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\client\ProxyGeneratorInterface;
 use kuiper\rpc\client\RpcClient;
@@ -171,13 +171,6 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         return $this->noOutParamRpcResponseFactory;
     }
 
-    /**
-     * @param bool                  $outParams
-     * @param RpcResponseNormalizer $responseNormalizer
-     * @param ExceptionNormalizer   $exceptionNormalizer
-     *
-     * @return JsonRpcResponseFactory|NoOutParamJsonRpcResponseFactory
-     */
     protected function getRpcResponseFactory(): RpcResponseFactoryInterface
     {
         if (null === $this->rpcResponseFactory) {
@@ -223,6 +216,14 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         return new RpcExecutorFactory($this->getRpcRequestFactory(), $rpcClient, $this->middlewares);
     }
 
+    /**
+     * @param string $className
+     * @param array  $options
+     *
+     * @return mixed
+     *
+     * @throws \ReflectionException
+     */
     public function create(string $className, array $options)
     {
         $proxyClass = $this->proxyGenerator->generate($className);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\jsonrpc;
+namespace kuiper\jsonrpc\core;
 
 class JsonRpcProtocol
 {

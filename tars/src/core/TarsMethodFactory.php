@@ -96,7 +96,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
             }
         }
         if (null === $reflectionMethod) {
-            throw new InvalidMethodException("Cannot find method %s::$method", $reflectionClass->getName());
+            throw new InvalidMethodException("Cannot find method {$reflectionClass->getName()}::$method");
         }
         $namespace = $reflectionClass->getNamespaceName();
         $parameters = [];

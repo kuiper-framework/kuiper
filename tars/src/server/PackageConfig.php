@@ -111,6 +111,7 @@ class PackageConfig
             $arguments = (array) $arguments;
 
             foreach ($arguments as $argument) {
+                /** @phpstan-ignore-next-line */
                 $finder->$method($argument);
             }
         }

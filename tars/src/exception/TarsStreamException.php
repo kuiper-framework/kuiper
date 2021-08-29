@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\exception;
 
-use kuiper\rpc\exception\InvalidRequestException;
-
-class TarsStreamException extends InvalidRequestException
+class TarsStreamException extends \Exception
 {
     public const TYPE_NOT_MATCH = 28001;
     public const LENGTH_NOT_MATCH = 28002;

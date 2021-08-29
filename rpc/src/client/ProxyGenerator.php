@@ -28,7 +28,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
 
     public function __construct(?ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory = null)
     {
-        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory ?? new ReflectionDocBlockFactory();
+        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory ?? ReflectionDocBlockFactory::getInstance();
     }
 
     /**

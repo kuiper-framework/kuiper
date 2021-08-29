@@ -9,7 +9,7 @@ interface RpcExecutorFactoryInterface
     /**
      * @param object $proxy
      * @param string $method
-     * @param mixed  ...$args
+     * @param array  $args
      *
      * @return RpcExecutorInterface
      */

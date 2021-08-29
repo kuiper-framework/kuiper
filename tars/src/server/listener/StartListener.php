@@ -42,7 +42,7 @@ class StartListener implements EventListenerInterface, LoggerAwareInterface
         if ('' === $config->getString('application.tars.server.node')) {
             $this->logger->debug(static::TAG.'healthy check is disabled.');
         } else {
-            $server->tick($config->getInt('application.tars.server.keep-alive-interval', 10000), function () {
+            $server->tick($config->getInt('application.tars.server.keep-alive-interval', 10000), function (): void {
                 $this->taskQueue->put(new KeepAlive());
             });
         }
@@ -50,7 +50,7 @@ class StartListener implements EventListenerInterface, LoggerAwareInterface
         if ('' === $config->getString('application.tars.client.locator')) {
             $this->logger->debug(static::TAG.'report is disabled.');
         } else {
-            $server->tick($config->getInt('application.tars.client.report-interval', 60000), function () {
+            $server->tick($config->getInt('application.tars.client.report-interval', 60000), function (): void {
                 $this->taskQueue->put(new ReportTask());
             });
         }

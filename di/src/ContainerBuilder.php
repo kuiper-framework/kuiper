@@ -146,12 +146,12 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $scanNamespaces = [];
 
     /**
-     * @var callable[]
+     * @var callable[][]
      */
     private $deferCallbacks = [];
 
     /**
-     * @var ConditionDefinition[]
+     * @var ConditionDefinition[][]
      */
     private $conditionDefinitions = [];
 

@@ -34,14 +34,14 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
         $this->reflectionFileFactory = $reflectionFileFactory;
     }
 
-    public static function createInstance(ReflectionFileFactoryInterface $reflectionFileFactory): self
+    public static function createInstance(ReflectionFileFactoryInterface $reflectionFileFactory): ReflectionDocBlockFactoryInterface
     {
         self::$INSTANCE = new self($reflectionFileFactory);
 
         return self::$INSTANCE;
     }
 
-    public static function getInstance(): self
+    public static function getInstance(): ReflectionDocBlockFactoryInterface
     {
         return self::$INSTANCE ?? self::createInstance(ReflectionFileFactory::getInstance());
     }

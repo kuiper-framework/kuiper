@@ -8,12 +8,15 @@ use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\rpc\client\RpcClient;
+use kuiper\rpc\client\RpcExecutorFactory;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\transporter\CachedServiceResolver;
 use kuiper\rpc\transporter\InMemoryServiceRegistry;
 use kuiper\rpc\transporter\LoadBalanceAlgorithm;
 use kuiper\rpc\transporter\LoadBalanceHolder;
 use kuiper\rpc\transporter\PooledTransporter;
+use kuiper\rpc\transporter\ServiceEndpoint;
 use kuiper\rpc\transporter\ServiceResolverInterface;
 use kuiper\rpc\transporter\SwooleCoroutineTcpTransporter;
 use kuiper\rpc\transporter\SwooleTcpTransporter;
@@ -69,6 +72,11 @@ class TarsProxyFactory
         $this->annotationReader = $annotationReader ?? AnnotationReader::getInstance();
     }
 
+    /**
+     * @param string|ServiceEndpoint $serviceEndpoint
+     *
+     * @throws \ReflectionException
+     */
     public function setRegistryServiceEndpoint($serviceEndpoint): void
     {
         $proxyFactory = new self(InMemoryServiceRegistry::create([$serviceEndpoint]));
@@ -143,10 +151,18 @@ class TarsProxyFactory
         $this->middlewares = $middlewares;
     }
 
+    /**
+     * @param string $className
+     * @param array  $options
+     *
+     * @return mixed
+     *
+     * @throws \ReflectionException
+     */
     public function create(string $className, array $options = [])
     {
-        /** @var TarsClient|null $tarsClientAnnotation */
         $class = new \ReflectionClass($className);
+        /** @var TarsClient|null $tarsClientAnnotation */
         $tarsClientAnnotation = $this->getAnnotationReader()->getClassAnnotation($class, TarsClient::class);
         if (null === $tarsClientAnnotation) {
             throw new \InvalidArgumentException("class $className has no @TarsClient annotation");
@@ -183,8 +199,9 @@ class TarsProxyFactory
             ? new PooledTransporter($this->getPoolFactory()->create($servantName, $transporterFactory))
             : $transporterFactory(0);
         $requestFactory = new TarsRequestFactory($httpFactory, $httpFactory, new TarsMethodFactory());
-        $tarsClient = new \kuiper\tars\client\TarsClient($transporter, $requestFactory, new TarsResponseFactory(), $this->getMiddlewares());
+        $tarsClient = new RpcClient($transporter, new TarsResponseFactory());
+        $executorFactory = new RpcExecutorFactory($requestFactory, $tarsClient, $this->getMiddlewares());
 
-        return new $className($tarsClient);
+        return new $className($executorFactory);
     }
 }

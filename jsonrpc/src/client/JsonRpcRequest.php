@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
-use kuiper\jsonrpc\JsonRpcProtocol;
 use kuiper\rpc\RpcMethodInterface;
 use kuiper\rpc\RpcRequest;
 use Psr\Http\Message\RequestInterface;

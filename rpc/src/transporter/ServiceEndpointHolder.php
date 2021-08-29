@@ -17,7 +17,7 @@ class ServiceEndpointHolder implements EndpointHolderInterface, Refreshable
      */
     private $service;
     /**
-     * @var ServiceEndpoint
+     * @var ServiceEndpoint|null
      */
     private $serviceEndpoint;
 

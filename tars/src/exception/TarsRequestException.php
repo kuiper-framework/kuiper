@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace kuiper\tars\exception;
 
-use kuiper\rpc\exception\InvalidRequestException;
 use kuiper\tars\stream\RequestPacket;
 
-class TarsRequestException extends InvalidRequestException
+class TarsRequestException extends \Exception
 {
     /**
      * @var RequestPacket

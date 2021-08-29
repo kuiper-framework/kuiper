@@ -7,7 +7,7 @@ namespace kuiper\jsonrpc\server;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Request;
 use kuiper\annotations\AnnotationReader;
-use kuiper\jsonrpc\JsonRpcProtocol;
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\rpc\fixtures\User;
 use kuiper\rpc\fixtures\UserService;
