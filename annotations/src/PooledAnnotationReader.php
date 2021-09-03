@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-namespace kuiper\swoole\annotation;
+namespace kuiper\annotations;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\swoole\pool\PoolInterface;
 

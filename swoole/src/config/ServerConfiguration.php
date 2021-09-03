@@ -9,8 +9,9 @@ use function DI\autowire;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\event\EventListenerInterface;
+use kuiper\event\EventSubscriberInterface;
 use kuiper\helper\Properties;
-use kuiper\helper\Text;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\constants\ServerSetting;
@@ -47,18 +48,25 @@ class ServerConfiguration implements DefinitionConfiguration
     public function getDefinitions(): array
     {
         $config = Application::getInstance()->getConfig();
+        $basePath = Application::getInstance()->getBasePath();
         $config->mergeIfNotExists([
             'application' => [
                 'name' => 'app',
-                'base-path' => Application::getInstance()->getBasePath(),
+                'base_path' => $basePath,
                 'default_command' => ServerCommand::NAME,
                 'commands' => [
                     ServerCommand::NAME => ServerCommand::class,
                 ],
+                'logging' => [
+                    'path' => $basePath.'/logs',
+                ],
             ],
         ]);
+        if (!$config->has('application.server.ports')) {
+            $config->set('application.server.ports', ['8000' => ServerType::HTTP]);
+        }
         $this->addAccessLoggerConfig($config);
-        $this->addEventListeners();
+        $this->addEventListeners($config);
 
         return [
             SwooleResponseBridgeInterface::class => autowire(SwooleResponseBridge::class),
@@ -78,7 +86,7 @@ class ServerConfiguration implements DefinitionConfiguration
         $config = Application::getInstance()->getConfig();
         $serverFactory = new ServerFactory($loggerFactory->create(ServerFactory::class));
         $serverFactory->setEventDispatcher($eventDispatcher);
-        $serverFactory->enablePhpServer($config->getBool('application.server.enable-php-server'));
+        $serverFactory->enablePhpServer($config->getBool('application.server.enable_php_server'));
         if ($serverConfig->getPort()->isHttpProtocol()) {
             $serverFactory->setHttpMessageFactoryHolder($container->get(HttpMessageFactoryHolder::class));
             $serverFactory->setSwooleRequestBridge($container->get(SwooleRequestBridgeInterface::class));
@@ -94,8 +102,8 @@ class ServerConfiguration implements DefinitionConfiguration
      */
     public function serverConfig(string $name): ServerConfig
     {
-        $app = Application::getInstance();
-        $settings = $app->getConfig()->get('application.swoole', []);
+        $config = Application::getInstance()->getConfig();
+        $settings = $config->get('application.swoole');
         $settings = array_merge([
             ServerSetting::OPEN_LENGTH_CHECK => true,
             ServerSetting::PACKAGE_LENGTH_TYPE => 'N',
@@ -108,27 +116,29 @@ class ServerConfiguration implements DefinitionConfiguration
             ServerSetting::OPEN_EOF_CHECK => false,
             ServerSetting::OPEN_EOF_SPLIT => false,
             ServerSetting::DISPATCH_MODE => 2,
+            ServerSetting::DAEMONIZE => false,
         ], $settings);
 
         $ports = [];
-        foreach ($settings['ports'] as $address => $serverType) {
-            if (Text::isInteger((string) $address)) {
-                $port = $address;
-                $host = '0.0.0.0';
-            } elseif (false !== strpos($address, ':')) {
-                [$host, $port] = explode(':', $address);
-            } else {
-                throw new \InvalidArgumentException('');
-            }
+        foreach ($config->get('application.server.ports') as $port => $portConfig) {
             if (isset($ports[$port])) {
                 throw new \InvalidArgumentException("Port $port was duplicated");
             }
-            $ports[$port] = new ServerPort($host, (int) $port, $serverType);
+            if (is_string($portConfig)) {
+                $portConfig = [
+                    'protocol' => $portConfig,
+                ];
+            }
+            $ports[$port] = new ServerPort(
+                $portConfig['host'] ?? '0.0.0.0',
+                (int) $port,
+                $portConfig['protocol'] ?? ServerType::HTTP,
+                $portConfig
+            );
         }
-        unset($settings['ports']);
 
         $serverConfig = new ServerConfig($name, $settings, array_values($ports));
-        $serverConfig->setMasterPidFile($app->getBasePath().'/master.pid');
+        $serverConfig->setMasterPidFile($config->get('application.logging.path').'/master.pid');
 
         return $serverConfig;
     }
@@ -136,34 +146,18 @@ class ServerConfiguration implements DefinitionConfiguration
     protected function addAccessLoggerConfig(Properties $config): void
     {
         $path = $config->get('application.logging.path');
-        if (null !== $path) {
-            $config->mergeIfNotExists([
-                'application' => [
-                    'logging' => [
-                        'loggers' => [
-                            'AccessLogLogger' => $this->createAccessLogger($path.'/access.log'),
-                        ],
-                        'logger' => [
-                            AccessLog::class => 'AccessLogLogger',
-                        ],
+        $config->mergeIfNotExists([
+            'application' => [
+                'logging' => [
+                    'loggers' => [
+                        'AccessLogLogger' => $this->createAccessLogger($path.'/access.log'),
+                    ],
+                    'logger' => [
+                        AccessLog::class => 'AccessLogLogger',
                     ],
                 ],
-            ]);
-        }
-        foreach ($config->get('application.swoole.ports', []) as $serverType) {
-            if (ServerType::fromValue($serverType)->isHttpProtocol()) {
-                $config->mergeIfNotExists([
-                    'application' => [
-                        'web' => [
-                            'middleware' => [
-                                AccessLog::class,
-                            ],
-                        ],
-                    ],
-                ]);
-                break;
-            }
-        }
+            ],
+        ]);
     }
 
     public function createAccessLogger(string $logFileName): array
@@ -191,10 +185,22 @@ class ServerConfiguration implements DefinitionConfiguration
         ];
     }
 
-    protected function addEventListeners(): void
+    protected function addEventListeners(Properties $config): void
     {
-        $this->containerBuilder->defer(function (ContainerInterface $container): void {
+        $this->containerBuilder->defer(function (ContainerInterface $container) use ($config): void {
             $dispatcher = $container->get(EventDispatcherInterface::class);
+            foreach ($config->get('application.listeners', []) as $key => $listener) {
+                $eventListener = $container->get($listener);
+                if ($eventListener instanceof EventListenerInterface) {
+                    $dispatcher->addListener($eventListener->getSubscribedEvent(), $eventListener);
+                } elseif ($eventListener instanceof EventSubscriberInterface) {
+                    foreach ($eventListener->getSubscribedEvents() as $event) {
+                        $dispatcher->addListener($event, $eventListener);
+                    }
+                } elseif (is_string($key)) {
+                    $dispatcher->addListener($key, $eventListener);
+                }
+            }
             $dispatcher->addListener(StartEvent::class, $container->get(StartEventListener::class));
             $dispatcher->addListener(ManagerStartEvent::class, $container->get(ManagerStartEventListener::class));
             $dispatcher->addListener(WorkerStartEvent::class, $container->get(WorkerStartEventListener::class));

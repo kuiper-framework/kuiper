@@ -35,7 +35,11 @@ class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface
      *
      * @param PoolConfig[] $poolConfigMap
      */
-    public function __construct(bool $coroutineEnabled = true, array $poolConfigMap = [], ?LoggerInterface $logger = null, ?EventDispatcherInterface $eventDispatcher = null)
+    public function __construct(
+        bool $coroutineEnabled = true,
+        array $poolConfigMap = [],
+        ?LoggerInterface $logger = null,
+        ?EventDispatcherInterface $eventDispatcher = null)
     {
         $this->coroutineEnabled = $coroutineEnabled;
         $this->eventDispatcher = $eventDispatcher;

@@ -38,7 +38,7 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
      */
     private $processors;
 
-    public function __construct(ServerInterface $server, ?ContainerInterface $container, ?LoggerInterface $logger)
+    public function __construct(ServerInterface $server, ContainerInterface $container = null, LoggerInterface $logger = null)
     {
         $this->server = $server;
         $this->container = $container;

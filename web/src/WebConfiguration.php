@@ -6,12 +6,17 @@ namespace kuiper\web;
 
 use DI\Annotation\Inject;
 use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\di\annotation\AnyCondition;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\ConditionalOnMissingClass;
+use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\annotation\Configuration;
 use kuiper\di\ComponentCollection;
+use kuiper\di\ContainerBuilderAwareTrait;
+use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\swoole\Application;
 use kuiper\web\exception\RedirectException;
 use kuiper\web\exception\UnauthorizedException;
 use kuiper\web\handler\DefaultLoginUrlBuilder;
@@ -22,6 +27,7 @@ use kuiper\web\handler\LogErrorRenderer;
 use kuiper\web\handler\LoginUrlBuilderInterface;
 use kuiper\web\handler\UnauthorizedErrorHandler;
 use kuiper\web\http\MediaType;
+use kuiper\web\middleware\AccessLog;
 use kuiper\web\session\CacheSessionHandler;
 use kuiper\web\session\CacheStoreSessionFactory;
 use kuiper\web\session\SessionFactoryInterface;
@@ -49,8 +55,25 @@ use Twig\Loader\LoaderInterface;
  * @Configuration()
  * @ConditionalOnClass(App::class)
  */
-class WebConfiguration
+class WebConfiguration implements DefinitionConfiguration
 {
+    use ContainerBuilderAwareTrait;
+
+    public function getDefinitions(): array
+    {
+        Application::getInstance()->getConfig()->mergeIfNotExists([
+            'application' => [
+                'web' => [
+                    'middleware' => [
+                        AccessLog::class,
+                    ],
+                ],
+            ],
+        ]);
+
+        return [];
+    }
+
     /**
      * @Bean
      */
@@ -169,7 +192,10 @@ class WebConfiguration
     /**
      * @Bean()
      * @Inject({"options": "application.web.view"})
-     * @ConditionalOnMissingClass(Twig::class)
+     * @AnyCondition({
+     *     @ConditionalOnMissingClass(Twig::class),
+     *     @ConditionalOnProperty("application.web.view.engine", hasValue="php")
+     * })
      */
     public function phpView(?array $options): ViewInterface
     {
@@ -179,7 +205,10 @@ class WebConfiguration
     /**
      * @Bean()
      * @Inject({"options": "application.web.view"})
-     * @ConditionalOnClass(Twig::class)
+     * @AnyCondition({
+     *     @ConditionalOnClass(Twig::class)
+     *     @ConditionalOnProperty("application.web.view.engine", hasValue="twig")
+     * })
      */
     public function twigView(LoaderInterface $twigLoader, ?array $options): ViewInterface
     {

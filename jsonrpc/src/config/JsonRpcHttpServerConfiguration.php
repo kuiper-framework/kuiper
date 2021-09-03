@@ -47,7 +47,11 @@ class JsonRpcHttpServerConfiguration extends AbstractJsonRpcServerConfiguration
      *     "requestHandler": "jsonrpcRequestHandler",
      * })
      */
-    public function jsonrpcHttpRequestHandler(RpcServerRequestFactoryInterface $requestFactory, RpcRequestHandlerInterface $requestHandler, ResponseFactoryInterface $responseFactory, ExceptionNormalizer $exceptionNormalizer): RequestHandlerInterface
+    public function jsonrpcHttpRequestHandler(
+        RpcServerRequestFactoryInterface $requestFactory,
+        RpcRequestHandlerInterface $requestHandler,
+        ResponseFactoryInterface $responseFactory,
+        ExceptionNormalizer $exceptionNormalizer): RequestHandlerInterface
     {
         return new JsonRpcHttpRequestHandler($requestFactory, $requestHandler, $responseFactory, $exceptionNormalizer);
     }

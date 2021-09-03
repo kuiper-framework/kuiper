@@ -9,6 +9,7 @@ use kuiper\di\annotation\Command;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\ContainerFactoryInterface;
+use function kuiper\helper\env;
 use kuiper\helper\Properties;
 use kuiper\helper\Text;
 use Psr\Container\ContainerInterface;
@@ -52,7 +53,7 @@ class Application
     {
         $this->containerFactory = $containerFactory;
         $this->basePath = $basePath;
-        $this->config = $this->loadConfig();
+        $this->loadConfig();
     }
 
     public static function getInstance(): self
@@ -94,36 +95,77 @@ class Application
         return $self->createApp()->run();
     }
 
-    protected function loadConfig(): Properties
+    protected function loadConfig(): void
     {
-        $properties = $this->createDefaultConfig();
-        $this->loadEnv($properties->get('application.env'));
-        $configFile = $this->basePath.'/src/config.php';
+        [$configFile, $properties] = $this->parseArgv();
+        if (null !== $configFile) {
+            if (!is_readable($configFile)) {
+                throw new \InvalidArgumentException("config file '$configFile' is not readable");
+            }
+            $this->config = $this->parseConfig($configFile);
+        } else {
+            $this->config = Properties::create();
+        }
+
+        $this->addDefaultConfig();
+        $this->addCommandLineOptions($properties);
+        $this->loadEnv();
+        /** @phpstan-ignore-next-line */
+        $configFile = $this->config->getString('application.php_config_file', $this->getBasePath().'/src/config.php');
         if (file_exists($configFile)) {
             /* @noinspection PhpIncludeInspection */
-            $properties->merge(require $configFile);
+            $this->config->merge(require $configFile);
+        }
+        $this->config->replacePlaceholder();
+    }
+
+    protected function parseConfig(string $configFile): Properties
+    {
+        $config = parse_ini_file($configFile);
+        if (false === $config) {
+            throw new \InvalidArgumentException("Cannot read config from $configFile");
+        }
+
+        $properties = Properties::create();
+        foreach ($config as $key => $value) {
+            $properties->set($key, $value);
         }
 
         return $properties;
     }
 
-    /**
-     * @return Properties
-     */
-    protected function createDefaultConfig(): Properties
+    protected function addCommandLineOptions(array $properties): void
     {
-        return Properties::create([
+        foreach ($properties as $i => $value) {
+            if (!strpos($value, 'application.')) {
+                $value = 'application.'.$value;
+                $properties[$i] = $value;
+            }
+        }
+        $define = parse_ini_string(implode("\n", $properties));
+        if (is_array($define)) {
+            foreach ($define as $key => $value) {
+                $this->config->set($key, $value ?? null);
+            }
+        }
+    }
+
+    protected function addDefaultConfig(): void
+    {
+        $this->config->mergeIfNotExists([
             'application' => [
-                'env' => $_ENV['ENV'] ?? 'dev',
+                'env' => env('ENV', 'prod'),
             ],
+            'ENV' => array_merge($_ENV, $_SERVER),
         ]);
     }
 
-    protected function loadEnv(string $staging, array $envFiles = []): void
+    protected function loadEnv(array $envFiles = []): void
     {
         if (!class_exists(Dotenv::class)) {
             return;
         }
+        $staging = $this->config->get('application.env');
         $envFiles = array_merge($envFiles, ['.env', '.env.local', ".env.{$staging}", ".env.{$staging}.local"]);
         Dotenv::createImmutable($this->getBasePath(), $envFiles, false)
             ->safeLoad();
@@ -164,13 +206,14 @@ class Application
 
     public static function detectBasePath(): string
     {
-        $basePath = null;
         if (defined('APP_PATH')) {
             $basePath = APP_PATH;
         } else {
             $pos = strrpos(__DIR__, '/vendor/');
             if (false !== $pos) {
                 $basePath = Composer::detect(substr(__DIR__, 0, $pos));
+            } else {
+                $basePath = env('APP_PATH');
             }
         }
 
@@ -230,5 +273,41 @@ class Application
         }
 
         return $commandMap;
+    }
+
+    protected function parseArgv(): array
+    {
+        $configFile = null;
+        $properties = [];
+        $argv = $_SERVER['argv'];
+        $rest = [];
+        while (null !== $token = array_shift($argv)) {
+            if ('--' === $token) {
+                $rest[] = $token;
+                break;
+            }
+            if (0 === strpos($token, '--')) {
+                $name = substr($token, 2);
+                $pos = strpos($name, '=');
+                if (false !== $pos) {
+                    $value = substr($name, $pos + 1);
+                    $name = substr($name, 0, $pos);
+                }
+                if ('config' === $name) {
+                    $configFile = $value ?? array_shift($argv);
+                } elseif ('define' === $name) {
+                    $properties[] = $value ?? array_shift($argv);
+                } else {
+                    $rest[] = $token;
+                }
+            } elseif ('-' === $token[0] && 2 === strlen($token) && 'D' === $token[1]) {
+                $properties[] = array_shift($argv);
+            } else {
+                $rest[] = $token;
+            }
+        }
+        $_SERVER['argv'] = array_merge($rest, $argv);
+
+        return [$configFile, $properties];
     }
 }

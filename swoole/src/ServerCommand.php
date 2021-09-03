@@ -37,6 +37,7 @@ class ServerCommand extends Command
     protected function configure(): void
     {
         $this->setName(self::NAME);
+        $this->setDescription('Start, stop or reload the server');
         $this->addOption('start', null, InputOption::VALUE_NONE, 'start the server');
         $this->addOption('stop', null, InputOption::VALUE_NONE, 'stop the server');
         $this->addOption('reload', null, InputOption::VALUE_NONE, 'reload the server');

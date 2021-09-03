@@ -215,6 +215,11 @@ class SwooleServer extends AbstractServer
         }
     }
 
+    public function getResource()
+    {
+        return $this->resource;
+    }
+
     private function createSwooleServer(ServerPort $port): void
     {
         $serverType = ServerType::fromValue($port->getServerType());
@@ -240,7 +245,7 @@ class SwooleServer extends AbstractServer
         $serverType = ServerType::fromValue($port->getServerType());
         /** @var Server\Port $swoolePort */
         $swoolePort = $this->resource->addListener($port->getHost(), $port->getPort(), $port->getSockType());
-        $swoolePort->set($serverType->settings);
+        $swoolePort->set(array_merge($serverType->settings, $port->getSettings()));
 
         foreach ($serverType->events as $event) {
             $this->logger->debug(static::TAG."attach $event to port ".$port->getPort());

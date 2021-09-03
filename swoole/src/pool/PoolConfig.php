@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use kuiper\helper\Text;
+
 class PoolConfig
 {
     /**
@@ -58,16 +60,18 @@ class PoolConfig
     /**
      * PoolConfig constructor.
      * options:
-     *  - max-connections
-     *  - wait-timeout.
+     *  - max_connections
+     *  - wait_timeout.
      */
     public function __construct(array $options = [])
     {
-        if (isset($options['max-connections'])) {
-            $this->maxConnections = (int) $options['max-connections'];
-        }
-        if (isset($options['wait-timeout'])) {
-            $this->waitTimeout = (float) $options['wait-timeout'];
+        foreach ($options as $key => $value) {
+            $key = lcfirst(Text::camelCase($key, '_-'));
+            if ('maxConnections' === $key) {
+                $this->maxConnections = (int) $value;
+            } elseif ('waitTimeout' === $key) {
+                $this->waitTimeout = (float) $value;
+            }
         }
     }
 

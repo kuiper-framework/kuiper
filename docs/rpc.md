@@ -38,11 +38,8 @@ composer require --dev kuiper/component-installer
 <?php
 
 use kuiper\swoole\Application;
-
 define('APP_PATH', dirname(__DIR__));
-
 require APP_PATH . '/vendor/autoload.php';
-
 Application::run();
 ```
 
@@ -71,8 +68,8 @@ return [
 服务启动：
 
 ```bash
-
+php src/index.php
 ```
 
-项目中 `@\kuiper\jsonrpc\annotation\JsonRpcService` 标记的类
+项目中 `@\kuiper\jsonrpc\annotation\JsonRpcService` 标记的类都将注册为对外的 jsonrpc 服务。
 jsonrpc 中 method 定义

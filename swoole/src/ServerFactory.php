@@ -95,8 +95,8 @@ class ServerFactory implements LoggerAwareInterface
     }
 
     /**
-     * @param EventListenerInterface|string $event
-     * @param callable|null                 $listener
+     * @param EventListenerInterface|string        $event
+     * @param EventListenerInterface|callable|null $listener
      *
      * @return $this
      */

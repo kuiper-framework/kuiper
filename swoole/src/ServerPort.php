@@ -30,7 +30,12 @@ class ServerPort
      */
     private $socketType;
 
-    public function __construct(string $host, int $port, string $serverType)
+    /**
+     * @var array
+     */
+    private $settings;
+
+    public function __construct(string $host, int $port, string $serverType, array $settings = [])
     {
         $this->host = $host;
         $this->port = $port;
@@ -38,6 +43,7 @@ class ServerPort
             throw new \InvalidArgumentException("Unknown server type $serverType");
         }
         $this->serverType = $serverType;
+        $this->settings = $settings;
     }
 
     public function getHost(): string
@@ -55,11 +61,9 @@ class ServerPort
         return $this->serverType;
     }
 
-    public function setSocketType(int $socketType): self
+    public function setSocketType(int $socketType): void
     {
         $this->socketType = $socketType;
-
-        return $this;
     }
 
     public function getSockType(): int
@@ -71,6 +75,14 @@ class ServerPort
     public function isHttpProtocol(): bool
     {
         return ServerType::fromValue($this->serverType)->isHttpProtocol();
+    }
+
+    /**
+     * @return array
+     */
+    public function getSettings(): array
+    {
+        return $this->settings;
     }
 
     public function __toString(): string

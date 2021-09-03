@@ -14,6 +14,7 @@ use Psr\Log\NullLogger;
 class ServerManager implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
+
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
@@ -36,11 +37,10 @@ class ServerManager implements LoggerAwareInterface
     public function stop(): void
     {
         $masterPid = $this->getMasterPid();
-        if ($masterPid > 0) {
+        if ($masterPid <= 0) {
             throw new ServerStateException('Server was not started');
         }
-        exec("kill -TERM $masterPid", $output, $ret);
-        if (0 !== $ret) {
+        if (!$this->kill($masterPid, SIGTERM)) {
             throw new ServerStateException('Server was failed to stop');
         }
         if (file_exists($this->serverConfig->getMasterPidFile())) {
@@ -54,11 +54,10 @@ class ServerManager implements LoggerAwareInterface
     public function reload(): void
     {
         $masterPid = $this->getMasterPid();
-        if ($masterPid > 0) {
+        if ($masterPid <= 0) {
             throw new ServerStateException('Server was not started');
         }
-        exec("kill -USR1 $masterPid", $output, $ret);
-        if (0 !== $ret) {
+        if (!$this->kill($masterPid, SIGUSR1)) {
             throw new ServerStateException('Server was failed to reload');
         }
     }
@@ -66,12 +65,16 @@ class ServerManager implements LoggerAwareInterface
     public function getMasterPid(): int
     {
         if (file_exists($this->serverConfig->getMasterPidFile())) {
-            return (int) file_get_contents($this->serverConfig->getMasterPidFile());
+            $pid = (int) file_get_contents($this->serverConfig->getMasterPidFile());
+        } else {
+            $pidList = $this->getPidListByType(ProcessType::MASTER);
+            $pid = ($pidList[0] ?? 0);
+        }
+        if ($pid > 0 & $this->kill($pid, 0)) {
+            return $pid;
         }
 
-        $pidList = $this->getPidListByType(ProcessType::MASTER);
-
-        return $pidList[0] ?? 0;
+        return 0;
     }
 
     private function getPidListByType(string $processType): array
@@ -82,5 +85,16 @@ class ServerManager implements LoggerAwareInterface
         $this->logger->debug(static::TAG."get $processType pid list by '$cmd'", ['pid' => $pidList]);
 
         return array_values(array_map('intval', $pidList));
+    }
+
+    private function kill(int $pid, int $signal): bool
+    {
+        if (function_exists('posix_kill')) {
+            return posix_kill($pid, $signal);
+        }
+
+        exec("kill -$signal $pid", $output, $ret);
+
+        return 0 === $ret;
     }
 }

@@ -58,7 +58,9 @@ class ObjectNormalizer implements NormalizerInterface
         $class = new \ReflectionClass($className);
         $object = $class->newInstanceWithoutConstructor();
         foreach ($metadata->getSetters() as $setter) {
-            foreach ([$setter->getSerializeName(), Text::snakeCase($setter->getSerializeName())] as $key) {
+            foreach ([$setter->getSerializeName(),
+                         Text::snakeCase($setter->getSerializeName()),
+                         Text::snakeCase($setter->getSerializeName(), '-'), ] as $key) {
                 if (isset($data[$key])) {
                     $setter->setValue($object, $this->serializer->denormalize($data[$key], $setter->getType()));
                     break;

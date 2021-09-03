@@ -11,6 +11,7 @@ use DI\Definition\ObjectDefinition;
 use function DI\get;
 use function DI\value;
 use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\annotations\PooledAnnotationReader;
 use kuiper\di\annotation\Bean;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerAwareInterface;
@@ -21,7 +22,6 @@ use kuiper\event\EventDispatcherAwareInterface;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerFactory;
 use kuiper\logger\LoggerFactoryInterface;
-use kuiper\swoole\annotation\PooledAnnotationReader;
 use kuiper\swoole\Application;
 use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\swoole\pool\PoolFactory;
@@ -105,9 +105,12 @@ class FoundationConfiguration implements DefinitionConfiguration
      */
     public function coroutineEnabled(): bool
     {
-        return !Application::getInstance()
-            ->getConfig()
-            ->getBool('application.server.enable-php-server', false);
+        $config = Application::getInstance()->getConfig();
+        if ($config->getBool('application.server.enable_php_server', false)) {
+            return false;
+        }
+
+        return $config->getBool('application.swoole.enable_coroutine', true);
     }
 
     /**
