@@ -19,7 +19,6 @@ use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
-use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\web\exception\RedirectException;
 use kuiper\web\exception\UnauthorizedException;
 use kuiper\web\handler\DefaultLoginUrlBuilder;
@@ -39,8 +38,6 @@ use kuiper\web\session\SessionFactoryInterface;
 use kuiper\web\view\PhpView;
 use kuiper\web\view\TwigView;
 use kuiper\web\view\ViewInterface;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -79,9 +76,7 @@ class WebConfiguration implements DefinitionConfiguration
 
     protected function addAccessLoggerConfig(): void
     {
-        $config = Application::getInstance()->getConfig();
-        $path = $config->get('application.logging.path');
-        $config->mergeIfNotExists([
+        Application::getInstance()->getConfig()->mergeIfNotExists([
             'application' => [
                 'web' => [
                     'middleware' => [
@@ -89,40 +84,12 @@ class WebConfiguration implements DefinitionConfiguration
                     ],
                 ],
                 'logging' => [
-                    'loggers' => [
-                        'AccessLogLogger' => $this->createAccessLogger($path.'/access.log'),
-                    ],
                     'logger' => [
                         AccessLog::class => 'AccessLogLogger',
                     ],
                 ],
             ],
         ]);
-    }
-
-    protected function createAccessLogger(string $logFileName): array
-    {
-        return [
-            'handlers' => [
-                [
-                    'handler' => [
-                        'class' => StreamHandler::class,
-                        'constructor' => [
-                            'stream' => $logFileName,
-                        ],
-                    ],
-                    'formatter' => [
-                        'class' => LineFormatter::class,
-                        'constructor' => [
-                            'format' => "%message% %context% %extra%\n",
-                        ],
-                    ],
-                ],
-            ],
-            'processors' => [
-                CoroutineIdProcessor::class,
-            ],
-        ];
     }
 
     /**
@@ -308,7 +275,7 @@ class WebConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"loginUrl": "application.web.login.url", "redirectParam": "application.web.login.redirect-param"})
+     * @Inject({"loginUrl": "application.web.login.url", "redirectParam": "application.web.login.redirect_param"})
      */
     public function loginUrlBuilder(?string $loginUrl, ?string $redirectParam): LoginUrlBuilderInterface
     {

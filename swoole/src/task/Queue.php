@@ -38,7 +38,7 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
      */
     private $processors;
 
-    public function __construct(ServerInterface $server, ContainerInterface $container = null, LoggerInterface $logger = null)
+    public function __construct(ServerInterface $server, ?ContainerInterface $container, ?LoggerInterface $logger)
     {
         $this->server = $server;
         $this->container = $container;
@@ -48,7 +48,7 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
     /**
      * {@inheritdoc}
      */
-    public function put($task, int $workerId = -1, callable $onFinish = null): int
+    public function put(TaskInterface $task, int $workerId = -1, callable $onFinish = null): int
     {
         $this->getProcessor($task);
 
@@ -80,11 +80,12 @@ class Queue implements QueueInterface, DispatcherInterface, AnnotationReaderAwar
     public function dispatch(TaskEvent $event): void
     {
         try {
+            /** @var TaskInterface $task */
             $task = $event->getData();
+            $task->setTaskEvent($event);
             $processor = $this->getProcessor($task);
-            $this->logger->debug(static::TAG.'handle '.get_class($task).' by '.get_class($processor));
-            $result = $processor
-                ->process(new Task($event->getServer(), $event->getFromWorkerId(), $event->getTaskId(), $task));
+
+            $result = $processor->process($task);
             if (isset($result)) {
                 $this->server->finish($result);
             }

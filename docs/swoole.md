@@ -1,7 +1,7 @@
 # Server
 
 Kuiper 对 Swoole 服务创建过程进行封装，使用 PSR-14 事件接口封装 swoole 事件处理，
-特别的对于 http request 事件处理使用 PSR-15 HTTP Handler，从而支持 PSR-7 消息模型。
+对于 http request 事件处理使用 PSR-15 HTTP Handler，支持 PSR-7 Http Message。
 
 ## 应用配置
 
@@ -229,3 +229,43 @@ return [
 
 swoole 服务器的配置通过 `application.swoole` 配置。
 
+## Task
+
+Kuiper 对 swoole 中的任务进行简单的封装，更容易使用。
+首先创建一个 Task 类：
+
+```php
+<?php
+
+use kuiper\swoole\task\AbstractTask;
+
+class MyTask extends AbstractTask
+{
+    private $arg;
+    public function __construct($arg)
+    {
+        $this->arg = $arg;
+    }
+}
+```
+
+创建 Task 处理类
+```php
+<?php
+use kuiper\swoole\task\ProcessorInterface;
+use kuiper\swoole\task\TaskInterface;
+
+class MyTaskProcessor implements ProcessorInterface
+{
+     public function process(TaskInterface $task)
+     {
+     }
+}
+```
+
+投递任务：
+
+```php
+$container->get(kuiper\swoole\task\QueueInterface::class)
+    ->put(new MyTask($arg));
+```

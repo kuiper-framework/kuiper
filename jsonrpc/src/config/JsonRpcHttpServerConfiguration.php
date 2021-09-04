@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
-use DI\Annotation\Inject;
-use kuiper\di\annotation\Bean;
-use kuiper\jsonrpc\server\JsonRpcHttpRequestHandler;
-use kuiper\rpc\RpcRequestHandlerInterface;
+use function DI\factory;
+use kuiper\jsonrpc\server\JsonRpcServerFactory;
 use kuiper\rpc\server\middleware\AccessLog;
-use kuiper\rpc\server\RpcServerRequestFactoryInterface;
-use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\swoole\Application;
-use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 class JsonRpcHttpServerConfiguration extends AbstractJsonRpcServerConfiguration
 {
     public function getDefinitions(): array
+    {
+        $this->addAccessLogConfig();
+
+        return [
+            RequestHandlerInterface::class => factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']),
+        ];
+    }
+
+    protected function addAccessLogConfig(): void
     {
         Application::getInstance()->getConfig()->mergeIfNotExists([
             'application' => [
@@ -35,24 +39,5 @@ class JsonRpcHttpServerConfiguration extends AbstractJsonRpcServerConfiguration
                 ],
             ],
         ]);
-
-        return [
-        ];
-    }
-
-    /**
-     * @Bean
-     * @Inject({
-     *     "requestFactory": "jsonrpcServerRequestFactory",
-     *     "requestHandler": "jsonrpcRequestHandler",
-     * })
-     */
-    public function jsonrpcHttpRequestHandler(
-        RpcServerRequestFactoryInterface $requestFactory,
-        RpcRequestHandlerInterface $requestHandler,
-        ResponseFactoryInterface $responseFactory,
-        ExceptionNormalizer $exceptionNormalizer): RequestHandlerInterface
-    {
-        return new JsonRpcHttpRequestHandler($requestFactory, $requestHandler, $responseFactory, $exceptionNormalizer);
     }
 }

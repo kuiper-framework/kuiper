@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\fixtures;
 
-class FooTask implements \JsonSerializable
+use kuiper\swoole\task\AbstractTask;
+
+class FooTask extends AbstractTask implements \JsonSerializable
 {
     private $arg;
 

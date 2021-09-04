@@ -29,13 +29,18 @@ use kuiper\swoole\listener\ManagerStartEventListener;
 use kuiper\swoole\listener\StartEventListener;
 use kuiper\swoole\listener\TaskEventListener;
 use kuiper\swoole\listener\WorkerStartEventListener;
+use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\ServerCommand;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerFactory;
 use kuiper\swoole\ServerPort;
+use kuiper\swoole\task\Queue;
+use kuiper\swoole\task\QueueInterface;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -57,14 +62,17 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
                 ],
                 'logging' => [
                     'path' => $basePath.'/logs',
+                    'access_log_file' => '{application.logging.path}/access.log',
                 ],
             ],
         ]);
+        $this->addAccessLoggerConfig();
         if (!$config->has('application.server.ports')) {
             $config->set('application.server.ports', ['8000' => ServerType::HTTP]);
         }
 
         return [
+            QueueInterface::class => autowire(Queue::class),
             SwooleResponseBridgeInterface::class => autowire(SwooleResponseBridge::class),
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
         ];
@@ -174,5 +182,44 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
         $serverConfig->setMasterPidFile($config->get('application.logging.path').'/master.pid');
 
         return $serverConfig;
+    }
+
+    protected function addAccessLoggerConfig(): void
+    {
+        $config = Application::getInstance()->getConfig();
+        $config->mergeIfNotExists([
+            'application' => [
+                'logging' => [
+                    'loggers' => [
+                        'AccessLogLogger' => self::createAccessLogger($config->get('application.logging.access_log_file')),
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public static function createAccessLogger(string $logFileName): array
+    {
+        return [
+            'handlers' => [
+                [
+                    'handler' => [
+                        'class' => StreamHandler::class,
+                        'constructor' => [
+                            'stream' => $logFileName,
+                        ],
+                    ],
+                    'formatter' => [
+                        'class' => LineFormatter::class,
+                        'constructor' => [
+                            'format' => "%message% %context% %extra%\n",
+                        ],
+                    ],
+                ],
+            ],
+            'processors' => [
+                CoroutineIdProcessor::class,
+            ],
+        ];
     }
 }

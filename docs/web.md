@@ -437,7 +437,7 @@ class FooExceptionHandler extends AbstractErrorHandler
 }
 ```
 
-错误显示通过 `\Slim\Interfaces\ErrorRendererInterface` 类执行，通过覆盖对应的类实现可以自定义错误输出。
+错误显示通过 `\Slim\Interfaces\ErrorRendererInterface` 类处理，通过覆盖对应的类实现可以自定义错误输出。
 例如在容器中配置:
 
 ```php

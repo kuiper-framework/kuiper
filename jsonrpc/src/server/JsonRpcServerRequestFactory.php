@@ -58,7 +58,7 @@ class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
             throw new JsonRpcRequestException($id, 'Json RPC params is invalid', ErrorCode::ERROR_INVALID_REQUEST);
         }
 
-        return new JsonRpcServerRequest($request, $this->resolveMethod($id, $method, $params), $id);
+        return new JsonRpcServerRequest($request, $this->resolveMethod($id, $method, $params), $id, $requestData['jsonrpc']);
     }
 
     /**

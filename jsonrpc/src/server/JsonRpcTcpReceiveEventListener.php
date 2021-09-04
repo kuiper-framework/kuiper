@@ -5,25 +5,17 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use kuiper\event\EventListenerInterface;
-use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestHelper;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
-use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\swoole\event\ReceiveEvent;
 use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerAwareTrait;
 use Webmozart\Assert\Assert;
 
-class JsonRpcTcpReceiveEventListener implements EventListenerInterface, LoggerAwareInterface
+class JsonRpcTcpReceiveEventListener implements EventListenerInterface
 {
-    use LoggerAwareTrait;
-
-    protected const TAG = '['.__CLASS__.'] ';
-
     /**
      * @var RequestFactoryInterface
      */
@@ -40,9 +32,9 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface, LoggerAw
     private $requestHandler;
 
     /**
-     * @var ExceptionNormalizer
+     * @var ErrorResponseHandlerInterface
      */
-    private $exceptionNormalizer;
+    private $errorResponseHandler;
 
     /**
      * TcpReceiveEventListener constructor.
@@ -51,12 +43,12 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface, LoggerAw
         RequestFactoryInterface $httpRequestFactory,
         RpcServerRequestFactoryInterface $serverRequestFactory,
         RpcRequestHandlerInterface $requestHandler,
-        ExceptionNormalizer $exceptionNormalizer)
+        ErrorResponseHandlerInterface $errorResponseHandler)
     {
         $this->httpRequestFactory = $httpRequestFactory;
         $this->serverRequestFactory = $serverRequestFactory;
         $this->requestHandler = $requestHandler;
-        $this->exceptionNormalizer = $exceptionNormalizer;
+        $this->errorResponseHandler = $errorResponseHandler;
     }
 
     /**
@@ -76,7 +68,7 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface, LoggerAw
             /** @var JsonRpcRequestInterface $serverRequest */
             $serverRequest = $this->serverRequestFactory->createRequest($request);
         } catch (JsonRpcRequestException $e) {
-            $server->send($event->getClientId(), $this->createRequestErrorResponse($e));
+            $server->send($event->getClientId(), $this->errorResponseHandler->handle($e));
 
             return;
         }
@@ -84,37 +76,12 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface, LoggerAw
             $response = $this->requestHandler->handle(RpcRequestHelper::addConnectionInfo($serverRequest, $connectionInfo));
             $server->send($event->getClientId(), (string) $response->getBody());
         } catch (\Exception $e) {
-            $server->send($event->getClientId(), $this->createErrorResponse($serverRequest, $e));
+            $server->send($event->getClientId(), $this->errorResponseHandler->handle($e, $serverRequest));
         }
     }
 
     public function getSubscribedEvent(): string
     {
         return ReceiveEvent::class;
-    }
-
-    private function createRequestErrorResponse(JsonRpcRequestException $e): string
-    {
-        return JsonRpcProtocol::encode([
-            'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
-            'id' => $e->getRequestId(),
-            'error' => [
-                'code' => $e->getCode(),
-                'message' => $e->getMessage(),
-            ],
-        ]);
-    }
-
-    private function createErrorResponse(JsonRpcRequestInterface $rpcRequest, \Exception $e): string
-    {
-        return JsonRpcProtocol::encode([
-            'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
-            'id' => $rpcRequest->getRequestId(),
-            'error' => [
-                'code' => $e->getCode(),
-                'message' => $e->getMessage(),
-                'data' => $this->exceptionNormalizer->normalize($e),
-            ],
-        ]);
     }
 }

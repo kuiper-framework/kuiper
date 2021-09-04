@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
+use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\rpc\client\RpcRequestFactoryInterface;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
@@ -45,7 +46,7 @@ class JsonRpcRequestFactory implements RpcRequestFactoryInterface
         $invokingMethod = $this->rpcMethodFactory->create($proxy, $method, $args);
         $request = $this->httpRequestFactory->createRequest('POST', $this->createUri($invokingMethod));
 
-        return new JsonRpcRequest($request, $invokingMethod, $this->streamFactory, $this->id++);
+        return new JsonRpcRequest($request, $invokingMethod, $this->streamFactory, $this->id++, JsonRpcRequestInterface::JSONRPC_VERSION);
     }
 
     protected function createUri(RpcMethodInterface $method): string

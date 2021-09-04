@@ -4,28 +4,14 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
-use DI\Annotation\Inject;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\jsonrpc\annotation\JsonRpcService;
-use kuiper\jsonrpc\server\JsonRpcServerMethodFactory;
-use kuiper\jsonrpc\server\JsonRpcServerRequestFactory;
-use kuiper\jsonrpc\server\JsonRpcServerResponse;
-use kuiper\jsonrpc\server\JsonRpcServerResponseFactory;
-use kuiper\jsonrpc\server\OutParamJsonRpcServerResponse;
-use kuiper\reflection\ReflectionDocBlockFactoryInterface;
-use kuiper\rpc\RpcMethodFactoryInterface;
-use kuiper\rpc\RpcRequestHandlerInterface;
-use kuiper\rpc\server\RpcServerRequestFactoryInterface;
-use kuiper\rpc\server\RpcServerResponseFactoryInterface;
-use kuiper\rpc\server\RpcServerRpcRequestHandler;
-use kuiper\serializer\NormalizerInterface;
+use kuiper\jsonrpc\server\JsonRpcServerFactory;
 use kuiper\swoole\Application;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message\ResponseFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 
 abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfiguration
 {
@@ -39,12 +25,11 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
         $services = [];
         /** @var JsonRpcService $annotation */
         foreach (ComponentCollection::getAnnotations(JsonRpcService::class) as $annotation) {
-            $serviceImpl = $container->get($annotation->getComponentId());
             $service = null;
             if (null !== $annotation->service) {
                 $service = $annotation->service;
             } else {
-                $class = new \ReflectionClass($serviceImpl);
+                $class = $annotation->getTarget();
                 foreach ($class->getInterfaceNames() as $interfaceName) {
                     $parts = explode('\\', $interfaceName);
                     $serviceName = end($parts);
@@ -52,43 +37,14 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
                         $service = $interfaceName;
                     }
                 }
+                if (null === $service) {
+                    throw new \InvalidArgumentException('Cannot resolve service name from '.$class->getName());
+                }
             }
-            $services[$service] = $serviceImpl;
+            $services[$service] = $container->get($annotation->getComponentId());
         }
 
         return $services;
-    }
-
-    /**
-     * @Bean("jsonrpcServerResponseFactory")
-     */
-    public function jsonrpcServerResponseFactory(ResponseFactoryInterface $httpResponseFactory, StreamFactoryInterface $streamFactory): RpcServerResponseFactoryInterface
-    {
-        $responseClass = Application::getInstance()->getConfig()->getBool('application.jsonrpc.server.enable_out_param')
-            ? OutParamJsonRpcServerResponse::class
-            : JsonRpcServerResponse::class;
-
-        return new JsonRpcServerResponseFactory($httpResponseFactory, $streamFactory, $responseClass);
-    }
-
-    /**
-     * @Bean("jsonrpcServerRequestFactory")
-     * @Inject({"rpcMethodFactory": "jsonrpcServerMethodFactory"})
-     */
-    public function jsonrpcServerRequestFactory(RpcMethodFactoryInterface $rpcMethodFactory): RpcServerRequestFactoryInterface
-    {
-        return new JsonRpcServerRequestFactory($rpcMethodFactory);
-    }
-
-    /**
-     * @Bean("jsonrpcServerMethodFactory")
-     * @Inject({
-     *     "services": "jsonrpcServices"
-     *     })
-     */
-    public function jsonrpcServerMethodFactory(array $services, NormalizerInterface $normalizer, ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory): RpcMethodFactoryInterface
-    {
-        return new JsonRpcServerMethodFactory($services, $normalizer, $reflectionDocBlockFactory);
     }
 
     /**
@@ -105,15 +61,10 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
     }
 
     /**
-     * @Bean("jsonrpcRequestHandler")
-     * @Inject({
-     *     "responseFactory": "jsonrpcServerResponseFactory",
-     *     "services": "jsonrpcServices",
-     *     "middlewares": "jsonrpcServerMiddlewares"
-     * })
+     * @Bean
      */
-    public function jsonrpcRequestHandler(RpcServerResponseFactoryInterface $responseFactory, array $services, array $middlewares): RpcRequestHandlerInterface
+    public function jsonRpcServerFactory(ContainerInterface $container): JsonRpcServerFactory
     {
-        return new RpcServerRpcRequestHandler($services, $responseFactory, $middlewares);
+        return JsonRpcServerFactory::createFromContainer($container);
     }
 }

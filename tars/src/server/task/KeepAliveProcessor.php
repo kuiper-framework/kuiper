@@ -6,7 +6,7 @@ namespace kuiper\tars\server\task;
 
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\task\ProcessorInterface;
-use kuiper\swoole\task\Task;
+use kuiper\swoole\task\TaskInterface;
 use kuiper\tars\integration\ServerFServant;
 use kuiper\tars\integration\ServerInfo;
 use kuiper\tars\server\ServerProperties;
@@ -47,7 +47,7 @@ class KeepAliveProcessor implements ProcessorInterface, LoggerAwareInterface
         $this->serverFServant = $serverFServant;
     }
 
-    public function process(Task $task)
+    public function process(TaskInterface $task)
     {
         $pid = $this->getServerPid();
         if (null === $pid) {

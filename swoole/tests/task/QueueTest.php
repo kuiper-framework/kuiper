@@ -33,17 +33,19 @@ class QueueTest extends SwooleServerTestCase
             $eventDispatcher->addListener(WorkerStartEvent::class, function (WorkerStartEvent $event) use ($logger, $queue) {
                 if (0 === $event->getWorkerId()) {
                     $logger->info(self::TAG.'put task');
-                    $queue->put(new FooTask('foo'));
+                    $queue->put(new FooTask('foo'), -1, function ($server, $taskId, $result) use ($logger) {
+                        $logger->info(self::TAG."receive foo task $taskId result = $result");
+                    });
                 }
             });
             $eventDispatcher->addListener(TaskEvent::class, function (TaskEvent $event) use ($logger, $queue) {
-                $logger->info(self::TAG.'consume task', ['task' => $event->getData()]);
+                $logger->info(self::TAG.'consume task', ['id' => $event->getTaskId(), 'task' => $event->getData()]);
                 $this->assertInstanceOf(FooTask::class, $event->getData());
                 $this->assertEquals('foo', $event->getData()->getArg());
                 $queue->dispatch($event);
             });
         });
-        $eventDispatcher->addListener(StartEvent::class, function (StartEvent $event) use ($container, $logger, $eventDispatcher) {
+        $eventDispatcher->addListener(StartEvent::class, function (StartEvent $event) use ($logger) {
             $logger->info(self::TAG.'server started');
             Timer::after(1000, function () use ($event) {
                 $event->getServer()->stop();

@@ -10,4 +10,9 @@ use kuiper\rpc\RpcRequestInterface;
 interface JsonRpcRequestInterface extends RpcRequestInterface, HasRequestIdInterface
 {
     public const JSONRPC_VERSION = '2.0';
+
+    /**
+     * @return string
+     */
+    public function getJsonRpcVersion(): string;
 }

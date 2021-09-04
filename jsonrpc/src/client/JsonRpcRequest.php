@@ -29,16 +29,27 @@ class JsonRpcRequest extends RpcRequest implements JsonRpcRequestInterface
      */
     private $requestId;
 
-    public function __construct(RequestInterface $request, RpcMethodInterface $rpcMethod, StreamFactoryInterface $streamFactory, int $requestId)
+    /**
+     * @var string
+     */
+    private $version;
+
+    public function __construct(RequestInterface $request, RpcMethodInterface $rpcMethod, StreamFactoryInterface $streamFactory, int $requestId, string $version)
     {
         parent::__construct($request, $rpcMethod);
         $this->requestId = $requestId;
         $this->streamFactory = $streamFactory;
+        $this->version = $version;
     }
 
     public function getRequestId(): int
     {
         return $this->requestId;
+    }
+
+    public function getJsonRpcVersion(): string
+    {
+        return $this->version;
     }
 
     protected function getJsonRpcMethod(): string

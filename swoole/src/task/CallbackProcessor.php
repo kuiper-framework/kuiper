@@ -22,7 +22,7 @@ class CallbackProcessor implements ProcessorInterface
     /**
      * {@inheritdoc}
      */
-    public function process(Task $task)
+    public function process(TaskInterface $task)
     {
         return call_user_func($this->callback, $task);
     }
