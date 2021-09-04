@@ -6,18 +6,19 @@ namespace kuiper\web\fixtures\controllers;
 
 use kuiper\di\annotation\Controller;
 use kuiper\web\AbstractController;
-use kuiper\web\annotation\filter\LoginOnly;
+use kuiper\web\annotation\filter\PreAuthorize;
 use kuiper\web\annotation\GetMapping;
 use kuiper\web\annotation\RequestMapping;
 
 /**
  * @Controller()
+ * @RequestMapping("/auth")
  */
-class IndexController extends AbstractController
+class TestAuthController extends AbstractController
 {
     /**
-     * @GetMapping("/")
-     * @LoginOnly()
+     * @GetMapping("/home")
+     * @PreAuthorize({"book:view", "book:edit"})
      */
     public function home(): void
     {
@@ -26,6 +27,7 @@ class IndexController extends AbstractController
 
     /**
      * @RequestMapping("/index")
+     * @PreAuthorize(any={"book:view", "book:edit"})
      */
     public function index(): void
     {

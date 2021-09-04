@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\logger;
 
 use kuiper\swoole\monolog\CoroutineIdProcessor;
-use Monolog\Handler\RotatingFileHandler;
+use Monolog\Handler\TestHandler;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LogLevel;
@@ -21,7 +21,7 @@ class LoggerFactoryTest extends TestCase
     {
         $container = \Mockery::mock(ContainerInterface::class);
         $container->shouldReceive('get')
-            ->andReturn(function ($name) {
+            ->andReturnUsing(function ($name) {
                 return new $name();
             });
         $this->factory = new LoggerFactory($container, [
@@ -34,10 +34,7 @@ class LoggerFactoryTest extends TestCase
                     'handlers' => [
                         [
                             'handler' => [
-                                'class' => RotatingFileHandler::class,
-                                'constructor' => [
-                                    'filename' => 'access.log',
-                                ],
+                                'class' => TestHandler::class,
                             ],
                         ],
                     ],
@@ -50,8 +47,9 @@ class LoggerFactoryTest extends TestCase
                 'com' => LogLevel::INFO,
                 'com\\github' => LogLevel::ERROR,
             ],
-            'config' => [
+            'logger' => [
                 'foo\\AccessLog' => 'AccessLogger',
+                'bar' => 'AccessLogger',
             ],
         ]);
     }
@@ -84,5 +82,14 @@ class LoggerFactoryTest extends TestCase
         $property = new \ReflectionProperty($logger, 'logLevel');
         $property->setAccessible(true);
         $this->assertEquals(Logger::getLevel($level), $property->getValue($logger));
+    }
+
+    public function testGetFoo()
+    {
+        $logger = $this->factory->create('foo\\AccessLog');
+        $logger->info('test');
+
+        $logger = $this->factory->create('bar\\AccessLog');
+        $logger->info('test');
     }
 }

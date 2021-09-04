@@ -2,13 +2,13 @@
 
 `\kuiper\helper\Properties` 类允许多维数组通过 `.` 连接的 key 访问数据。
 
-`Properties` 对象通过 `fromArray` 方法构造：
+`Properties` 对象通过 `create` 方法构造：
 
 ```php
 <?php
 use kuiper\helper\Properties;
 
-$config = Properties::fromArray([
+$config = Properties::create([
      'redis' => [
          'host' => 'localhost'
      ]
@@ -30,7 +30,7 @@ echo $config->redis->host;
 <?php
 use kuiper\helper\Properties;
 
-$config = Properties::fromArray([
+$config = Properties::create([
     'redis-cluster' => [
         ['host' => 'server1'],
         ['host' => 'server2']

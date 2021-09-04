@@ -14,23 +14,26 @@ class Acl implements AclInterface
     /**
      * Add resource to the role.
      *
-     * @param string $rule the resource or the pattern to match the resource
+     * @param string $authority the resource or the pattern to match the resource
      */
-    public function allow(string $role, string $rule): void
+    public function allow(string $role, string $authority): void
     {
-        $this->allows[$role][$rule] = true;
+        $this->allows[$role][$authority] = true;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function isAllowed(string $role, string $resource): bool
+    public function isAllowed(string $role, string $authority): bool
     {
-        if (isset($this->allows[$role][$resource])) {
+        if (!isset($this->allows[$role])) {
+            return $this->matches($role, $authority);
+        }
+        if (isset($this->allows[$role][$authority])) {
             return true;
         }
         foreach ($this->allows[$role] as $rule => $allow) {
-            if ($this->matches($rule, $resource)) {
+            if ($this->matches($rule, $authority)) {
                 return true;
             }
         }
@@ -38,8 +41,8 @@ class Acl implements AclInterface
         return false;
     }
 
-    private function matches(string $rule, string $resource): bool
+    private function matches(string $rule, string $authority): bool
     {
-        return fnmatch($rule, $resource);
+        return fnmatch($rule, $authority);
     }
 }

@@ -70,7 +70,7 @@ class ServerManager implements LoggerAwareInterface
             $pidList = $this->getPidListByType(ProcessType::MASTER);
             $pid = ($pidList[0] ?? 0);
         }
-        if ($pid > 0 & $this->kill($pid, 0)) {
+        if ($pid > 0 && $this->kill($pid, 0)) {
             return $pid;
         }
 

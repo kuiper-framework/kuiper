@@ -21,10 +21,16 @@ class PreAuthorize extends AbstractFilter
     public $value;
 
     /**
+     * @var string[]
+     */
+    public $any;
+
+    /**
      * {@inheritdoc}
      */
     public function createMiddleware(ContainerInterface $container): ?MiddlewareInterface
     {
-        return new PreAuthorizeMiddleware($container->get(AclInterface::class), $this->value);
+        /** @phpstan-ignore-next-line */
+        return new PreAuthorizeMiddleware($container->get(AclInterface::class), (array) $this->value, (array) $this->any);
     }
 }

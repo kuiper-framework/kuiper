@@ -83,6 +83,8 @@ class ServiceEndpoint implements \Iterator
 
     /**
      * {@inheritDoc}
+     *
+     * @return mixed
      */
     public function current()
     {
@@ -99,6 +101,8 @@ class ServiceEndpoint implements \Iterator
 
     /**
      * {@inheritDoc}
+     *
+     * @return int|string|null
      */
     public function key()
     {

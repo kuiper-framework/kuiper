@@ -27,7 +27,7 @@ use kuiper\rpc\transporter\InMemoryServiceRegistry;
 use kuiper\rpc\transporter\ServiceResolverInterface;
 use kuiper\rpc\transporter\SwooleTableServiceEndpointCache;
 use kuiper\swoole\Application;
-use kuiper\swoole\config\ServerConfiguration;
+use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\tars\annotation\TarsClient;
 use kuiper\tars\client\TarsProxyFactory;
@@ -37,6 +37,8 @@ use kuiper\tars\core\TarsMethodFactory;
 use kuiper\tars\integration\QueryFServant;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
 use Psr\SimpleCache\CacheInterface;
 
@@ -177,7 +179,6 @@ class TarsClientConfiguration implements DefinitionConfiguration
 
     private function addTarsRequestLog(): void
     {
-        $serverConfiguration = new ServerConfiguration();
         $config = Application::getInstance()->getConfig();
         $path = $config->get('application.logging.path');
         if (null === $path) {
@@ -187,7 +188,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
             'application' => [
                 'logging' => [
                     'loggers' => [
-                        'TarsRequestLogger' => $serverConfiguration->createAccessLogger($path.'/tars-client.log'),
+                        'TarsRequestLogger' => $this->createAccessLogger($path.'/tars-client.log'),
                     ],
                     'logger' => [
                         'TarsRequestLogger' => 'TarsRequestLogger',
@@ -202,5 +203,30 @@ class TarsClientConfiguration implements DefinitionConfiguration
                 ],
             ],
         ]);
+    }
+
+    protected function createAccessLogger(string $logFileName): array
+    {
+        return [
+            'handlers' => [
+                [
+                    'handler' => [
+                        'class' => StreamHandler::class,
+                        'constructor' => [
+                            'stream' => $logFileName,
+                        ],
+                    ],
+                    'formatter' => [
+                        'class' => LineFormatter::class,
+                        'constructor' => [
+                            'format' => "%message% %context% %extra%\n",
+                        ],
+                    ],
+                ],
+            ],
+            'processors' => [
+                CoroutineIdProcessor::class,
+            ],
+        ];
     }
 }

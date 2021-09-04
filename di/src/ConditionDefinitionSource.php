@@ -14,7 +14,7 @@ class ConditionDefinitionSource implements DefinitionSource, ContainerAwareInter
     use ContainerAwareTrait;
 
     /**
-     * @var ConditionDefinition[][]
+     * @var ConditionDefinition[][]|mixed
      */
     private $definitions;
 

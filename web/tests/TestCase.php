@@ -4,10 +4,21 @@ declare(strict_types=1);
 
 namespace kuiper\web;
 
+use kuiper\annotations\AnnotationReader;
+use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\di\AwareInjection;
+use kuiper\di\ContainerBuilder;
+use kuiper\di\PropertiesDefinitionSource;
+use kuiper\helper\PropertyResolverInterface;
+use kuiper\reflection\ReflectionNamespaceFactory;
+use kuiper\swoole\Application;
+use kuiper\web\http\DiactorosHttpMessageFactoryConfiguration;
 use Laminas\Diactoros\ServerRequestFactory;
-use Mockery;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
@@ -16,9 +27,36 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
      */
     protected $container;
 
-    protected function createContainer()
+    protected function createContainer(array $configArr): ContainerInterface
     {
-        return $this->container = Mockery::mock(ContainerInterface::class);
+        $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
+        $builder = new ContainerBuilder();
+        $builder->addConfiguration(new WebConfiguration());
+        $app = Application::create(function () use ($builder) {
+            return $builder->build();
+        });
+        $config = Application::getInstance()->getConfig();
+        $config->merge($configArr);
+        $builder->addDefinitions(new PropertiesDefinitionSource($config));
+        $builder->addConfiguration(new DiactorosHttpMessageFactoryConfiguration());
+        /** @var ReflectionNamespaceFactory $reflectionNs */
+        $reflectionNs = ReflectionNamespaceFactory::getInstance();
+        $reflectionNs->register(__NAMESPACE__.'\\fixtures', __DIR__.'/fixtures');
+        $builder->setReflectionNamespaceFactory($reflectionNs);
+        $builder->componentScan([__NAMESPACE__.'\\fixtures']);
+        $builder->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class));
+        $builder->addDefinitions([
+            LoggerInterface::class => new NullLogger(),
+            PropertyResolverInterface::class => $config,
+            AnnotationReaderInterface::class => AnnotationReader::getInstance(),
+        ]);
+
+        return $app->getContainer();
+    }
+
+    protected function getConfig(): array
+    {
+        return [];
     }
 
     protected function getContainer(): ContainerInterface
@@ -33,7 +71,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->createContainer();
+        $this->container = $this->createContainer($this->getConfig());
     }
 
     protected function tearDown(): void

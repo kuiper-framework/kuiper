@@ -18,7 +18,6 @@ class ControllerInvocationStrategy implements RequestHandlerInvocationStrategyIn
     {
         ServerRequestHolder::setRequest($request);
         if (is_array($callable) && $callable[0] instanceof ControllerInterface) {
-            /** @var ControllerInterface $controller */
             $controller = $callable[0];
             $controller = $controller->withRequest($request)
                 ->withResponse($response);

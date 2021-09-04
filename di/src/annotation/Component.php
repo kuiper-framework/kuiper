@@ -27,13 +27,18 @@ class Component implements ComponentInterface, ContainerBuilderAwareInterface
 
     public function handle(): void
     {
+        ComponentCollection::register($this);
+        $className = $this->class->getName();
+        $this->setComponentId($className);
         if (!empty($this->value)) {
             $names = [$this->value];
         } else {
-            $names = $this->getBeanNames();
+            $names = $this->class->getInterfaceNames();
+            if (empty($names)) {
+                $names = [$className];
+            }
         }
         $definitions = [];
-        $className = $this->class->getName();
         foreach ($names as $name) {
             if ($name === $className) {
                 $definition = new AutowireDefinition($className);
@@ -41,16 +46,7 @@ class Component implements ComponentInterface, ContainerBuilderAwareInterface
                 $definition = new Reference($className);
             }
             $definitions[$name] = new ComponentDefinition($definition, $this);
-            ComponentCollection::register($name, $this);
-        }
-        if (empty($names)) {
-            ComponentCollection::register($className, $this);
         }
         $this->containerBuilder->addDefinitions($definitions);
-    }
-
-    protected function getBeanNames(): array
-    {
-        return $this->class->getInterfaceNames() ?? [];
     }
 }

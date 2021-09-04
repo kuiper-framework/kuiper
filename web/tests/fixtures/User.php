@@ -8,13 +8,28 @@ use kuiper\web\security\UserIdentity;
 
 class User implements UserIdentity
 {
+    /**
+     * @var string
+     */
+    private $username;
+    /**
+     * @var string[]
+     */
+    private $authorities;
+
+    public function __construct(string $username, array $authorities)
+    {
+        $this->username = $username;
+        $this->authorities = $authorities;
+    }
+
     public function getUsername(): string
     {
-        return 'user';
+        return $this->username;
     }
 
     public function getAuthorities(): array
     {
-        return [];
+        return $this->authorities;
     }
 }

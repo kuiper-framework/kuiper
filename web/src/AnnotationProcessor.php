@@ -94,8 +94,12 @@ class AnnotationProcessor implements AnnotationProcessorInterface
             $mapping = $this->annotationReader->getMethodAnnotation($reflectionMethod, RequestMapping::class);
             if (null !== $mapping) {
                 foreach ((array) $mapping->value as $pattern) {
-                    $route = $routeCollector->map($mapping->method, $pattern, [$controller, $reflectionMethod->getName()]);
-                    $this->addFilters($route, $reflectionMethod);
+                    if (isset($mapping->method)) {
+                        $route = $routeCollector->map($mapping->method, $pattern, [$controller, $reflectionMethod->getName()]);
+                    } else {
+                        $route = $routeCollector->any($pattern, [$controller, $reflectionMethod->getName()]);
+                    }
+                    $this->addRouteMiddleware($route, $reflectionMethod);
                     if (Text::isNotEmpty($mapping->name)) {
                         if (is_array($mapping->value)) {
                             throw new \InvalidArgumentException('Cannot set route name when there multiple routes for method '.$reflectionMethod->getDeclaringClass().'::'.$reflectionMethod->getName());
@@ -110,7 +114,7 @@ class AnnotationProcessor implements AnnotationProcessorInterface
     /**
      * @param RouteGroupInterface|RouteInterface $route
      */
-    private function addFilters($route, \ReflectionMethod $method): void
+    private function addRouteMiddleware($route, \ReflectionMethod $method): void
     {
         /** @var FilterInterface[] $filters */
         $filters = [];

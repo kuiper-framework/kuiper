@@ -228,6 +228,11 @@ class ContainerBuilder implements ContainerBuilderInterface
                 }
             }
         }
+        foreach ($this->configurations as $configuration) {
+            if ($configuration instanceof Bootstrap) {
+                $configuration->boot($container);
+            }
+        }
 
         return $container;
     }

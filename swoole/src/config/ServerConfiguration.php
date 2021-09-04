@@ -7,41 +7,39 @@ namespace kuiper\swoole\config;
 use DI\Annotation\Inject;
 use function DI\autowire;
 use kuiper\di\annotation\Bean;
+use kuiper\di\Bootstrap;
+use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\event\annotation\EventListener;
 use kuiper\event\EventListenerInterface;
 use kuiper\event\EventSubscriberInterface;
-use kuiper\helper\Properties;
+use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
-use kuiper\swoole\event\ManagerStartEvent;
-use kuiper\swoole\event\StartEvent;
-use kuiper\swoole\event\WorkerStartEvent;
+use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\http\HttpMessageFactoryHolder;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use kuiper\swoole\http\SwooleResponseBridge;
 use kuiper\swoole\http\SwooleResponseBridgeInterface;
+use kuiper\swoole\listener\HttpRequestEventListener;
 use kuiper\swoole\listener\ManagerStartEventListener;
 use kuiper\swoole\listener\StartEventListener;
 use kuiper\swoole\listener\TaskEventListener;
 use kuiper\swoole\listener\WorkerStartEventListener;
-use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\ServerCommand;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerFactory;
 use kuiper\swoole\ServerPort;
 use kuiper\web\LineRequestLogFormatter;
-use kuiper\web\middleware\AccessLog;
 use kuiper\web\RequestLogFormatterInterface;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class ServerConfiguration implements DefinitionConfiguration
+class ServerConfiguration implements DefinitionConfiguration, Bootstrap
 {
     use ContainerBuilderAwareTrait;
 
@@ -65,13 +63,48 @@ class ServerConfiguration implements DefinitionConfiguration
         if (!$config->has('application.server.ports')) {
             $config->set('application.server.ports', ['8000' => ServerType::HTTP]);
         }
-        $this->addAccessLoggerConfig($config);
-        $this->addEventListeners($config);
 
         return [
             SwooleResponseBridgeInterface::class => autowire(SwooleResponseBridge::class),
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
         ];
+    }
+
+    public function boot(ContainerInterface $container): void
+    {
+        $dispatcher = $container->get(EventDispatcherInterface::class);
+        $config = $container->get(PropertyResolverInterface::class);
+        $events = [];
+        $addListener = static function ($eventName, $listener) use ($container, $dispatcher, &$events): void {
+            $eventListener = $container->get($listener);
+            if ($eventListener instanceof EventListenerInterface) {
+                $dispatcher->addListener($eventListener->getSubscribedEvent(), $eventListener);
+                $events[$eventListener->getSubscribedEvent()] = true;
+            } elseif ($eventListener instanceof EventSubscriberInterface) {
+                foreach ($eventListener->getSubscribedEvents() as $event) {
+                    $dispatcher->addListener($event, $eventListener);
+                    $events[$event] = true;
+                }
+            } elseif (is_string($eventName)) {
+                $dispatcher->addListener($eventName, $eventListener);
+                $events[$eventName] = true;
+            }
+        };
+        foreach ($config->get('application.listeners', []) as $key => $listener) {
+            $addListener($key, $listener);
+        }
+        $addListener(null, StartEventListener::class);
+        $addListener(null, ManagerStartEventListener::class);
+        $addListener(null, WorkerStartEventListener::class);
+        $addListener(null, TaskEventListener::class);
+        /** @var EventListener $annotation */
+        foreach (ComponentCollection::getAnnotations(EventListener::class) as $annotation) {
+            $addListener($annotation->value, $annotation->getComponentId());
+        }
+        $serverConfig = $container->get(ServerConfig::class);
+        if (!isset($events[RequestEvent::class]) && $serverConfig->getPort()->isHttpProtocol()) {
+            $addListener(null, HttpRequestEventListener::class);
+        }
     }
 
     /**
@@ -141,70 +174,5 @@ class ServerConfiguration implements DefinitionConfiguration
         $serverConfig->setMasterPidFile($config->get('application.logging.path').'/master.pid');
 
         return $serverConfig;
-    }
-
-    protected function addAccessLoggerConfig(Properties $config): void
-    {
-        $path = $config->get('application.logging.path');
-        $config->mergeIfNotExists([
-            'application' => [
-                'logging' => [
-                    'loggers' => [
-                        'AccessLogLogger' => $this->createAccessLogger($path.'/access.log'),
-                    ],
-                    'logger' => [
-                        AccessLog::class => 'AccessLogLogger',
-                    ],
-                ],
-            ],
-        ]);
-    }
-
-    public function createAccessLogger(string $logFileName): array
-    {
-        return [
-            'handlers' => [
-                [
-                    'handler' => [
-                        'class' => StreamHandler::class,
-                        'constructor' => [
-                            'stream' => $logFileName,
-                        ],
-                    ],
-                    'formatter' => [
-                        'class' => LineFormatter::class,
-                        'constructor' => [
-                            'format' => "%message% %context% %extra%\n",
-                        ],
-                    ],
-                ],
-            ],
-            'processors' => [
-                CoroutineIdProcessor::class,
-            ],
-        ];
-    }
-
-    protected function addEventListeners(Properties $config): void
-    {
-        $this->containerBuilder->defer(function (ContainerInterface $container) use ($config): void {
-            $dispatcher = $container->get(EventDispatcherInterface::class);
-            foreach ($config->get('application.listeners', []) as $key => $listener) {
-                $eventListener = $container->get($listener);
-                if ($eventListener instanceof EventListenerInterface) {
-                    $dispatcher->addListener($eventListener->getSubscribedEvent(), $eventListener);
-                } elseif ($eventListener instanceof EventSubscriberInterface) {
-                    foreach ($eventListener->getSubscribedEvents() as $event) {
-                        $dispatcher->addListener($event, $eventListener);
-                    }
-                } elseif (is_string($key)) {
-                    $dispatcher->addListener($key, $eventListener);
-                }
-            }
-            $dispatcher->addListener(StartEvent::class, $container->get(StartEventListener::class));
-            $dispatcher->addListener(ManagerStartEvent::class, $container->get(ManagerStartEventListener::class));
-            $dispatcher->addListener(WorkerStartEvent::class, $container->get(WorkerStartEventListener::class));
-            $dispatcher->addListener(TaskEventListener::class, $container->get(TaskEventListener::class));
-        });
     }
 }

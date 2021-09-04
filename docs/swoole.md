@@ -1,6 +1,6 @@
-# Swoole 
+# Server
 
-对 Swoole 服务创建过程进行一些封装，使用 PSR-14 事件接口封装 swoole 事件处理，
+Kuiper 对 Swoole 服务创建过程进行封装，使用 PSR-14 事件接口封装 swoole 事件处理，
 特别的对于 http request 事件处理使用 PSR-15 HTTP Handler，从而支持 PSR-7 消息模型。
 
 ## 应用配置
@@ -46,7 +46,7 @@ Application::run();
 
 ## 配置
 
-`\kuiper\swoole\Application` 在初始化时加载配置。配置加载方式有以下方式：
+`\kuiper\swoole\Application` 在初始化时加载配置。配置使用的是 [Properties](properties.md) 对象存储。配置加载方式有以下方式：
 
 1. 通过命令行参数 `--config config.ini` 指定配置文件，使用 `parse_ini_file` 解析
 2. 通过命令行参数 `--define key=value` 指定
@@ -162,12 +162,13 @@ class FooCommand extends ConsoleCommand {
 - TaskEvent
 - FinishEvent
 
-在服务启动时，会将 `application.listeners` 中的事件监听器添加。`\kuiper\swoole\config\ServerConfiguration` 中添加
-了默认的事件监听器，包括 `\kuiper\swoole\listener\StartEventListener`, `\kuiper\swoole\listener\ManagerStartEventListener`,
-`\kuiper\swoole\listener\WorkerStartEventListener`, `\kuiper\swoole\listener\TaskEventListener`。
-其中在 `WorkerStartEventListener` 通过命名空间扫描注解 `@\kuiper\event\annotation\EventListener` 
-可以自动添加监听器。也就是说 BootstrapEvent, StartEvent, ManagerStartEvent 这三个事件监听器必须通过 `application.listeners` 
-配置项添加，无法通过 `@EventListener` 注解添加。
+在服务启动时，会添加 `application.listeners` 中的事件监听器，并添加默认的事件监听器，包括 
+`\kuiper\swoole\listener\StartEventListener`, 
+`\kuiper\swoole\listener\ManagerStartEventListener`,
+`\kuiper\swoole\listener\WorkerStartEventListener`, 
+和 `\kuiper\swoole\listener\TaskEventListener`。
+并通过命名空间扫描注解 `@\kuiper\event\annotation\EventListener` 
+自动添加监听器。
 
 ## 协程
 

@@ -110,7 +110,6 @@ class Application
         $this->addDefaultConfig();
         $this->addCommandLineOptions($properties);
         $this->loadEnv();
-        /** @phpstan-ignore-next-line */
         $configFile = $this->config->getString('application.php_config_file', $this->getBasePath().'/src/config.php');
         if (file_exists($configFile)) {
             /* @noinspection PhpIncludeInspection */

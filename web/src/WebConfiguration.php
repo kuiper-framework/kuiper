@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace kuiper\web;
 
 use DI\Annotation\Inject;
+use function DI\autowire;
 use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\di\annotation\AllConditions;
 use kuiper\di\annotation\AnyCondition;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnClass;
@@ -17,6 +19,7 @@ use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
+use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\web\exception\RedirectException;
 use kuiper\web\exception\UnauthorizedException;
 use kuiper\web\handler\DefaultLoginUrlBuilder;
@@ -28,12 +31,16 @@ use kuiper\web\handler\LoginUrlBuilderInterface;
 use kuiper\web\handler\UnauthorizedErrorHandler;
 use kuiper\web\http\MediaType;
 use kuiper\web\middleware\AccessLog;
+use kuiper\web\security\Acl;
+use kuiper\web\security\AclInterface;
 use kuiper\web\session\CacheSessionHandler;
 use kuiper\web\session\CacheStoreSessionFactory;
 use kuiper\web\session\SessionFactoryInterface;
 use kuiper\web\view\PhpView;
 use kuiper\web\view\TwigView;
 use kuiper\web\view\ViewInterface;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -61,17 +68,61 @@ class WebConfiguration implements DefinitionConfiguration
 
     public function getDefinitions(): array
     {
-        Application::getInstance()->getConfig()->mergeIfNotExists([
+        $this->addAccessLoggerConfig();
+
+        return [
+            ErrorRendererInterface::class => autowire(LogErrorRenderer::class),
+            AclInterface::class => autowire(Acl::class),
+            RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
+        ];
+    }
+
+    protected function addAccessLoggerConfig(): void
+    {
+        $config = Application::getInstance()->getConfig();
+        $path = $config->get('application.logging.path');
+        $config->mergeIfNotExists([
             'application' => [
                 'web' => [
                     'middleware' => [
                         AccessLog::class,
                     ],
                 ],
+                'logging' => [
+                    'loggers' => [
+                        'AccessLogLogger' => $this->createAccessLogger($path.'/access.log'),
+                    ],
+                    'logger' => [
+                        AccessLog::class => 'AccessLogLogger',
+                    ],
+                ],
             ],
         ]);
+    }
 
-        return [];
+    protected function createAccessLogger(string $logFileName): array
+    {
+        return [
+            'handlers' => [
+                [
+                    'handler' => [
+                        'class' => StreamHandler::class,
+                        'constructor' => [
+                            'stream' => $logFileName,
+                        ],
+                    ],
+                    'formatter' => [
+                        'class' => LineFormatter::class,
+                        'constructor' => [
+                            'format' => "%message% %context% %extra%\n",
+                        ],
+                    ],
+                ],
+            ],
+            'processors' => [
+                CoroutineIdProcessor::class,
+            ],
+        ];
     }
 
     /**
@@ -93,7 +144,7 @@ class WebConfiguration implements DefinitionConfiguration
             // 数组前面的先运行
             ksort($middlewares);
             foreach (array_reverse($middlewares) as $middleware) {
-                $app->add($container->get($middleware));
+                $app->add(is_string($middleware) ? $container->get($middleware) : $middleware);
             }
         }
 
@@ -102,31 +153,41 @@ class WebConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"contextUrl": "application.web.context-url", "namespace": "application.web.namespace"})
+     * @Inject({"options": "application.web"})
      */
-    public function annotationProcessor(ContainerInterface $container, AnnotationReaderInterface $annotationReader, App $app, ?string $contextUrl, ?string $namespace): AnnotationProcessorInterface
+    public function annotationProcessor(
+        ContainerInterface $container,
+        AnnotationReaderInterface $annotationReader,
+        App $app,
+        ?array $options): AnnotationProcessorInterface
     {
-        return new AnnotationProcessor($container, $annotationReader, $app, $contextUrl, $namespace);
+        return new AnnotationProcessor(
+            $container,
+            $annotationReader,
+            $app,
+            $options['context_url'] ?? null,
+            $options['namespace'] ?? null
+        );
     }
 
     /**
      * @Bean()
-     * @Inject({"errorConfig": "application.web.error"})
+     * @Inject({"options": "application.web.error"})
      */
     public function errorMiddleware(
         ContainerInterface $container,
         App $app,
         LoggerFactoryInterface $loggerFactory,
         ErrorHandlerInterface $defaultErrorHandler,
-        ?array $errorConfig): ErrorMiddleware
+        ?array $options): ErrorMiddleware
     {
         $errorMiddleware = new ErrorMiddleware($app->getCallableResolver(),
             $app->getResponseFactory(),
-            (bool) ($errorConfig['display-error'] ?? false),
-            (bool) ($errorConfig['log-error'] ?? true),
+            (bool) ($options['display_error'] ?? false),
+            (bool) ($options['log_error'] ?? true),
             false,
             $loggerFactory->create(ErrorMiddleware::class));
-        $errorHandlers = ($errorConfig['handlers'] ?? []) + [
+        $errorHandlers = ($options['handlers'] ?? []) + [
                 RedirectException::class => HttpRedirectHandler::class,
                 UnauthorizedException::class => UnauthorizedErrorHandler::class,
                 HttpUnauthorizedException::class => UnauthorizedErrorHandler::class,
@@ -164,7 +225,7 @@ class WebConfiguration implements DefinitionConfiguration
      * @Bean()
      * @Inject({
      *     "errorRenderers": "webErrorRenderers",
-     *     "includeStacktrace": "application.web.error.include-stacktrace"
+     *     "includeStacktrace": "application.web.error.include_stacktrace"
      * })
      */
     public function defaultErrorHandler(
@@ -183,14 +244,6 @@ class WebConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     */
-    public function logErrorRenderer(): ErrorRendererInterface
-    {
-        return new LogErrorRenderer();
-    }
-
-    /**
-     * @Bean()
      * @Inject({"options": "application.web.view"})
      * @AnyCondition({
      *     @ConditionalOnMissingClass(Twig::class),
@@ -205,14 +258,14 @@ class WebConfiguration implements DefinitionConfiguration
     /**
      * @Bean()
      * @Inject({"options": "application.web.view"})
-     * @AnyCondition({
-     *     @ConditionalOnClass(Twig::class)
-     *     @ConditionalOnProperty("application.web.view.engine", hasValue="twig")
+     * @AllConditions({
+     *     @ConditionalOnClass(Twig::class),
+     *     @ConditionalOnProperty("application.web.view.engine", hasValue="twig", matchIfMissing=true)
      * })
      */
     public function twigView(LoaderInterface $twigLoader, ?array $options): ViewInterface
     {
-        $twig = new Twig($twigLoader, $options);
+        $twig = new Twig($twigLoader, $options ?? []);
         if (!empty($options['globals'])) {
             foreach ($options['globals'] as $name => $value) {
                 $twig->addGlobal($name, $value);

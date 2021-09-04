@@ -47,6 +47,6 @@ trait ComponentTrait
 
     public function handle(): void
     {
-        ComponentCollection::register($this->getComponentId(), $this);
+        ComponentCollection::register($this);
     }
 }

@@ -21,9 +21,11 @@ use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\ProxyGeneratorInterface;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\swoole\Application;
-use kuiper\swoole\config\ServerConfiguration;
+use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
 
 class JsonRpcClientConfiguration implements DefinitionConfiguration
@@ -88,7 +90,6 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
 
     private function addJsonRpcRequestLog(): void
     {
-        $serverConfiguration = new ServerConfiguration();
         $config = Application::getInstance()->getConfig();
         $path = $config->get('application.logging.path');
         if (null === $path) {
@@ -98,7 +99,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
             'application' => [
                 'logging' => [
                     'loggers' => [
-                        'JsonRpcRequestLogger' => $serverConfiguration->createAccessLogger($path.'/jsonrpc-client.log'),
+                        'JsonRpcRequestLogger' => $this->createAccessLogger($path.'/jsonrpc-client.log'),
                     ],
                     'logger' => [
                         'JsonRpcRequestLogger' => 'JsonRpcRequestLogger',
@@ -113,5 +114,30 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 ],
             ],
         ]);
+    }
+
+    protected function createAccessLogger(string $logFileName): array
+    {
+        return [
+            'handlers' => [
+                [
+                    'handler' => [
+                        'class' => StreamHandler::class,
+                        'constructor' => [
+                            'stream' => $logFileName,
+                        ],
+                    ],
+                    'formatter' => [
+                        'class' => LineFormatter::class,
+                        'constructor' => [
+                            'format' => "%message% %context% %extra%\n",
+                        ],
+                    ],
+                ],
+            ],
+            'processors' => [
+                CoroutineIdProcessor::class,
+            ],
+        ];
     }
 }

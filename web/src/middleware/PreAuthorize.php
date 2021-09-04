@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\web\middleware;
 
 use kuiper\web\security\AclInterface;
+use kuiper\web\security\PermissionEvaluator;
 use kuiper\web\security\SecurityContext;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,55 +17,24 @@ use Slim\Exception\HttpUnauthorizedException;
 class PreAuthorize implements MiddlewareInterface
 {
     /**
-     * @var AclInterface
+     * @var PermissionEvaluator
      */
-    private $acl;
+    private $permissionEvaluator;
 
     /**
-     * @var string[]
+     * @var array
      */
-    private $authorities;
-
+    private $requiredAuthorities;
     /**
-     * @var string
+     * @var array
      */
-    private static $SUPER_USER_ROLE = 'admin';
+    private $anyAuthorities;
 
-    /**
-     *  constructor.
-     *
-     * @param string[] $authorities
-     */
-    public function __construct(AclInterface $acl, array $authorities)
+    public function __construct(AclInterface $acl, array $requiredAuthorities, array $anyAuthorities)
     {
-        $this->acl = $acl;
-        $this->authorities = $authorities;
-    }
-
-    public function isAllowed(array $roles): bool
-    {
-        if (empty($roles)) {
-            return false;
-        }
-
-        if (empty($this->authorities) || $this->isSuperUser($roles)) {
-            return true;
-        }
-
-        foreach ($this->authorities as $authority) {
-            $allow = false;
-            foreach ($roles as $role) {
-                if ($this->acl->isAllowed($role, $authority)) {
-                    $allow = true;
-                    break;
-                }
-            }
-            if (!$allow) {
-                return false;
-            }
-        }
-
-        return true;
+        $this->permissionEvaluator = new PermissionEvaluator($acl);
+        $this->requiredAuthorities = $requiredAuthorities;
+        $this->anyAuthorities = $anyAuthorities;
     }
 
     /**
@@ -72,28 +42,20 @@ class PreAuthorize implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $auth = SecurityContext::fromRequest($request)->getAuth();
+        $user = SecurityContext::getIdentity($request);
 
-        if (!$auth->isAuthorized()) {
+        if (null === $user) {
             throw new HttpUnauthorizedException($request);
         }
-        if (!$this->isAllowed($auth->getIdentity()->getAuthorities())) {
+        if (!empty($this->requiredAuthorities)
+            && !$this->permissionEvaluator->hasPermission($user, $this->requiredAuthorities)) {
+            throw new HttpForbiddenException($request);
+        }
+        if (!empty($this->anyAuthorities)
+            && !$this->permissionEvaluator->hasAnyPermission($user, $this->anyAuthorities)) {
             throw new HttpForbiddenException($request);
         }
 
         return $handler->handle($request);
-    }
-
-    /**
-     * The super user role name.
-     */
-    public static function setSuperUserRole(string $roleName): void
-    {
-        self::$SUPER_USER_ROLE = $roleName;
-    }
-
-    protected function isSuperUser(array $roles): bool
-    {
-        return in_array(self::$SUPER_USER_ROLE, $roles, true);
     }
 }
