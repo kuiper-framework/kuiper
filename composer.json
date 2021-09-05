@@ -136,7 +136,6 @@
                 "kuiper\\serializer\\SerializerConfiguration",
                 "kuiper\\swoole\\config\\FoundationConfiguration",
                 "kuiper\\swoole\\config\\ServerConfiguration",
-                "kuiper\\web\\WebConfiguration",
                 "kuiper\\web\\http\\DiactorosHttpMessageFactoryConfiguration"
             ]
         }

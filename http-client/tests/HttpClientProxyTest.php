@@ -12,13 +12,6 @@ use GuzzleHttp\Psr7\Response;
 use kuiper\annotations\AnnotationReader;
 use kuiper\http\client\fixtures\GithubService;
 use kuiper\http\client\fixtures\GitRepository;
-use kuiper\reflection\ReflectionDocBlockFactory;
-use kuiper\rpc\client\ProxyGenerator;
-use kuiper\rpc\client\RpcClient;
-use kuiper\rpc\client\RpcExecutorFactory;
-use kuiper\rpc\client\RpcResponseNormalizer;
-use kuiper\rpc\RpcMethodFactory;
-use kuiper\rpc\transporter\HttpTransporter;
 use kuiper\serializer\Serializer;
 use PHPUnit\Framework\TestCase;
 
@@ -40,21 +33,10 @@ class HttpClientProxyTest extends TestCase
         $handlerStack = HandlerStack::create($mock);
         $handlerStack->push($history);
         $client = new Client(['handler' => $handlerStack]);
-        $httpTransporter = new HttpTransporter($client);
-        $annotationReader = AnnotationReader::getInstance();
-        $reflectionDocBlockFactory = new ReflectionDocBlockFactory();
-        $normalizer = new Serializer($annotationReader, $reflectionDocBlockFactory);
-        $responseFactory = new HttpJsonResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory));
 
-        $proxyGenerator = new ProxyGenerator($reflectionDocBlockFactory);
-        $generatedClass = $proxyGenerator->generate(GithubService::class);
-        $generatedClass->eval();
-        $class = $generatedClass->getClassName();
-        $rpcClient = new RpcClient($httpTransporter, $responseFactory);
-        $requestFactory = new HttpRpcRequestFactory($annotationReader, $normalizer, new RpcMethodFactory());
-        $rpcExecutorFactory = new RpcExecutorFactory($requestFactory, $rpcClient);
-        /** @var GithubService $proxy */
-        $proxy = new $class($rpcExecutorFactory);
+        $clientFactory = new HttpProxyClientFactory($client, AnnotationReader::getInstance(), new Serializer());
+
+        $proxy = $clientFactory->create(GithubService::class);
         $repos = $proxy->listRepos('john');
         // var_export($repos);
         $this->assertIsArray($repos);

@@ -14,6 +14,7 @@ use kuiper\rpc\exception\InvalidMethodException;
 use kuiper\rpc\RpcMethod;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
+use kuiper\rpc\server\ServiceObject;
 use kuiper\serializer\NormalizerInterface;
 use ReflectionException;
 use ReflectionMethod;
@@ -35,7 +36,7 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
      */
     private $cachedTypes;
     /**
-     * @var array
+     * @var ServiceObject[]
      */
     private $services;
 
@@ -55,20 +56,23 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
     public function create($service, string $method, array $args): RpcMethodInterface
     {
         $serviceName = $service;
-        if (!isset($this->services[$service])) {
-            $service = str_replace('.', '\\', $service);
+        if (!isset($this->services[$serviceName])) {
+            $serviceName = str_replace('\\', '.', $serviceName);
         }
-        if (!isset($this->services[$service])) {
+        if (!isset($this->services[$serviceName])) {
+            throw new InvalidMethodException("jsonrpc service $service not found");
+        }
+        $serviceObject = $this->services[$serviceName];
+        if (!$serviceObject->hasMethod($method)) {
             throw new InvalidMethodException("jsonrpc method $service.$method not found");
         }
-        $target = $this->services[$service];
         try {
-            $arguments = $this->resolveParams($target, $method, $args);
+            $arguments = $this->resolveParams($serviceObject->getService(), $method, $args);
         } catch (Exception $e) {
             throw new InvalidMethodException("create method $service.$method parameters fail: ".$e->getMessage());
         }
 
-        return new RpcMethod($target, $serviceName, $method, $arguments);
+        return new RpcMethod($serviceObject->getService(), $serviceName, $method, $arguments);
     }
 
     /**

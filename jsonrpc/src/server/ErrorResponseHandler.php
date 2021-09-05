@@ -10,7 +10,7 @@ use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\serializer\normalizer\ExceptionNormalizer;
 use Webmozart\Assert\Assert;
 
-class ErrorResponseHandler
+class ErrorResponseHandler implements ErrorResponseHandlerInterface
 {
     /**
      * @var ExceptionNormalizer
@@ -22,6 +22,9 @@ class ErrorResponseHandler
         $this->exceptionNormalizer = $exceptionNormalizer;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function handle(\Exception $exception, JsonRpcRequestInterface $request = null): string
     {
         if ($exception instanceof JsonRpcRequestException) {

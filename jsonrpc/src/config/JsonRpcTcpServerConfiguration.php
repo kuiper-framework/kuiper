@@ -41,8 +41,8 @@ class JsonRpcTcpServerConfiguration extends AbstractJsonRpcServerConfiguration
             ],
         ]);
 
-        return [
+        return array_merge(parent::getDefinitions(), [
             JsonRpcTcpReceiveEventListener::class => factory([JsonRpcServerFactory::class, 'createTcpRequestEventListener']),
-        ];
+        ]);
     }
 }

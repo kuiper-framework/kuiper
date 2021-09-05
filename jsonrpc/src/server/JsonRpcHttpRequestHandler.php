@@ -31,7 +31,7 @@ class JsonRpcHttpRequestHandler implements RequestHandlerInterface
     private $responseFactory;
 
     /**
-     * @var ErrorResponseHandler
+     * @var ErrorResponseHandlerInterface
      */
     private $errorResponseHandler;
 

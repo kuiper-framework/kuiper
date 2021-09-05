@@ -56,7 +56,7 @@ class ConfigurationDefinitionLoader
             }
 
             if (null !== $condition) {
-                $definitions[] = new ConditionDefinition($definition, $condition);
+                $definitions[] = new ConditionDefinition($condition, $definition);
                 $this->containerBuilder->defer(function ($container) use ($condition, $definition, $method): void {
                     if ($condition->matches($container)) {
                         $this->processComponentAnnotation($definition->getName(), $method);
@@ -70,7 +70,7 @@ class ConfigurationDefinitionLoader
         if ($configuration instanceof DefinitionConfiguration) {
             foreach ($configuration->getDefinitions() as $name => $def) {
                 if (null !== $configurationCondition && !$ignoreCondition) {
-                    $definitions[] = new ConditionDefinition($this->normalizeDefinition($def, $name), $configurationCondition);
+                    $definitions[] = new ConditionDefinition($configurationCondition, $this->createDefinitionResolver($def, (string) $name), $name);
                 } else {
                     $definitions[$name] = $def;
                 }
@@ -116,21 +116,25 @@ class ConfigurationDefinitionLoader
     /**
      * @param mixed  $definition
      * @param string $name
+     *
+     * @return callable
      */
-    private function normalizeDefinition($definition, $name): Definition
+    private function createDefinitionResolver($definition, string $name): callable
     {
-        if ($definition instanceof DefinitionHelper) {
-            $definition = $definition->getDefinition($name);
-        } elseif ($definition instanceof \Closure) {
-            $definition = new FactoryDefinition($name, $definition);
-        } elseif ($definition instanceof Definition) {
-            $definition->setName($name);
-        } else {
-            $definition = new ValueDefinition($definition);
-            $definition->setName($name);
-        }
+        return static function () use ($definition, $name) {
+            if ($definition instanceof DefinitionHelper) {
+                $definition = $definition->getDefinition($name);
+            } elseif ($definition instanceof \Closure) {
+                $definition = new FactoryDefinition($name, $definition);
+            } elseif ($definition instanceof Definition) {
+                $definition->setName($name);
+            } else {
+                $definition = new ValueDefinition($definition);
+                $definition->setName($name);
+            }
 
-        return $definition;
+            return $definition;
+        };
     }
 
     private function processComponentAnnotation(string $name, \ReflectionMethod $method): void

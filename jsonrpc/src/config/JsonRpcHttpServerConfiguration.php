@@ -16,9 +16,9 @@ class JsonRpcHttpServerConfiguration extends AbstractJsonRpcServerConfiguration
     {
         $this->addAccessLogConfig();
 
-        return [
+        return array_merge(parent::getDefinitions(), [
             RequestHandlerInterface::class => factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']),
-        ];
+        ]);
     }
 
     protected function addAccessLogConfig(): void

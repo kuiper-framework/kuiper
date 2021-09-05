@@ -19,6 +19,27 @@ composer require twig/tiwg
 composer require dflydev/fig-cookies
 ```
 
+在 composer.json 中添加：
+```json
+
+{
+    "scripts": {
+        "container-config": "kuiper\\component\\ComponentInstaller::generate"
+    },
+    "extra": {
+        "kuiper": {
+            "config-file": "src/container.php",
+            "whitelist": [
+                "kuiper/kuiper"
+            ],
+            "configuration": [
+                "kuiper\\web\\WebConfiguration"
+            ]
+        }
+    }
+}
+```
+
 ## 路由
 
 和 Slim 框架中使用 php 代码配置路由不同，Kuiper 中通过注解配置路由。

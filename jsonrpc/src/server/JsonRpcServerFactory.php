@@ -9,6 +9,7 @@ use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\rpc\server\RpcServerResponseFactoryInterface;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
+use kuiper\rpc\server\ServiceObject;
 use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Container\ContainerInterface;
@@ -20,7 +21,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 class JsonRpcServerFactory
 {
     /**
-     * @var array
+     * @var ServiceObject[]
      */
     private $services;
 

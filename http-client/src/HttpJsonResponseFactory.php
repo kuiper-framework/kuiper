@@ -19,13 +19,18 @@ class HttpJsonResponseFactory implements RpcResponseFactoryInterface
      * @var RpcResponseNormalizer
      */
     private $normalizer;
+    /**
+     * @var string|null
+     */
+    private $node;
 
     /**
      * DefaultResponseParser constructor.
      */
-    public function __construct(RpcResponseNormalizer $normalizer)
+    public function __construct(RpcResponseNormalizer $normalizer, string $node = null)
     {
         $this->normalizer = $normalizer;
+        $this->node = $node;
     }
 
     public function createResponse(RpcRequestInterface $request, ResponseInterface $response): RpcResponseInterface
@@ -45,9 +50,40 @@ class HttpJsonResponseFactory implements RpcResponseFactoryInterface
         if (false !== stripos($contentType, 'application/json')) {
             $data = json_decode((string) $response->getBody(), true);
 
-            return $this->normalizer->normalize($method, [$data]);
+            return $this->parse($method, $data);
         }
 
         return [null];
+    }
+
+    /**
+     * @param RpcMethodInterface $method
+     * @param array              $data
+     *
+     * @return null[]
+     */
+    protected function parse(RpcMethodInterface $method, array $data): array
+    {
+        if (null !== $this->node && isset($data[$this->node])) {
+            $data = $data[$this->node];
+        }
+
+        return $this->normalizer->normalize($method, [$data]);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getNode(): ?string
+    {
+        return $this->node;
+    }
+
+    /**
+     * @return RpcResponseNormalizer
+     */
+    public function getNormalizer(): RpcResponseNormalizer
+    {
+        return $this->normalizer;
     }
 }

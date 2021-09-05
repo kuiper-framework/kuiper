@@ -390,7 +390,7 @@ class ContainerBuilder implements ContainerBuilderInterface
                     if ($def instanceof ComponentDefinition) {
                         $condition = AllCondition::create($this->getAnnotationReader(), $def->getComponent()->getTarget());
                         if (null !== $condition) {
-                            $def = new ConditionDefinition($def->getDefinition(), $condition);
+                            $def = new ConditionDefinition($condition, $def->getDefinition());
                         } else {
                             $def = $def->getDefinition();
                         }

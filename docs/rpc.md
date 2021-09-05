@@ -2,17 +2,8 @@
 
 ## JSON RPC Server
 
-jsonrpc 服务支持 tcp 协议和 http 协议两种服务，在
-
-以 JsonRPC 服务为例。
-
-```bash
-composer require kuiper/kuiper
-composer require symfony/console
-composer require --dev kuiper/component-installer
-```
-
-在 composer.json 中添加配置：
+jsonrpc 服务支持 http 协议和 tcp 协议两种服务。
+在 composer.json 中添加 `kuiper\jsonrpc\config\JsonRpcHttpServerConfiguration` 启用 http 服务，例如：
 
 ```json
 {
@@ -26,54 +17,41 @@ composer require --dev kuiper/component-installer
                 "kuiper/kuiper"
             ],
             "configuration": [
-                "kuiper\\swoole\\config\\FoundationConfiguration",
-                "kuiper\\swoole\\config\\ServerConfiguration",
-                "kuiper\\serializer\\SerializerConfiguration",
-                "kuiper\\jsonrpc\\config\\JsonRpcTcpServerConfiguration"
+                "kuiper\\jsonrpc\\config\\JsonRpcHttpServerConfiguration"
             ]
         }
     }
 }
 ```
 
-添加入口文件 src/index.php
+如果要使用 tcp 协议，则替换为 `"kuiper\\jsonrpc\\config\\JsonRpcTcpServerConfiguration"`。并且由于 laminas-diactoros
+的 uri 不支持 `tcp://` 协议，还需要添加 `"kuiper\\web\\http\\GuzzleHttpMessageFactoryConfiguration"`。
 
-```php
-<?php
+## 服务注册
 
-use kuiper\swoole\Application;
-define('APP_PATH', dirname(__DIR__));
-require APP_PATH . '/vendor/autoload.php';
-Application::run();
-```
+jsonrpc 中 method 由两部分构成 `{service_name}.{method}`，service_name 是服务名，method 是服务对象中的方法。
+项目中在命名空间扫描 `@\kuiper\jsonrpc\annotation\JsonRpcService` 标记的类都将注册为对外的 jsonrpc 服务对象。
+服务名可以由 `@JsonRpcService` 注解中 `service` 属性值指定，当未指定时可以由 `@JsonRpcService` 的接口类名生成。
+接口类名和实现类名必须有包含关系，例如 `UserService` 和 `UserServiceImpl`。 服务名是由接口名将命名空间分隔符替换为 `.` 生成，
+例如，`app\services\UserService` 服务名为 `app.services.UserService`。
 
-在 src/config.php 中添加配置:
+除了使用注解标记，也可以通过配置 `application.jsonrpc.server.services` 注册服务对象，例如：
 
 ```php
 <?php
 
 return [
     'application' => [
-        'swoole' => [
-            'task_worker_num' => 1,
-            'worker_num' => 1,
-            'daemonize' => 0,
-            'ports' => [
-                8002 => 'tcp'
+        'jsonrpc' => [
+            'server' => [
+                'services' => [
+                    UserService::class,
+                    'calculator' => Calculator::class
+                ]
             ]
-        ],
-        'logging' => [
-            'path' => APP_PATH . '/logs',
         ]
     ]
 ];
 ```
 
-服务启动：
 
-```bash
-php src/index.php
-```
-
-项目中 `@\kuiper\jsonrpc\annotation\JsonRpcService` 标记的类都将注册为对外的 jsonrpc 服务。
-jsonrpc 中 method 定义

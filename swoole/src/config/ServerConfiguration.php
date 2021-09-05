@@ -62,7 +62,7 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
                 ],
                 'logging' => [
                     'path' => $basePath.'/logs',
-                    'access_log_file' => '{application.logging.path}/access.log',
+                    'access_log_file' => $basePath.'/logs/access.log',
                 ],
             ],
         ]);
