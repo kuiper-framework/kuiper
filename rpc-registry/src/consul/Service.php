@@ -25,7 +25,7 @@ class Service
     public $Tags;
 
     /**
-     * @var string[]
+     * @var Address[]
      */
     public $TaggedAddresses;
 
@@ -55,7 +55,7 @@ class Service
      */
     public $Datacenter;
     /**
-     * @var ServiceWeight
+     * @var int[]
      */
     public $Weights;
 }

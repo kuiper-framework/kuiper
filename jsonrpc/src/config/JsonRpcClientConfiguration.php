@@ -14,6 +14,7 @@ use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
+use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\annotation\JsonRpcClient;
 use kuiper\jsonrpc\client\JsonRpcClientFactory;
 use kuiper\logger\LoggerFactoryInterface;
@@ -39,7 +40,10 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
             'guzzleHttpFactory' => get(HttpFactory::class),
             JsonRpcClientFactory::class => autowire(JsonRpcClientFactory::class)
-                ->constructorParameter('middlewares', get('jsonrpcClientMiddlewares')),
+                ->constructorParameter('middlewares', get('jsonrpcClientMiddlewares'))
+                ->constructorParameter('httpClientFactory', factory(function (ContainerInterface $container) {
+                    return $container->has(HttpClientFactoryInterface::class) ? $container->get(HttpClientFactoryInterface::class) : null;
+                })),
         ]);
     }
 
@@ -63,10 +67,10 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
             $definitions[$targetClass] = factory(function (ContainerInterface $container) use ($targetClass, $annotation) {
                 return $container->get(JsonRpcClientFactory::class)
                     ->create($targetClass, array_merge(
-                    Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
-                    Application::getInstance()->getConfig()
-                        ->get('application.jsonrpc.client.options', [])[$targetClass] ?? []
-                ));
+                        Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
+                        Application::getInstance()->getConfig()
+                            ->get('application.jsonrpc.client.options', [])[$targetClass] ?? []
+                    ));
             });
         }
 

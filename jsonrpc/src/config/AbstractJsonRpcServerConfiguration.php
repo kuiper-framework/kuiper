@@ -15,8 +15,10 @@ use kuiper\helper\Text;
 use kuiper\jsonrpc\annotation\JsonRpcService;
 use kuiper\jsonrpc\server\JsonRpcServerFactory;
 use kuiper\rpc\annotation\Ignore;
-use kuiper\rpc\server\ServiceObject;
+use kuiper\rpc\server\Service;
 use kuiper\swoole\Application;
+use kuiper\swoole\ServerConfig;
+use kuiper\swoole\ServerPort;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
@@ -34,12 +36,24 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
     }
 
     /**
-     * @Bean("jsonrpcServices")
-     *
-     * @return ServiceObject[]
+     * @return Service[]
      */
-    public function jsonrpcServices(ContainerInterface $container, AnnotationReaderInterface $annotationReader): array
+    protected function getJsonrpcServices(ContainerInterface $container, ServerConfig $serverConfig, string $serverType, int $weight): array
     {
+        $serverPort = null;
+        foreach ($serverConfig->getPorts() as $port) {
+            if ($port->getServerType() === $serverType) {
+                $serverPort = $port;
+                break;
+            }
+        }
+        if (null === $serverPort) {
+            throw new \InvalidArgumentException('Cannot find port use http protocol');
+        }
+        if ('0.0.0.0' === $serverPort->getHost()) {
+            $serverPort = new ServerPort(gethostbyname(gethostname()), $serverPort->getPort(), $serverPort->getServerType());
+        }
+        $annotationReader = $container->get(AnnotationReaderInterface::class);
         $services = [];
         /** @var JsonRpcService $annotation */
         foreach (ComponentCollection::getAnnotations(JsonRpcService::class) as $annotation) {
@@ -48,11 +62,13 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
             } else {
                 $serviceName = $this->getServiceName($annotation->getTarget());
             }
-            $services[$serviceName] = new ServiceObject(
+            $services[$serviceName] = new Service(
                 $serviceName,
                 $annotation->version ?? '1.0',
                 $container->get($annotation->getComponentId()),
-                $this->getMethods($annotation->getTarget(), $annotationReader)
+                $this->getMethods($annotation->getTarget(), $annotationReader),
+                $serverPort,
+                $weight
             );
         }
         foreach ($container->get('application.jsonrpc.server.services') ?? [] as $serviceName => $service) {
@@ -63,11 +79,13 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
             if (!is_string($serviceName)) {
                 $serviceName = $service['name'] ?? $this->getServiceName($class);
             }
-            $services[$serviceName] = new ServiceObject(
+            $services[$serviceName] = new Service(
                 $serviceName,
                 $service['version'] ?? '1.0',
                 $container->get($service),
-                $this->getMethods($class, $annotationReader)
+                $this->getMethods($class, $annotationReader),
+                $serverPort,
+                $weight
             );
         }
 

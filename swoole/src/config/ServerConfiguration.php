@@ -7,6 +7,7 @@ namespace kuiper\swoole\config;
 use DI\Annotation\Inject;
 use function DI\autowire;
 use kuiper\di\annotation\Bean;
+use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\Bootstrap;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -35,15 +36,17 @@ use kuiper\swoole\ServerCommand;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerFactory;
 use kuiper\swoole\ServerPort;
-use kuiper\swoole\task\Queue;
-use kuiper\swoole\task\QueueInterface;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
+/**
+ * @ConditionalOnClass(ConsoleApplication::class)
+ */
 class ServerConfiguration implements DefinitionConfiguration, Bootstrap
 {
     use ContainerBuilderAwareTrait;
@@ -56,9 +59,9 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
             'application' => [
                 'name' => 'app',
                 'base_path' => $basePath,
-                'default_command' => ServerCommand::NAME,
+                'default_command' => 'server',
                 'commands' => [
-                    ServerCommand::NAME => ServerCommand::class,
+                    'server' => ServerCommand::class,
                 ],
                 'logging' => [
                     'path' => $basePath.'/logs',
@@ -72,7 +75,6 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
         }
 
         return [
-            QueueInterface::class => autowire(Queue::class),
             SwooleResponseBridgeInterface::class => autowire(SwooleResponseBridge::class),
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
         ];

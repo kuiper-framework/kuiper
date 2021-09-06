@@ -230,6 +230,10 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
         foreach ($this->configurations as $configuration) {
             if ($configuration instanceof Bootstrap) {
+                $condition = AllCondition::create($this->getAnnotationReader(), new \ReflectionClass($configuration));
+                if (null !== $condition && !$condition->matches($container)) {
+                    continue;
+                }
                 $configuration->boot($container);
             }
         }

@@ -34,7 +34,7 @@ class InMemoryServiceRegistry implements ServiceRegistryInterface, ServiceResolv
     /**
      * {@inheritDoc}
      */
-    public function unregister(string $service, Endpoint $endpoint): void
+    public function deregister(string $service, Endpoint $endpoint): void
     {
         if (!isset($this->serviceEndpoints[$service])) {
             return;

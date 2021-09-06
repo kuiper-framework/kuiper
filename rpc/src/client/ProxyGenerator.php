@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client;
 
+use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
@@ -12,6 +13,7 @@ use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\PropertyGenerator;
+use Laminas\Code\Generator\ValueGenerator;
 use Laminas\Code\Reflection\DocBlockReflection;
 
 class ProxyGenerator implements ProxyGeneratorInterface
@@ -99,10 +101,11 @@ class ProxyGenerator implements ProxyGeneratorInterface
     {
         $parameterType = $parameter->getType();
 
-        return array_filter([
+        return Arrays::filter([
             'name' => $parameter->getName(),
             'type' => isset($parameterType) ? ($parameter->allowsNull() ? '?' : '').$parameterType : null,
             'PassedByReference' => $parameter->isPassedByReference(),
+            'defaultValue' => $parameter->isDefaultValueAvailable() ? new ValueGenerator($parameter->getDefaultValue()) : null,
         ]);
     }
 

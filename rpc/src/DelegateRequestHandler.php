@@ -9,7 +9,7 @@ class DelegateRequestHandler implements RpcRequestHandlerInterface
     /**
      * @var callable
      */
-    private $delegate;
+    private $delegation;
 
     /**
      * DelegateRequestHandler constructor.
@@ -18,11 +18,11 @@ class DelegateRequestHandler implements RpcRequestHandlerInterface
      */
     public function __construct(callable $delegate)
     {
-        $this->delegate = $delegate;
+        $this->delegation = $delegate;
     }
 
     public function handle(RpcRequestInterface $request): RpcResponseInterface
     {
-        return ($this->delegate)($request);
+        return ($this->delegation)($request);
     }
 }

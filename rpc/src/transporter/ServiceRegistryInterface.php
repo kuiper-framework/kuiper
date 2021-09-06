@@ -17,5 +17,5 @@ interface ServiceRegistryInterface
      * @param string   $service
      * @param Endpoint $endpoint
      */
-    public function unregister(string $service, Endpoint $endpoint): void;
+    public function deregister(string $service, Endpoint $endpoint): void;
 }

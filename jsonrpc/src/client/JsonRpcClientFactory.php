@@ -72,11 +72,6 @@ class JsonRpcClientFactory implements LoggerAwareInterface
     private $proxyGenerator;
 
     /**
-     * @var HttpClientFactoryInterface
-     */
-    private $httpClientFactory;
-
-    /**
      * @var LoggerFactoryInterface
      */
     private $loggerFactory;
@@ -85,6 +80,11 @@ class JsonRpcClientFactory implements LoggerAwareInterface
      * @var PoolFactoryInterface
      */
     private $poolFactory;
+
+    /**
+     * @var HttpClientFactoryInterface|null
+     */
+    private $httpClientFactory;
 
     /**
      * @var RpcMethodFactoryInterface|null
@@ -109,16 +109,15 @@ class JsonRpcClientFactory implements LoggerAwareInterface
     /**
      * JsonRpcClientFactory constructor.
      *
-     * @param RpcResponseNormalizer      $rpcResponseNormalizer
-     * @param ExceptionNormalizer        $exceptionNormalizer
-     * @param MiddlewareInterface[]      $middlewares
-     * @param ResponseFactoryInterface   $httpResponseFactory
-     * @param StreamFactoryInterface     $streamFactory
-     * @param RequestFactoryInterface    $httpRequestFactory
-     * @param ProxyGeneratorInterface    $proxyGenerator
-     * @param HttpClientFactoryInterface $httpClientFactory
-     * @param LoggerFactoryInterface     $loggerFactory
-     * @param PoolFactoryInterface       $poolFactory
+     * @param RpcResponseNormalizer    $rpcResponseNormalizer
+     * @param ExceptionNormalizer      $exceptionNormalizer
+     * @param MiddlewareInterface[]    $middlewares
+     * @param ResponseFactoryInterface $httpResponseFactory
+     * @param StreamFactoryInterface   $streamFactory
+     * @param RequestFactoryInterface  $httpRequestFactory
+     * @param ProxyGeneratorInterface  $proxyGenerator
+     * @param LoggerFactoryInterface   $loggerFactory
+     * @param PoolFactoryInterface     $poolFactory
      */
     public function __construct(
         RpcResponseNormalizer $rpcResponseNormalizer,
@@ -128,9 +127,9 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         StreamFactoryInterface $streamFactory,
         RequestFactoryInterface $httpRequestFactory,
         ProxyGeneratorInterface $proxyGenerator,
-        HttpClientFactoryInterface $httpClientFactory,
         LoggerFactoryInterface $loggerFactory,
-        PoolFactoryInterface $poolFactory)
+        PoolFactoryInterface $poolFactory,
+        HttpClientFactoryInterface $httpClientFactory = null)
     {
         $this->rpcResponseNormalizer = $rpcResponseNormalizer;
         $this->exceptionNormalizer = $exceptionNormalizer;
@@ -139,9 +138,9 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         $this->streamFactory = $streamFactory;
         $this->httpRequestFactory = $httpRequestFactory;
         $this->proxyGenerator = $proxyGenerator;
-        $this->httpClientFactory = $httpClientFactory;
         $this->loggerFactory = $loggerFactory;
         $this->poolFactory = $poolFactory;
+        $this->httpClientFactory = $httpClientFactory;
     }
 
     protected function getRpcMethodFactory(): RpcMethodFactoryInterface

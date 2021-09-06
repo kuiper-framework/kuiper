@@ -38,12 +38,12 @@ class HttpClientFactory implements HttpClientFactoryInterface, LoggerAwareInterf
             $options['handler'] = HandlerStack::create();
         }
         if (!empty($options['logging'])) {
-            $format = strtoupper($options['log-format'] ?? 'clf');
+            $format = strtoupper($options['log_format'] ?? 'clf');
             if (defined(MessageFormatter::class.'::'.$format)) {
                 $format = constant(MessageFormatter::class.'::'.$format);
             }
             $formatter = new MessageFormatter($format);
-            $middleware = Middleware::log($this->logger, $formatter, strtolower($options['log-level'] ?? 'info'));
+            $middleware = Middleware::log($this->logger, $formatter, strtolower($options['log_level'] ?? 'info'));
             $options['handler']->push($middleware);
         }
         if (!empty($options['retry'])) {

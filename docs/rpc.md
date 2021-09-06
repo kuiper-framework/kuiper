@@ -1,8 +1,10 @@
-# RPC Server
+# RPC 服务
+
+RPC 服务可以有多种协议，这里以 jsonrpc 协议为例说明 RPC 服务端和客户端使用方式。
 
 ## JSON RPC Server
 
-jsonrpc 服务支持 http 协议和 tcp 协议两种服务。
+jsonrpc 服务传输方式可以使用 http 协议和 tcp 协议两种服务。
 在 composer.json 中添加 `kuiper\jsonrpc\config\JsonRpcHttpServerConfiguration` 启用 http 服务，例如：
 
 ```json
@@ -53,5 +55,9 @@ return [
     ]
 ];
 ```
+
+## 客户端
+
+## 服务发现
 
 

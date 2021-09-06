@@ -14,7 +14,7 @@ use kuiper\rpc\exception\InvalidMethodException;
 use kuiper\rpc\RpcMethod;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
-use kuiper\rpc\server\ServiceObject;
+use kuiper\rpc\server\Service;
 use kuiper\serializer\NormalizerInterface;
 use ReflectionException;
 use ReflectionMethod;
@@ -36,7 +36,7 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
      */
     private $cachedTypes;
     /**
-     * @var ServiceObject[]
+     * @var Service[]
      */
     private $services;
 

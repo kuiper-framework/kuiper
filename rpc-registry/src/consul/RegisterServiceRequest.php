@@ -7,7 +7,7 @@ namespace kuiper\rpc\registry\consul;
 class RegisterServiceRequest
 {
     /**
-     * @var string
+     * @var string|null
      */
     public $ID;
 
@@ -52,10 +52,6 @@ class RegisterServiceRequest
      */
     public $Checks;
 
-    /**
-     * @var string|null
-     */
-    public $ns;
     /**
      * @var ServiceWeight
      */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\server;
 
+use kuiper\rpc\DelegateRequestHandler;
 use kuiper\rpc\exception\ErrorCode;
 use kuiper\rpc\exception\InvalidRequestException;
 use kuiper\rpc\MiddlewareSupport;
@@ -38,22 +39,8 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
      */
     public function handle(RpcRequestInterface $request): RpcResponseInterface
     {
-        return $this->buildMiddlewareStack(new class($this) implements RpcRequestHandlerInterface {
-            /**
-             * @var RpcServerRpcRequestHandler
-             */
-            private $handler;
-
-            public function __construct(RpcServerRpcRequestHandler $handler)
-            {
-                $this->handler = $handler;
-            }
-
-            public function handle(RpcRequestInterface $request): RpcResponseInterface
-            {
-                return $this->handler->serve($request);
-            }
-        })->handle($request);
+        return $this->buildMiddlewareStack(new DelegateRequestHandler([$this, 'serve']))
+            ->handle($request);
     }
 
     /**

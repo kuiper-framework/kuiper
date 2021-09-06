@@ -23,4 +23,9 @@ class RequestMapping
      * @var string
      */
     public $method;
+
+    /**
+     * @var array
+     */
+    public $queryParams;
 }

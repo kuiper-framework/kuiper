@@ -85,19 +85,28 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
         if (null !== $classAnnotation) {
             $uri = $classAnnotation->url.$classAnnotation->path.$uri;
         }
-        $request = new Psr7\Request($method, $uri, $headers);
+        $request = new Psr7\Request($mapping->method, $uri, $headers);
         if (!empty($parameters)) {
-            $options = $this->getRequestOptions($request, $parameters);
+            $options = $this->getRequestOptions($request, $mapping, $parameters);
             $request = $this->applyOptions($request, $options);
         }
 
         return new RpcRequest($request, $invokingMethod);
     }
 
-    private function getRequestOptions(HttpRequestInterface $request, array $parameters): array
+    private function getRequestOptions(HttpRequestInterface $request, RequestMapping $mapping, array $parameters): array
     {
         $params = [];
+        $query = [];
         $hasResource = false;
+        if (!empty($mapping->queryParams)) {
+            foreach ($mapping->queryParams as $name => $paramName) {
+                if (isset($parameters[$paramName])) {
+                    $query[$name] = $parameters[$paramName]['value'];
+                    unset($parameters[$paramName]);
+                }
+            }
+        }
         foreach ($parameters as $name => $parameter) {
             $value = $parameter['value'];
             if ($value instanceof Request) {
@@ -113,11 +122,11 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
             }
         }
         if ('GET' === $request->getMethod()) {
-            return ['query' => $params];
+            return ['query' => array_merge($params, $query)];
         }
 
         if (false !== strpos($request->getHeaderLine('content-type'), 'application/json')) {
-            return ['json' => $params];
+            return ['json' => $params, 'query' => $query];
         }
 
         if ($hasResource || strpos($request->getHeaderLine('content-type'), 'multipart/form-data')) {
@@ -135,10 +144,10 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
                 $multipart[] = $content;
             }
 
-            return ['multipart' => $multipart];
+            return ['multipart' => $multipart, 'query' => $query];
         }
 
-        return ['form_params' => $params];
+        return ['form_params' => $params, 'query' => $query];
     }
 
     /**
@@ -152,7 +161,10 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 
         if (isset($options['headers'])) {
             $modify['set_headers'] = $options['headers'];
+            $options['_conditional'] = $options['headers'];
             unset($options['headers']);
+        } else {
+            $options['_conditional'] = [];
         }
 
         if (isset($options['form_params'])) {
