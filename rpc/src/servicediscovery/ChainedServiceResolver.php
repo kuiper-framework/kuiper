@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace kuiper\rpc\transporter;
+namespace kuiper\rpc\servicediscovery;
+
+use kuiper\rpc\ServiceLocator;
 
 class ChainedServiceResolver implements ServiceResolverInterface
 {
@@ -22,11 +24,11 @@ class ChainedServiceResolver implements ServiceResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve(string $service): ?ServiceEndpoint
+    public function resolve(ServiceLocator $serviceLocator): ?ServiceEndpoint
     {
         $serviceEndpoint = null;
         foreach ($this->resolvers as $resolver) {
-            $serviceEndpoint = $resolver->resolve($service);
+            $serviceEndpoint = $resolver->resolve($serviceLocator);
             if (null !== $serviceEndpoint) {
                 break;
             }

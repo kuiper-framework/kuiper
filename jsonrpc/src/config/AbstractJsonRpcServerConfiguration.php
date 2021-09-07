@@ -13,9 +13,11 @@ use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Text;
 use kuiper\jsonrpc\annotation\JsonRpcService;
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\server\JsonRpcServerFactory;
 use kuiper\rpc\annotation\Ignore;
 use kuiper\rpc\server\Service;
+use kuiper\rpc\ServiceLocator;
 use kuiper\swoole\Application;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerPort;
@@ -63,8 +65,7 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
                 $serviceName = $this->getServiceName($annotation->getTarget());
             }
             $services[$serviceName] = new Service(
-                $serviceName,
-                $annotation->version ?? '1.0',
+                new ServiceLocator($serviceName, $annotation->version ?? '1.0', JsonRpcProtocol::NS),
                 $container->get($annotation->getComponentId()),
                 $this->getMethods($annotation->getTarget(), $annotationReader),
                 $serverPort,
@@ -80,8 +81,7 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
                 $serviceName = $service['name'] ?? $this->getServiceName($class);
             }
             $services[$serviceName] = new Service(
-                $serviceName,
-                $service['version'] ?? '1.0',
+                new ServiceLocator($serviceName, $service['version'] ?? '1.0', JsonRpcProtocol::NS),
                 $container->get($service),
                 $this->getMethods($class, $annotationReader),
                 $serverPort,

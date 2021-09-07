@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace kuiper\http\client\fixtures;
 
 use kuiper\http\client\annotation\GetMapping;
+use kuiper\http\client\annotation\HttpClient;
 use kuiper\http\client\annotation\RequestHeader;
 
 /**
+ * @HttpClient
  * @RequestHeader("content-type: application/json")
  */
 interface GithubService

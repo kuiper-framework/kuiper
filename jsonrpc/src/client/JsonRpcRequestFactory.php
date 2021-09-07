@@ -23,21 +23,27 @@ class JsonRpcRequestFactory implements RpcRequestFactoryInterface
      * @var StreamFactoryInterface
      */
     private $streamFactory;
-
-    /**
-     * @var int
-     */
-    private $id;
     /**
      * @var RpcMethodFactoryInterface
      */
     private $rpcMethodFactory;
 
-    public function __construct(RequestFactoryInterface $httpRequestFactory, StreamFactoryInterface $streamFactory, RpcMethodFactoryInterface $rpcMethodFactory, ?int $id = null)
+    /**
+     * @var string
+     */
+    private $baseUri;
+
+    /**
+     * @var int
+     */
+    private $id;
+
+    public function __construct(RequestFactoryInterface $httpRequestFactory, StreamFactoryInterface $streamFactory, RpcMethodFactoryInterface $rpcMethodFactory, string $baseUri = '/', ?int $id = null)
     {
         $this->httpRequestFactory = $httpRequestFactory;
         $this->streamFactory = $streamFactory;
         $this->rpcMethodFactory = $rpcMethodFactory;
+        $this->baseUri = $baseUri;
         $this->id = $id ?? random_int(0, 1 << 20);
     }
 
@@ -46,11 +52,51 @@ class JsonRpcRequestFactory implements RpcRequestFactoryInterface
         $invokingMethod = $this->rpcMethodFactory->create($proxy, $method, $args);
         $request = $this->httpRequestFactory->createRequest('POST', $this->createUri($invokingMethod));
 
-        return new JsonRpcRequest($request, $invokingMethod, $this->streamFactory, $this->id++, JsonRpcRequestInterface::JSONRPC_VERSION);
+        return new JsonRpcRequest($request, $invokingMethod, $this->streamFactory, $this->generateId(), JsonRpcRequestInterface::JSONRPC_VERSION);
     }
 
     protected function createUri(RpcMethodInterface $method): string
     {
-        return '/';
+        return $this->baseUri;
+    }
+
+    protected function generateId(): int
+    {
+        $id = $this->id;
+        ++$this->id;
+
+        return $id;
+    }
+
+    /**
+     * @return RequestFactoryInterface
+     */
+    public function getHttpRequestFactory(): RequestFactoryInterface
+    {
+        return $this->httpRequestFactory;
+    }
+
+    /**
+     * @return StreamFactoryInterface
+     */
+    public function getStreamFactory(): StreamFactoryInterface
+    {
+        return $this->streamFactory;
+    }
+
+    /**
+     * @return RpcMethodFactoryInterface
+     */
+    public function getRpcMethodFactory(): RpcMethodFactoryInterface
+    {
+        return $this->rpcMethodFactory;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBaseUri(): string
+    {
+        return $this->baseUri;
     }
 }

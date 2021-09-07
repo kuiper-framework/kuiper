@@ -41,7 +41,7 @@ class JsonRpcClientTest extends TestCase
 
     private function createClient(string $clientInterface, RpcResponseFactoryInterface $responseFactory = null)
     {
-        $proxyGenerator = new ProxyGenerator(new ReflectionDocBlockFactory());
+        $proxyGenerator = new ProxyGenerator();
         $generatedClass = $proxyGenerator->generate($clientInterface);
         $generatedClass->eval();
         $class = $generatedClass->getClassName();
@@ -53,9 +53,9 @@ class JsonRpcClientTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $transporter = new HttpTransporter($client);
-        $rpcMethodFactory = new JsonRpcMethodFactory();
+        $rpcMethodFactory = new JsonRpcMethodFactory(AnnotationReader::getInstance());
         $httpFactory = new HttpFactory();
-        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), $httpFactory, $rpcMethodFactory, 1);
+        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), $httpFactory, $rpcMethodFactory, '/', 1);
         if (null === $responseFactory) {
             $responseFactory = new SimpleJsonRpcResponseFactory();
         }
@@ -88,7 +88,7 @@ class JsonRpcClientTest extends TestCase
 
     public function testNormalizer()
     {
-        $reflectionDocBlockFactory = new ReflectionDocBlockFactory();
+        $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
         $responseFactory = new JsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory), new ExceptionNormalizer());
         $proxy = $this->createClient(UserService::class, $responseFactory);
@@ -139,7 +139,7 @@ class JsonRpcClientTest extends TestCase
 
     public function testNoOutParam()
     {
-        $reflectionDocBlockFactory = new ReflectionDocBlockFactory();
+        $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
         $responseFactory = new NoOutParamJsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory), new ExceptionNormalizer());
         /** @var UserService $proxy */

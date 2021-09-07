@@ -17,7 +17,9 @@ use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\http\client\HttpProxyClientFactory;
 use kuiper\rpc\registry\consul\ConsulAgent;
 use kuiper\rpc\registry\consul\ConsulServiceRegistry;
-use kuiper\rpc\server\ServiceRegistry;
+use kuiper\rpc\registry\consul\ConsulServiceResolver;
+use kuiper\rpc\server\ServiceRegistryInterface;
+use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Container\ContainerInterface;
 
@@ -58,8 +60,20 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
      *     @ConditionalOnProperty("application.server.service_discovery", hasValue="consul", matchIfMissing=true)
      * })
      */
-    public function consulServerRegistry(ConsulAgent $consulAgent): ServiceRegistry
+    public function consulServerRegistry(ConsulAgent $consulAgent): ServiceRegistryInterface
     {
         return new ConsulServiceRegistry($consulAgent);
+    }
+
+    /**
+     * @Bean()
+     * @AllConditions({
+     *     @ConditionalOnProperty("application.consul"),
+     *     @ConditionalOnProperty("application.client.service_discovery", hasValue="consul", matchIfMissing=true)
+     * })
+     */
+    public function consulServerResolver(ConsulAgent $consulAgent): ServiceResolverInterface
+    {
+        return new ConsulServiceResolver($consulAgent);
     }
 }

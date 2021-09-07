@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace kuiper\rpc\transporter;
+namespace kuiper\rpc\servicediscovery;
 
+use kuiper\rpc\ServiceLocator;
 use Psr\SimpleCache\CacheInterface;
 
 class CachedServiceResolver implements ServiceResolverInterface
@@ -29,12 +30,13 @@ class CachedServiceResolver implements ServiceResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve(string $service): ?ServiceEndpoint
+    public function resolve(ServiceLocator $serviceLocator): ?ServiceEndpoint
     {
-        $endpoint = $this->cache->get($service, false);
+        $key = (string) $serviceLocator;
+        $endpoint = $this->cache->get($key, false);
         if (false === $endpoint) {
-            $endpoint = $this->resolver->resolve($service);
-            $this->cache->set($service, $endpoint);
+            $endpoint = $this->resolver->resolve($serviceLocator);
+            $this->cache->set($key, $endpoint);
         }
 
         return $endpoint;

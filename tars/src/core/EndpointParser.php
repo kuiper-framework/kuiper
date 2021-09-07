@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace kuiper\tars\core;
 
 use kuiper\helper\Arrays;
+use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\rpc\transporter\Endpoint;
-use kuiper\rpc\transporter\ServiceEndpoint;
 use kuiper\tars\integration\EndpointF;
 
 class EndpointParser

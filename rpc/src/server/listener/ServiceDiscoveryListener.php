@@ -6,7 +6,7 @@ namespace kuiper\rpc\server\listener;
 
 use kuiper\event\EventSubscriberInterface;
 use kuiper\rpc\server\Service;
-use kuiper\rpc\server\ServiceRegistry;
+use kuiper\rpc\server\ServiceRegistryInterface;
 use kuiper\swoole\event\ShutdownEvent;
 use kuiper\swoole\event\WorkerStartEvent;
 use Psr\Log\LoggerAwareInterface;
@@ -17,7 +17,7 @@ class ServiceDiscoveryListener implements EventSubscriberInterface, LoggerAwareI
     use LoggerAwareTrait;
 
     /**
-     * @var ServiceRegistry
+     * @var ServiceRegistryInterface
      */
     private $serviceRegistry;
 
@@ -29,10 +29,10 @@ class ServiceDiscoveryListener implements EventSubscriberInterface, LoggerAwareI
     /**
      * ServiceDiscoveryListener constructor.
      *
-     * @param ServiceRegistry $serviceRegistry
-     * @param Service[]       $services
+     * @param ServiceRegistryInterface $serviceRegistry
+     * @param Service[]                $services
      */
-    public function __construct(ServiceRegistry $serviceRegistry, array $services)
+    public function __construct(ServiceRegistryInterface $serviceRegistry, array $services)
     {
         $this->serviceRegistry = $serviceRegistry;
         $this->services = $services;
@@ -41,7 +41,7 @@ class ServiceDiscoveryListener implements EventSubscriberInterface, LoggerAwareI
     public function __invoke($event): void
     {
         if ($event instanceof WorkerStartEvent) {
-            if ($event->getServer()->isTaskWorker()) {
+            if (0 === $event->getWorkerId()) {
                 foreach ($this->services as $service) {
                     $this->serviceRegistry->register($service);
                 }

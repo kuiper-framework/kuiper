@@ -98,7 +98,7 @@ final class Endpoint
      */
     public function getOption(string $name)
     {
-        return $this->options[$name];
+        return $this->options[$name] ?? null;
     }
 
     public function getAddress(): string
@@ -108,9 +108,12 @@ final class Endpoint
 
     public function equals(Endpoint $other): bool
     {
-        return $this->getProtocol() === $other->getProtocol()
-            && $this->getHost() === $other->getHost()
-            && $this->getPort() === $other->getPort();
+        return $this->protocol === $other->protocol
+            && $this->host === $other->host
+            && $this->port === $other->port
+            && $this->connectTimeout === $other->connectTimeout
+            && $this->receiveTimeout === $other->receiveTimeout
+            && $this->options === $other->options;
     }
 
     public function __toString(): string
@@ -119,10 +122,10 @@ final class Endpoint
             $this->protocol,
             $this->host,
             $this->port,
-            http_build_query(array_filter([
+            http_build_query(array_merge($this->options, array_filter([
                 ClientSettings::CONNECT_TIMEOUT => $this->connectTimeout,
                 ClientSettings::RECV_TIMEOUT => $this->receiveTimeout,
-            ]))
+            ])))
         );
     }
 
@@ -144,19 +147,7 @@ final class Endpoint
             parse_str($parts['query'], $options);
         }
 
-        return new self(
-            $parts['scheme'] ?? '',
-            $parts['host'] ?? '',
-            $parts['port'] ?? 0,
-            self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null),
-            self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null),
-            $options
-        );
-    }
-
-    private static function filterTimeout(?string $timeout): ?float
-    {
-        return Text::isNotEmpty($timeout) ? (float) $timeout : null;
+        return self::create($parts['scheme'] ?? '', $parts['host'] ?? '', (int) ($parts['port'] ?? 0), $options);
     }
 
     /**
@@ -168,13 +159,39 @@ final class Endpoint
     {
         parse_str($uri->getQuery(), $options);
 
+        return self::create($uri->getScheme(), $uri->getHost(), $uri->getPort() ?? 0, $options);
+    }
+
+    private static function create(string $schema, string $host, int $port, array $options): self
+    {
+        $connectTimeout = self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null);
+        $receiveTimeout = self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null);
+        unset($options[ClientSettings::CONNECT_TIMEOUT], $options[ClientSettings::RECV_TIMEOUT], $options['timeout']);
+
         return new self(
-            $uri->getScheme(),
-            $uri->getHost(),
-            $uri->getPort() ?? 0,
-            self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null),
-            self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null),
+            $schema,
+            $host,
+            $port,
+            $connectTimeout,
+            $receiveTimeout,
             $options
+        );
+    }
+
+    private static function filterTimeout(?string $timeout): ?float
+    {
+        return Text::isNotEmpty($timeout) ? (float) $timeout : null;
+    }
+
+    public function merge(Endpoint $endpoint): Endpoint
+    {
+        return new self(
+            '' !== $this->protocol ? $this->protocol : $endpoint->protocol,
+            '' !== $this->host ? $this->host : $endpoint->host,
+            $this->port > 0 ? $this->port : $endpoint->port,
+            $this->connectTimeout ?? $endpoint->connectTimeout,
+            $this->receiveTimeout ?? $endpoint->receiveTimeout,
+            array_merge($endpoint->options, $this->options)
         );
     }
 }

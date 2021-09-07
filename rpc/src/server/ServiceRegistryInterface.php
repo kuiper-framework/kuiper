@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\server;
 
-interface ServiceRegistry
+interface ServiceRegistryInterface
 {
     /**
      * @param Service $service

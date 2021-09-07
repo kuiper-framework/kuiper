@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace kuiper\rpc\transporter;
+namespace kuiper\rpc\servicediscovery;
 
+use kuiper\rpc\transporter\Endpoint;
 use Psr\SimpleCache\CacheInterface;
 use Swoole\Table;
 
@@ -15,7 +16,7 @@ use Swoole\Table;
  */
 class SwooleTableServiceEndpointCache implements CacheInterface
 {
-    public const KEY_ROUTES = 'routes';
+    public const KEY_DATA = 'data';
     public const KEY_EXPIRES = 'expires';
     /**
      * @var Table
@@ -37,7 +38,7 @@ class SwooleTableServiceEndpointCache implements CacheInterface
     public function __construct(int $ttl = 60, int $capacity = 256, int $size = 2046)
     {
         $this->table = new Table($capacity);
-        $this->table->column(self::KEY_ROUTES, Table::TYPE_STRING, $size);
+        $this->table->column(self::KEY_DATA, Table::TYPE_STRING, $size);
         $this->table->column(self::KEY_EXPIRES, Table::TYPE_INT, 4);
         $this->table->create();
         $this->ttl = $ttl;
@@ -50,7 +51,7 @@ class SwooleTableServiceEndpointCache implements CacheInterface
     {
         $result = $this->table->get($key);
         if ($result && time() < $result[self::KEY_EXPIRES]) {
-            return $this->decode($result[self::KEY_ROUTES]);
+            return $this->decode($result[self::KEY_DATA]);
         }
 
         return $default;
@@ -62,7 +63,7 @@ class SwooleTableServiceEndpointCache implements CacheInterface
     public function set($key, $value, $ttl = null)
     {
         $this->table->set($key, [
-            self::KEY_ROUTES => $this->encode($value),
+            self::KEY_DATA => $this->encode($value),
             self::KEY_EXPIRES => time() + ($ttl ?? $this->ttl),
         ]);
 
@@ -74,34 +75,14 @@ class SwooleTableServiceEndpointCache implements CacheInterface
      *
      * @return string
      */
-    private function encode(array $endpoints): string
+    private function encode(ServiceEndpoint $endpoint): string
     {
-        return implode("\n", array_map(static function (Endpoint $endpoint): string {
-            return sprintf('%s://%s:%d?%s',
-                $endpoint->getProtocol(),
-                $endpoint->getHost(),
-                $endpoint->getPort(),
-                http_build_query(array_filter([
-                    'timeout' => $endpoint->getReceiveTimeout(),
-                    'weight' => $endpoint->getOption('weight'),
-                ])));
-        }, $endpoints));
+        return (string) $endpoint;
     }
 
-    private function decode(string $data): array
+    private function decode(string $data): ServiceEndpoint
     {
-        $addresses = [];
-        foreach (explode("\n", $data) as $one) {
-            if (!empty($one)) {
-                try {
-                    $addresses[] = Endpoint::fromString($one);
-                } catch (\InvalidArgumentException $e) {
-                    // pass
-                }
-            }
-        }
-
-        return $addresses;
+        return ServiceEndpoint::fromString($data);
     }
 
     /**

@@ -53,6 +53,11 @@ class HttpClientFactory implements HttpClientFactoryInterface, LoggerAwareInterf
                 $options['handler']->push(Middleware::retry($this->createRetryCallback((int) $options['retry'])));
             }
         }
+        if (!empty($options['middleware'])) {
+            foreach ($options['middleware'] as $middleware) {
+                $options['handler']->push($middleware);
+            }
+        }
 
         return new PooledHttpClient($this->poolFactory, $options);
     }

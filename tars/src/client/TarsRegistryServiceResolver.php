@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\tars\client;
 
-use kuiper\rpc\transporter\ServiceEndpoint;
-use kuiper\rpc\transporter\ServiceResolverInterface;
+use kuiper\rpc\servicediscovery\ServiceEndpoint;
+use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\tars\core\EndpointParser;
 use kuiper\tars\integration\QueryFServant;
 

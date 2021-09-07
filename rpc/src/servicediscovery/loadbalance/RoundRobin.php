@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\rpc\transporter;
+namespace kuiper\rpc\servicediscovery\loadbalance;
 
 class RoundRobin implements LoadBalanceInterface
 {

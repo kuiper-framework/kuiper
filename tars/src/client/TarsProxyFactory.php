@@ -11,13 +11,13 @@ use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\client\RpcClient;
 use kuiper\rpc\client\RpcExecutorFactory;
 use kuiper\rpc\MiddlewareInterface;
-use kuiper\rpc\transporter\CachedServiceResolver;
-use kuiper\rpc\transporter\InMemoryServiceRegistry;
-use kuiper\rpc\transporter\LoadBalanceAlgorithm;
-use kuiper\rpc\transporter\LoadBalanceHolder;
+use kuiper\rpc\servicediscovery\CachedServiceResolver;
+use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
+use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
+use kuiper\rpc\servicediscovery\LoadBalanceHolder;
+use kuiper\rpc\servicediscovery\ServiceEndpoint;
+use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\rpc\transporter\PooledTransporter;
-use kuiper\rpc\transporter\ServiceEndpoint;
-use kuiper\rpc\transporter\ServiceResolverInterface;
 use kuiper\rpc\transporter\SwooleCoroutineTcpTransporter;
 use kuiper\rpc\transporter\SwooleTcpTransporter;
 use kuiper\rpc\transporter\TransporterInterface;
@@ -79,7 +79,7 @@ class TarsProxyFactory
      */
     public function setRegistryServiceEndpoint($serviceEndpoint): void
     {
-        $proxyFactory = new self(InMemoryServiceRegistry::create([$serviceEndpoint]));
+        $proxyFactory = new self(InMemoryServiceResolver::create([$serviceEndpoint]));
         $resolver = new TarsRegistryServiceResolver($proxyFactory->create(QueryFServant::class));
         if (null !== $this->cache) {
             $resolver = new CachedServiceResolver($resolver, $this->cache);

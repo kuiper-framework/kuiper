@@ -225,7 +225,7 @@ class SwooleServer extends AbstractServer
         $serverType = ServerType::fromValue($port->getServerType());
         $swooleServerClass = $serverType->server;
         $this->resource = new $swooleServerClass($port->getHost(), $port->getPort(), SWOOLE_PROCESS, $port->getSockType());
-        $this->resource->set(array_merge($this->getSettings()->toArray(), $serverType->settings));
+        $this->resource->set($port->getSettings());
 
         foreach (Event::values() as $event) {
             if (Event::fromValue($event)->non_swoole
@@ -245,7 +245,7 @@ class SwooleServer extends AbstractServer
         $serverType = ServerType::fromValue($port->getServerType());
         /** @var Server\Port $swoolePort */
         $swoolePort = $this->resource->addListener($port->getHost(), $port->getPort(), $port->getSockType());
-        $swoolePort->set(array_merge($serverType->settings, $port->getSettings()));
+        $swoolePort->set($port->getSettings());
 
         foreach ($serverType->events as $event) {
             $this->logger->debug(static::TAG."attach $event to port ".$port->getPort());
@@ -304,10 +304,12 @@ class SwooleServer extends AbstractServer
         } catch (\Exception $e) {
             $this->logger->error(static::TAG.'handle http request failed: '.$e->getMessage()."\n"
                 .$e->getTraceAsString());
-            $psrResponse = isset($event) && $event->getResponse()
-                ? $event->getResponse()
-                : $this->getResponseFactory()
+            if (isset($event) && null !== $event->getResponse()) {
+                $psrResponse = $event->getResponse();
+            } else {
+                $psrResponse = $this->getResponseFactory()
                     ->createResponse(500);
+            }
             $this->getSwooleResponseBridge()->update($psrResponse, $response);
         }
     }

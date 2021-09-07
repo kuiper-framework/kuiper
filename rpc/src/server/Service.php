@@ -4,19 +4,15 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\server;
 
+use kuiper\rpc\ServiceLocator;
 use kuiper\swoole\ServerPort;
 
 class Service
 {
     /**
-     * @var string
+     * @var ServiceLocator
      */
-    private $serviceName;
-
-    /**
-     * @var string
-     */
-    private $version;
+    private $serviceLocator;
 
     /**
      * @var object
@@ -46,10 +42,11 @@ class Service
      * @param object   $service
      * @param string[] $methods
      */
-    public function __construct(string $serviceName, string $version, object $service, array $methods, ServerPort $serverPort, int $weight)
+    public function __construct(
+        ServiceLocator $serviceLocator, object $service, array $methods,
+        ServerPort $serverPort, int $weight = 100)
     {
-        $this->serviceName = $serviceName;
-        $this->version = $version;
+        $this->serviceLocator = $serviceLocator;
         $this->service = $service;
         $this->methods = $methods;
         $this->serverPort = $serverPort;
@@ -57,11 +54,19 @@ class Service
     }
 
     /**
+     * @return ServiceLocator
+     */
+    public function getServiceLocator(): ServiceLocator
+    {
+        return $this->serviceLocator;
+    }
+
+    /**
      * @return string
      */
     public function getServiceName(): string
     {
-        return $this->serviceName;
+        return $this->serviceLocator->getName();
     }
 
     /**
@@ -69,7 +74,15 @@ class Service
      */
     public function getVersion(): string
     {
-        return $this->version;
+        return $this->serviceLocator->getVersion();
+    }
+
+    /**
+     * @return string
+     */
+    public function getNamespace(): string
+    {
+        return $this->serviceLocator->getNamespace();
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
 
 class ServerPort
@@ -43,7 +44,11 @@ class ServerPort
             throw new \InvalidArgumentException("Unknown server type $serverType");
         }
         $this->serverType = $serverType;
-        $this->settings = $settings;
+        foreach ($settings as $name => $value) {
+            if (ServerSetting::hasValue($name)) {
+                $this->settings[$name] = $value;
+            }
+        }
     }
 
     public function getHost(): string
@@ -82,7 +87,7 @@ class ServerPort
      */
     public function getSettings(): array
     {
-        return $this->settings;
+        return array_merge($this->settings, ServerType::fromValue($this->serverType)->settings);
     }
 
     public function __toString(): string

@@ -27,7 +27,27 @@ jsonrpc 服务传输方式可以使用 http 协议和 tcp 协议两种服务。
 ```
 
 如果要使用 tcp 协议，则替换为 `"kuiper\\jsonrpc\\config\\JsonRpcTcpServerConfiguration"`。并且由于 laminas-diactoros
-的 uri 不支持 `tcp://` 协议，还需要添加 `"kuiper\\web\\http\\GuzzleHttpMessageFactoryConfiguration"`。
+的 uri 不支持 `tcp://` 协议，还需要添加 `"kuiper\\web\\http\\GuzzleHttpMessageFactoryConfiguration"`。例如：
+
+```json
+{
+    "scripts": {
+        "container-config": "kuiper\\component\\ComponentInstaller::generate"
+    },
+    "extra": {
+        "kuiper": {
+            "config-file": "src/container.php",
+            "whitelist": [
+                "kuiper/kuiper"
+            ],
+            "configuration": [
+                "kuiper\\web\\http\\GuzzleHttpMessageFactoryConfiguration",
+                "kuiper\\jsonrpc\\config\\JsonRpcTcpServerConfiguration"
+            ]
+        }
+    }
+}
+```
 
 ## 服务注册
 
@@ -35,7 +55,7 @@ jsonrpc 中 method 由两部分构成 `{service_name}.{method}`，service_name �
 项目中在命名空间扫描 `@\kuiper\jsonrpc\annotation\JsonRpcService` 标记的类都将注册为对外的 jsonrpc 服务对象。
 服务名可以由 `@JsonRpcService` 注解中 `service` 属性值指定，当未指定时可以由 `@JsonRpcService` 的接口类名生成。
 接口类名和实现类名必须有包含关系，例如 `UserService` 和 `UserServiceImpl`。 服务名是由接口名将命名空间分隔符替换为 `.` 生成，
-例如，`app\services\UserService` 服务名为 `app.services.UserService`。
+例如，`app\service\UserService` 服务名为 `app.service.UserService`。
 
 除了使用注解标记，也可以通过配置 `application.jsonrpc.server.services` 注册服务对象，例如：
 
@@ -48,7 +68,7 @@ return [
             'server' => [
                 'services' => [
                     UserService::class,
-                    'calculator' => Calculator::class
+                    'calculator' => CalculatorService::class
                 ]
             ]
         ]
@@ -57,6 +77,46 @@ return [
 ```
 
 ## 客户端
+
+Json RPC 客户端可以通过代理对象调用。首先在 composer.json 中添加配置：
+
+```json
+{
+    "scripts": {
+        "container-config": "kuiper\\component\\ComponentInstaller::generate"
+    },
+    "extra": {
+        "kuiper": {
+            "config-file": "src/container.php",
+            "whitelist": [
+                "kuiper/kuiper"
+            ],
+            "configuration": [
+                "kuiper\\web\\http\\GuzzleHttpMessageFactoryConfiguration",
+                "kuiper\\jsonrpc\\config\\JsonRpcClientConfiguration"
+            ]
+        }
+    }
+}
+```
+
+服务地址通过配置项添加：
+
+```php
+[
+    'application' => [
+        'jsonrpc' => [
+            'client'=> [
+                'options' => [
+                    FooService::class => [
+                        'endpoint' => 'tcp://localhost:8000'
+                    ]
+                ]
+            ]
+        ]
+    ]
+];
+```
 
 ## 服务发现
 

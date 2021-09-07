@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
-use kuiper\rpc\transporter\ServiceEndpoint;
+use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\tars\core\EndpointParser;
 use Symfony\Component\Validator\Constraints as Assert;
 

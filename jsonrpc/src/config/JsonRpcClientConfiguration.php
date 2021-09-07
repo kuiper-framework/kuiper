@@ -58,19 +58,49 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         return $middleware;
     }
 
+    /**
+     * options:
+     *  - middleware
+     *  - class
+     *  - service
+     *  - version.
+     */
     private function createJsonRpcClients(): array
     {
         $definitions = [];
+        $config = Application::getInstance()->getConfig();
+        $options = $config->get('application.jsonrpc.client.options', []);
+        $createClient = function (ContainerInterface $container, array $options) {
+            if (isset($options['middleware'])) {
+                foreach ($options['middleware'] as $i => $middleware) {
+                    if (is_string($middleware)) {
+                        $options['middleware'][$i] = $container->get($middleware);
+                    }
+                }
+            }
+
+            return $container->get(JsonRpcClientFactory::class)
+                ->create($options['class'], $options);
+        };
         /** @var JsonRpcClient $annotation */
         foreach (ComponentCollection::getAnnotations(JsonRpcClient::class) as $annotation) {
-            $targetClass = $annotation->getTargetClass();
-            $definitions[$targetClass] = factory(function (ContainerInterface $container) use ($targetClass, $annotation) {
-                return $container->get(JsonRpcClientFactory::class)
-                    ->create($targetClass, array_merge(
-                        Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
-                        Application::getInstance()->getConfig()
-                            ->get('application.jsonrpc.client.options', [])[$targetClass] ?? []
-                    ));
+            $name = $annotation->getComponentId();
+            $clientOptions = array_merge(
+                Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
+                $options[$name] ?? []
+            );
+            $clientOptions['class'] = $annotation->getTargetClass();
+            $definitions[$name] = factory(function (ContainerInterface $container) use ($createClient, $clientOptions) {
+                return $createClient($container, $clientOptions);
+            });
+        }
+
+        foreach ($config->get('application.jsonrpc.client.clients', []) as $name => $service) {
+            $componentId = is_string($name) ? $name : $service;
+            $clientOptions = $options[$componentId] ?? [];
+            $clientOptions['class'] = $service;
+            $definitions[$componentId] = factory(function (ContainerInterface $container) use ($createClient, $clientOptions) {
+                return $createClient($container, $clientOptions);
             });
         }
 

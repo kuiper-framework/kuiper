@@ -41,6 +41,7 @@ use kuiper\web\RequestLogFormatterInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -50,6 +51,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class ServerConfiguration implements DefinitionConfiguration, Bootstrap
 {
     use ContainerBuilderAwareTrait;
+
+    protected const TAG = '['.__CLASS__.'] ';
 
     public function getDefinitions(): array
     {
@@ -82,11 +85,13 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
 
     public function boot(ContainerInterface $container): void
     {
+        $logger = $container->get(LoggerInterface::class);
         $dispatcher = $container->get(EventDispatcherInterface::class);
         $config = $container->get(PropertyResolverInterface::class);
         $events = [];
-        $addListener = static function ($eventName, $listener) use ($container, $dispatcher, &$events): void {
-            $eventListener = $container->get($listener);
+        $addListener = static function ($eventName, $listener) use ($container, $dispatcher, $logger, &$events): void {
+            $eventListener = is_string($listener) ? $container->get($listener) : $listener;
+            $logger->info(static::TAG."add event listener {$listener}");
             if ($eventListener instanceof EventListenerInterface) {
                 $dispatcher->addListener($eventListener->getSubscribedEvent(), $eventListener);
                 $events[$eventListener->getSubscribedEvent()] = true;
@@ -176,11 +181,11 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
                 $portConfig['host'] ?? '0.0.0.0',
                 (int) $port,
                 $portConfig['protocol'] ?? ServerType::HTTP,
-                $portConfig
+                array_merge($settings, $portConfig)
             );
         }
 
-        $serverConfig = new ServerConfig($name, $settings, array_values($ports));
+        $serverConfig = new ServerConfig($name, $ports);
         $serverConfig->setMasterPidFile($config->get('application.logging.path').'/master.pid');
 
         return $serverConfig;

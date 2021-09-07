@@ -72,7 +72,7 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
             throw new InvalidMethodException("create method $service.$method parameters fail: ".$e->getMessage());
         }
 
-        return new RpcMethod($serviceObject->getService(), $serviceName, $method, $arguments);
+        return new RpcMethod($serviceObject->getService(), $serviceObject->getServiceLocator(), $method, $arguments);
     }
 
     /**

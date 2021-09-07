@@ -43,26 +43,21 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     protected $options = [];
 
     /**
+     * @var Endpoint|null
+     */
+    private $endpoint;
+
+    /**
      * @var mixed
      */
     private $resource;
 
     /**
-     * @var Endpoint|null
-     */
-    private $endpoint;
-    /**
-     * @var EndpointHolderInterface|null
-     */
-    private $endpointHolder;
-
-    /**
      * AbstractTcpTransporter constructor.
      */
-    public function __construct(ResponseFactoryInterface $responseFactory, ?EndpointHolderInterface $endpointHolder, array $options = [], ?LoggerInterface $logger = null)
+    public function __construct(ResponseFactoryInterface $responseFactory, array $options = [], LoggerInterface $logger = null)
     {
         $this->responseFactory = $responseFactory;
-        $this->endpointHolder = $endpointHolder;
         $this->setOptions($options);
         $this->setLogger($logger ?? new NullLogger());
     }
@@ -146,14 +141,15 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
      */
     protected function resolveEndpoint(?Endpoint $endpoint): void
     {
-        if (null !== $endpoint && null !== $this->endpoint && !$this->endpoint->equals($endpoint)) {
-            $this->disconnect();
-        }
         if (null !== $endpoint) {
-            $this->endpoint = $endpoint;
-        }
-        if (null === $this->endpoint && null !== $this->endpointHolder) {
-            $this->endpoint = $this->endpointHolder->get();
+            if (null !== $this->endpoint) {
+                if (!$this->endpoint->equals($endpoint)) {
+                    $this->disconnect();
+                    $this->endpoint = $endpoint->merge($this->endpoint);
+                }
+            } else {
+                $this->endpoint = $endpoint;
+            }
         }
         if (null === $this->endpoint) {
             $this->onConnectionError(ErrorCode::fromValue(ErrorCode::INVALID_ENDPOINT), 'endpoint is empty');

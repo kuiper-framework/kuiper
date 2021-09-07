@@ -12,7 +12,11 @@ use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\rpc\fixtures\User;
 use kuiper\rpc\fixtures\UserService;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
+use kuiper\rpc\server\Service;
+use kuiper\rpc\ServiceLocator;
 use kuiper\serializer\Serializer;
+use kuiper\swoole\constants\ServerType;
+use kuiper\swoole\ServerPort;
 use Laminas\Diactoros\ResponseFactory;
 use Laminas\Diactoros\StreamFactory;
 use PHPUnit\Framework\TestCase;
@@ -32,11 +36,10 @@ class ServerRequestHandlerTest extends TestCase
         $userService->shouldReceive('saveUser')
             ->with(\Mockery::capture($savedUser));
 
-        $reflectionDocBlockFactory = new ReflectionDocBlockFactory();
+        $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
-        $handler = new RpcServerRpcRequestHandler([
-            UserService::class => $userService,
-        ], new JsonRpcServerResponseFactory(new ResponseFactory(), new StreamFactory(), OutParamJsonRpcServerResponse::class));
+        $services = $this->buildServices([UserService::class => $userService]);
+        $handler = new RpcServerRpcRequestHandler($services, new JsonRpcServerResponseFactory(new ResponseFactory(), new StreamFactory(), OutParamJsonRpcServerResponse::class));
 
         $request = new Request('POST', '/', [], json_encode([
             'jsonrpc' => '2.0',
@@ -44,9 +47,7 @@ class ServerRequestHandlerTest extends TestCase
             'method' => 'kuiper.rpc.fixtures.UserService.findUser',
             'params' => [1],
         ]));
-        $rpcMethodFactory = new JsonRpcServerMethodFactory([
-            UserService::class => $userService,
-        ], $normalizer, $reflectionDocBlockFactory);
+        $rpcMethodFactory = new JsonRpcServerMethodFactory($services, $normalizer, $reflectionDocBlockFactory);
         $requestFactory = new JsonRpcServerRequestFactory($rpcMethodFactory);
         $response = $handler->handle($requestFactory->createRequest($request));
         $this->assertEquals('{"jsonrpc":"2.0","id":1,"result":[{"id":1,"name":"john"}]}'.JsonRpcProtocol::EOF, (string) $response->getBody());
@@ -78,12 +79,10 @@ class ServerRequestHandlerTest extends TestCase
         $userService->shouldReceive('saveUser')
             ->with(\Mockery::capture($savedUser));
 
-        $reflectionDocBlockFactory = new ReflectionDocBlockFactory();
+        $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
 
-        $services = [
-            UserService::class => $userService,
-        ];
+        $services = $this->buildServices([UserService::class => $userService]);
         $rpcMethodFactory = new JsonRpcServerMethodFactory($services, $normalizer, $reflectionDocBlockFactory);
         $handler = new RpcServerRpcRequestHandler($services, new JsonRpcServerResponseFactory($httpFactory, $httpFactory));
 
@@ -97,5 +96,26 @@ class ServerRequestHandlerTest extends TestCase
         $response = $handler->handle($requestFactory->createRequest($request));
         $this->assertEquals('{"jsonrpc":"2.0","id":1,"result":{"id":1,"name":"john"}}'.JsonRpcProtocol::EOF,
             (string) $response->getBody());
+    }
+
+    /**
+     * @param array $services
+     *
+     * @return Service[]
+     */
+    protected function buildServices(array $services): array
+    {
+        $ret = [];
+        foreach ($services as $name => $service) {
+            $locator = new ServiceLocator(str_replace('\\', '.', $name));
+            $ret[$locator->getName()] = new Service(
+                $locator,
+                $service,
+                get_class_methods($service),
+                new ServerPort('', 0, ServerType::TCP)
+            );
+        }
+
+        return $ret;
     }
 }

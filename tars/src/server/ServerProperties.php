@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace kuiper\tars\server;
 
 use InvalidArgumentException;
+use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\rpc\transporter\Endpoint;
-use kuiper\rpc\transporter\ServiceEndpoint;
 use kuiper\serializer\annotation\SerializeName;
 use kuiper\swoole\constants\ServerType;
 use kuiper\tars\core\EndpointParser;

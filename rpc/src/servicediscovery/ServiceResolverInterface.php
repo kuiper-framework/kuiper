@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace kuiper\rpc\transporter;
+namespace kuiper\rpc\servicediscovery;
+
+use kuiper\rpc\ServiceLocator;
 
 interface ServiceResolverInterface
 {
@@ -11,5 +13,5 @@ interface ServiceResolverInterface
      *
      * @return ServiceEndpoint|null
      */
-    public function resolve(string $service): ?ServiceEndpoint;
+    public function resolve(ServiceLocator $serviceLocator): ?ServiceEndpoint;
 }

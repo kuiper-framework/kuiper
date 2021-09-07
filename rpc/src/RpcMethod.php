@@ -12,9 +12,9 @@ class RpcMethod implements RpcMethodInterface
     private $target;
 
     /**
-     * @var string
+     * @var ServiceLocator
      */
-    private $serviceName;
+    private $serviceLocator;
 
     /**
      * @var string
@@ -38,14 +38,14 @@ class RpcMethod implements RpcMethodInterface
      *
      * @param object|string|mixed $target
      */
-    public function __construct($target, ?string $serviceName, string $methodName, array $arguments)
+    public function __construct($target, ServiceLocator $serviceLocator, string $methodName, array $arguments)
     {
         if (is_object($target) || is_string($target)) {
             $this->target = $target;
         } else {
             throw new \InvalidArgumentException('expect target is an object or class name, got '.gettype($target));
         }
-        $this->serviceName = $serviceName ?? $this->getTargetClass();
+        $this->serviceLocator = $serviceLocator;
         $this->methodName = $methodName;
         $this->arguments = $arguments;
     }
@@ -63,9 +63,33 @@ class RpcMethod implements RpcMethodInterface
         return is_string($this->target) ? $this->target : get_class($this->target);
     }
 
+    /**
+     * @return ServiceLocator
+     */
+    public function getServiceLocator(): ServiceLocator
+    {
+        return $this->serviceLocator;
+    }
+
     public function getServiceName(): string
     {
-        return $this->serviceName;
+        return $this->serviceLocator->getName();
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersion(): string
+    {
+        return $this->serviceLocator->getVersion();
+    }
+
+    /**
+     * @return string
+     */
+    public function getNamespace(): string
+    {
+        return $this->serviceLocator->getNamespace();
     }
 
     public function getMethodName(): string
@@ -79,12 +103,13 @@ class RpcMethod implements RpcMethodInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function withArguments(array $args)
     {
         $copy = clone $this;
         $copy->arguments = $args;
+
         return $copy;
     }
 
@@ -94,12 +119,13 @@ class RpcMethod implements RpcMethodInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function withResult(array $result)
     {
         $copy = clone $this;
         $copy->result = $result;
+
         return $copy;
     }
 

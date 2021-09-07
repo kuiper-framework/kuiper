@@ -16,14 +16,14 @@ class ServerConfig
     private $serverName;
 
     /**
-     * @var Properties
-     */
-    private $settings;
-
-    /**
      * @var ServerPort[]
      */
     private $ports;
+
+    /**
+     * @var Properties
+     */
+    private $settings;
 
     /**
      * @var string
@@ -40,12 +40,12 @@ class ServerConfig
      *
      * @param ServerPort[] $ports
      */
-    public function __construct(string $serverName, array $settings, array $ports)
+    public function __construct(string $serverName, array $ports)
     {
         $this->serverName = $serverName;
-        $this->settings = Properties::create($settings);
         Assert::notEmpty($ports, 'at least one server port should be set');
-        $this->ports = $ports;
+        $this->ports = array_values($ports);
+        $this->settings = Properties::create($this->ports[0]->getSettings());
     }
 
     public function getServerName(): string

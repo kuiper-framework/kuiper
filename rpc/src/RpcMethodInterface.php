@@ -17,9 +17,9 @@ interface RpcMethodInterface
     public function getTargetClass(): string;
 
     /**
-     * @return string
+     * @return ServiceLocator
      */
-    public function getServiceName(): string;
+    public function getServiceLocator(): ServiceLocator;
 
     /**
      * @return string

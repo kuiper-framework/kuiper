@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace kuiper\rpc\registry\consul;
 
 use kuiper\rpc\server\Service;
-use kuiper\rpc\server\ServiceRegistry;
+use kuiper\rpc\server\ServiceRegistryInterface;
 
-class ConsulServiceRegistry implements ServiceRegistry
+class ConsulServiceRegistry implements ServiceRegistryInterface
 {
     /**
      * @var ConsulAgent
@@ -36,9 +36,10 @@ class ConsulServiceRegistry implements ServiceRegistry
 
     private function createServiceRequest(Service $service): RegisterServiceRequest
     {
+        $serverPort = $service->getServerPort();
         $request = new RegisterServiceRequest();
         $request->Name = $this->getServiceName($service);
-        $serverPort = $service->getServerPort();
+        $request->ID = sprintf('%s@%s:%d', $service->getServiceName(), $serverPort->getHost(), $serverPort->getPort());
         $request->Address = $serverPort->getHost();
         $request->Port = $serverPort->getPort();
 

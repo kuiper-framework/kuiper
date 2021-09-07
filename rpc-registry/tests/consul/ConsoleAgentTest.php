@@ -24,7 +24,7 @@ class ConsoleAgentTest extends TestCase
     public function testName()
     {
         $agent = $this->getContainer()->get(ConsulAgent::class);
-        $services = $agent->getServices();
+        $services = $agent->getServices('Service==TarsRegistry');
         var_export($services);
     }
 

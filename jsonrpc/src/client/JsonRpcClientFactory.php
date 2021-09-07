@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
+use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\logger\LoggerFactoryInterface;
@@ -15,7 +16,6 @@ use kuiper\rpc\client\RpcRequestFactoryInterface;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\client\RpcResponseNormalizer;
 use kuiper\rpc\MiddlewareInterface;
-use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\rpc\transporter\HttpTransporter;
 use kuiper\rpc\transporter\PooledTransporter;
@@ -36,6 +36,11 @@ use Psr\Log\LoggerAwareTrait;
 class JsonRpcClientFactory implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
+
+    /**
+     * @var AnnotationReaderInterface
+     */
+    private $annotationReader;
 
     /**
      * @var RpcResponseNormalizer
@@ -87,26 +92,6 @@ class JsonRpcClientFactory implements LoggerAwareInterface
     private $httpClientFactory;
 
     /**
-     * @var RpcMethodFactoryInterface|null
-     */
-    private $rpcMethodFactory;
-
-    /**
-     * @var RpcRequestFactoryInterface|null
-     */
-    private $rpcRequestFactory;
-
-    /**
-     * @var RpcResponseFactoryInterface|null
-     */
-    private $rpcResponseFactory;
-
-    /**
-     * @var RpcResponseFactoryInterface|null
-     */
-    private $noOutParamRpcResponseFactory;
-
-    /**
      * JsonRpcClientFactory constructor.
      *
      * @param RpcResponseNormalizer    $rpcResponseNormalizer
@@ -120,6 +105,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
      * @param PoolFactoryInterface     $poolFactory
      */
     public function __construct(
+        AnnotationReaderInterface $annotationReader,
         RpcResponseNormalizer $rpcResponseNormalizer,
         ExceptionNormalizer $exceptionNormalizer,
         array $middlewares,
@@ -131,6 +117,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         PoolFactoryInterface $poolFactory,
         HttpClientFactoryInterface $httpClientFactory = null)
     {
+        $this->annotationReader = $annotationReader;
         $this->rpcResponseNormalizer = $rpcResponseNormalizer;
         $this->exceptionNormalizer = $exceptionNormalizer;
         $this->middlewares = $middlewares;
@@ -143,54 +130,32 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         $this->httpClientFactory = $httpClientFactory;
     }
 
-    protected function getRpcMethodFactory(): RpcMethodFactoryInterface
-    {
-        if (null === $this->rpcMethodFactory) {
-            $this->rpcMethodFactory = new JsonRpcMethodFactory();
-        }
-
-        return $this->rpcMethodFactory;
-    }
-
-    protected function getRpcRequestFactory(): RpcRequestFactoryInterface
-    {
-        if (null === $this->rpcRequestFactory) {
-            $this->rpcRequestFactory = new JsonRpcRequestFactory($this->httpRequestFactory, $this->streamFactory, $this->getRpcMethodFactory());
-        }
-
-        return $this->rpcRequestFactory;
-    }
-
-    protected function getNoOutParamRpcResponseFactory(): RpcResponseFactoryInterface
-    {
-        if (null === $this->noOutParamRpcResponseFactory) {
-            $this->noOutParamRpcResponseFactory = new NoOutParamJsonRpcResponseFactory($this->rpcResponseNormalizer, $this->exceptionNormalizer);
-        }
-
-        return $this->noOutParamRpcResponseFactory;
-    }
-
-    protected function getRpcResponseFactory(): RpcResponseFactoryInterface
-    {
-        if (null === $this->rpcResponseFactory) {
-            $this->rpcResponseFactory = new JsonRpcResponseFactory($this->rpcResponseNormalizer, $this->exceptionNormalizer);
-        }
-
-        return $this->rpcResponseFactory;
-    }
-
     protected function createRpcResponseFactory(bool $outParam): RpcResponseFactoryInterface
     {
-        return $outParam ? $this->getRpcResponseFactory() : $this->getNoOutParamRpcResponseFactory();
+        return $outParam
+            ? new JsonRpcResponseFactory($this->rpcResponseNormalizer, $this->exceptionNormalizer)
+            : new NoOutParamJsonRpcResponseFactory($this->rpcResponseNormalizer, $this->exceptionNormalizer);
     }
 
-    protected function createHttpRpcExecutorFactory(array $options): RpcExecutorFactoryInterface
+    protected function createRpcRequestFactory(string $className, array $options): RpcRequestFactoryInterface
+    {
+        return new JsonRpcRequestFactory(
+            $this->httpRequestFactory,
+            $this->streamFactory,
+            new JsonRpcMethodFactory($this->annotationReader, [
+                $className => $options,
+            ]),
+            $options['base_uri'] ?? $options['endpoint'] ?? '/'
+        );
+    }
+
+    protected function createHttpRpcExecutorFactory(string $className, array $options): RpcExecutorFactoryInterface
     {
         $responseFactory = $this->createRpcResponseFactory($options['out_params'] ?? false);
         $transporter = new HttpTransporter($this->httpClientFactory->create($options));
         $rpcClient = new RpcClient($transporter, $responseFactory);
 
-        return new RpcExecutorFactory($this->getRpcRequestFactory(), $rpcClient, $this->middlewares);
+        return new RpcExecutorFactory($this->createRpcRequestFactory($className, $options), $rpcClient, array_merge($options['middleware'] ?? [], $this->middlewares));
     }
 
     protected function createTcpRpcExecutorFactory(string $className, array $options): RpcExecutorFactoryInterface
@@ -205,17 +170,26 @@ class JsonRpcClientFactory implements LoggerAwareInterface
             ], $options);
             $connectionClass = Coroutine::isEnabled() ? SwooleCoroutineTcpTransporter::class : SwooleTcpTransporter::class;
             $logger->info("[$className] create connection $connId", ['class' => $connectionClass]);
-            $transporter = new $connectionClass($this->httpResponseFactory, null, $options);
+            $transporter = new $connectionClass($this->httpResponseFactory, $options);
             $transporter->setLogger($logger);
 
             return $transporter;
         }));
         $rpcClient = new RpcClient($transporter, $responseFactory);
 
-        return new RpcExecutorFactory($this->getRpcRequestFactory(), $rpcClient, $this->middlewares);
+        return new RpcExecutorFactory($this->createRpcRequestFactory($className, $options), $rpcClient, $this->middlewares);
     }
 
     /**
+     * options:
+     * - protocol tcp|http
+     * - endpoint
+     * - middleware
+     * - out_params
+     * tcp options （all swoole client setting）：
+     * - timeout
+     * http options (all guzzle http client setting).
+     *
      * @param string $className
      * @param array  $options
      *
@@ -237,12 +211,12 @@ class JsonRpcClientFactory implements LoggerAwareInterface
             $endpoint = Endpoint::fromString($options['endpoint']);
             $protocol = $endpoint->getProtocol();
         } else {
-            $protocol = ServerType::HTTP;
+            $protocol = ServerType::TCP;
         }
         if (ServerType::TCP === $protocol) {
             $rpcExecutorFactory = $this->createTcpRpcExecutorFactory($className, $options);
         } else {
-            $rpcExecutorFactory = $this->createHttpRpcExecutorFactory($options);
+            $rpcExecutorFactory = $this->createHttpRpcExecutorFactory($className, $options);
         }
 
         return new $class($rpcExecutorFactory);

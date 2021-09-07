@@ -10,7 +10,7 @@ use kuiper\http\client\annotation\PutMapping;
 use kuiper\http\client\annotation\RequestHeader;
 
 /**
- * @HttpClient(client="consulHttpClient", path="/v1/agent")
+ * @HttpClient(path="/v1/agent")
  * @RequestHeader("content-type: application/json")
  */
 interface ConsulAgent

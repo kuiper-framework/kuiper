@@ -21,11 +21,11 @@ use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\rpc\client\ProxyGeneratorInterface;
 use kuiper\rpc\server\middleware\AccessLog;
-use kuiper\rpc\transporter\CachedServiceResolver;
-use kuiper\rpc\transporter\ChainedServiceResolver;
-use kuiper\rpc\transporter\InMemoryServiceRegistry;
-use kuiper\rpc\transporter\ServiceResolverInterface;
-use kuiper\rpc\transporter\SwooleTableServiceEndpointCache;
+use kuiper\rpc\servicediscovery\CachedServiceResolver;
+use kuiper\rpc\servicediscovery\ChainedServiceResolver;
+use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
+use kuiper\rpc\servicediscovery\ServiceResolverInterface;
+use kuiper\rpc\servicediscovery\SwooleTableServiceEndpointCache;
 use kuiper\swoole\Application;
 use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\swoole\pool\PoolFactoryInterface;
@@ -159,9 +159,9 @@ class TarsClientConfiguration implements DefinitionConfiguration
      * @Bean
      * @Inject({"serviceEndpoints": "tarsServiceEndpoints"})
      */
-    public function inMemoryServiceRegistry(array $serviceEndpoints): InMemoryServiceRegistry
+    public function inMemoryServiceRegistry(array $serviceEndpoints): InMemoryServiceResolver
     {
-        return InMemoryServiceRegistry::create($serviceEndpoints);
+        return InMemoryServiceResolver::create($serviceEndpoints);
     }
 
     /**

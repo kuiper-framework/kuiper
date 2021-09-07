@@ -33,7 +33,7 @@ class JsonRpcServerFactory
     /**
      * @var bool
      */
-    private $enableOutParam;
+    private $outParams;
 
     /**
      * @var RequestFactoryInterface
@@ -80,7 +80,7 @@ class JsonRpcServerFactory
      *
      * @param array                    $services
      * @param array                    $middlewares
-     * @param bool                     $enableOutParam
+     * @param bool                     $outParams
      * @param ResponseFactoryInterface $httpResponseFactory
      * @param StreamFactoryInterface   $streamFactory
      * @param NormalizerInterface      $normalizer
@@ -88,7 +88,7 @@ class JsonRpcServerFactory
     public function __construct(
         array $services,
         array $middlewares,
-        bool $enableOutParam,
+        bool $outParams,
         RequestFactoryInterface $httpRequestFactory,
         ResponseFactoryInterface $httpResponseFactory,
         StreamFactoryInterface $streamFactory,
@@ -97,7 +97,7 @@ class JsonRpcServerFactory
     ) {
         $this->services = $services;
         $this->middlewares = $middlewares;
-        $this->enableOutParam = $enableOutParam;
+        $this->outParams = $outParams;
         $this->httpRequestFactory = $httpRequestFactory;
         $this->httpResponseFactory = $httpResponseFactory;
         $this->streamFactory = $streamFactory;
@@ -107,7 +107,7 @@ class JsonRpcServerFactory
 
     public function getRpcResponseFactory(): RpcServerResponseFactoryInterface
     {
-        $responseClass = $this->enableOutParam ? OutParamJsonRpcServerResponse::class : JsonRpcServerResponse::class;
+        $responseClass = $this->outParams ? OutParamJsonRpcServerResponse::class : JsonRpcServerResponse::class;
 
         return new JsonRpcServerResponseFactory($this->httpResponseFactory, $this->streamFactory, $responseClass);
     }
@@ -178,7 +178,7 @@ class JsonRpcServerFactory
         return new self(
             $container->get('jsonrpcServices'),
             $container->get('jsonrpcServerMiddlewares'),
-            (bool) $container->get('application.jsonrpc.server.enable_out_param'),
+            (bool) $container->get('application.jsonrpc.server.out_params'),
             $container->get(RequestFactoryInterface::class),
             $container->get(ResponseFactoryInterface::class),
             $container->get(StreamFactoryInterface::class),
