@@ -19,7 +19,7 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwareInterface
+abstract class AbstractTcpTransporter implements TransporterInterface, Receivable, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 

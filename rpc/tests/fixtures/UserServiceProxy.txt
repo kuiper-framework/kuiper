@@ -36,5 +36,10 @@ class UserService287144eeac08b48f7713f40fc08f345d implements UserService
         list ($ret) = $this->rpcExecutorFactory->createExecutor($this, __FUNCTION__, [$user])->execute();
     }
 
+    public function getRpcExecutorFactory() : \kuiper\rpc\client\RpcExecutorFactoryInterface
+    {
+        return $this->rpcExecutorFactory;
+    }
+
 
 }

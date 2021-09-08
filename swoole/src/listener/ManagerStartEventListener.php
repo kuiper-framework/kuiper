@@ -7,6 +7,7 @@ namespace kuiper\swoole\listener;
 use kuiper\event\EventListenerInterface;
 use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\event\ManagerStartEvent;
+use Swoole\Process;
 use Webmozart\Assert\Assert;
 
 class ManagerStartEventListener implements EventListenerInterface
@@ -17,6 +18,7 @@ class ManagerStartEventListener implements EventListenerInterface
     public function __invoke($event): void
     {
         Assert::isInstanceOf($event, ManagerStartEvent::class);
+        Process::signal(SIGINT, static function () {});
         /* @var ManagerStartEvent $event */
         @cli_set_process_title(sprintf('%s: %s process',
             $event->getServer()->getServerConfig()->getServerName(), ProcessType::MANAGER));

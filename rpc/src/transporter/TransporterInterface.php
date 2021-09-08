@@ -16,9 +16,4 @@ interface TransporterInterface
      * @throws InvalidRequestException
      */
     public function send(RequestInterface $request): ResponseInterface;
-
-    /**
-     * @return ResponseInterface
-     */
-    public function recv(): ResponseInterface;
 }

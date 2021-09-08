@@ -24,7 +24,7 @@ class ConsoleAgentTest extends TestCase
     public function testName()
     {
         $agent = $this->getContainer()->get(ConsulAgent::class);
-        $services = $agent->getServices('Service==TarsRegistry');
+        $services = $agent->getServices('Service==app.service.UserService');
         var_export($services);
     }
 
@@ -47,6 +47,13 @@ class ConsoleAgentTest extends TestCase
     public function testDeregister()
     {
         $agent = $this->getContainer()->get(ConsulAgent::class);
-        $agent->deregisterService('TarsRegistry');
+        $agent->deregisterService('app.service.CalculatorService');
+    }
+
+    public function testServiceHealth()
+    {
+        $agent = $this->getContainer()->get(ConsulAgent::class);
+        $services = $agent->getServiceHealth('app.service.CalculatorService');
+        var_export($services);
     }
 }

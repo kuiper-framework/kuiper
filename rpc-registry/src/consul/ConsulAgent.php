@@ -40,4 +40,13 @@ interface ConsulAgent
      * @PutMapping("/service/deregister/{service}")
      */
     public function deregisterService(string $service): void;
+
+    /**
+     * @GetMapping("/health/service/name/{service}")
+     *
+     * @param string $service
+     *
+     * @return ServiceHealth[]
+     */
+    public function getServiceHealth(string $service): array;
 }

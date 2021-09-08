@@ -203,17 +203,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         $proxyClass->eval();
         $class = $proxyClass->getClassName();
 
-        if (isset($options['protocol'])) {
-            $protocol = $options['protocol'];
-        } elseif (isset($options['base_uri'])) {
-            $protocol = ServerType::HTTP;
-        } elseif (isset($options['endpoint'])) {
-            $endpoint = Endpoint::fromString($options['endpoint']);
-            $protocol = $endpoint->getProtocol();
-        } else {
-            $protocol = ServerType::TCP;
-        }
-        if (ServerType::TCP === $protocol) {
+        if (ServerType::TCP === ($options['protocol'] ?? ServerType::TCP)) {
             $rpcExecutorFactory = $this->createTcpRpcExecutorFactory($className, $options);
         } else {
             $rpcExecutorFactory = $this->createHttpRpcExecutorFactory($className, $options);

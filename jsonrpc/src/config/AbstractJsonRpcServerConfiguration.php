@@ -6,6 +6,7 @@ namespace kuiper\jsonrpc\config;
 
 use function DI\autowire;
 use function DI\factory;
+use function DI\get;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
@@ -34,6 +35,7 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
         return [
             JsonRpcServerFactory::class => factory([JsonRpcServerFactory::class, 'createFromContainer']),
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
+            'registerServices' => get('jsonrpcServices'),
         ];
     }
 
@@ -59,11 +61,7 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
         $services = [];
         /** @var JsonRpcService $annotation */
         foreach (ComponentCollection::getAnnotations(JsonRpcService::class) as $annotation) {
-            if (null !== $annotation->name) {
-                $serviceName = $annotation->name;
-            } else {
-                $serviceName = $this->getServiceName($annotation->getTarget());
-            }
+            $serviceName = $annotation->service ?? $this->getServiceName($annotation->getTarget());
             $services[$serviceName] = new Service(
                 new ServiceLocator($serviceName, $annotation->version ?? '1.0', JsonRpcProtocol::NS),
                 $container->get($annotation->getComponentId()),
@@ -76,13 +74,14 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
             if (is_string($service)) {
                 $service = ['class' => $service];
             }
-            $class = new \ReflectionClass($service['class']);
+            $serviceImpl = $container->get($service['class']);
+            $class = new \ReflectionClass($serviceImpl);
             if (!is_string($serviceName)) {
-                $serviceName = $service['name'] ?? $this->getServiceName($class);
+                $serviceName = $service['service'] ?? $this->getServiceName($class);
             }
             $services[$serviceName] = new Service(
                 new ServiceLocator($serviceName, $service['version'] ?? '1.0', JsonRpcProtocol::NS),
-                $container->get($service),
+                $serviceImpl,
                 $this->getMethods($class, $annotationReader),
                 $serverPort,
                 $weight
@@ -92,7 +91,7 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
         return $services;
     }
 
-    private function getServiceName(\ReflectionClass $class): string
+    public static function getServiceClass(\ReflectionClass $class): string
     {
         if ($class->isInterface()) {
             $serviceClass = $class->getName();
@@ -107,15 +106,22 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
                 }
             }
         }
-        if (isset($serviceClass)) {
-            return str_replace('\\', '.', $serviceClass);
+        if (!isset($serviceClass)) {
+            throw new \InvalidArgumentException('Cannot resolve service name from '.$class->getName());
         }
-        throw new \InvalidArgumentException('Cannot resolve service name from '.$class->getName());
+
+        return $serviceClass;
+    }
+
+    private function getServiceName(\ReflectionClass $class): string
+    {
+        return str_replace('\\', '.', self::getServiceClass($class));
     }
 
     private function getMethods(\ReflectionClass $class, AnnotationReaderInterface $annotationReader): array
     {
         $methods = [];
+        $class = new \ReflectionClass(self::getServiceClass($class));
         foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
             if (null !== $annotationReader->getMethodAnnotation($method, Ignore::class)) {
                 continue;

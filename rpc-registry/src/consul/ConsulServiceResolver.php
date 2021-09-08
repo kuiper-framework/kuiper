@@ -28,13 +28,19 @@ class ConsulServiceResolver implements ServiceResolverInterface
 
     public function resolve(ServiceLocator $serviceLocator): ?ServiceEndpoint
     {
-        $services = $this->consulAgent->getServices('Service=='.$serviceLocator->getName());
+        $services = $this->consulAgent->getServiceHealth($serviceLocator->getName());
         if (empty($services)) {
             return null;
         }
         $endpoints = [];
         foreach ($services as $service) {
-            $endpoints[] = new Endpoint('', $service->Address, $service->Port, null, null, []);
+            if ('passing' === $service->AggregatedStatus) {
+                $service = $service->Service;
+                $endpoints[] = new Endpoint('', $service->Address, $service->Port, null, null, []);
+            }
+        }
+        if (empty($endpoints)) {
+            return null;
         }
 
         return new ServiceEndpoint($serviceLocator, $endpoints);

@@ -4,16 +4,23 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc;
 
+use function DI\factory;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\helper\PropertyResolverInterface;
+use kuiper\http\client\HttpClientConfiguration;
+use kuiper\jsonrpc\config\JsonRpcClientConfiguration;
 use kuiper\jsonrpc\config\JsonRpcHttpServerConfiguration;
+use kuiper\logger\LoggerFactory;
+use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\serializer\SerializerConfiguration;
 use kuiper\swoole\Application;
+use kuiper\swoole\pool\PoolFactory;
+use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\web\http\DiactorosHttpMessageFactoryConfiguration;
 use Laminas\Diactoros\ServerRequestFactory;
 use Psr\Container\ContainerInterface;
@@ -34,6 +41,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new SerializerConfiguration());
+        $builder->addConfiguration(new JsonRpcClientConfiguration());
         $builder->addConfiguration(new JsonRpcHttpServerConfiguration());
         $app = Application::create(function () use ($builder) {
             return $builder->build();
@@ -42,6 +50,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         $config->merge($configArr);
         $builder->addDefinitions(new PropertiesDefinitionSource($config));
         $builder->addConfiguration(new DiactorosHttpMessageFactoryConfiguration());
+        $builder->addConfiguration(new HttpClientConfiguration());
         /** @var ReflectionNamespaceFactory $reflectionNs */
         $reflectionNs = ReflectionNamespaceFactory::getInstance();
         $reflectionNs->register(__NAMESPACE__.'\\fixtures', __DIR__.'/fixtures');
@@ -51,6 +60,14 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         $builder->addDefinitions($this->getDefinitions());
         $builder->addDefinitions([
             LoggerInterface::class => new NullLogger(),
+            LoggerFactoryInterface::class => factory(function (ContainerInterface $container) {
+                return new LoggerFactory($container, [
+                    'loggers' => [
+                        'root' => ['console' => true],
+                    ],
+                ]);
+            }),
+            PoolFactoryInterface::class => new PoolFactory(false),
             PropertyResolverInterface::class => $config,
             AnnotationReaderInterface::class => AnnotationReader::getInstance(),
         ]);

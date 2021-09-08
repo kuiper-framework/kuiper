@@ -61,7 +61,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
                 $value = $parameters[$matches[1]];
                 unset($parameters[$matches[1]]);
 
-                return $value['value'];
+                return urlencode($value['value']);
             }
 
             throw new \InvalidArgumentException($invokingMethod." should have parameter \${$matches[1]}");

@@ -27,9 +27,4 @@ class HttpTransporter implements TransporterInterface
     {
         return $this->httpClient->send($request);
     }
-
-    public function recv(): ResponseInterface
-    {
-        throw new \BadMethodCallException('HttpTransporter does not support recv');
-    }
 }

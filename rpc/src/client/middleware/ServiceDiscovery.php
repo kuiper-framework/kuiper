@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\rpc\client\middleware;
 
 use kuiper\helper\Arrays;
+use kuiper\helper\Text;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
@@ -58,6 +59,10 @@ class ServiceDiscovery implements MiddlewareInterface
 
     public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $handler): RpcResponseInterface
     {
+        $host = $request->getUri()->getHost();
+        if (Text::isNotEmpty($host) && $host !== $request->getRpcMethod()->getServiceLocator()->getName()) {
+            return $handler->handle($request);
+        }
         $key = (string) $request->getRpcMethod()->getServiceLocator();
         $serviceEndpoint = $this->cache->get($key);
         if (null === $serviceEndpoint) {

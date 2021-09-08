@@ -7,7 +7,7 @@ namespace kuiper\rpc\registry\consul;
 /**
  * @see https://www.consul.io/api/agent/check
  */
-class ServiceCheck
+class RegisterServiceCheck
 {
     /**
      * @var string
@@ -17,7 +17,7 @@ class ServiceCheck
     /**
      * @var string
      */
-    public $ID;
+    public $CheckID;
     /**
      * @var string
      */

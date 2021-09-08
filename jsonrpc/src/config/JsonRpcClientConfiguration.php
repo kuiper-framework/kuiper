@@ -16,13 +16,16 @@ use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\annotation\JsonRpcClient;
+use kuiper\jsonrpc\annotation\JsonRpcService;
 use kuiper\jsonrpc\client\JsonRpcClientFactory;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\ProxyGeneratorInterface;
 use kuiper\rpc\server\middleware\AccessLog;
+use kuiper\rpc\transporter\Endpoint;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
+use kuiper\swoole\constants\ServerType;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
@@ -70,7 +73,13 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         $definitions = [];
         $config = Application::getInstance()->getConfig();
         $options = $config->get('application.jsonrpc.client.options', []);
-        $createClient = function (ContainerInterface $container, array $options) {
+        $createClient = function (ContainerInterface $container, array $options) use ($config) {
+            $options['protocol'] = $this->getProtocol($options);
+            if (ServerType::fromValue($options['protocol'])->isHttpProtocol()) {
+                $options = array_merge($config->get('application.jsonrpc.client.http_options', []), $options);
+            } else {
+                $options = array_merge($config->get('application.jsonrpc.client.tcp_options', []), $options);
+            }
             if (isset($options['middleware'])) {
                 foreach ($options['middleware'] as $i => $middleware) {
                     if (is_string($middleware)) {
@@ -79,11 +88,14 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 }
             }
 
-            return $container->get(JsonRpcClientFactory::class)
-                ->create($options['class'], $options);
+            return $container->get(JsonRpcClientFactory::class)->create($options['class'], $options);
         };
+        $jsonrpcServices = $this->getServices();
         /** @var JsonRpcClient $annotation */
         foreach (ComponentCollection::getAnnotations(JsonRpcClient::class) as $annotation) {
+            if (isset($jsonrpcServices[$annotation->getTargetClass()])) {
+                continue;
+            }
             $name = $annotation->getComponentId();
             $clientOptions = array_merge(
                 Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
@@ -97,7 +109,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
 
         foreach ($config->get('application.jsonrpc.client.clients', []) as $name => $service) {
             $componentId = is_string($name) ? $name : $service;
-            $clientOptions = $options[$componentId] ?? [];
+            $clientOptions = array_merge($options[$componentId] ?? []);
             $clientOptions['class'] = $service;
             $definitions[$componentId] = factory(function (ContainerInterface $container) use ($createClient, $clientOptions) {
                 return $createClient($container, $clientOptions);
@@ -105,6 +117,37 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         }
 
         return $definitions;
+    }
+
+    private function getServices(): array
+    {
+        $services = [];
+        /** @var JsonRpcService $annotation */
+        foreach (ComponentCollection::getAnnotations(JsonRpcService::class) as $annotation) {
+            $serviceClass = AbstractJsonRpcServerConfiguration::getServiceClass($annotation->getTarget());
+            $services[$serviceClass] = true;
+        }
+
+        return $services;
+    }
+
+    private function getProtocol(array $options): string
+    {
+        if (isset($options['protocol']) && ServerType::hasValue($options['protocol'])) {
+            return $options['protocol'];
+        }
+
+        if (isset($options['base_uri'])) {
+            return ServerType::HTTP;
+        }
+
+        if (isset($options['endpoint'])) {
+            $endpoint = Endpoint::fromString($options['endpoint']);
+
+            return $endpoint->getProtocol();
+        }
+
+        return ServerType::TCP;
     }
 
     /**

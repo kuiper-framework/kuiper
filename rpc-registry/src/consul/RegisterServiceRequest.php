@@ -44,11 +44,11 @@ class RegisterServiceRequest
      */
     public $EnableTagOverride;
     /**
-     * @var ServiceCheck
+     * @var RegisterServiceCheck
      */
     public $Check;
     /**
-     * @var ServiceCheck[]
+     * @var RegisterServiceCheck[]
      */
     public $Checks;
 

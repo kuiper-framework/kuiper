@@ -93,6 +93,16 @@ class ProxyGenerator implements ProxyGeneratorInterface
             $methodGenerator->setReturnType($reflectionMethod->getReturnType());
             $phpClass->addMethodFromGenerator($methodGenerator);
         }
+        if (!$class->hasMethod('getRpcExecutorFactory')) {
+            $methodGenerator = new MethodGenerator(
+                'getRpcExecutorFactory',
+                [],
+                MethodGenerator::FLAG_PUBLIC,
+                'return $this->rpcExecutorFactory;'
+            );
+            $methodGenerator->setReturnType(RpcExecutorFactoryInterface::class);
+            $phpClass->addMethodFromGenerator($methodGenerator);
+        }
 
         return $phpClass;
     }

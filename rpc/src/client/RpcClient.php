@@ -9,6 +9,7 @@ use kuiper\rpc\HasRequestIdInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
+use kuiper\rpc\transporter\Receivable;
 use kuiper\rpc\transporter\TransporterInterface;
 
 class RpcClient implements RpcRequestHandlerInterface
@@ -60,13 +61,17 @@ class RpcClient implements RpcRequestHandlerInterface
             try {
                 return $this->send($request);
             } catch (RequestIdMismatchException $e) {
-                do {
-                    try {
-                        return $this->responseFactory->createResponse($request, $this->transporter->recv());
-                    } catch (RequestIdMismatchException $e) {
-                        // noOp
-                    }
-                } while (true);
+                if ($this->transporter instanceof Receivable) {
+                    do {
+                        try {
+                            return $this->responseFactory->createResponse($request, $this->transporter->recv());
+                        } catch (RequestIdMismatchException $e) {
+                            // noOp
+                        }
+                    } while (true);
+                } else {
+                    throw $e;
+                }
             }
         } else {
             return $this->send($request);

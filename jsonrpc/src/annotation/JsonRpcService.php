@@ -15,7 +15,7 @@ class JsonRpcService extends Service
     /**
      * @var string
      */
-    public $name;
+    public $service;
 
     /**
      * @var string

@@ -91,14 +91,16 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
         $events = [];
         $addListener = static function ($eventName, $listener) use ($container, $dispatcher, $logger, &$events): void {
             $eventListener = is_string($listener) ? $container->get($listener) : $listener;
-            $logger->info(static::TAG."add event listener {$listener}");
             if ($eventListener instanceof EventListenerInterface) {
-                $dispatcher->addListener($eventListener->getSubscribedEvent(), $eventListener);
-                $events[$eventListener->getSubscribedEvent()] = true;
+                $event = $eventListener->getSubscribedEvent();
+                $dispatcher->addListener($event, $eventListener);
+                $events[$event] = true;
+                $logger->info(static::TAG."add event listener {$listener} for {$event}");
             } elseif ($eventListener instanceof EventSubscriberInterface) {
                 foreach ($eventListener->getSubscribedEvents() as $event) {
                     $dispatcher->addListener($event, $eventListener);
                     $events[$event] = true;
+                    $logger->info(static::TAG."add event listener {$listener} for {$event}");
                 }
             } elseif (is_string($eventName)) {
                 $dispatcher->addListener($eventName, $eventListener);

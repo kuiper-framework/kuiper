@@ -37,4 +37,17 @@ class RpcExecutor implements RpcExecutorInterface
 
         return $response->getRequest()->getRpcMethod()->getResult() ?? [];
     }
+
+    public static function create(object $client, string $method, array $args): self
+    {
+        if (method_exists($client, 'getRpcExecutorFactory')) {
+            $rpcExecutorFactory = $client->getRpcExecutorFactory();
+        } else {
+            $property = new \ReflectionProperty($client, 'rpcExecutorFactory');
+            $property->setAccessible(true);
+            $rpcExecutorFactory = $property->getValue($client);
+        }
+
+        return $rpcExecutorFactory->createExecutor($client, $method, $args);
+    }
 }
