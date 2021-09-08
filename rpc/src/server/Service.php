@@ -34,14 +34,6 @@ class Service
      */
     private $weight;
 
-    /**
-     * ServiceObject constructor.
-     *
-     * @param string   $serviceName
-     * @param string   $version
-     * @param object   $service
-     * @param string[] $methods
-     */
     public function __construct(
         ServiceLocator $serviceLocator, object $service, array $methods,
         ServerPort $serverPort, int $weight = 100)

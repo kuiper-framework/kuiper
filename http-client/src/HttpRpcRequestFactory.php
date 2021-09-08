@@ -56,7 +56,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
                 'parameter' => $parameter,
             ];
         }
-        $replacePlaceholder = static function (array $matches) use (&$parameters, $invokingMethod) {
+        $replacePlaceholder = static function (array $matches) use (&$parameters, $invokingMethod): string {
             if (array_key_exists($matches[1], $parameters)) {
                 $value = $parameters[$matches[1]];
                 unset($parameters[$matches[1]]);
@@ -114,6 +114,8 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
             }
             if (is_resource($value) || $value instanceof File) {
                 $hasResource = true;
+                $params[$name] = $value;
+                continue;
             }
             if (is_object($value)) {
                 $params = array_merge($params, $this->normalizer->normalize($value));
@@ -129,7 +131,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
             return ['json' => $params, 'query' => $query];
         }
 
-        if ($hasResource || strpos($request->getHeaderLine('content-type'), 'multipart/form-data')) {
+        if ($hasResource || false !== strpos($request->getHeaderLine('content-type'), 'multipart/form-data')) {
             $multipart = [];
             foreach ($params as $name => $value) {
                 $content = [

@@ -4,21 +4,18 @@ declare(strict_types=1);
 
 namespace kuiper\tars\annotation;
 
-use kuiper\di\annotation\ComponentInterface;
-use kuiper\di\annotation\ComponentTrait;
+use kuiper\di\annotation\Service;
 
 /**
  * @Annotation
  * @Target({"CLASS"})
  */
-class TarsServant implements ComponentInterface
+class TarsServant extends Service
 {
-    use ComponentTrait;
-
     /**
      * @Required
      *
      * @var string
      */
-    public $value;
+    public $service;
 }

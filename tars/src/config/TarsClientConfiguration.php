@@ -87,7 +87,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
                 $options = array_merge(
                     Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
                     Application::getInstance()->getConfig()
-                        ->get('application.tars.client.options', [])[$annotation->value] ?? []
+                        ->get('application.tars.client.options', [])[$annotation->service] ?? []
                 );
 
                 return $container->get(TarsProxyFactory::class)->create($annotation->getTargetClass(), $options);

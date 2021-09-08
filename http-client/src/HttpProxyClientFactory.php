@@ -6,7 +6,6 @@ namespace kuiper\http\client;
 
 use GuzzleHttp\ClientInterface;
 use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\http\client\fixtures\GithubService;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\rpc\client\ProxyGenerator;
@@ -82,10 +81,15 @@ class HttpProxyClientFactory
     public function getRpcResponseFactory(): ?RpcResponseFactoryInterface
     {
         if (null === $this->rpcResponseFactory) {
-            $this->rpcResponseFactory = new HttpJsonResponseFactory(new RpcResponseNormalizer($this->normalizer, $this->getReflectionDocBlockFactory()));
+            $this->rpcResponseFactory = new HttpJsonResponseFactory($this->getRpcResponseNormalizer());
         }
 
         return $this->rpcResponseFactory;
+    }
+
+    public function getRpcResponseNormalizer(): RpcResponseNormalizer
+    {
+        return new RpcResponseNormalizer($this->normalizer, $this->getReflectionDocBlockFactory());
     }
 
     /**
@@ -115,7 +119,7 @@ class HttpProxyClientFactory
         $rpcClient = new RpcClient(new HttpTransporter($this->httpClient), $this->getRpcResponseFactory());
         $requestFactory = new HttpRpcRequestFactory($this->annotationReader, $this->normalizer, new RpcMethodFactory());
         $rpcExecutorFactory = new RpcExecutorFactory($requestFactory, $rpcClient);
-        /** @var GithubService $proxy */
+        /** @phpstan-ignore-next-line */
         return new $class($rpcExecutorFactory);
     }
 }

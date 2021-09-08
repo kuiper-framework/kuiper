@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\servicediscovery\loadbalance;
 
-class Equality
+class Equality implements LoadBalanceInterface
 {
     /**
      * @var \ArrayIterator

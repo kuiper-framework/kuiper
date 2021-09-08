@@ -11,6 +11,8 @@ use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\http\client\HttpClientConfiguration;
+use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
+use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\serializer\SerializerConfiguration;
 use kuiper\swoole\Application;
 use kuiper\swoole\pool\PoolFactory;
@@ -48,6 +50,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             LoggerInterface::class => new Logger('test', [new ErrorLogHandler()]),
             PoolFactoryInterface::class => new PoolFactory(false),
             PropertyResolverInterface::class => $config,
+            ServiceResolverInterface::class => new InMemoryServiceResolver(),
             AnnotationReaderInterface::class => AnnotationReader::getInstance(),
         ]);
 

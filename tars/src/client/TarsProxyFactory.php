@@ -13,8 +13,6 @@ use kuiper\rpc\client\RpcExecutorFactory;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\servicediscovery\CachedServiceResolver;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
-use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
-use kuiper\rpc\servicediscovery\LoadBalanceHolder;
 use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\rpc\transporter\PooledTransporter;
@@ -168,7 +166,7 @@ class TarsProxyFactory
             throw new \InvalidArgumentException("class $className has no @TarsClient annotation");
         }
 
-        $servantName = $tarsClientAnnotation->value;
+        $servantName = $tarsClientAnnotation->service;
         if ($class->isInterface()) {
             $proxyGenerator = new TarsProxyGenerator();
             $proxyClass = $proxyGenerator->generate($className, $options);
@@ -176,16 +174,11 @@ class TarsProxyFactory
             $className = $proxyClass->getClassName();
         }
         $httpFactory = new HttpFactory();
-        $transporterFactory = function (int $connId) use ($httpFactory, $className, $servantName, $options): TransporterInterface {
-            if (null !== $this->getServiceResolver()) {
-                $endpointHolder = new LoadBalanceHolder($this->getServiceResolver(), $servantName, LoadBalanceAlgorithm::ROUND_ROBIN);
-            } else {
-                $endpointHolder = null;
-            }
+        $transporterFactory = function (int $connId) use ($httpFactory, $className, $options): TransporterInterface {
             if (Coroutine::isEnabled()) {
-                $transporter = new SwooleCoroutineTcpTransporter($httpFactory, $endpointHolder, $options);
+                $transporter = new SwooleCoroutineTcpTransporter($httpFactory, $options);
             } else {
-                $transporter = new SwooleTcpTransporter($httpFactory, $endpointHolder, $options);
+                $transporter = new SwooleTcpTransporter($httpFactory, $options);
             }
             $logger = null !== $this->getLoggerFactory()
                 ? $this->getLoggerFactory()->create($className)

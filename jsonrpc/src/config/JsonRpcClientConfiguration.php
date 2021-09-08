@@ -170,7 +170,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         if (null === $path) {
             return;
         }
-        $config->mergeIfNotExists([
+        $config->merge([
             'application' => [
                 'logging' => [
                     'loggers' => [

@@ -22,9 +22,9 @@ class BadResponseException extends \Exception
     /**
      * BadResponseException constructor.
      */
-    public function __construct(RpcRequestInterface $request, ResponseInterface $response)
+    public function __construct(RpcRequestInterface $request, ResponseInterface $response, \Throwable $prev = null)
     {
-        parent::__construct('Cannot parse response');
+        parent::__construct('Cannot parse response', 0, $prev);
         $this->request = $request;
         $this->response = $response;
     }

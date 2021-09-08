@@ -147,7 +147,7 @@ final class Endpoint
             parse_str($parts['query'], $options);
         }
 
-        return self::create($parts['scheme'] ?? '', $parts['host'] ?? '', (int) ($parts['port'] ?? 0), $options);
+        return self::create($parts['scheme'] ?? '', $parts['host'] ?? '', $parts['port'] ?? 0, $options);
     }
 
     /**

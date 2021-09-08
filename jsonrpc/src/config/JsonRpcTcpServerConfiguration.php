@@ -21,7 +21,7 @@ class JsonRpcTcpServerConfiguration extends AbstractJsonRpcServerConfiguration
 {
     public function getDefinitions(): array
     {
-        Application::getInstance()->getConfig()->mergeIfNotExists([
+        Application::getInstance()->getConfig()->merge([
             'application' => [
                 'logging' => [
                     'logger' => [

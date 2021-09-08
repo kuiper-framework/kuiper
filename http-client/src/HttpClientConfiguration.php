@@ -16,8 +16,10 @@ use kuiper\di\annotation\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\helper\Text;
 use kuiper\http\client\annotation\HttpClient;
 use kuiper\serializer\NormalizerInterface;
+use kuiper\swoole\Application;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -54,15 +56,20 @@ class HttpClientConfiguration implements DefinitionConfiguration
 
     private function createHttpClientProxy(): array
     {
+        $self = $this;
         $definitions = [];
         foreach (ComponentCollection::getAnnotations(HttpClient::class) as $annotation) {
             /** @var HttpClient $annotation */
-            $definitions[$annotation->getComponentId()] = factory(function (ContainerInterface $container) use ($annotation) {
+            $definitions[$annotation->getComponentId()] = factory(function (ContainerInterface $container) use ($self, $annotation) {
                 $options = $container->get('application.http_client');
+                /** @noinspection AmbiguousMethodsCallsInArrayMappingInspection */
                 $componentId = $annotation->getComponentId();
                 if (isset($options[$componentId])) {
-                    $httpClient = $container->get(HttpClientFactoryInterface::class)
-                        ->create(array_merge($options[$componentId] ?? [], $options['default'] ?? []));
+                    $httpClient = $self->httpClient(
+                        $container,
+                        $container->get(HttpClientFactoryInterface::class),
+                        array_merge($options['default'] ?? [], $options[$componentId] ?? [])
+                    );
                 } else {
                     $httpClient = $container->get(ClientInterface::class);
                 }
@@ -72,12 +79,27 @@ class HttpClientConfiguration implements DefinitionConfiguration
                     $container->get(NormalizerInterface::class)
                 );
 
-                if ($annotation->responseParser) {
+                if (Text::isNotEmpty($annotation->responseParser)) {
                     $factory->setRpcResponseFactory($container->get($annotation->responseParser));
                 }
 
+                /** @phpstan-ignore-next-line */
                 return $factory->create($annotation->getTargetClass());
             });
+        }
+
+        if (class_exists(Application::class)) {
+            $httpClients = Application::getInstance()->getConfig()->get('application.http_client', []);
+            $defaultOptions = $httpClients['default'] ?? [];
+            foreach ($httpClients as $name => $options) {
+                if ('default' === $name || isset($definitions[$name])) {
+                    continue;
+                }
+                $options = array_merge($defaultOptions, $options);
+                $definitions[$name] = factory(function (ContainerInterface $container) use ($self, $options): ClientInterface {
+                    return $self->httpClient($container, $container->get(HttpClientFactoryInterface::class), $options);
+                });
+            }
         }
 
         return $definitions;

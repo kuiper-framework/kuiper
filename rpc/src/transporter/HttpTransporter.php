@@ -23,7 +23,7 @@ class HttpTransporter implements TransporterInterface
         $this->httpClient = $httpClient;
     }
 
-    public function send(RequestInterface $request): ResponseInterface
+    public function sendRequest(RequestInterface $request): ResponseInterface
     {
         return $this->httpClient->send($request);
     }

@@ -6,6 +6,7 @@ namespace kuiper\tars\core;
 
 use kuiper\helper\Arrays;
 use kuiper\rpc\servicediscovery\ServiceEndpoint;
+use kuiper\rpc\ServiceLocator;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\tars\integration\EndpointF;
 
@@ -31,14 +32,12 @@ class EndpointParser
         $endpointList = substr($str, $pos + 1);
 
         $endpoints = [];
-        $weights = [];
         foreach (explode(':', $endpointList) as $endpointStr) {
             $endpoint = self::parse($endpointStr);
             $endpoints[] = $endpoint;
-            $weights[$endpoint->getAddress()] = (int) ($endpoint->getOption('weight') ?? 100);
         }
 
-        return new ServiceEndpoint($servantName, $endpoints, $weights);
+        return new ServiceEndpoint(new ServiceLocator($servantName), $endpoints);
     }
 
     public static function fromEndpointF(EndpointF $endpointF): Endpoint

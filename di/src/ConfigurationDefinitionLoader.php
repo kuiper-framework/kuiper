@@ -121,7 +121,7 @@ class ConfigurationDefinitionLoader
      */
     private function createDefinitionResolver($definition, string $name): callable
     {
-        return static function () use ($definition, $name) {
+        return static function () use ($definition, $name): Definition {
             if ($definition instanceof DefinitionHelper) {
                 $definition = $definition->getDefinition($name);
             } elseif ($definition instanceof \Closure) {

@@ -5,3 +5,5 @@
 * [Server](swoole.md)
 * [Web Server](web.md)
 * [RPC](rpc.md)
+* [Http Client](http-client.md)
+* [Tars Server](tars.md)

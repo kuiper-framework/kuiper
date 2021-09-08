@@ -21,6 +21,8 @@ class CallbackProcessor implements ProcessorInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return mixed
      */
     public function process(TaskInterface $task)
     {

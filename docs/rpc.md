@@ -159,7 +159,7 @@ $ret = $container->get(FooService::class)->foo();
 
 客户端配置项包括：
 - middleware 通用中间件
-- http_options 设置公共 http 配置参数，参考 [guzzle 请求参数](https://docs.guzzlephp.org/en/stable/request-options.html)
+- http_options 设置公共 http 配置参数，参考 [Guzzle 请求参数](https://docs.guzzlephp.org/en/stable/request-options.html)
 - tcp_options 设置公共 tcp 配置参数，参考 `\kuiper\swoole\constants\ClientSettings`
 - options 按客户端类设置配置参数
 
@@ -184,7 +184,14 @@ jsonrpc 客户端中间件可以通过配置项 `application.jsonrpc.client.midd
 ## 服务发现
 
 通过使用 consul 等服务注册中心可以自动发现服务。使用服务发现需要进行以下配置。
-首先需要在 composer.json 中添加配置：
+
+首先使用 composer 安装 `guzzlehttp/guzzle` 包：
+
+```bash
+composer require guzzlehttp/guzzle
+```
+
+在 composer.json 中添加配置：
 
 ```json
 {
@@ -227,4 +234,23 @@ consul 其他配置参数参考 http-client 。
 对于 rpc 客户端，需要添加中间件：
 
 ```php
+[
+    'application' => [
+        'jsonrpc' => [
+            'client'=> [
+                'middleware' => [
+                    \kuiper\rpc\client\middleware\ServiceDiscovery::class,
+                ]
+            ]
+        ]
+    ]
+]
 ```
+
+服务发现相关配置项：
+
+| 配置项                                           | 说明                                               |
+|--------------------------------------------------|----------------------------------------------------|
+| application.server.service_disovery.type         | 服务注册类型，目前只支持 consul                    |
+| application.client.service_disovery.type         | 服务发现类型，目前只支持 consul                    |
+| application.client.service_disovery.load_balance | 负载均衡算法，可选值 round_robin, random, equality |

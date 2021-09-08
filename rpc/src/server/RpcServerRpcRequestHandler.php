@@ -53,7 +53,7 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
         $args = $method->getArguments();
         $target = $method->getTarget();
         if (!is_object($target)) {
-            $target = $this->resolve($request, $method->getServiceName());
+            $target = $this->resolve($request, $method->getServiceLocator()->getName());
         }
         $reflectionMethod = new \ReflectionMethod($target, $method->getMethodName());
         $parameters = [];

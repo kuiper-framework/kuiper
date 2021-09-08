@@ -6,6 +6,7 @@ namespace kuiper\tars\client;
 
 use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
+use kuiper\rpc\ServiceLocator;
 use kuiper\tars\core\EndpointParser;
 use kuiper\tars\integration\QueryFServant;
 
@@ -27,20 +28,18 @@ class TarsRegistryServiceResolver implements ServiceResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve(string $service): ?ServiceEndpoint
+    public function resolve(ServiceLocator $serviceLocator): ?ServiceEndpoint
     {
-        $endpointFLists = $this->queryFClient->findObjectById($service);
+        $endpointFLists = $this->queryFClient->findObjectById($serviceLocator->getName());
         if (empty($endpointFLists)) {
             return null;
         }
         $endpoints = [];
-        $weights = [];
         foreach ($endpointFLists  as $endpointF) {
             $endpoint = EndpointParser::fromEndpointF($endpointF);
             $endpoints[] = $endpoint;
-            $weights[] = (int) ($endpoint->getOption('weight') ?? 100);
         }
 
-        return new ServiceEndpoint($service, $endpoints, $weights);
+        return new ServiceEndpoint($serviceLocator, $endpoints);
     }
 }

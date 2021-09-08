@@ -38,7 +38,7 @@ class HttpJsonResponseFactory implements RpcResponseFactoryInterface
         try {
             $method = $request->getRpcMethod()->withResult($this->buildResult($request->getRpcMethod(), $response));
         } catch (\InvalidArgumentException $e) {
-            throw new BadResponseException($request, $response);
+            throw new BadResponseException($request, $response, $e);
         }
 
         return new RpcResponse($request->withRpcMethod($method), $response);

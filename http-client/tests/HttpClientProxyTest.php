@@ -17,16 +17,15 @@ use PHPUnit\Framework\TestCase;
 
 class HttpClientProxyTest extends TestCase
 {
-    protected function setUp(): void
-    {
-    }
-
     public function testGithubService()
     {
         $mock = new MockHandler([
             new Response(200, [
                 'content-type' => 'application/json',
-            ], json_encode([['name' => 'proj1']])),
+            ], json_encode([
+                'code' => 0,
+                'data' => [['name' => 'proj1']],
+            ])),
         ]);
         $requests = [];
         $history = Middleware::history($requests);
@@ -35,6 +34,7 @@ class HttpClientProxyTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $clientFactory = new HttpProxyClientFactory($client, AnnotationReader::getInstance(), new Serializer());
+        $clientFactory->setRpcResponseFactory(new HttpJsonResponseFactory($clientFactory->getRpcResponseNormalizer(), 'data'));
 
         $proxy = $clientFactory->create(GithubService::class);
         $repos = $proxy->listRepos('john');

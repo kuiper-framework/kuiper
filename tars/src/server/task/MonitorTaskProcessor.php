@@ -9,7 +9,7 @@ use kuiper\swoole\task\TaskInterface;
 
 class MonitorTaskProcessor implements ProcessorInterface
 {
-    public function process(TaskInterface $task)
+    public function process(TaskInterface $task): void
     {
         // TODO: Implement process() method.
     }

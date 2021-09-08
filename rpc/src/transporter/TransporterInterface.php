@@ -15,5 +15,5 @@ interface TransporterInterface
      * @throws CommunicationException
      * @throws InvalidRequestException
      */
-    public function send(RequestInterface $request): ResponseInterface;
+    public function sendRequest(RequestInterface $request): ResponseInterface;
 }

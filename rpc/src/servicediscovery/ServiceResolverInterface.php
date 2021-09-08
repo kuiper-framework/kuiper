@@ -9,7 +9,7 @@ use kuiper\rpc\ServiceLocator;
 interface ServiceResolverInterface
 {
     /**
-     * @param string $service
+     * @param ServiceLocator $serviceLocator
      *
      * @return ServiceEndpoint|null
      */

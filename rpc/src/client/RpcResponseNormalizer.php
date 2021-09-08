@@ -39,7 +39,10 @@ class RpcResponseNormalizer
     }
 
     /**
-     * @return array|null[]
+     * @param RpcMethodInterface $method
+     * @param array              $result
+     *
+     * @return array
      */
     public function normalize(RpcMethodInterface $method, array $result): array
     {

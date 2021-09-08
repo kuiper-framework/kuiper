@@ -47,7 +47,7 @@ class KeepAliveProcessor implements ProcessorInterface, LoggerAwareInterface
         $this->serverFServant = $serverFServant;
     }
 
-    public function process(TaskInterface $task)
+    public function process(TaskInterface $task): void
     {
         $pid = $this->getServerPid();
         if (null === $pid) {

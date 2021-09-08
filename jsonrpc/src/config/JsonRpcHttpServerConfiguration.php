@@ -35,7 +35,7 @@ class JsonRpcHttpServerConfiguration extends AbstractJsonRpcServerConfiguration
 
     protected function addAccessLogConfig(): void
     {
-        Application::getInstance()->getConfig()->mergeIfNotExists([
+        Application::getInstance()->getConfig()->merge([
             'application' => [
                 'logging' => [
                     'logger' => [

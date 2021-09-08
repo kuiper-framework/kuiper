@@ -21,12 +21,6 @@ class ServiceEndpoint implements \Iterator
      */
     private $endpoints;
 
-    /**
-     * ServiceEndpoint constructor.
-     *
-     * @param string     $serviceName
-     * @param Endpoint[] $endpoints
-     */
     public function __construct(ServiceLocator $serviceLocator, array $endpoints)
     {
         $this->serviceLocator = $serviceLocator;

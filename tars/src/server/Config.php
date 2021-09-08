@@ -77,7 +77,7 @@ class Config
         return Properties::create([
             'application' => [
                 'tars' => $arr,
-                'swoole' => [
+                'server' => [
                     'ports' => $ports,
                 ],
             ],

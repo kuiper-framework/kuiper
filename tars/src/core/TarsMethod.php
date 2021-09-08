@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\tars\core;
 
 use kuiper\rpc\RpcMethod;
+use kuiper\rpc\ServiceLocator;
 
 class TarsMethod extends RpcMethod implements TarsMethodInterface
 {
@@ -18,15 +19,9 @@ class TarsMethod extends RpcMethod implements TarsMethodInterface
      */
     private $returnValue;
 
-    /**
-     * TarsMethod constructor.
-     *
-     * @param ParameterInterface[] $parameters
-     * @param ParameterInterface   $returnValue
-     */
-    public function __construct($target, ?string $serviceName, string $methodName, array $arguments, array $parameters, ParameterInterface $returnValue)
+    public function __construct($target, string $servantName, string $methodName, array $arguments, array $parameters, ParameterInterface $returnValue)
     {
-        parent::__construct($target, $serviceName, $methodName, $arguments);
+        parent::__construct($target, new ServiceLocator($servantName), $methodName, $arguments);
         $this->parameters = $parameters;
         $this->returnValue = $returnValue;
     }

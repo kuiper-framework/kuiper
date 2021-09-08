@@ -54,15 +54,15 @@ class JsonRpcMethodFactory implements RpcMethodFactoryInterface
                 throw new \InvalidArgumentException("Cannot find interface class for {$className}");
             }
             $options = $this->options[$interfaceName] ?? [];
-            /** @var JsonRpcClient $annotation */
+            /** @var JsonRpcClient|null $annotation */
             $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($interfaceName), JsonRpcClient::class);
             if (!isset($options['service'])) {
-                $options['service'] = null !== $annotation && Text::isNotEmpty($annotation->service)
+                $options['service'] = (null !== $annotation) && Text::isNotEmpty($annotation->service)
                     ? $annotation->service
                     : str_replace('\\', '.', $interfaceName);
             }
             if (!isset($options['version'])) {
-                $options['version'] = null !== $annotation && Text::isNotEmpty($annotation->version)
+                $options['version'] = (null !== $annotation) && Text::isNotEmpty($annotation->version)
                     ? $annotation->version
                     : '1.0';
             }

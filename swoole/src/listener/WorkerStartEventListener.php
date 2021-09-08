@@ -37,7 +37,7 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
     public function __invoke($event): void
     {
         Assert::isInstanceOf($event, WorkerStartEvent::class);
-        Process::signal(SIGINT, static function () {});
+        Process::signal(SIGINT, static function (): void {});
         /* @var WorkerStartEvent $event */
         $this->changeProcessTitle($event);
         $this->seedRandom();

@@ -116,7 +116,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
         }
         $returnValue = Parameter::asReturnValue($returnType ?? VoidType::instance());
 
-        return new TarsMethod($servant, $servantAnnotation->value, $method, [], $parameters, $returnValue);
+        return new TarsMethod($servant, $servantAnnotation->service, $method, [], $parameters, $returnValue);
     }
 
     protected function getTarsServantAnnotation(\ReflectionClass $reflectionClass): TarsServant

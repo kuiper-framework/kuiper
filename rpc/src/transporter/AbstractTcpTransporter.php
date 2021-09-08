@@ -123,7 +123,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
     /**
      * {@inheritDoc}
      */
-    public function send(RequestInterface $request): ResponseInterface
+    public function sendRequest(RequestInterface $request): ResponseInterface
     {
         $endpoint = Endpoint::fromUri($request->getUri());
         $this->connect($endpoint->getPort() > 0 ? $endpoint : null);

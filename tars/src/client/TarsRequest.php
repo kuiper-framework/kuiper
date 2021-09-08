@@ -14,6 +14,7 @@ use kuiper\tars\stream\TarsOutputStream;
 use kuiper\tars\type\MapType;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * @property TarsMethodInterface $rpcMethod
@@ -33,13 +34,16 @@ class TarsRequest extends RpcRequest implements TarsRequestInterface
 
         $packet = new RequestPacket();
         $packet->iRequestId = $requestId;
-        $packet->sServantName = $rpcMethod->getServiceName();
+        $packet->sServantName = $rpcMethod->getServiceLocator()->getName();
         $packet->sFuncName = $rpcMethod->getMethodName();
         $this->packet = $packet;
         $this->streamFactory = $streamFactory;
     }
 
-    public function getBody()
+    /**
+     * {@inheritDoc}
+     */
+    public function getBody(): StreamInterface
     {
         $packet = $this->packet;
         if (null === $packet->sBuffer) {

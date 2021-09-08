@@ -11,9 +11,9 @@ namespace kuiper\http\client\annotation;
 class RequestMapping
 {
     /**
-     * The path mapping URIs. type is string|string[].
+     * The path mapping URI.
      *
-     * @var mixed
+     * @var string
      */
     public $value;
 

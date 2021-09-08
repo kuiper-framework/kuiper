@@ -17,6 +17,7 @@ use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\http\client\HttpProxyClientFactory;
+use kuiper\rpc\client\middleware\ServiceDiscovery;
 use kuiper\rpc\registry\consul\ConsulAgent;
 use kuiper\rpc\registry\consul\ConsulServiceRegistry;
 use kuiper\rpc\registry\consul\ConsulServiceResolver;
@@ -33,7 +34,7 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
     public function getDefinitions(): array
     {
         return [
-            ConsulAgent::class => factory(function (ContainerInterface $container) {
+            ConsulAgent::class => factory(function (ContainerInterface $container): ConsulAgent {
                 $clientFactory = new HttpProxyClientFactory(
                     $container->get('consulHttpClient'),
                     $container->get(AnnotationReaderInterface::class),
@@ -42,6 +43,8 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
 
                 return $clientFactory->create(ConsulAgent::class);
             }),
+            ServiceDiscovery::class => autowire(ServiceDiscovery::class)
+                ->constructorParameter('loadBalance', get('application.client.service_discovery.load_balance')),
             ServiceDiscoveryListener::class => autowire(ServiceDiscoveryListener::class)
                 ->constructorParameter('services', get('registerServices')),
         ];

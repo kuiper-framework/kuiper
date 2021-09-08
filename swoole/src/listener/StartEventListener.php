@@ -42,10 +42,14 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
 
     private function handleSignal(StartEvent $event): void
     {
-        $masterPid = $event->getServer()->getMasterPid();
-        Process::signal(SIGINT, function () use ($masterPid) {
-            Process::kill($masterPid, SIGTERM);
-        });
+        // https://github.com/swoole/swoole-src/issues/4186
+        // 在 manager 进程中无法使用 Process::signal 方法，需要用 pcntl_signal
+        if (function_exists('pcntl_signal')) {
+            $masterPid = $event->getServer()->getMasterPid();
+            Process::signal(SIGINT, static function () use ($masterPid): void {
+                Process::kill($masterPid, SIGTERM);
+            });
+        }
     }
 
     private function writePidFile(StartEvent $event): void

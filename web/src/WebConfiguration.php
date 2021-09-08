@@ -76,7 +76,7 @@ class WebConfiguration implements DefinitionConfiguration
 
     protected function addAccessLoggerConfig(): void
     {
-        Application::getInstance()->getConfig()->mergeIfNotExists([
+        Application::getInstance()->getConfig()->merge([
             'application' => [
                 'web' => [
                     'middleware' => [

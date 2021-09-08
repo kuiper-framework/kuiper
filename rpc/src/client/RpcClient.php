@@ -80,6 +80,6 @@ class RpcClient implements RpcRequestHandlerInterface
 
     private function send(RpcRequestInterface $request): RpcResponseInterface
     {
-        return $this->responseFactory->createResponse($request, $this->transporter->send($request));
+        return $this->responseFactory->createResponse($request, $this->transporter->sendRequest($request));
     }
 }

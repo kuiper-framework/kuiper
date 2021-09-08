@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\servicediscovery;
 
-use kuiper\rpc\transporter\Endpoint;
 use Psr\SimpleCache\CacheInterface;
 use Swoole\Table;
 
@@ -70,11 +69,6 @@ class SwooleTableServiceEndpointCache implements CacheInterface
         return true;
     }
 
-    /**
-     * @param Endpoint[] $endpoints
-     *
-     * @return string
-     */
     private function encode(ServiceEndpoint $endpoint): string
     {
         return (string) $endpoint;
