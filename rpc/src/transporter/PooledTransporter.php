@@ -25,7 +25,7 @@ class PooledTransporter implements TransporterInterface
 
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
-        return $this->pool->take()->send($request);
+        return $this->pool->take()->sendRequest($request);
     }
 
     public function recv(): ResponseInterface

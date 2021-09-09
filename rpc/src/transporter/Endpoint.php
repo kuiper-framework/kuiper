@@ -162,6 +162,11 @@ final class Endpoint
         return self::create($uri->getScheme(), $uri->getHost(), $uri->getPort() ?? 0, $options);
     }
 
+    public static function removeScheme(string $uri): string
+    {
+        return preg_replace('#^\w+://#', '//', $uri);
+    }
+
     private static function create(string $schema, string $host, int $port, array $options): self
     {
         $connectTimeout = self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null);

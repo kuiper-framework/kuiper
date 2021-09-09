@@ -17,10 +17,14 @@ class TarsServerConfigurationTest extends TestCase
         $normalizer = new Serializer();
         $config = Config::parseFile(dirname(__DIR__).'/fixtures/PHPTest.PHPHttpServer.config.conf');
         $server = $config->get('application.tars.server');
+        /** @var ServerProperties $serverProperties */
         $serverProperties = $normalizer->denormalize($server, ServerProperties::class);
-        var_export([$server, $serverProperties]);
+        // var_export([$server, $serverProperties]);
+        $this->assertNotEmpty($serverProperties->getAdapters());
 
+        /** @var ClientProperties $clientProperties */
         $clientProperties = $normalizer->denormalize($config->get('application.tars.client'), ClientProperties::class);
-        var_export($clientProperties);
+        // var_export($clientProperties);
+        $this->assertNotNull($clientProperties->getLocator());
     }
 }

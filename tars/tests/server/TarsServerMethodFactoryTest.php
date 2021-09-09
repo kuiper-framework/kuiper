@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use kuiper\annotations\AnnotationReader;
+use kuiper\rpc\server\Service;
+use kuiper\rpc\ServiceLocator;
+use kuiper\swoole\ServerPort;
 use kuiper\tars\fixtures\HelloService;
 use kuiper\tars\stream\RequestPacket;
 use kuiper\tars\stream\TarsOutputStream;
@@ -19,9 +23,9 @@ class TarsServerMethodFactoryTest extends TestCase
         $serverProperties->setApp('app');
         $serverProperties->setServer('server');
 
-        $factory = new TarsServerMethodFactory($serverProperties, [
+        $factory = new TarsServerMethodFactory($serverProperties, $this->createServices([
             'app.server.HelloObj' => \Mockery::mock(HelloService::class),
-        ]);
+        ]), AnnotationReader::getInstance());
         $requestPacket = new RequestPacket();
         $requestPacket->sBuffer = TarsOutputStream::pack(MapType::byteArrayMap(), [
             'name' => TarsOutputStream::pack(PrimitiveType::string(), 'world'),
@@ -29,5 +33,20 @@ class TarsServerMethodFactoryTest extends TestCase
         $method = $factory->create('app.server.HelloObj', 'hello', [$requestPacket]);
         // print_r($method);
         $this->assertEquals(['world'], $method->getArguments());
+    }
+
+    public function createServices(array $services): array
+    {
+        $ret = [];
+        foreach ($services as $name => $impl) {
+            $ret[$name] = new Service(
+                new ServiceLocator($name),
+                $impl,
+                [],
+                new ServerPort('localhost', 0, 'tcp')
+            );
+        }
+
+        return $ret;
     }
 }

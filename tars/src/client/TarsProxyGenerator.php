@@ -15,9 +15,9 @@ class TarsProxyGenerator extends ProxyGenerator
     protected function createClassGenerator(string $interfaceName, array $context = []): ClassGenerator
     {
         $class = parent::createClassGenerator($interfaceName, $context);
-        if (isset($context['servant'])) {
+        if (isset($context['service'])) {
             $class->setDocBlock(DocBlockGenerator::fromReflection(
-                new DocBlockReflection($this->createDocBlock($context['servant']))));
+                new DocBlockReflection($this->createDocBlock($context['service']))));
         }
 
         return $class;

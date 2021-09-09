@@ -6,7 +6,9 @@ namespace kuiper\web\http;
 
 use function DI\autowire;
 use function DI\get;
+use kuiper\di\annotation\AllConditions;
 use kuiper\di\annotation\ConditionalOnClass;
+use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\annotation\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -27,7 +29,10 @@ use Psr\Http\Message\UriFactoryInterface;
 
 /**
  * @Configuration()
- * @ConditionalOnClass(ServerRequestFactory::class)
+ * @AllConditions(
+ *     @ConditionalOnClass(ServerRequestFactory::class),
+ *     @ConditionalOnProperty("application.web.http_factory", hasValue="diactoros", matchIfMissing=true)
+ * )
  */
 class DiactorosHttpMessageFactoryConfiguration implements DefinitionConfiguration
 {

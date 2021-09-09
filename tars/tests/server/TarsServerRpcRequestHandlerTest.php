@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace kuiper\tars\server;
 
 use GuzzleHttp\Psr7\HttpFactory;
+use kuiper\annotations\AnnotationReader;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
+use kuiper\rpc\server\Service;
+use kuiper\rpc\ServiceLocator;
+use kuiper\swoole\ServerPort;
 use kuiper\tars\core\EndpointParser;
 use kuiper\tars\fixtures\User;
 use kuiper\tars\fixtures\UserServant;
@@ -28,9 +32,9 @@ class TarsServerRpcRequestHandlerTest extends TestCase
 
                 return [$user];
             });
-        $services = [
+        $services = $this->createServices([
             'PHPDemo.PHPTcpServer.UserObj' => $userServant,
-        ];
+        ]);
         $serverProperties = new ServerProperties();
         $serverProperties->setApp('PHPDemo');
         $serverProperties->setServer('PHPTcpServer');
@@ -41,7 +45,7 @@ class TarsServerRpcRequestHandlerTest extends TestCase
         $httpFactory = new HttpFactory();
         $responseFactory = new TarsServerResponseFactory($httpFactory, $httpFactory);
         $handler = new RpcServerRpcRequestHandler($services, $responseFactory, []);
-        $rpcMethodFactory = new TarsServerMethodFactory($serverProperties, $services);
+        $rpcMethodFactory = new TarsServerMethodFactory($serverProperties, $services, AnnotationReader::getInstance());
         $requestFactory = new TarsServerRequestFactory($serverProperties, $rpcMethodFactory);
         $httpRequest = $httpFactory->createRequest('GET', 'tcp://localhost:8003');
         $requestPacket = new RequestPacket();
@@ -53,6 +57,22 @@ class TarsServerRpcRequestHandlerTest extends TestCase
         $httpRequest->getBody()->write((string) $requestPacket->encode());
         $request = $requestFactory->createRequest($httpRequest);
         $response = $handler->handle($request);
-        print_r($response->getRequest()->getRpcMethod()->getResult());
+        // var_export($response->getRequest()->getRpcMethod()->getResult());
+        $this->assertNotEmpty($response->getRequest()->getRpcMethod()->getResult());
+    }
+
+    private function createServices(array $services): array
+    {
+        $ret = [];
+        foreach ($services as $name => $impl) {
+            $ret[$name] = new Service(
+                new ServiceLocator($name),
+                $impl,
+                [],
+                new ServerPort('', 0, 'tcp')
+            );
+        }
+
+        return $ret;
     }
 }

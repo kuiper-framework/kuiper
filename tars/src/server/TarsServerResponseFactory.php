@@ -38,6 +38,6 @@ class TarsServerResponseFactory implements RpcServerResponseFactoryInterface
         $response = $this->httpResponseFactory->createResponse();
 
         /** @var TarsRequestInterface $request */
-        return new TarsServerRpcResponse($request, $response, $this->streamFactory);
+        return new TarsServerResponse($request, $response, $this->streamFactory);
     }
 }

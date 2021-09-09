@@ -10,7 +10,7 @@ use kuiper\rpc\ServiceLocator;
 use kuiper\tars\core\EndpointParser;
 use kuiper\tars\integration\QueryFServant;
 
-class TarsRegistryServiceResolver implements ServiceResolverInterface
+class TarsRegistryResolver implements ServiceResolverInterface
 {
     /**
      * @var QueryFServant

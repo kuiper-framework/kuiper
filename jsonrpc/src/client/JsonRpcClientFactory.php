@@ -202,6 +202,10 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         $proxyClass = $this->proxyGenerator->generate($className);
         $proxyClass->eval();
         $class = $proxyClass->getClassName();
+        if (isset($options['endpoint'])) {
+            // Laminas\Diactoros\Uri cannot accept tcp scheme
+            $options['endpoint'] = Endpoint::removeScheme($options['endpoint']);
+        }
 
         if (ServerType::TCP === ($options['protocol'] ?? ServerType::TCP)) {
             $rpcExecutorFactory = $this->createTcpRpcExecutorFactory($className, $options);

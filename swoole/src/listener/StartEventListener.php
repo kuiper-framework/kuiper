@@ -7,6 +7,7 @@ namespace kuiper\swoole\listener;
 use kuiper\event\EventListenerInterface;
 use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\event\StartEvent;
+use kuiper\swoole\server\SwooleServer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -44,7 +45,7 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
     {
         // https://github.com/swoole/swoole-src/issues/4186
         // 在 manager 进程中无法使用 Process::signal 方法，需要用 pcntl_signal
-        if (function_exists('pcntl_signal')) {
+        if (function_exists('pcntl_signal') && $event->getServer() instanceof SwooleServer) {
             $masterPid = $event->getServer()->getMasterPid();
             Process::signal(SIGINT, static function () use ($masterPid): void {
                 Process::kill($masterPid, SIGTERM);

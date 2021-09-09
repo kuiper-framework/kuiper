@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace kuiper\tars;
 
+use kuiper\helper\Properties;
 use kuiper\swoole\Application;
 use kuiper\tars\client\TarsProxyFactory;
 use kuiper\tars\integration\ConfigServant;
+use kuiper\tars\server\Config;
 
 class TarsApplication extends Application
 {
+    protected function parseConfig(string $configFile): Properties
+    {
+        return Config::parseFile($configFile);
+    }
+
     protected function downloadEnvFile(): array
     {
         $config = $this->getConfig();
@@ -18,8 +25,7 @@ class TarsApplication extends Application
         $server = $config->getString('application.tars.server.server');
         $locator = $config->getString('application.tars.client.locator');
         if ('' !== $env && '' !== $locator) {
-            $proxyFactory = new TarsProxyFactory();
-            $proxyFactory->setRegistryServiceEndpoint($locator);
+            $proxyFactory = TarsProxyFactory::createDefault($locator);
             $localFile = $this->getBasePath().'/'.$env;
             /** @var ConfigServant $configServant */
             $configServant = $proxyFactory->create(ConfigServant::class);
@@ -46,41 +52,34 @@ class TarsApplication extends Application
         $config->merge([
             'application' => [
                 'env' => $config->getString('application.tars.server.env', 'prod'),
-                'name' => $config->getString('application.tars.server.server'),
-                'base-path' => $config->getString('application.tars.server.basepath'),
-                'data-path' => $config->getString('application.tars.server.datapath'),
+                'name' => $config->getString('application.tars.server.server', 'app'),
+                'base_path' => $config->get('application.tars.server.basepath'),
+                'data_path' => $config->get('application.tars.server.datapath'),
                 'server' => [
-                    'enable-php-server' => $config->getBool('application.tars.server.enable_php_server', false),
-                ],
-                'listeners' => [
-//                    StartEventListener::class,
-//                    ReloadWorkerListener::class,
-//                    ManagerStartEventListener::class,
-//                    WorkerStartEventListener::class,
-//                    TaskEventListener::class,
-//                    ReopenLogFile::class,
-//                    WorkerKeepAlive::class,
+                    'enable_php_server' => $config->getBool('application.tars.server.enable_php_server', false),
                 ],
                 'tars' => [
-                    'middleware' => [
-                        'client' => [
+                    'client' => [
+                        'middleware' => [
 //                            RequestLog::class,
 //                            ErrorHandler::class,
 //                            AddRequestReferer::class,
 //                            SendStat::class,
 //                            Retry::class,
                         ],
-                        'servant' => [
+                    ],
+                    'server' => [
+                        'middleware' => [
 //                            ServerRequestLog::class,
                         ],
-                    ],
-                    'collectors' => [
+                        'collectors' => [
 //                        ServiceMemoryCollector::class,
 //                        WorkerNumCollector::class,
+                        ],
                     ],
                 ],
                 'logging' => [
-                    'path' => $config->getString('application.tars.server.logpath'),
+                    'path' => $config->get('application.tars.server.logpath'),
                     'level' => [
                         'kuiper\\tars' => 'info',
                     ],

@@ -8,40 +8,67 @@ use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\reflection\ReflectionDocBlockFactory;
+use kuiper\reflection\ReflectionDocBlockFactoryInterface;
+use kuiper\rpc\client\middleware\ServiceDiscovery;
+use kuiper\rpc\client\ProxyGeneratorInterface;
 use kuiper\rpc\client\RpcClient;
 use kuiper\rpc\client\RpcExecutorFactory;
+use kuiper\rpc\client\RpcExecutorFactoryInterface;
+use kuiper\rpc\client\RpcRequestFactoryInterface;
 use kuiper\rpc\MiddlewareInterface;
-use kuiper\rpc\servicediscovery\CachedServiceResolver;
+use kuiper\rpc\RpcRequestHandlerInterface;
+use kuiper\rpc\servicediscovery\ChainedServiceResolver;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
 use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
+use kuiper\rpc\transporter\Endpoint;
 use kuiper\rpc\transporter\PooledTransporter;
 use kuiper\rpc\transporter\SwooleCoroutineTcpTransporter;
 use kuiper\rpc\transporter\SwooleTcpTransporter;
 use kuiper\rpc\transporter\TransporterInterface;
 use kuiper\swoole\coroutine\Coroutine;
+use kuiper\swoole\pool\PoolFactory;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\tars\annotation\TarsClient;
+use kuiper\tars\core\EndpointParser;
 use kuiper\tars\core\TarsMethodFactory;
 use kuiper\tars\integration\QueryFServant;
+use Laminas\Diactoros\RequestFactory;
+use Laminas\Diactoros\ResponseFactory;
+use Laminas\Diactoros\StreamFactory;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\NullLogger;
-use Psr\SimpleCache\CacheInterface;
 
 class TarsProxyFactory
 {
     /**
+     * @var RequestFactoryInterface
+     */
+    private $httpRequestFactory;
+
+    /**
+     * @var ResponseFactoryInterface
+     */
+    private $httpResponseFactory;
+
+    /**
+     * @var StreamFactoryInterface
+     */
+    private $streamFactory;
+
+    /**
      * @var AnnotationReaderInterface
      */
     private $annotationReader;
-    /**
-     * @var ServiceResolverInterface|null
-     */
-    private $serviceResolver;
 
     /**
-     * @var CacheInterface|null
+     * @var ReflectionDocBlockFactoryInterface
      */
-    private $cache;
+    private $reflectionDocBlockFactory;
 
     /**
      * @var PoolFactoryInterface|null
@@ -56,145 +83,172 @@ class TarsProxyFactory
     /**
      * @var MiddlewareInterface[]
      */
-    private $middlewares = [];
+    private $middlewares;
 
     /**
      * TarsProxyFactory constructor.
      *
-     * @param AnnotationReaderInterface|null $annotationReader
-     * @param ServiceResolverInterface|null  $serviceResolver
+     * @param RequestFactoryInterface            $httpRequestFactory
+     * @param ResponseFactoryInterface           $httpResponseFactory
+     * @param StreamFactoryInterface             $streamFactory
+     * @param AnnotationReaderInterface          $annotationReader
+     * @param ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory
+     * @param PoolFactoryInterface               $poolFactory
+     * @param LoggerFactoryInterface|null        $loggerFactory
+     * @param MiddlewareInterface[]              $middlewares
      */
-    public function __construct(?ServiceResolverInterface $serviceResolver = null, ?AnnotationReaderInterface $annotationReader = null)
-    {
-        $this->serviceResolver = $serviceResolver;
-        $this->annotationReader = $annotationReader ?? AnnotationReader::getInstance();
-    }
-
-    /**
-     * @param string|ServiceEndpoint $serviceEndpoint
-     *
-     * @throws \ReflectionException
-     */
-    public function setRegistryServiceEndpoint($serviceEndpoint): void
-    {
-        $proxyFactory = new self(InMemoryServiceResolver::create([$serviceEndpoint]));
-        $resolver = new TarsRegistryServiceResolver($proxyFactory->create(QueryFServant::class));
-        if (null !== $this->cache) {
-            $resolver = new CachedServiceResolver($resolver, $this->cache);
-        }
-        $this->serviceResolver = $resolver;
-    }
-
-    /**
-     * @return AnnotationReaderInterface
-     */
-    public function getAnnotationReader(): AnnotationReaderInterface
-    {
-        return $this->annotationReader;
-    }
-
-    /**
-     * @return ServiceResolverInterface|null
-     */
-    public function getServiceResolver(): ?ServiceResolverInterface
-    {
-        return $this->serviceResolver;
-    }
-
-    /**
-     * @return PoolFactoryInterface|null
-     */
-    public function getPoolFactory(): ?PoolFactoryInterface
-    {
-        return $this->poolFactory;
-    }
-
-    /**
-     * @param PoolFactoryInterface $poolFactory
-     */
-    public function setPoolFactory(PoolFactoryInterface $poolFactory): void
-    {
+    public function __construct(
+        RequestFactoryInterface $httpRequestFactory,
+        ResponseFactoryInterface $httpResponseFactory,
+        StreamFactoryInterface $streamFactory,
+        AnnotationReaderInterface $annotationReader,
+        ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory,
+        PoolFactoryInterface $poolFactory,
+        ?LoggerFactoryInterface $loggerFactory,
+        array $middlewares = []
+    ) {
+        $this->httpRequestFactory = $httpRequestFactory;
+        $this->httpResponseFactory = $httpResponseFactory;
+        $this->streamFactory = $streamFactory;
+        $this->annotationReader = $annotationReader;
+        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
         $this->poolFactory = $poolFactory;
-    }
-
-    /**
-     * @return LoggerFactoryInterface|null
-     */
-    public function getLoggerFactory(): ?LoggerFactoryInterface
-    {
-        return $this->loggerFactory;
-    }
-
-    /**
-     * @param LoggerFactoryInterface $loggerFactory
-     */
-    public function setLoggerFactory(LoggerFactoryInterface $loggerFactory): void
-    {
         $this->loggerFactory = $loggerFactory;
-    }
-
-    /**
-     * @return MiddlewareInterface[]
-     */
-    public function getMiddlewares(): array
-    {
-        return $this->middlewares;
-    }
-
-    /**
-     * @param MiddlewareInterface[] $middlewares
-     */
-    public function setMiddlewares(array $middlewares): void
-    {
         $this->middlewares = $middlewares;
     }
 
+    public static function createFromContainer(ContainerInterface $container, array $middlewares): self
+    {
+        return new self(
+            $container->get(RequestFactoryInterface::class),
+            $container->get(ResponseFactoryInterface::class),
+            $container->get(StreamFactoryInterface::class),
+            $container->get(AnnotationReaderInterface::class),
+            $container->get(ReflectionDocBlockFactoryInterface::class),
+            $container->get(PoolFactoryInterface::class),
+            $container->get(LoggerFactoryInterface::class),
+            $middlewares
+        );
+    }
+
     /**
-     * @param string $className
-     * @param array  $options
+     * @param string|ServiceEndpoint... $serviceEndpoints
      *
-     * @return mixed
+     * @return self
+     *
+     * @throws \ReflectionException
+     */
+    public static function createDefault(...$serviceEndpoints): self
+    {
+        $resolver = InMemoryServiceResolver::create(array_map(static function ($endpoint): ServiceEndpoint {
+            return is_string($endpoint) ? EndpointParser::parseServiceEndpoint($endpoint) : $endpoint;
+        }, $serviceEndpoints));
+        /** @var QueryFServant $queryFClient */
+        $queryFClient = self::createWithResolver($resolver)->create(QueryFServant::class);
+
+        return self::createWithResolver(new ChainedServiceResolver([
+            $resolver,
+            new TarsRegistryResolver($queryFClient),
+        ]));
+    }
+
+    private static function createWithResolver(ServiceResolverInterface $serviceResolver): self
+    {
+        if (class_exists(HttpFactory::class)) {
+            $factory = new HttpFactory();
+            $httpRequestFactory = $factory;
+            $httpResponseFactory = $factory;
+            $streamFactory = $factory;
+        } elseif (class_exists(RequestFactory::class)) {
+            $httpRequestFactory = new RequestFactory();
+            $httpResponseFactory = new ResponseFactory();
+            $streamFactory = new StreamFactory();
+        } else {
+            throw new \InvalidArgumentException('Cannot find ');
+        }
+
+        return new self(
+            $httpRequestFactory,
+            $httpResponseFactory,
+            $streamFactory,
+            AnnotationReader::getInstance(),
+            ReflectionDocBlockFactory::getInstance(),
+            new PoolFactory(),
+            null,
+            [new ServiceDiscovery($serviceResolver)]
+        );
+    }
+
+    protected function createProxyGenerator(): ProxyGeneratorInterface
+    {
+        return new TarsProxyGenerator($this->reflectionDocBlockFactory);
+    }
+
+    protected function createRpcRequestFactory(array $options): RpcRequestFactoryInterface
+    {
+        return new TarsRequestFactory($this->httpRequestFactory, $this->streamFactory, new TarsMethodFactory($this->annotationReader), $options['endpoint'] ?? '/');
+    }
+
+    protected function createRpcClient(string $className, array $options): RpcRequestHandlerInterface
+    {
+        $transporter = new PooledTransporter($this->poolFactory->create($options['service'], function (int $connId) use ($className, $options): TransporterInterface {
+            if (Coroutine::isEnabled()) {
+                $transporter = new SwooleCoroutineTcpTransporter($this->httpResponseFactory, $options);
+            } else {
+                $transporter = new SwooleTcpTransporter($this->httpResponseFactory, $options);
+            }
+            $logger = null !== $this->loggerFactory
+                ? $this->loggerFactory->create($className)
+                : new NullLogger();
+            $logger->info("[$className] create connection $connId", ['class' => get_class($transporter)]);
+            $transporter->setLogger($logger);
+
+            return $transporter;
+        }));
+
+        return new RpcClient($transporter, new TarsResponseFactory());
+    }
+
+    protected function createRpcExecutorFactory(string $className, array $options): RpcExecutorFactoryInterface
+    {
+        return new RpcExecutorFactory(
+            $this->createRpcRequestFactory($options),
+            $this->createRpcClient($className, $options),
+            array_merge($this->middlewares, $options['middleware'] ?? [])
+        );
+    }
+
+    /**
+     * @template T
+     *
+     * @param class-string<T> $className
+     * @param array           $options
+     *
+     * @return T
      *
      * @throws \ReflectionException
      */
     public function create(string $className, array $options = [])
     {
         $class = new \ReflectionClass($className);
-        /** @var TarsClient|null $tarsClientAnnotation */
-        $tarsClientAnnotation = $this->getAnnotationReader()->getClassAnnotation($class, TarsClient::class);
-        if (null === $tarsClientAnnotation) {
-            throw new \InvalidArgumentException("class $className has no @TarsClient annotation");
+        if (empty($options['service'])) {
+            /** @var TarsClient $tarsClient */
+            $tarsClient = $this->annotationReader->getClassAnnotation($class, TarsClient::class);
+            $options['service'] = $tarsClient->service;
         }
-
-        $servantName = $tarsClientAnnotation->service;
         if ($class->isInterface()) {
-            $proxyGenerator = new TarsProxyGenerator();
-            $proxyClass = $proxyGenerator->generate($className, $options);
+            $proxyClass = $this->createProxyGenerator()->generate($className, $options);
             $proxyClass->eval();
             $className = $proxyClass->getClassName();
         }
-        $httpFactory = new HttpFactory();
-        $transporterFactory = function (int $connId) use ($httpFactory, $className, $options): TransporterInterface {
-            if (Coroutine::isEnabled()) {
-                $transporter = new SwooleCoroutineTcpTransporter($httpFactory, $options);
+        if (isset($options['endpoint'])) {
+            if (preg_match('#^\w+://#', $options['endpoint'])) {
+                $options['endpoint'] = Endpoint::removeScheme($options['endpoint']);
             } else {
-                $transporter = new SwooleTcpTransporter($httpFactory, $options);
+                unset($options['endpoint']);
             }
-            $logger = null !== $this->getLoggerFactory()
-                ? $this->getLoggerFactory()->create($className)
-                : new NullLogger();
-            $logger->info("[$className] create connection $connId", ['class' => get_class($transporter)]);
-            $transporter->setLogger($logger);
+        }
 
-            return $transporter;
-        };
-        $transporter = null !== $this->getPoolFactory()
-            ? new PooledTransporter($this->getPoolFactory()->create($servantName, $transporterFactory))
-            : $transporterFactory(0);
-        $requestFactory = new TarsRequestFactory($httpFactory, $httpFactory, new TarsMethodFactory());
-        $tarsClient = new RpcClient($transporter, new TarsResponseFactory());
-        $executorFactory = new RpcExecutorFactory($requestFactory, $tarsClient, $this->getMiddlewares());
-
-        return new $className($executorFactory);
+        return new $className($this->createRpcExecutorFactory($className, $options));
     }
 }

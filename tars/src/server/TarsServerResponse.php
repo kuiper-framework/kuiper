@@ -13,8 +13,9 @@ use kuiper\tars\stream\TarsOutputStream;
 use kuiper\tars\type\MapType;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\StreamInterface;
 
-class TarsServerRpcResponse extends RpcResponse
+class TarsServerResponse extends RpcResponse
 {
     /**
      * @var ResponsePacket
@@ -32,7 +33,10 @@ class TarsServerRpcResponse extends RpcResponse
         $this->streamFactory = $streamFactory;
     }
 
-    public function getBody()
+    /**
+     * @inheritDoc
+     */
+    public function getBody(): StreamInterface
     {
         $packet = $this->packet;
         if (null === $packet->sBuffer) {

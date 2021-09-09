@@ -13,6 +13,6 @@ class ConfigTest extends TestCase
         $config = Config::parseFile(dirname(__DIR__).'/fixtures/PHPTest.PHPHttpServer.config.conf');
         // print_r($config->toArray());
         $this->assertNotNull($config->get('application.tars'));
-        var_export($config->get('application.tars'));
+        // var_export($config->get('application.tars'));
     }
 }

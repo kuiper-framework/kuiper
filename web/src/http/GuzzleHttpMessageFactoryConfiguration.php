@@ -6,7 +6,9 @@ namespace kuiper\web\http;
 
 use function DI\get;
 use GuzzleHttp\Psr7\HttpFactory;
+use kuiper\di\annotation\AllConditions;
 use kuiper\di\annotation\ConditionalOnClass;
+use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\annotation\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -19,7 +21,10 @@ use Psr\Http\Message\UriFactoryInterface;
 
 /**
  * @Configuration()
- * @ConditionalOnClass(HttpFactory::class)
+ * @AllConditions(
+ *     @ConditionalOnClass(HttpFactory::class),
+ *     @ConditionalOnProperty("application.web.http_factory", hasValue="guzzle", matchIfMissing=true)
+ * )
  */
 class GuzzleHttpMessageFactoryConfiguration implements DefinitionConfiguration
 {

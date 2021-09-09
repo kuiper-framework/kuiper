@@ -6,11 +6,7 @@ namespace kuiper\tars\config;
 
 use DI\Annotation\Inject;
 use function DI\autowire;
-use DI\Container;
 use function DI\factory;
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\cache\ArrayCache;
-use kuiper\cache\ChainedCache;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -18,29 +14,22 @@ use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\logger\LoggerFactoryInterface;
-use kuiper\reflection\ReflectionDocBlockFactoryInterface;
-use kuiper\rpc\client\ProxyGeneratorInterface;
+use kuiper\rpc\client\middleware\ServiceDiscovery;
 use kuiper\rpc\server\middleware\AccessLog;
-use kuiper\rpc\servicediscovery\CachedServiceResolver;
 use kuiper\rpc\servicediscovery\ChainedServiceResolver;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
+use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
-use kuiper\rpc\servicediscovery\SwooleTableServiceEndpointCache;
 use kuiper\swoole\Application;
-use kuiper\swoole\monolog\CoroutineIdProcessor;
-use kuiper\swoole\pool\PoolFactoryInterface;
+use kuiper\swoole\config\ServerConfiguration;
 use kuiper\tars\annotation\TarsClient;
 use kuiper\tars\client\TarsProxyFactory;
-use kuiper\tars\client\TarsProxyGenerator;
-use kuiper\tars\client\TarsRegistryServiceResolver;
-use kuiper\tars\core\TarsMethodFactory;
+use kuiper\tars\client\TarsRegistryResolver;
+use kuiper\tars\core\EndpointParser;
 use kuiper\tars\integration\QueryFServant;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
-use Psr\SimpleCache\CacheInterface;
 
 class TarsClientConfiguration implements DefinitionConfiguration
 {
@@ -49,22 +38,22 @@ class TarsClientConfiguration implements DefinitionConfiguration
     public function getDefinitions(): array
     {
         $this->addTarsRequestLog();
-        $this->containerBuilder->defer(function (ContainerInterface $container): void {
-            $this->createTarsClients($container);
-        });
+        Application::getInstance()->getConfig()->merge([
+            'application' => [
+                'tars' => [
+                    'client' => [
+                        'middleware' => [
+                            'tarsServiceDiscovery',
+                            'tarsRequestLog',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
 
-        return [
+        return array_merge($this->createTarsClients(), [
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
-            'tarsMethodFactory' => autowire(TarsMethodFactory::class),
-        ];
-    }
-
-    /**
-     * @Bean("tarsProxyGenerator")
-     */
-    public function tarsProxyGenerator(ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory): ProxyGeneratorInterface
-    {
-        return new TarsProxyGenerator($reflectionDocBlockFactory);
+        ]);
     }
 
     /**
@@ -78,90 +67,54 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return $middleware;
     }
 
-    private function createTarsClients(ContainerInterface $container): void
+    private function createTarsClients(): array
     {
+        $definitions = [];
+        $config = Application::getInstance()->getConfig();
+        $options = $config->get('application.jsonrpc.client.options', []);
+        $createClient = static function (ContainerInterface $container, array $options) {
+            if (isset($options['middleware'])) {
+                foreach ($options['middleware'] as $i => $middleware) {
+                    if (is_string($middleware)) {
+                        $options['middleware'][$i] = $container->get($middleware);
+                    }
+                }
+            }
+
+            return $container->get(TarsProxyFactory::class)->create($options['class'], $options);
+        };
         /** @var TarsClient $annotation */
         foreach (ComponentCollection::getAnnotations(TarsClient::class) as $annotation) {
-            /** @var Container $container */
-            $container->set($annotation->getTargetClass(), factory(function () use ($container, $annotation) {
-                $options = array_merge(
-                    Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
-                    Application::getInstance()->getConfig()
-                        ->get('application.tars.client.options', [])[$annotation->service] ?? []
-                );
-
-                return $container->get(TarsProxyFactory::class)->create($annotation->getTargetClass(), $options);
-            }));
+            $name = $annotation->getComponentId();
+            $clientOptions = array_merge(
+                Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
+                $options[$name] ?? []
+            );
+            $clientOptions['class'] = $annotation->getTargetClass();
+            $definitions[$name] = factory(function (ContainerInterface $container) use ($createClient, $clientOptions) {
+                return $createClient($container, $clientOptions);
+            });
         }
+
+        foreach (Application::getInstance()->getConfig()->get('application.tars.client.clients', []) as $name => $service) {
+            $componentId = is_string($name) ? $name : $service;
+            $clientOptions = array_merge($options[$componentId] ?? []);
+            $clientOptions['class'] = $service;
+            $definitions[$componentId] = factory(function (ContainerInterface $container) use ($createClient, $clientOptions) {
+                return $createClient($container, $clientOptions);
+            });
+        }
+
+        return $definitions;
     }
 
     /**
      * @Bean
-     * @Inject({"serviceResolver": "tarsRegistryServiceResolver", "middlewares": "tarsClientMiddlewares"})
+     * @Inject({"middlewares": "tarsClientMiddlewares"})
      */
-    public function tarsProxyFactory(
-        ServiceResolverInterface $serviceResolver,
-        AnnotationReaderInterface $annotationReader,
-        PoolFactoryInterface $poolFactory,
-        LoggerFactoryInterface $loggerFactory,
-        array $middlewares): TarsProxyFactory
+    public function tarsProxyFactory(ContainerInterface $container, array $middlewares): TarsProxyFactory
     {
-        $tarsProxyFactory = new TarsProxyFactory($serviceResolver, $annotationReader);
-        $tarsProxyFactory->setLoggerFactory($loggerFactory);
-        $tarsProxyFactory->setPoolFactory($poolFactory);
-        $tarsProxyFactory->setMiddlewares($middlewares);
-
-        return $tarsProxyFactory;
-    }
-
-    /**
-     * @Bean("tarsRegistryServiceResolver")
-     * @Inject({"cache": "tarsServiceEndpointCache"})
-     */
-    public function tarsRegistryServiceResolver(QueryFServant $queryFServant, CacheInterface $cache): ServiceResolverInterface
-    {
-        return new ChainedServiceResolver([
-            $this->inMemoryServiceRegistry($this->tarsServiceEndpoints()),
-            new CachedServiceResolver(new TarsRegistryServiceResolver($queryFServant), $cache),
-        ]);
-    }
-
-    /**
-     * @Bean("tarsServiceEndpointCache")
-     * @Inject({"options": "application.tars.client.registry"})
-     */
-    public function tarsServiceEndpointCache(?array $options): CacheInterface
-    {
-        $ttl = $options['ttl'] ?? 60;
-        $capacity = $options['capacity'] ?? 256;
-        $registryCache = new SwooleTableServiceEndpointCache($ttl, $capacity, $options['size'] ?? 2048);
-
-        return new ChainedCache([
-            new ArrayCache($options['memory-ttl'] ?? 1, $capacity),
-            $registryCache,
-        ]);
-    }
-
-    /**
-     * @Bean("tarsServiceEndpoints")
-     */
-    public function tarsServiceEndpoints(): array
-    {
-        $config = Application::getInstance()->getConfig();
-        $endpoints = $config->get('application.tars.client.endpoints', []);
-        $endpoints[] = $config->getString('application.tars.client.locator');
-        $endpoints[] = $config->getString('application.tars.server.node');
-
-        return array_values(array_filter($endpoints));
-    }
-
-    /**
-     * @Bean
-     * @Inject({"serviceEndpoints": "tarsServiceEndpoints"})
-     */
-    public function inMemoryServiceRegistry(array $serviceEndpoints): InMemoryServiceResolver
-    {
-        return InMemoryServiceResolver::create($serviceEndpoints);
+        return TarsProxyFactory::createFromContainer($container, $middlewares);
     }
 
     /**
@@ -171,10 +124,69 @@ class TarsClientConfiguration implements DefinitionConfiguration
     {
         $middlewares = [];
         foreach (Application::getInstance()->getConfig()->get('application.tars.client.middleware', []) as $middleware) {
-            $middlewares[] = $container->get($middleware);
+            if (is_string($middleware)) {
+                $middleware = $container->get($middleware);
+            }
+            $middlewares[] = $middleware;
         }
 
         return $middlewares;
+    }
+
+    /**
+     * @Bean("tarsServiceDiscovery")
+     * @Inject({
+     *     "serviceResolver": "tarsServiceResolver",
+     *     "loadBalance": "application.client.service_disovery.load_balance"
+     * })
+     */
+    public function tarsServiceDiscovery(ServiceResolverInterface $serviceResolver, ?string $loadBalance): ServiceDiscovery
+    {
+        return new ServiceDiscovery($serviceResolver, null, $loadBalance ?? LoadBalanceAlgorithm::ROUND_ROBIN);
+    }
+
+    /**
+     * @Bean("tarsServiceResolver")
+     */
+    public function tarsServiceResolver(ContainerInterface $container): ServiceResolverInterface
+    {
+        return new ChainedServiceResolver([
+            $container->get(InMemoryServiceResolver::class),
+            $container->get(TarsRegistryResolver::class),
+        ]);
+    }
+
+    /**
+     * @Bean
+     */
+    public function tarsRegistryResolver(ContainerInterface $container): TarsRegistryResolver
+    {
+        /** @var QueryFServant $queryClient */
+        $queryClient = TarsProxyFactory::createFromContainer($container, [
+            new ServiceDiscovery($container->get(InMemoryServiceResolver::class)),
+        ])->create(QueryFServant::class);
+
+        return new TarsRegistryResolver($queryClient);
+    }
+
+    /**
+     * @Bean
+     */
+    public function inMemoryServiceResolver(): InMemoryServiceResolver
+    {
+        $config = Application::getInstance()->getConfig();
+        $endpoints = [];
+        foreach ($config->get('application.tars.client.options', []) as $name => $value) {
+            if (isset($value['endpoint']) && preg_match('#^(\w+\.)+\w+@#', $value['endpoint'])) {
+                $endpoints[] = $value['endpoint'];
+            }
+        }
+        $endpoints[] = $config->getString('application.tars.client.locator');
+        $endpoints[] = $config->getString('application.tars.server.node');
+
+        $serviceEndpoints = array_values(array_map([EndpointParser::class, 'parseServiceEndpoint'], array_filter($endpoints)));
+
+        return InMemoryServiceResolver::create($serviceEndpoints);
     }
 
     private function addTarsRequestLog(): void
@@ -184,49 +196,17 @@ class TarsClientConfiguration implements DefinitionConfiguration
         if (null === $path) {
             return;
         }
-        $config->mergeIfNotExists([
+        $config->merge([
             'application' => [
                 'logging' => [
                     'loggers' => [
-                        'TarsRequestLogger' => $this->createAccessLogger($path.'/tars-client.log'),
+                        'TarsRequestLogger' => ServerConfiguration::createAccessLogger($path.'/tars-client.log'),
                     ],
                     'logger' => [
                         'TarsRequestLogger' => 'TarsRequestLogger',
                     ],
                 ],
-                'jsonrpc' => [
-                    'client' => [
-                        'middleware' => [
-                            'tarsRequestLog',
-                        ],
-                    ],
-                ],
             ],
         ]);
-    }
-
-    protected function createAccessLogger(string $logFileName): array
-    {
-        return [
-            'handlers' => [
-                [
-                    'handler' => [
-                        'class' => StreamHandler::class,
-                        'constructor' => [
-                            'stream' => $logFileName,
-                        ],
-                    ],
-                    'formatter' => [
-                        'class' => LineFormatter::class,
-                        'constructor' => [
-                            'format' => "%message% %context% %extra%\n",
-                        ],
-                    ],
-                ],
-            ],
-            'processors' => [
-                CoroutineIdProcessor::class,
-            ],
-        ];
     }
 }

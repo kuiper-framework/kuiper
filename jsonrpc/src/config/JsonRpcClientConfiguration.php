@@ -7,7 +7,6 @@ namespace kuiper\jsonrpc\config;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
-use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -41,7 +40,6 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         return array_merge($this->createJsonRpcClients(), [
             ProxyGeneratorInterface::class => autowire(ProxyGenerator::class),
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
-            'guzzleHttpFactory' => get(HttpFactory::class),
             JsonRpcClientFactory::class => autowire(JsonRpcClientFactory::class)
                 ->constructorParameter('middlewares', get('jsonrpcClientMiddlewares'))
                 ->constructorParameter('httpClientFactory', factory(function (ContainerInterface $container) {

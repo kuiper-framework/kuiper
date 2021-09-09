@@ -72,33 +72,30 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
     protected function extractMethod($servant, string $method): TarsMethodInterface
     {
         $reflectionClass = new \ReflectionClass($servant);
+        $servantAnnotation = $this->getTarsServantAnnotation($reflectionClass);
+        [$parameters, $returnValue] = $this->getParameters($servant, $method);
+
+        return new TarsMethod($servant, $servantAnnotation->service ?? '', $method, [], $parameters, $returnValue);
+    }
+
+    /**
+     * @param object|string $servant
+     * @param string        $method
+     *
+     * @return array
+     *
+     * @throws InvalidMethodException
+     * @throws SyntaxErrorException
+     */
+    protected function getParameters($servant, string $method): array
+    {
+        $reflectionClass = new \ReflectionClass($servant);
         if (!$reflectionClass->hasMethod($method)) {
             throw new InvalidMethodException(sprintf("%s does not contain method '$method'", $reflectionClass->getName()));
         }
-        $servantAnnotation = $this->getTarsServantAnnotation($reflectionClass);
 
-        $reflectionMethod = null;
-        if ($reflectionClass->isInterface()) {
-            $reflectionMethod = $reflectionClass->getMethod($method);
-        } else {
-            $proxyClass = ProxyGenerator::getInterfaceName($reflectionClass->getName());
-            if (null !== $proxyClass) {
-                $reflectionMethod = new \ReflectionMethod($proxyClass, $method);
-            } else {
-                foreach ($reflectionClass->getInterfaceNames() as $interfaceName) {
-                    $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($interfaceName), TarsServant::class);
-                    if (null !== $annotation) {
-                        $reflectionMethod = new \ReflectionMethod($interfaceName, $method);
-                        $reflectionClass = $reflectionMethod->getDeclaringClass();
-                        break;
-                    }
-                }
-            }
-        }
-        if (null === $reflectionMethod) {
-            throw new InvalidMethodException("Cannot find method {$reflectionClass->getName()}::$method");
-        }
-        $namespace = $reflectionClass->getNamespaceName();
+        $reflectionMethod = $this->getMethod($reflectionClass, $method);
+        $namespace = $reflectionMethod->getDeclaringClass()->getNamespaceName();
         $parameters = [];
         $returnType = null;
         foreach ($this->annotationReader->getMethodAnnotations($reflectionMethod) as $methodAnnotation) {
@@ -116,7 +113,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
         }
         $returnValue = Parameter::asReturnValue($returnType ?? VoidType::instance());
 
-        return new TarsMethod($servant, $servantAnnotation->service, $method, [], $parameters, $returnValue);
+        return [$parameters, $returnValue];
     }
 
     protected function getTarsServantAnnotation(\ReflectionClass $reflectionClass): TarsServant
@@ -141,5 +138,31 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
         }
 
         throw new InvalidMethodException(sprintf('%s does not contain valid method definition, '."check it's interfaces should annotated with @TarsServant", $reflectionClass->getName()));
+    }
+
+    protected function getMethod(\ReflectionClass $reflectionClass, string $method): \ReflectionMethod
+    {
+        $reflectionMethod = null;
+        if ($reflectionClass->isInterface()) {
+            $reflectionMethod = $reflectionClass->getMethod($method);
+        } else {
+            $proxyClass = ProxyGenerator::getInterfaceName($reflectionClass->getName());
+            if (null !== $proxyClass) {
+                $reflectionMethod = new \ReflectionMethod($proxyClass, $method);
+            } else {
+                foreach ($reflectionClass->getInterfaceNames() as $interfaceName) {
+                    $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($interfaceName), TarsServant::class);
+                    if (null !== $annotation) {
+                        $reflectionMethod = new \ReflectionMethod($interfaceName, $method);
+                        break;
+                    }
+                }
+            }
+        }
+        if (null === $reflectionMethod) {
+            throw new InvalidMethodException("Cannot find method {$reflectionClass->getName()}::$method");
+        }
+
+        return $reflectionMethod;
     }
 }

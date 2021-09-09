@@ -68,11 +68,9 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
                 ],
                 'logging' => [
                     'path' => $basePath.'/logs',
-                    'access_log_file' => $basePath.'/logs/access.log',
                 ],
             ],
         ]);
-        $this->addAccessLoggerConfig();
         if (!$config->has('application.server.ports')) {
             $config->set('application.server.ports', ['8000' => ServerType::HTTP]);
         }
@@ -153,7 +151,6 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
     public function serverConfig(string $name): ServerConfig
     {
         $config = Application::getInstance()->getConfig();
-        $settings = $config->get('application.swoole');
         $settings = array_merge([
             ServerSetting::OPEN_LENGTH_CHECK => true,
             ServerSetting::PACKAGE_LENGTH_TYPE => 'N',
@@ -167,7 +164,7 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
             ServerSetting::OPEN_EOF_SPLIT => false,
             ServerSetting::DISPATCH_MODE => 2,
             ServerSetting::DAEMONIZE => false,
-        ], $settings);
+        ], $config->get('application.swoole') ?? []);
 
         $ports = [];
         foreach ($config->get('application.server.ports') as $port => $portConfig) {
@@ -191,20 +188,6 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
         $serverConfig->setMasterPidFile($config->get('application.logging.path').'/master.pid');
 
         return $serverConfig;
-    }
-
-    protected function addAccessLoggerConfig(): void
-    {
-        $config = Application::getInstance()->getConfig();
-        $config->mergeIfNotExists([
-            'application' => [
-                'logging' => [
-                    'loggers' => [
-                        'AccessLogLogger' => self::createAccessLogger($config->get('application.logging.access_log_file')),
-                    ],
-                ],
-            ],
-        ]);
     }
 
     public static function createAccessLogger(string $logFileName): array

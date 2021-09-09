@@ -28,15 +28,20 @@ class TarsRequestFactory implements RpcRequestFactoryInterface
      */
     private $id;
     /**
+     * @var string|null
+     */
+    private $baseUri;
+    /**
      * @var RpcMethodFactoryInterface
      */
     private $rpcMethodFactory;
 
-    public function __construct(RequestFactoryInterface $httpRequestFactory, StreamFactoryInterface $streamFactory, RpcMethodFactoryInterface $rpcMethodFactory, ?int $id = null)
+    public function __construct(RequestFactoryInterface $httpRequestFactory, StreamFactoryInterface $streamFactory, RpcMethodFactoryInterface $rpcMethodFactory, string $baseUri = null, ?int $id = null)
     {
         $this->httpRequestFactory = $httpRequestFactory;
         $this->streamFactory = $streamFactory;
         $this->rpcMethodFactory = $rpcMethodFactory;
+        $this->baseUri = $baseUri;
         $this->id = $id ?? random_int(0, 1 << 20);
     }
 
@@ -44,7 +49,7 @@ class TarsRequestFactory implements RpcRequestFactoryInterface
     {
         /** @var TarsMethodInterface $rpcMethod */
         $rpcMethod = $this->rpcMethodFactory->create($proxy, $method, $args);
-        $request = $this->httpRequestFactory->createRequest('POST', '/');
+        $request = $this->httpRequestFactory->createRequest('POST', $this->baseUri ?? '/');
 
         return new TarsRequest($request, $rpcMethod, $this->streamFactory, $this->id++);
     }

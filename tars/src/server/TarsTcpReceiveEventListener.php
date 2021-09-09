@@ -14,16 +14,10 @@ use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\exception\TarsRequestException;
 use kuiper\tars\stream\ResponsePacket;
 use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerAwareTrait;
 use Webmozart\Assert\Assert;
 
-class TarsTcpReceiveEventListener implements EventListenerInterface, LoggerAwareInterface
+class TarsTcpReceiveEventListener implements EventListenerInterface
 {
-    use LoggerAwareTrait;
-
-    protected const TAG = '['.__CLASS__.'] ';
-
     /**
      * @var RequestFactoryInterface
      */

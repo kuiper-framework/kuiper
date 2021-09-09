@@ -9,6 +9,7 @@ use kuiper\di\ContainerAwareTrait;
 use kuiper\event\EventListenerInterface;
 use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\event\WorkerStartEvent;
+use kuiper\swoole\server\SwooleServer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -37,8 +38,10 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
     public function __invoke($event): void
     {
         Assert::isInstanceOf($event, WorkerStartEvent::class);
-        Process::signal(SIGINT, static function (): void {});
         /* @var WorkerStartEvent $event */
+        if ($event->getServer() instanceof SwooleServer) {
+            Process::signal(SIGINT, static function (): void {});
+        }
         $this->changeProcessTitle($event);
         $this->seedRandom();
     }
