@@ -10,6 +10,7 @@ use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestHelper;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
+use kuiper\rpc\server\ServerRequestHolder;
 use kuiper\swoole\event\ReceiveEvent;
 use Psr\Http\Message\RequestFactoryInterface;
 use Webmozart\Assert\Assert;
@@ -73,7 +74,9 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface
             return;
         }
         try {
-            $response = $this->requestHandler->handle(RpcRequestHelper::addConnectionInfo($serverRequest, $connectionInfo));
+            $serverRequest = RpcRequestHelper::addConnectionInfo($serverRequest, $connectionInfo);
+            ServerRequestHolder::setRequest($serverRequest);
+            $response = $this->requestHandler->handle($serverRequest);
             $server->send($event->getClientId(), (string) $response->getBody());
         } catch (\Exception $e) {
             $server->send($event->getClientId(), $this->errorResponseHandler->handle($e, $serverRequest));

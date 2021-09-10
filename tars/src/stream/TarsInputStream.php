@@ -117,6 +117,8 @@ class TarsInputStream implements TarsInputStreamInterface
         }
         if (Type::STRUCT_END === $nextType) {
             if (Type::STRUCT_END === $type || !$require) {
+                $this->pushHeadBack($nextTag);
+
                 return null;
             }
             throw TarsStreamException::typeNotMatch('expected struct end, got '.self::getTypeName($type));
@@ -554,7 +556,7 @@ class TarsInputStream implements TarsInputStreamInterface
         return $tokens;
     }
 
-    private static function getTypeName(int $type): string
+    public static function getTypeName(int $type): string
     {
         static $typeNames;
         if (null === $typeNames) {
@@ -598,12 +600,12 @@ class TarsInputStream implements TarsInputStreamInterface
                 $fields = [];
                 while (true) {
                     $field = $this->nextToken();
-                    if (Type::STRUCT_END === $field[0]) {
+                    if ('STRUCT_END' === $field[1]) {
+                        $token[] = $fields;
                         break;
                     }
                     $fields[] = $field;
                 }
-                $token[] = $fields;
                 break;
             case Type::MAP:
                 $map = [];

@@ -29,6 +29,7 @@ use kuiper\swoole\listener\HttpRequestEventListener;
 use kuiper\swoole\listener\ManagerStartEventListener;
 use kuiper\swoole\listener\StartEventListener;
 use kuiper\swoole\listener\TaskEventListener;
+use kuiper\swoole\listener\WorkerExitEventListener;
 use kuiper\swoole\listener\WorkerStartEventListener;
 use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\swoole\server\ServerInterface;
@@ -111,6 +112,7 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
         $addListener(null, StartEventListener::class);
         $addListener(null, ManagerStartEventListener::class);
         $addListener(null, WorkerStartEventListener::class);
+        $addListener(null, WorkerExitEventListener::class);
         $addListener(null, TaskEventListener::class);
         /** @var EventListener $annotation */
         foreach (ComponentCollection::getAnnotations(EventListener::class) as $annotation) {

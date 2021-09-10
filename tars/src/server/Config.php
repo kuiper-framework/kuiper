@@ -6,6 +6,8 @@ namespace kuiper\tars\server;
 
 use kuiper\helper\Properties;
 use kuiper\helper\Text;
+use kuiper\reflection\ReflectionType;
+use kuiper\swoole\constants\ServerSetting;
 use kuiper\tars\core\EndpointParser;
 use kuiper\tars\exception\ConfigException;
 
@@ -57,6 +59,7 @@ class Config
         }
         $arr = $config->get('tars.application');
         $ports = [];
+        $serverSettings = [];
         if (isset($arr['server'])) {
             $adapters = [];
             foreach ($arr['server'] as $key => $value) {
@@ -71,9 +74,18 @@ class Config
                     }
                     $adapters[] = $adapter;
                     unset($arr['server'][$key]);
+                } elseif (ServerSetting::hasValue($key)) {
+                    $serverSettings[$key] = ReflectionType::forName(ServerSetting::fromValue($key)->type)->sanitize($value);
+                }
+            }
+            if (empty($serverSettings[ServerSetting::WORKER_NUM])) {
+                $threads = (int) $adapters[0]['threads'];
+                if ($threads > 0) {
+                    $serverSettings[ServerSetting::WORKER_NUM] = $threads;
                 }
             }
             $arr['server']['adapters'] = $adapters;
+            $arr['server']['server_settings'] = $serverSettings;
         }
 
         return Properties::create([
@@ -82,6 +94,7 @@ class Config
                 'server' => [
                     'ports' => $ports,
                 ],
+                'swoole' => $serverSettings,
             ],
         ]);
     }

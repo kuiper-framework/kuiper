@@ -9,7 +9,6 @@ use kuiper\di\annotation\Bean;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\server\JsonRpcServerFactory;
 use kuiper\jsonrpc\server\JsonRpcTcpReceiveEventListener;
-use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\swoole\Application;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
@@ -23,18 +22,6 @@ class JsonRpcTcpServerConfiguration extends AbstractJsonRpcServerConfiguration
     {
         Application::getInstance()->getConfig()->merge([
             'application' => [
-                'logging' => [
-                    'logger' => [
-                        AccessLog::class => 'AccessLogLogger',
-                    ],
-                ],
-                'jsonrpc' => [
-                    'server' => [
-                        'middleware' => [
-                            AccessLog::class,
-                        ],
-                    ],
-                ],
                 'listeners' => [
                     ReceiveEvent::class => JsonRpcTcpReceiveEventListener::class,
                 ],

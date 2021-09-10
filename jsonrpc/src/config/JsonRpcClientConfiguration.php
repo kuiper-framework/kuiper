@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
+use DI\Annotation\Inject;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
@@ -20,12 +21,12 @@ use kuiper\jsonrpc\client\JsonRpcClientFactory;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\ProxyGeneratorInterface;
+use kuiper\rpc\RpcRequestLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ServerType;
-use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
 
@@ -36,10 +37,21 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
     public function getDefinitions(): array
     {
         $this->addJsonRpcRequestLog();
+        Application::getInstance()->getConfig()->merge([
+            'application' => [
+                'jsonrpc' => [
+                    'client' => [
+                        'middleware' => [
+                            'jsonrpcRequestLog',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
 
         return array_merge($this->createJsonRpcClients(), [
             ProxyGeneratorInterface::class => autowire(ProxyGenerator::class),
-            RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
+            'jsonrpcClientRequestLogFormatter' => autowire(RpcRequestLogFormatter::class),
             JsonRpcClientFactory::class => autowire(JsonRpcClientFactory::class)
                 ->constructorParameter('middlewares', get('jsonrpcClientMiddlewares'))
                 ->constructorParameter('httpClientFactory', factory(function (ContainerInterface $container) {
@@ -50,6 +62,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean("jsonrpcRequestLog")
+     * @Inject({"requestLogFormatter": "jsonrpcClientRequestLogFormatter"})
      */
     public function jsonrpcRequestLog(RequestLogFormatterInterface $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
     {
@@ -172,17 +185,11 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
             'application' => [
                 'logging' => [
                     'loggers' => [
-                        'JsonRpcRequestLogger' => ServerConfiguration::createAccessLogger($path.'/jsonrpc-client.log'),
+                        'JsonRpcRequestLogger' => ServerConfiguration::createAccessLogger(
+                            $config->getString('application.logging.jsonrpc_client_log_file', $path.'/jsonrpc-client.log')),
                     ],
                     'logger' => [
                         'JsonRpcRequestLogger' => 'JsonRpcRequestLogger',
-                    ],
-                ],
-                'jsonrpc' => [
-                    'client' => [
-                        'middleware' => [
-                            'jsonrpcRequestLog',
-                        ],
                     ],
                 ],
             ],

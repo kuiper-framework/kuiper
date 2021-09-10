@@ -15,6 +15,7 @@ use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
+use kuiper\rpc\JsonRpcRequestLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\servicediscovery\ChainedServiceResolver;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
@@ -23,11 +24,16 @@ use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
 use kuiper\tars\annotation\TarsClient;
+use kuiper\tars\client\middleware\RequestStat;
 use kuiper\tars\client\TarsProxyFactory;
 use kuiper\tars\client\TarsRegistryResolver;
 use kuiper\tars\core\EndpointParser;
+use kuiper\tars\integration\ConfigServant;
+use kuiper\tars\integration\LogServant;
+use kuiper\tars\integration\PropertyFServant;
 use kuiper\tars\integration\QueryFServant;
-use kuiper\web\LineRequestLogFormatter;
+use kuiper\tars\integration\ServerFServant;
+use kuiper\tars\integration\StatFServant;
 use kuiper\web\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
 
@@ -38,26 +44,33 @@ class TarsClientConfiguration implements DefinitionConfiguration
     public function getDefinitions(): array
     {
         $this->addTarsRequestLog();
-        Application::getInstance()->getConfig()->merge([
+        $config = Application::getInstance()->getConfig();
+        $middlewares = [
+            'tarsServiceDiscovery',
+            'tarsClientRequestLog',
+        ];
+        if ($config->has('application.tars.server.node')) {
+            $middlewares[] = RequestStat::class;
+        }
+        $config->merge([
             'application' => [
                 'tars' => [
                     'client' => [
-                        'middleware' => [
-                            'tarsServiceDiscovery',
-                            'tarsRequestLog',
-                        ],
+                        'middleware' => $middlewares,
                     ],
                 ],
             ],
         ]);
 
         return array_merge($this->createTarsClients(), [
-            RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
+            'tarsClientRequestLogFormatter' => autowire(JsonRpcRequestLogFormatter::class)
+                ->constructorParameter('fields', JsonRpcRequestLogFormatter::CLIENT),
         ]);
     }
 
     /**
-     * @Bean("tarsRequestLog")
+     * @Bean("tarsClientRequestLog")
+     * @Inject({"requestLogFormatter": "tarsClientRequestLogFormatter"})
      */
     public function tarsRequestLog(RequestLogFormatterInterface $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
     {
@@ -96,7 +109,14 @@ class TarsClientConfiguration implements DefinitionConfiguration
             });
         }
 
-        foreach (Application::getInstance()->getConfig()->get('application.tars.client.clients', []) as $name => $service) {
+        foreach (array_merge([
+            ConfigServant::class,
+            ServerFServant::class,
+            LogServant::class,
+            PropertyFServant::class,
+            StatFServant::class,
+            QueryFServant::class,
+        ], $config->get('application.tars.client.clients', [])) as $name => $service) {
             $componentId = is_string($name) ? $name : $service;
             $clientOptions = array_merge($options[$componentId] ?? []);
             $clientOptions['class'] = $service;
@@ -200,7 +220,8 @@ class TarsClientConfiguration implements DefinitionConfiguration
             'application' => [
                 'logging' => [
                     'loggers' => [
-                        'TarsRequestLogger' => ServerConfiguration::createAccessLogger($path.'/tars-client.log'),
+                        'TarsRequestLogger' => ServerConfiguration::createAccessLogger(
+                            $config->getString('application.logging.tars_client_log_file', $path.'/tars-client.log')),
                     ],
                     'logger' => [
                         'TarsRequestLogger' => 'TarsRequestLogger',

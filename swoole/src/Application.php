@@ -118,6 +118,13 @@ class Application
         $this->config->replacePlaceholder();
     }
 
+    /**
+     * Parse config file.
+     *
+     * @param string $configFile
+     *
+     * @return Properties
+     */
     protected function parseConfig(string $configFile): Properties
     {
         $config = parse_ini_file($configFile);
@@ -149,6 +156,9 @@ class Application
         }
     }
 
+    /**
+     * Create default config.
+     */
     protected function addDefaultConfig(): void
     {
         $this->config->mergeIfNotExists([
@@ -159,6 +169,11 @@ class Application
         ]);
     }
 
+    /**
+     * Load env file.
+     *
+     * @param array $envFiles
+     */
     protected function loadEnv(array $envFiles = []): void
     {
         if (!class_exists(Dotenv::class)) {

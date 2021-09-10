@@ -26,8 +26,7 @@ jsonrpc 服务传输方式可以使用 http 协议和 tcp 协议两种服务。
 }
 ```
 
-如果要使用 tcp 协议，则替换为 `"kuiper\\jsonrpc\\config\\JsonRpcTcpServerConfiguration"`。并且由于 laminas-diactoros
-的 uri 不支持 `tcp://` 协议，还需要添加 `"kuiper\\web\\http\\GuzzleHttpMessageFactoryConfiguration"`。例如：
+如果要使用 tcp 协议，则替换为 `"kuiper\\jsonrpc\\config\\JsonRpcTcpServerConfiguration"`。例如：
 
 ```json
 {
@@ -41,7 +40,6 @@ jsonrpc 服务传输方式可以使用 http 协议和 tcp 协议两种服务。
                 "kuiper/kuiper"
             ],
             "configuration": [
-                "kuiper\\web\\http\\GuzzleHttpMessageFactoryConfiguration",
                 "kuiper\\jsonrpc\\config\\JsonRpcTcpServerConfiguration"
             ]
         }

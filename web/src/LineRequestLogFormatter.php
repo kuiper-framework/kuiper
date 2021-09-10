@@ -107,6 +107,15 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         return null;
     }
 
+    /**
+     * Extract message context.
+     *
+     * @param RequestInterface       $request
+     * @param ResponseInterface|null $response
+     * @param float                  $responseTime
+     *
+     * @return array
+     */
     protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, float $responseTime): array
     {
         $time = round($responseTime, 2);
@@ -120,9 +129,10 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
             'time_local' => call_user_func($this->dateFormatter),
             'request_method' => $request->getMethod(),
             'request_uri' => (string) $request->getUri(),
-            'request' => strtoupper($request->getMethod())
-                .' '.$request->getUri()->getPath()
-                .' '.strtoupper($request->getUri()->getScheme()).'/'.$request->getProtocolVersion(),
+            'request' => strtoupper($request->getMethod()).' '
+                .$request->getUri()->getHost().($request->getUri()->getPort() > 0 ? ':'.$request->getUri()->getPort() : '')
+                .$request->getUri()->getPath().' '
+                .strtoupper($request->getUri()->getScheme() ?: 'tcp').'/'.$request->getProtocolVersion(),
             'status' => $statusCode,
             'body_bytes_sent' => $responseBodySize,
             'http_referer' => $request->getHeaderLine('Referer'),
@@ -156,7 +166,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
                 $header = substr($name, 7);
                 $extra[$header] = $request->getHeaderLine($header);
             } elseif ('pid' === $name) {
-                $extra = call_user_func($this->pidProcessor, $extra);
+                $extra = array_merge($extra, call_user_func($this->pidProcessor, [])['extra']);
             }
         }
         $extra = array_filter($extra);
@@ -193,5 +203,45 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         }
 
         return null;
+    }
+
+    /**
+     * @return callable|string
+     */
+    public function getTemplate()
+    {
+        return $this->template;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getExtra(): array
+    {
+        return $this->extra;
+    }
+
+    /**
+     * @return int
+     */
+    public function getBodyMaxSize(): int
+    {
+        return $this->bodyMaxSize;
+    }
+
+    /**
+     * @return callable
+     */
+    public function getDateFormatter()
+    {
+        return $this->dateFormatter;
+    }
+
+    /**
+     * @return CoroutineIdProcessor
+     */
+    public function getPidProcessor(): CoroutineIdProcessor
+    {
+        return $this->pidProcessor;
     }
 }

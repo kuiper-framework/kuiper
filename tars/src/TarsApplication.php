@@ -12,12 +12,49 @@ use kuiper\tars\server\Config;
 
 class TarsApplication extends Application
 {
+    /**
+     * {@inheritDoc}
+     */
     protected function parseConfig(string $configFile): Properties
     {
         return Config::parseFile($configFile);
     }
 
-    protected function downloadEnvFile(): array
+    /**
+     * {@inheritDoc}
+     */
+    protected function addDefaultConfig(): void
+    {
+        parent::addDefaultConfig();
+        $config = $this->getConfig();
+        $config->merge([
+            'application' => [
+                'env' => $config->getString('application.tars.server.env', 'prod'),
+                'name' => $config->getString('application.tars.server.server', 'app'),
+                'base_path' => $config->get('application.tars.server.basepath'),
+                'data_path' => $config->get('application.tars.server.datapath'),
+                'server' => [
+                    'enable_php_server' => $config->getBool('application.tars.server.enable_php_server', false),
+                ],
+                'logging' => [
+                    'path' => $config->get('application.tars.server.logpath'),
+                    'level' => [
+                        'kuiper\\tars' => 'info',
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function loadEnv(array $envFiles = []): void
+    {
+        parent::loadEnv($this->downloadEnvFile());
+    }
+
+    private function downloadEnvFile(): array
     {
         $config = $this->getConfig();
         $env = $config->getString('application.tars.server.env_file');
@@ -38,53 +75,5 @@ class TarsApplication extends Application
         }
 
         return [];
-    }
-
-    protected function loadEnv(array $envFiles = []): void
-    {
-        parent::loadEnv($this->downloadEnvFile());
-    }
-
-    protected function addDefaultConfig(): void
-    {
-        parent::addDefaultConfig();
-        $config = $this->getConfig();
-        $config->merge([
-            'application' => [
-                'env' => $config->getString('application.tars.server.env', 'prod'),
-                'name' => $config->getString('application.tars.server.server', 'app'),
-                'base_path' => $config->get('application.tars.server.basepath'),
-                'data_path' => $config->get('application.tars.server.datapath'),
-                'server' => [
-                    'enable_php_server' => $config->getBool('application.tars.server.enable_php_server', false),
-                ],
-                'tars' => [
-                    'client' => [
-                        'middleware' => [
-//                            RequestLog::class,
-//                            ErrorHandler::class,
-//                            AddRequestReferer::class,
-//                            SendStat::class,
-//                            Retry::class,
-                        ],
-                    ],
-                    'server' => [
-                        'middleware' => [
-//                            ServerRequestLog::class,
-                        ],
-                        'collectors' => [
-//                        ServiceMemoryCollector::class,
-//                        WorkerNumCollector::class,
-                        ],
-                    ],
-                ],
-                'logging' => [
-                    'path' => $config->get('application.tars.server.logpath'),
-                    'level' => [
-                        'kuiper\\tars' => 'info',
-                    ],
-                ],
-            ],
-        ]);
     }
 }

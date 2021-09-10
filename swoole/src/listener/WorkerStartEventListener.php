@@ -9,6 +9,7 @@ use kuiper\di\ContainerAwareTrait;
 use kuiper\event\EventListenerInterface;
 use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\event\WorkerStartEvent;
+use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\server\SwooleServer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -23,13 +24,18 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
     use ContainerAwareTrait;
 
     protected const TAG = '['.__CLASS__.'] ';
+    /**
+     * @var ServerInterface
+     */
+    private $server;
 
     /**
      * WorkerStartEventListener constructor.
      */
-    public function __construct(?LoggerInterface $logger)
+    public function __construct(?LoggerInterface $logger, ServerInterface $server)
     {
         $this->setLogger($logger ?? new NullLogger());
+        $this->server = $server;
     }
 
     /**
@@ -39,11 +45,27 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
     {
         Assert::isInstanceOf($event, WorkerStartEvent::class);
         /* @var WorkerStartEvent $event */
-        if ($event->getServer() instanceof SwooleServer) {
-            Process::signal(SIGINT, static function (): void {});
-        }
+        $this->handleSignal($event);
         $this->changeProcessTitle($event);
         $this->seedRandom();
+    }
+
+    /**
+     * @param WorkerStartEvent $event
+     */
+    private function handleSignal(WorkerStartEvent $event): void
+    {
+        if (function_exists('pcntl_signal') && $event->getServer() instanceof SwooleServer) {
+            if ($event->getServer()->isTaskWorker()) {
+                pcntl_signal(SIGINT, function (): void {
+                    $this->server->stop();
+                });
+            } else {
+                Process::signal(SIGINT, function (): void {
+                    $this->server->stop();
+                });
+            }
+        }
     }
 
     private function changeProcessTitle(WorkerStartEvent $event): void
