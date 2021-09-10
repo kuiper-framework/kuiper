@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace kuiper\http\client;
 
-use Co\Client;
 use DI\Annotation\Inject;
 use function DI\autowire;
 use function DI\factory;

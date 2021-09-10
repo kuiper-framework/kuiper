@@ -50,10 +50,14 @@ class Config
                 }
             } else {
                 $parts = array_map('trim', explode('=', $line, 2));
-                if (1 === count($parts)) {
-                    $current[$parts[0]] = true;
-                } else {
-                    $current[$parts[0]] = $parts[1];
+                if (count($parts) > 0) {
+                    // 统一把 - 改为 _
+                    $name = str_replace('-', '_', $parts[0]);
+                    if (1 === count($parts)) {
+                        $current[$name] = true;
+                    } else {
+                        $current[$name] = $parts[1];
+                    }
                 }
             }
         }

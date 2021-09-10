@@ -219,12 +219,10 @@ class TarsProxyFactory
     }
 
     /**
-     * @template T
+     * @param string $className
+     * @param array  $options
      *
-     * @param class-string<T> $className
-     * @param array           $options
-     *
-     * @return T
+     * @return object
      *
      * @throws \ReflectionException
      */

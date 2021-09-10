@@ -35,6 +35,11 @@ class Application
     private $basePath;
 
     /**
+     * @var string|null
+     */
+    private $configFile;
+
+    /**
      * @var Properties
      */
     private $config;
@@ -102,6 +107,7 @@ class Application
             if (!is_readable($configFile)) {
                 throw new \InvalidArgumentException("config file '$configFile' is not readable");
             }
+            $this->configFile = $configFile;
             $this->config = $this->parseConfig($configFile);
         } else {
             $this->config = Properties::create();
@@ -197,6 +203,14 @@ class Application
     public function getBasePath(): string
     {
         return $this->basePath;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getConfigFile(): ?string
+    {
+        return $this->configFile;
     }
 
     public function getConfig(): Properties

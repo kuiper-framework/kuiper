@@ -79,6 +79,7 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface
             $response = $this->requestHandler->handle($serverRequest);
             $server->send($event->getClientId(), (string) $response->getBody());
         } catch (\Exception $e) {
+            /** @var JsonRpcRequestInterface $serverRequest */
             $server->send($event->getClientId(), $this->errorResponseHandler->handle($e, $serverRequest));
         }
     }

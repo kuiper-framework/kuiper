@@ -34,7 +34,7 @@ class TarsServerResponse extends RpcResponse
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getBody(): StreamInterface
     {

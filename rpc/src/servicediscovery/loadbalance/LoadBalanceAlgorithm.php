@@ -24,7 +24,7 @@ class LoadBalanceAlgorithm extends Enum
         'implementation' => [
             self::ROUND_ROBIN => RoundRobin::class,
             self::RANDOM => Random::class,
-            self::EQUALITY => Equality::class
+            self::EQUALITY => Equality::class,
         ],
     ];
 }

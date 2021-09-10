@@ -8,6 +8,8 @@ interface ProcessorInterface
 {
     /**
      * Processes task.
+     *
+     * @return mixed|void
      */
     public function process(TaskInterface $task);
 }

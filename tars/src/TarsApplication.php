@@ -9,6 +9,8 @@ use kuiper\swoole\Application;
 use kuiper\tars\client\TarsProxyFactory;
 use kuiper\tars\integration\ConfigServant;
 use kuiper\tars\server\Config;
+use kuiper\tars\server\ServerStartCommand;
+use kuiper\tars\server\ServerStopCommand;
 
 class TarsApplication extends Application
 {
@@ -35,6 +37,10 @@ class TarsApplication extends Application
                 'data_path' => $config->get('application.tars.server.datapath'),
                 'server' => [
                     'enable_php_server' => $config->getBool('application.tars.server.enable_php_server', false),
+                ],
+                'commands' => [
+                    'start' => ServerStartCommand::class,
+                    'stop' => ServerStopCommand::class,
                 ],
                 'logging' => [
                     'path' => $config->get('application.tars.server.logpath'),

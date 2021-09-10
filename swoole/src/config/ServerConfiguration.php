@@ -33,10 +33,11 @@ use kuiper\swoole\listener\WorkerExitEventListener;
 use kuiper\swoole\listener\WorkerStartEventListener;
 use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\swoole\server\ServerInterface;
-use kuiper\swoole\ServerCommand;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerFactory;
 use kuiper\swoole\ServerPort;
+use kuiper\swoole\ServerStartCommand;
+use kuiper\swoole\ServerStopCommand;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
 use Monolog\Formatter\LineFormatter;
@@ -63,9 +64,10 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
             'application' => [
                 'name' => 'app',
                 'base_path' => $basePath,
-                'default_command' => 'server',
+                'default_command' => 'start',
                 'commands' => [
-                    'server' => ServerCommand::class,
+                    'start' => ServerStartCommand::class,
+                    'stop' => ServerStopCommand::class,
                 ],
                 'logging' => [
                     'path' => $basePath.'/logs',

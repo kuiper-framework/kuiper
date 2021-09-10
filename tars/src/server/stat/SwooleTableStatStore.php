@@ -84,6 +84,7 @@ class SwooleTableStatStore implements StatStore
             if ($entry->getIndex() < $maxIndex) {
                 $body = $entry->getBody();
                 foreach ($row as $name => $value) {
+                    /** @phpstan-ignore-next-line */
                     $body->{$name} = $value;
                 }
                 yield $entry;

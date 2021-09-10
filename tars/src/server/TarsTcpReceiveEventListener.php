@@ -58,7 +58,6 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
         $request = $this->httpRequestFactory->createRequest('POST', sprintf('tcp://%s:%d', 'localhost', $connectionInfo->getServerPort()));
         $request->getBody()->write($event->getData());
         try {
-            /** @var TarsRequestInterface $serverRequest */
             $serverRequest = $this->serverRequestFactory->createRequest($request);
         } catch (TarsRequestException $e) {
             $server->send($event->getClientId(), (string) $this->createInvalidTarsRequestResponse($e)->encode());
@@ -75,6 +74,7 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
             $response = $this->requestHandler->handle($serverRequest);
             $server->send($event->getClientId(), (string) $response->getBody());
         } catch (\Exception $e) {
+            /** @var TarsRequestInterface $serverRequest */
             $server->send($event->getClientId(), (string) $this->createErrorResponse($serverRequest, $e)->encode());
         }
     }

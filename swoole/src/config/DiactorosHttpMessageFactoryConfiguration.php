@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\http;
+namespace kuiper\swoole\config;
 
 use function DI\autowire;
 use function DI\get;
@@ -31,7 +31,7 @@ use Psr\Http\Message\UriFactoryInterface;
  * @Configuration()
  * @AllConditions(
  *     @ConditionalOnClass(ServerRequestFactory::class),
- *     @ConditionalOnProperty("application.web.http_factory", hasValue="diactoros", matchIfMissing=true)
+ *     @ConditionalOnProperty("application.server.http_factory", hasValue="diactoros", matchIfMissing=true)
  * )
  */
 class DiactorosHttpMessageFactoryConfiguration implements DefinitionConfiguration

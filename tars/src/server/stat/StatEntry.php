@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\tars\server\stat;
 
 use kuiper\rpc\RpcResponseInterface;
+use kuiper\tars\client\TarsRequest;
 use kuiper\tars\client\TarsResponse;
 use kuiper\tars\integration\StatMicMsgBody;
 use kuiper\tars\integration\StatMicMsgHead;
@@ -130,8 +131,8 @@ class StatEntry
         $head->masterName = $serverProperties->getServerName();
         $head->masterIp = $serverProperties->getLocalIp();
         $request = $response->getRequest();
-        $head->slaveName = self::removeObj($request->getServantName());
-        $head->interfaceName = $request->getFuncName();
+        $head->slaveName = self::removeObj($request->getRpcMethod()->getServiceLocator()->getName());
+        $head->interfaceName = $request->getRpcMethod()->getMethodName();
         $head->slaveIp = $request->getUri()->getHost();
         $head->slavePort = $request->getUri()->getPort();
         /** @var TarsResponse $response */
@@ -139,6 +140,7 @@ class StatEntry
         $head->slaveSetName = '';
         $head->slaveSetArea = '';
         $head->slaveSetID = '';
+        /** @var TarsRequest $request */
         $head->tarsVersion = (string) $request->getVersion();
         $body = new StatMicMsgBody();
         $body->totalRspTime = $responseTime;

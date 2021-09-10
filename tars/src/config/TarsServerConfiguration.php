@@ -28,6 +28,8 @@ use kuiper\tars\annotation\TarsServant;
 use kuiper\tars\server\Adapter;
 use kuiper\tars\server\ClientProperties;
 use kuiper\tars\server\listener\KeepAlive;
+use kuiper\tars\server\listener\RequestStat;
+use kuiper\tars\server\listener\ServiceMonitor;
 use kuiper\tars\server\ServerProperties;
 use kuiper\tars\server\stat\Stat;
 use kuiper\tars\server\stat\StatInterface;
@@ -59,6 +61,8 @@ class TarsServerConfiguration implements DefinitionConfiguration
                 ],
                 'listeners' => [
                     KeepAlive::class,
+                    RequestStat::class,
+                    ServiceMonitor::class,
                     ReceiveEvent::class => TarsTcpReceiveEventListener::class,
                 ],
             ],

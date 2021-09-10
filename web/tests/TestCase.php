@@ -12,7 +12,7 @@ use kuiper\di\PropertiesDefinitionSource;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\swoole\Application;
-use kuiper\web\http\DiactorosHttpMessageFactoryConfiguration;
+use kuiper\swoole\config\DiactorosHttpMessageFactoryConfiguration;
 use Laminas\Diactoros\ServerRequestFactory;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;

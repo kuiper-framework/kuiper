@@ -8,7 +8,7 @@ use function DI\autowire;
 use kuiper\annotations\AnnotationReader;
 use kuiper\di\ContainerBuilder;
 use kuiper\reflection\ReflectionNamespaceFactory;
-use kuiper\web\http\DiactorosHttpMessageFactoryConfiguration;
+use kuiper\swoole\config\DiactorosHttpMessageFactoryConfiguration;
 use kuiper\web\security\Acl;
 use kuiper\web\security\AclInterface;
 

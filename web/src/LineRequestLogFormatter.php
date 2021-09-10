@@ -132,7 +132,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
             'request' => strtoupper($request->getMethod()).' '
                 .$request->getUri()->getHost().($request->getUri()->getPort() > 0 ? ':'.$request->getUri()->getPort() : '')
                 .$request->getUri()->getPath().' '
-                .strtoupper($request->getUri()->getScheme() ?: 'tcp').'/'.$request->getProtocolVersion(),
+                .strtoupper('' !== $request->getUri()->getScheme() ? $request->getUri()->getScheme() : 'tcp').'/'.$request->getProtocolVersion(),
             'status' => $statusCode,
             'body_bytes_sent' => $responseBodySize,
             'http_referer' => $request->getHeaderLine('Referer'),

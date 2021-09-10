@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\http;
+namespace kuiper\swoole\config;
 
 use function DI\get;
 use GuzzleHttp\Psr7\HttpFactory;
@@ -23,7 +23,7 @@ use Psr\Http\Message\UriFactoryInterface;
  * @Configuration()
  * @AllConditions(
  *     @ConditionalOnClass(HttpFactory::class),
- *     @ConditionalOnProperty("application.web.http_factory", hasValue="guzzle", matchIfMissing=true)
+ *     @ConditionalOnProperty("application.server.http_factory", hasValue="guzzle", matchIfMissing=true)
  * )
  */
 class GuzzleHttpMessageFactoryConfiguration implements DefinitionConfiguration
