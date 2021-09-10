@@ -112,6 +112,12 @@ class RetryImpl implements Retry
         return $this->decorate($call)(...$args);
     }
 
+    public function reset(): void
+    {
+        $this->numOfAttempts = 0;
+        $this->lastException = null;
+    }
+
     public function getMetrics(): RetryMetrics
     {
         return new RetryMetricsImpl(

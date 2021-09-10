@@ -7,6 +7,7 @@ namespace kuiper\tars\config;
 use DI\Annotation\Inject;
 use function DI\autowire;
 use function DI\factory;
+use function DI\get;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -22,7 +23,6 @@ use kuiper\serializer\NormalizerInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ServerType;
-use kuiper\swoole\event\ReceiveEvent;
 use kuiper\swoole\ServerPort;
 use kuiper\tars\annotation\TarsServant;
 use kuiper\tars\server\Adapter;
@@ -30,6 +30,10 @@ use kuiper\tars\server\ClientProperties;
 use kuiper\tars\server\listener\KeepAlive;
 use kuiper\tars\server\listener\RequestStat;
 use kuiper\tars\server\listener\ServiceMonitor;
+use kuiper\tars\server\monitor\collector\ServiceMemoryCollector;
+use kuiper\tars\server\monitor\collector\WorkerNumCollector;
+use kuiper\tars\server\monitor\Monitor;
+use kuiper\tars\server\monitor\MonitorInterface;
 use kuiper\tars\server\ServerProperties;
 use kuiper\tars\server\stat\Stat;
 use kuiper\tars\server\stat\StatInterface;
@@ -57,13 +61,17 @@ class TarsServerConfiguration implements DefinitionConfiguration
                         'middleware' => [
                             'tarsServerRequestLog',
                         ],
+                        'monitors' => [
+                            WorkerNumCollector::class,
+                            ServiceMemoryCollector::class,
+                        ],
                     ],
                 ],
                 'listeners' => [
                     KeepAlive::class,
                     RequestStat::class,
                     ServiceMonitor::class,
-                    ReceiveEvent::class => TarsTcpReceiveEventListener::class,
+                    TarsTcpReceiveEventListener::class,
                 ],
             ],
         ]);
@@ -72,6 +80,8 @@ class TarsServerConfiguration implements DefinitionConfiguration
             TarsServerFactory::class => factory([TarsServerFactory::class, 'createFromContainer']),
             StatStore::class => autowire(SwooleTableStatStore::class),
             StatInterface::class => autowire(Stat::class),
+            MonitorInterface::class => autowire(Monitor::class)
+                ->constructorParameter('collectors', get('monitorCollectors')),
             'tarsServerRequestLogFormatter' => autowire(JsonRpcRequestLogFormatter::class),
             TarsTcpReceiveEventListener::class => factory([TarsServerFactory::class, 'createTcpReceiveEventListener']),
         ];
@@ -122,6 +132,15 @@ class TarsServerConfiguration implements DefinitionConfiguration
         }
 
         return $services;
+    }
+
+    /**
+     * @Bean("monitorCollectors")
+     */
+    public function monitorCollectors(ContainerInterface $container): array
+    {
+        return array_map([$container, 'get'],
+            Application::getInstance()->getConfig()->get('application.tars.server.monitors', []));
     }
 
     /**

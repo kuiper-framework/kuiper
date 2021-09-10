@@ -134,10 +134,11 @@
                 "kuiper\\db\\DbConfiguration",
                 "kuiper\\http\\client\\HttpClientConfiguration",
                 "kuiper\\serializer\\SerializerConfiguration",
+                "kuiper\\resilience\\ResilienceConfiguration",
                 "kuiper\\swoole\\config\\FoundationConfiguration",
                 "kuiper\\swoole\\config\\ServerConfiguration",
-                "kuiper\\web\\http\\GuzzleHttpMessageFactoryConfiguration",
-                "kuiper\\web\\http\\DiactorosHttpMessageFactoryConfiguration"
+                "kuiper\\swoole\\config\\GuzzleHttpMessageFactoryConfiguration",
+                "kuiper\\swoole\\config\\DiactorosHttpMessageFactoryConfiguration"
             ]
         }
     }

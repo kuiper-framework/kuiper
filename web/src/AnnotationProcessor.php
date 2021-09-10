@@ -8,8 +8,8 @@ use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Controller;
 use kuiper\di\ComponentCollection;
 use kuiper\helper\Text;
-use kuiper\web\annotation\filter\FilterInterface;
 use kuiper\web\annotation\RequestMapping;
+use kuiper\web\middleware\MiddlewareFactory;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Interfaces\RouteGroupInterface;
@@ -116,28 +116,25 @@ class AnnotationProcessor implements AnnotationProcessorInterface
      */
     private function addRouteMiddleware($route, \ReflectionMethod $method): void
     {
-        /** @var FilterInterface[] $filters */
+        /** @var MiddlewareFactory[] $filters */
         $filters = [];
         foreach ($this->annotationReader->getMethodAnnotations($method) as $annotation) {
-            if ($annotation instanceof FilterInterface) {
+            if ($annotation instanceof MiddlewareFactory) {
                 $filters[get_class($annotation)] = $annotation;
             }
         }
         foreach ($this->annotationReader->getClassAnnotations($method->getDeclaringClass()) as $annotation) {
-            if ($annotation instanceof FilterInterface
+            if ($annotation instanceof MiddlewareFactory
                 && !isset($filters[get_class($annotation)])) {
                 $filters[get_class($annotation)] = $annotation;
             }
         }
         if (!empty($filters)) {
-            usort($filters, static function (FilterInterface $a, FilterInterface $b): int {
+            usort($filters, static function (MiddlewareFactory $a, MiddlewareFactory $b): int {
                 return $a->getPriority() - $b->getPriority();
             });
             foreach ($filters as $filter) {
-                $middleware = $filter->createMiddleware($this->container);
-                if (null !== $middleware) {
-                    $route->add($middleware);
-                }
+                $route->add($filter->create($this->container));
             }
         }
     }

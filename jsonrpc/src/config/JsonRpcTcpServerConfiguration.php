@@ -12,7 +12,6 @@ use kuiper\jsonrpc\server\JsonRpcTcpReceiveEventListener;
 use kuiper\swoole\Application;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
-use kuiper\swoole\event\ReceiveEvent;
 use kuiper\swoole\ServerConfig;
 use Psr\Container\ContainerInterface;
 
@@ -23,7 +22,7 @@ class JsonRpcTcpServerConfiguration extends AbstractJsonRpcServerConfiguration
         Application::getInstance()->getConfig()->merge([
             'application' => [
                 'listeners' => [
-                    ReceiveEvent::class => JsonRpcTcpReceiveEventListener::class,
+                    JsonRpcTcpReceiveEventListener::class,
                 ],
                 'swoole' => [
                     ServerSetting::OPEN_EOF_SPLIT => true,

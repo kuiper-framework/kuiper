@@ -36,7 +36,9 @@ class SwooleTableCounter implements Counter
 
     public function get(): int
     {
-        return $this->table->get($this->key, self::COLUMN);
+        $value = $this->table->get($this->key, self::COLUMN);
+
+        return false === $value ? 0 : $value;
     }
 
     public function set(int $value): void

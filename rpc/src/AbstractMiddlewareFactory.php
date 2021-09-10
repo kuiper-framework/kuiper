@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\annotation\filter;
+namespace kuiper\rpc;
 
-abstract class AbstractFilter implements FilterInterface
+abstract class AbstractMiddlewareFactory implements MiddlewareFactoryInterface
 {
     /**
      * @var int
@@ -12,7 +12,7 @@ abstract class AbstractFilter implements FilterInterface
     public $priority = 1024;
 
     /**
-     * {@inheritdoc}
+     * @return int
      */
     public function getPriority(): int
     {

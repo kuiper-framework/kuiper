@@ -6,8 +6,8 @@ namespace kuiper\web\fixtures\controllers;
 
 use kuiper\di\annotation\Controller;
 use kuiper\web\AbstractController;
-use kuiper\web\annotation\filter\PreAuthorize;
 use kuiper\web\annotation\GetMapping;
+use kuiper\web\annotation\PreAuthorize;
 use kuiper\web\annotation\RequestMapping;
 
 /**

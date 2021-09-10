@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\annotation\filter;
+namespace kuiper\web\annotation;
 
+use kuiper\web\middleware\AbstractMiddlewareFactory;
 use kuiper\web\middleware\CsrfToken as CsrfTokenMiddleware;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -12,7 +13,7 @@ use Psr\Http\Server\MiddlewareInterface;
  * @Annotation
  * @Target({"CLASS", "METHOD"})
  */
-class CsrfToken extends AbstractFilter
+class CsrfToken extends AbstractMiddlewareFactory
 {
     /**
      * @var bool
@@ -22,7 +23,7 @@ class CsrfToken extends AbstractFilter
     /**
      * {@inheritdoc}
      */
-    public function createMiddleware(ContainerInterface $container): ?MiddlewareInterface
+    public function create(ContainerInterface $container): MiddlewareInterface
     {
         return new CsrfTokenMiddleware($this->repeatOk);
     }

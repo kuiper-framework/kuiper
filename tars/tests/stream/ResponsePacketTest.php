@@ -24,4 +24,13 @@ class ResponsePacketTest extends TestCase
         $this->assertIsArray($result);
         $this->assertInstanceOf(EndpointF::class, $result[0]);
     }
+
+    public function testData()
+    {
+        $data = file_get_contents(__DIR__.'/../fixtures/struct.data');
+        $typeParser = new TypeParser(AnnotationReader::getInstance());
+        $type = $typeParser->parse('vector<User>', 'kuiper\\tars\\fixtures');
+        $result = TarsInputStream::unpack($type, $data);
+        $this->assertIsArray($result);
+    }
 }

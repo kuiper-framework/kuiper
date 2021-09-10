@@ -13,9 +13,8 @@ use kuiper\helper\Enum;
  * @method static State DISABLED()    : static
  * @method static State FORCED_OPEN() : static
  *
- * @property int[]  $next_state
- * @property string $name
- * @property int    $value
+ * @property int[] $next_state
+ * @property int   $value
  */
 class State extends Enum
 {

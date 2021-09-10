@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker\exception;
 
-class IllegalStateTransitionException extends \Exception
+use kuiper\resilience\core\ResilienceException;
+
+class IllegalStateTransitionException extends \Exception implements ResilienceException
 {
 }

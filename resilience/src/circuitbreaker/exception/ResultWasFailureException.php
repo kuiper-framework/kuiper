@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace kuiper\resilience\circuitbreaker\exception;
 
 use kuiper\resilience\circuitbreaker\CircuitBreaker;
+use kuiper\resilience\core\ResilienceException;
 
-class ResultWasFailureException extends \Exception
+class ResultWasFailureException extends \Exception implements ResilienceException
 {
     /**
      * @var CircuitBreaker

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\annotation\filter;
+namespace kuiper\web\middleware;
 
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\MiddlewareInterface;
 
-interface FilterInterface
+interface MiddlewareFactory
 {
     /**
      * filter priority, the smaller one run first.
@@ -17,5 +17,5 @@ interface FilterInterface
     /**
      * Creates the middleware.
      */
-    public function createMiddleware(ContainerInterface $container): ?MiddlewareInterface;
+    public function create(ContainerInterface $container): MiddlewareInterface;
 }
