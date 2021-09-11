@@ -23,4 +23,9 @@ interface StateStore
      * @return int
      */
     public function getOpenAt(string $name): int;
+
+    /**
+     * @param string $name
+     */
+    public function clear(string $name): void;
 }

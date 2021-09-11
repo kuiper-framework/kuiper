@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\exception;
 
-class JsonRpcRequestException extends \Exception
+class JsonRpcRequestException extends \InvalidArgumentException
 {
     /**
      * @var int|null

@@ -5,12 +5,19 @@ declare(strict_types=1);
 namespace kuiper\resilience\retry;
 
 use kuiper\helper\Arrays;
+use kuiper\resilience\core\Clock;
 use kuiper\resilience\core\CounterFactory;
 use kuiper\resilience\core\SimpleClock;
+use kuiper\swoole\pool\PoolFactoryInterface;
+use kuiper\swoole\pool\PoolInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 class RetryFactoryImpl implements RetryFactory
 {
+    /**
+     * @var PoolFactoryInterface
+     */
+    private $poolFactory;
     /**
      * @var CounterFactory
      */
@@ -24,10 +31,16 @@ class RetryFactoryImpl implements RetryFactory
      * @var array
      */
     private $options;
+
     /**
-     * @var Retry[]
+     * @var PoolInterface[]
      */
-    private $retryList;
+    private $retryPoolList;
+
+    /**
+     * @var Clock
+     */
+    private $clock;
 
     /**
      * RetryFactoryImpl constructor.
@@ -36,10 +49,12 @@ class RetryFactoryImpl implements RetryFactory
      * @param EventDispatcherInterface $eventDispatcher
      * @param array                    $options
      */
-    public function __construct(CounterFactory $counterFactory, EventDispatcherInterface $eventDispatcher, array $options = null)
+    public function __construct(PoolFactoryInterface $poolFactory, CounterFactory $counterFactory, EventDispatcherInterface $eventDispatcher, array $options = null)
     {
+        $this->poolFactory = $poolFactory;
         $this->counterFactory = $counterFactory;
         $this->eventDispatcher = $eventDispatcher;
+        $this->clock = new SimpleClock();
         $this->options = $options ?? [];
     }
 
@@ -48,7 +63,7 @@ class RetryFactoryImpl implements RetryFactory
      */
     public function getRetryList(): array
     {
-        return $this->retryList;
+        return Arrays::flatten(Arrays::pull($this->retryPoolList, 'connections'));
     }
 
     /**
@@ -56,10 +71,18 @@ class RetryFactoryImpl implements RetryFactory
      */
     public function create(string $name): Retry
     {
-        $retry = $this->retryList[$name] ?? null;
-        if (!isset($retry)) {
-            $this->retryList[$name] = $retry = new RetryImpl($name, $this->createConfig($name), new SimpleClock(), $this->counterFactory, $this->eventDispatcher);
+        if (!isset($this->retryPoolList[$name])) {
+            $this->retryPoolList[$name] = $this->poolFactory->create('retry_'.$name, function () use ($name) {
+                return new RetryImpl(
+                    $name,
+                    $this->createConfig($name),
+                    $this->clock,
+                    $this->counterFactory,
+                    $this->eventDispatcher
+                );
+            });
         }
+        $retry = $this->retryPoolList[$name]->take();
         $retry->reset();
 
         return $retry;
@@ -70,11 +93,20 @@ class RetryFactoryImpl implements RetryFactory
         if (!isset($this->options[$name])) {
             [$name] = explode('::', $name);
         }
-        if (!isset($this->options[$name])) {
+        $options = Arrays::filter(array_merge($this->options['default'] ?? [], $this->options[$name] ?? []));
+        if (empty($options)) {
             return RetryConfig::ofDefaults();
         }
         $configBuilder = RetryConfig::builder();
-        Arrays::assign($configBuilder, $this->options[$name]);
+        if (isset($options['interval_function'])
+            && 'exponential_backoff' === $options['interval_function']) {
+            $options['interval_function'] = static function (int $numOfAttempts, int $waitDuration) {
+                $countdown = $waitDuration * (2 ** $numOfAttempts);
+
+                return min(10000, $countdown);
+            };
+        }
+        Arrays::assign($configBuilder, $options);
 
         return $configBuilder->build();
     }

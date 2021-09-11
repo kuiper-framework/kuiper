@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use kuiper\helper\Arrays;
 use kuiper\swoole\coroutine\Channel;
 use kuiper\swoole\coroutine\ChannelInterface;
 use kuiper\swoole\coroutine\Coroutine;
@@ -94,6 +95,11 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         }
 
         return $this->deferReleaseConnection($coroutineId, $connection);
+    }
+
+    public function getConnections(): array
+    {
+        return Arrays::pull($this->connections, '1');
     }
 
     public function reset(): void

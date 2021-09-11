@@ -89,7 +89,7 @@ class TarsServerFactory
 
     public function getServerRequestFactory(): RpcServerRequestFactoryInterface
     {
-        $tarsServerRequestFactory = new TarsServerRequestFactory($this->serverProperties, $this->getRpcMethodFactory());
+        $tarsServerRequestFactory = new TarsServerRequestFactory($this->getRpcMethodFactory(), $this->services);
         $tarsServerRequestFactory->setLogger($this->loggerFactory->create(TarsServerRequestFactory::class));
 
         return $tarsServerRequestFactory;

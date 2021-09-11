@@ -12,9 +12,9 @@ use kuiper\di\PropertiesDefinitionSource;
 use kuiper\event\InMemoryEventDispatcher;
 use kuiper\helper\Properties;
 use kuiper\helper\PropertyResolverInterface;
+use kuiper\resilience\circuitbreaker\CircuitBreakerFactory;
 use kuiper\resilience\circuitbreaker\exception\CallNotPermittedException;
 use kuiper\resilience\ResilienceConfiguration;
-use kuiper\resilience\retry\RetryFactory;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\RpcClient;
 use kuiper\rpc\client\RpcExecutorFactory;
@@ -23,6 +23,8 @@ use kuiper\rpc\fixtures\RpcRequestFactory;
 use kuiper\rpc\fixtures\RpcResponseFactory;
 use kuiper\rpc\registry\TestCase;
 use kuiper\rpc\transporter\TransporterInterface;
+use kuiper\swoole\pool\PoolFactory;
+use kuiper\swoole\pool\PoolFactoryInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\RequestInterface;
 
@@ -38,7 +40,8 @@ class CircuitBreakerMiddlewareTest extends TestCase
         $transporter->shouldReceive('sendRequest')
             ->andReturnUsing(function (RequestInterface $req) use (&$c) {
                 static $c = [];
-                $args = json_decode($req->getBody());
+                error_log('send request');
+                $args = json_decode((string) $req->getBody(), true);
                 $count = $c[$args[0]] ?? 0;
                 $c[$args[0]] = $count + 1;
                 if ($args[0] % 2 && $count < 2) {
@@ -56,12 +59,16 @@ class CircuitBreakerMiddlewareTest extends TestCase
             'application' => [
                 'client' => [
                     'circuit_breaker' => [
+                        'default' => [
+                        ],
                         HelloService::class => [
-                            'minimumNumberOfCalls' => 2,
+                            'minimum_number_of_calls' => 2,
                         ],
                     ],
                     'retry' => [
-                        'waitDuration' => 0,
+                        'default' => [
+                            'wait_duration' => 0,
+                        ],
                     ],
                 ],
             ],
@@ -71,6 +78,7 @@ class CircuitBreakerMiddlewareTest extends TestCase
             EventDispatcherInterface::class => $eventDispatcher = new InMemoryEventDispatcher(),
             AnnotationReaderInterface::class => AnnotationReader::getInstance(),
             PropertyResolverInterface::class => $config,
+            PoolFactoryInterface::class => new PoolFactory(),
         ]);
         $container = $builder->build();
         $executorFactory->setContainer($container);
@@ -89,8 +97,13 @@ class CircuitBreakerMiddlewareTest extends TestCase
         // echo count($events);
         $this->assertEquals('hello world', $ret);
         // $this->assertCount(2, $events);
-        /** @var \kuiper\resilience\retry\Retry $retry */
-        $retry = array_values($container->get(RetryFactory::class)->getRetryList())[0];
-        $this->assertEquals(3, $retry->getMetrics()->getNumberOfSuccessfulCallsWithRetryAttempt());
+        /** @var \kuiper\resilience\circuitbreaker\CircuitBreaker $circuitBreaker */
+        $circuitBreaker = array_values($container->get(CircuitBreakerFactory::class)->getCircuitBreakerList())[0];
+        $metrics = $circuitBreaker->getMetrics();
+        var_export([
+            $metrics->getFailureRate(),
+            $metrics->getSlowCallRate(),
+        ]);
+        // $this->assertEquals(3, $retry->getMetrics());
     }
 }

@@ -7,6 +7,7 @@ namespace kuiper\tars\server;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
+use kuiper\rpc\server\Service;
 use kuiper\tars\exception\ErrorCode;
 use kuiper\tars\exception\TarsRequestException;
 use kuiper\tars\stream\RequestPacket;
@@ -20,9 +21,9 @@ class TarsServerRequestFactory implements RpcServerRequestFactoryInterface, Logg
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @var array
+     * @var Service[]
      */
-    private $servants;
+    private $services;
 
     /**
      * @var RpcMethodFactoryInterface
@@ -32,13 +33,10 @@ class TarsServerRequestFactory implements RpcServerRequestFactoryInterface, Logg
     /**
      * TarsServerRequestFactory constructor.
      */
-    public function __construct(ServerProperties $serverProperties, RpcMethodFactoryInterface $rpcMethodFactory)
+    public function __construct(RpcMethodFactoryInterface $rpcMethodFactory, array $services)
     {
-        foreach ($serverProperties->getAdapters() as $adapter) {
-            $servantName = $adapter->getServant();
-            $this->servants[$adapter->getEndpoint()->getPort()][$servantName] = true;
-        }
         $this->rpcMethodFactory = $rpcMethodFactory;
+        $this->services = $services;
     }
 
     /**
@@ -49,8 +47,15 @@ class TarsServerRequestFactory implements RpcServerRequestFactoryInterface, Logg
     public function createRequest(RequestInterface $request): RpcRequestInterface
     {
         $packet = RequestPacket::decode((string) $request->getBody());
-        if (!isset($this->servants[$request->getUri()->getPort()][$packet->sServantName])) {
+        if (!isset($this->services[$packet->sServantName])) {
             $this->logger->warning(static::TAG.'cannot find adapter match servant, check config file');
+            throw new TarsRequestException($packet, 'Unknown servant '.$packet->sServantName, ErrorCode::SERVER_NO_SERVANT_ERR);
+        }
+        if ($this->services[$packet->sServantName]->getServerPort()->getPort() !== $request->getUri()->getPort()) {
+            $this->logger->warning(static::TAG.'adapter port not match', [
+                'expect' => $this->services[$packet->sServantName]->getServerPort()->getPort(),
+                'request' => $request->getUri()->getPort(),
+            ]);
             throw new TarsRequestException($packet, 'Unknown servant '.$packet->sServantName, ErrorCode::SERVER_NO_SERVANT_ERR);
         }
         $rpcMethod = $this->rpcMethodFactory->create($packet->sServantName, $packet->sFuncName, [$packet]);

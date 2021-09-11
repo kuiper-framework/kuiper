@@ -30,7 +30,7 @@ class CircuitBreakerConfigBuilder
      *
      * @var int
      */
-    private $slowCallDurationThreshold = 60000;
+    private $slowCallDurationThreshold = 10000;
     /**
      * Configures the number of permitted calls when the CircuitBreaker is half open.
      *

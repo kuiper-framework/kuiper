@@ -26,8 +26,8 @@ class SwooleTableStateStore implements StateStore
 
     public function getState(string $name): State
     {
-        $value = $this->table->get($name, self::STATE);
-        if (false !== $value && State::hasValue($value)) {
+        $value = (int) $this->table->get($name, self::STATE);
+        if (State::hasValue($value)) {
             return State::fromValue($value);
         }
 
@@ -53,5 +53,13 @@ class SwooleTableStateStore implements StateStore
         }
 
         return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function clear(string $name): void
+    {
+        $this->table->del($name);
     }
 }

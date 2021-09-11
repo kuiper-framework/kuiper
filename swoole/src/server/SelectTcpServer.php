@@ -148,6 +148,11 @@ class SelectTcpServer extends AbstractServer
         return $this->workerManager->after($millisecond, $callback);
     }
 
+    public function stats(): array
+    {
+        return [];
+    }
+
     protected function close(int $clientId): void
     {
         $this->workerManager->closeConnection($clientId);

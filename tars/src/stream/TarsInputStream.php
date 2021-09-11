@@ -119,7 +119,7 @@ class TarsInputStream implements TarsInputStreamInterface
             if (Type::STRUCT_END === $type) {
                 return null;
             }
-            if (Type::STRUCT_END !== $type && !$require) {
+            if (!$require) {
                 $this->pushHeadBack($nextTag);
 
                 return null;

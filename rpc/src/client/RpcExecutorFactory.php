@@ -64,6 +64,7 @@ class RpcExecutorFactory implements RpcExecutorFactoryInterface, ContainerAwareI
         $annotationReader = $this->container->get(AnnotationReaderInterface::class);
         $reflectionMethod = new \ReflectionMethod($proxy, $method);
         $reflectionClass = $reflectionMethod->getDeclaringClass();
+        $annotations = [];
         foreach ($reflectionClass->getInterfaces() as $interface) {
             if ($interface->hasMethod($method)) {
                 $annotations[] = $this->getMethodAnnotations($annotationReader, $interface->getMethod($method));
@@ -74,6 +75,7 @@ class RpcExecutorFactory implements RpcExecutorFactoryInterface, ContainerAwareI
             $annotations[] = $this->getMethodAnnotations($annotationReader, $reflectionClass->getParentClass()->getMethod($method));
         }
         $annotations[] = $this->getMethodAnnotations($annotationReader, $reflectionMethod);
+        $middlewares = [];
         /** @var MiddlewareFactoryInterface $annotation */
         foreach (array_merge(...$annotations) as $annotation) {
             $middlewares[$annotation->getPriority()][] = $annotation->create($this->container);

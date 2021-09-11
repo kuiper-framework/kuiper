@@ -26,6 +26,15 @@ use Symfony\Component\Cache\Adapter\ChainAdapter;
 class CacheConfiguration
 {
     /**
+     * @Bean
+     * @Inject({"redisPool": "redisPool"})
+     */
+    public function redis(PoolInterface $redisPool): \Redis
+    {
+        return new Redis($redisPool);
+    }
+
+    /**
      * @Bean("redisPool")
      * @Inject({"redisConfig": "application.redis"})
      */

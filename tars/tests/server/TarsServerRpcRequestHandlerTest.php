@@ -46,7 +46,7 @@ class TarsServerRpcRequestHandlerTest extends TestCase
         $responseFactory = new TarsServerResponseFactory($httpFactory, $httpFactory);
         $handler = new RpcServerRpcRequestHandler($services, $responseFactory, []);
         $rpcMethodFactory = new TarsServerMethodFactory($serverProperties, $services, AnnotationReader::getInstance());
-        $requestFactory = new TarsServerRequestFactory($serverProperties, $rpcMethodFactory);
+        $requestFactory = new TarsServerRequestFactory($rpcMethodFactory, $services);
         $httpRequest = $httpFactory->createRequest('GET', 'tcp://localhost:8003');
         $requestPacket = new RequestPacket();
         $requestPacket->sServantName = 'PHPDemo.PHPTcpServer.UserObj';
@@ -69,7 +69,7 @@ class TarsServerRpcRequestHandlerTest extends TestCase
                 new ServiceLocator($name),
                 $impl,
                 [],
-                new ServerPort('', 0, 'tcp')
+                new ServerPort('', 8003, 'tcp')
             );
         }
 

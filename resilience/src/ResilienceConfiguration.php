@@ -20,6 +20,8 @@ use kuiper\resilience\core\SimpleClock;
 use kuiper\resilience\core\SimpleCounterFactory;
 use kuiper\resilience\retry\RetryFactory;
 use kuiper\resilience\retry\RetryFactoryImpl;
+use kuiper\rpc\exception\ServerException;
+use kuiper\swoole\Application;
 
 class ResilienceConfiguration implements DefinitionConfiguration
 {
@@ -27,13 +29,36 @@ class ResilienceConfiguration implements DefinitionConfiguration
 
     public function getDefinitions(): array
     {
+        if (class_exists(Application::class)) {
+            $ignoreExceptions = [
+                ServerException::class,
+                \InvalidArgumentException::class,
+            ];
+            Application::getInstance()->getConfig()->merge([
+                'application' => [
+                    'client' => [
+                        'retry' => [
+                            'default' => [
+                                'ignore_exceptions' => $ignoreExceptions,
+                            ],
+                        ],
+                        'circuitbreaker' => [
+                            'default' => [
+                                'ignore_exceptions' => $ignoreExceptions,
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
         return [
             CounterFactory::class => autowire(SimpleCounterFactory::class),
             StateStore::class => autowire(SwooleTableStateStore::class),
             Clock::class => autowire(SimpleClock::class),
             MetricsFactory::class => autowire(MetricsFactoryImpl::class),
             CircuitBreakerFactory::class => autowire(CircuitBreakerFactoryImpl::class)
-                ->constructorParameter('options', get('application.client.circuit_breaker')),
+                ->constructorParameter('options', get('application.client.circuitbreaker')),
             RetryFactory::class => autowire(RetryFactoryImpl::class)
                 ->constructorParameter('options', get('application.client.retry')),
         ];

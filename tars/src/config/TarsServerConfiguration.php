@@ -26,6 +26,7 @@ use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\ServerPort;
 use kuiper\tars\annotation\TarsServant;
 use kuiper\tars\server\Adapter;
+use kuiper\tars\server\AdminServantImpl;
 use kuiper\tars\server\ClientProperties;
 use kuiper\tars\server\listener\KeepAlive;
 use kuiper\tars\server\listener\RequestStat;
@@ -34,6 +35,7 @@ use kuiper\tars\server\monitor\collector\ServiceMemoryCollector;
 use kuiper\tars\server\monitor\collector\WorkerNumCollector;
 use kuiper\tars\server\monitor\Monitor;
 use kuiper\tars\server\monitor\MonitorInterface;
+use kuiper\tars\server\servant\AdminServant;
 use kuiper\tars\server\ServerProperties;
 use kuiper\tars\server\stat\Stat;
 use kuiper\tars\server\stat\StatInterface;
@@ -80,6 +82,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
             TarsServerFactory::class => factory([TarsServerFactory::class, 'createFromContainer']),
             StatStore::class => autowire(SwooleTableStatStore::class),
             StatInterface::class => autowire(Stat::class),
+            AdminServant::class => autowire(AdminServantImpl::class),
             MonitorInterface::class => autowire(Monitor::class)
                 ->constructorParameter('collectors', get('monitorCollectors')),
             'tarsServerRequestLogFormatter' => autowire(JsonRpcRequestLogFormatter::class),
@@ -117,7 +120,9 @@ class TarsServerConfiguration implements DefinitionConfiguration
         $adapter = $adapters[0];
         $serverPort = new ServerPort($adapter->getEndpoint()->getHost(), $adapter->getEndpoint()->getPort(), $adapter->getServerType());
         $logger = $container->get(LoggerInterface::class);
-        /** @var TarsServant $annotation */
+
+        $this->registerAdminServant();
+        /** @var TarsServant[] $annotations */
         foreach (ComponentCollection::getAnnotations(TarsServant::class) as $annotation) {
             $serviceImpl = $container->get($annotation->getComponentId());
             $servantName = $serverProperties->getServerName().'.'.$annotation->service;
@@ -132,6 +137,19 @@ class TarsServerConfiguration implements DefinitionConfiguration
         }
 
         return $services;
+    }
+
+    private function registerAdminServant(): void
+    {
+        foreach (ComponentCollection::getAnnotations(TarsServant::class) as $annotation) {
+            if ('AdminObj' === $annotation->service) {
+                return;
+            }
+        }
+        $annotation = new TarsServant();
+        $annotation->service = 'AdminObj';
+        $annotation->setTarget(new \ReflectionClass(AdminServant::class));
+        ComponentCollection::register($annotation);
     }
 
     /**

@@ -23,6 +23,8 @@ use kuiper\rpc\fixtures\RpcRequestFactory;
 use kuiper\rpc\fixtures\RpcResponseFactory;
 use kuiper\rpc\registry\TestCase;
 use kuiper\rpc\transporter\TransporterInterface;
+use kuiper\swoole\pool\PoolFactory;
+use kuiper\swoole\pool\PoolFactoryInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 class RetryMiddlewareTest extends TestCase
@@ -49,17 +51,20 @@ class RetryMiddlewareTest extends TestCase
         $executorFactory = new RpcExecutorFactory(new RpcRequestFactory(), $rpcClient);
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new ResilienceConfiguration());
+        $ignoreErrors = [\InvalidArgumentException::class];
+        $ignoreErrors = [];
         $config = Properties::create([
             'application' => [
                 'client' => [
                     'circuit_breaker' => [
                         HelloService::class => [
-                            'minimumNumberOfCalls' => 2,
+                            'minimum_number_of_calls' => 2,
                         ],
                     ],
                     'retry' => [
                         HelloService::class => [
-                            'waitDuration' => 0,
+                            'wait_duration' => 0,
+                            'ignore_exceptions' => $ignoreErrors,
                         ],
                     ],
                 ],
@@ -70,6 +75,7 @@ class RetryMiddlewareTest extends TestCase
             EventDispatcherInterface::class => $eventDispatcher = new InMemoryEventDispatcher(),
             AnnotationReaderInterface::class => AnnotationReader::getInstance(),
             PropertyResolverInterface::class => $config,
+            PoolFactoryInterface::class => new PoolFactory(),
         ]);
         $container = $builder->build();
         $executorFactory->setContainer($container);
@@ -81,7 +87,7 @@ class RetryMiddlewareTest extends TestCase
             $c = 1;
             try {
                 $ret[$times] = $service->hello('world');
-            } catch (CallNotPermittedException $e) {
+            } catch (CallNotPermittedException | \InvalidArgumentException $e) {
             }
         }
         $events = $eventDispatcher->getEvents();

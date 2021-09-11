@@ -100,4 +100,6 @@ interface ServerInterface
      * @param string $message
      */
     public function sendMessageToAll(string $message): void;
+
+    public function stats(): array;
 }

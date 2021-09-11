@@ -113,10 +113,10 @@ class RetryConfig
     /**
      * @param mixed $result
      */
-    public function getRetryInterval(int $numOfAttempts, ?\Exception $lastException, $result): int
+    public function getRetryInterval(int $retryAttempts, ?\Exception $lastException, $result): int
     {
         if (null !== $this->intervalFunction) {
-            return call_user_func($this->intervalFunction, $numOfAttempts, $this->waitDuration, $lastException, $result);
+            return call_user_func($this->intervalFunction, $retryAttempts, $this->waitDuration, $lastException, $result);
         }
 
         return $this->waitDuration;

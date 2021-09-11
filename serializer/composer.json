@@ -1,0 +1,30 @@
+{
+    "name": "kuiper/serializer",
+    "type": "library",
+    "description": "serializer component",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ye Wenbin",
+            "email": "wenbinye@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2",
+        "ext-swoole": "*",
+        "kuiper/helper": "^0.6",
+        "kuiper/annotations": "^0.6",
+        "kuiper/reflection": "^0.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "kuiper\\serializer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kuiper\\serializer\\": "tests/"
+        }
+    }
+}

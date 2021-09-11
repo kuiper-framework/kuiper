@@ -83,6 +83,30 @@ class RetryImpl implements Retry
     }
 
     /**
+     * @return RetryConfig
+     */
+    public function getConfig(): RetryConfig
+    {
+        return $this->config;
+    }
+
+    /**
+     * @return int
+     */
+    public function getNumOfAttempts(): int
+    {
+        return $this->numOfAttempts;
+    }
+
+    /**
+     * @return \Exception|null
+     */
+    public function getLastException(): ?\Exception
+    {
+        return $this->lastException;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function decorate(callable $call): callable
@@ -145,7 +169,7 @@ class RetryImpl implements Retry
             $this->eventDispatcher->dispatch(new RetryOnError($this, $currentNumOfAttempts, $e));
 
             if ($this->config->isFailAfterMaxAttempts()) {
-                throw new MaxRetriesExceededException();
+                throw $e;
             }
         } else {
             // 首次调用
@@ -162,7 +186,7 @@ class RetryImpl implements Retry
             return false;
         }
         /** @var bool $shouldRetry */
-        $shouldRetry = call_user_func($this->config->getRetryOnResult(), $result);
+        $shouldRetry = call_user_func($this->config->getRetryOnResult(), $this, $result);
         if ($shouldRetry) {
             $currentNumberOfAttempts = ++$this->numOfAttempts;
             if ($currentNumberOfAttempts >= $this->config->getMaxAttempts()) {
@@ -206,7 +230,7 @@ class RetryImpl implements Retry
      */
     private function waitIntervalAfterFailure(int $numOfAttempts, ?\Exception $exception, $result): void
     {
-        $interval = $this->config->getRetryInterval($this->numOfAttempts, $exception, $result);
+        $interval = $this->config->getRetryInterval($numOfAttempts, $exception, $result);
         $this->eventDispatcher->dispatch(new RetryOnRetry($this, $numOfAttempts, $interval, $exception, $result));
         $this->clock->sleep($interval);
     }

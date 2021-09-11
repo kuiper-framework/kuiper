@@ -313,4 +313,9 @@ class SwooleServer extends AbstractServer
             $this->getSwooleResponseBridge()->update($psrResponse, $response);
         }
     }
+
+    public function stats(): array
+    {
+        return $this->resource->stats();
+    }
 }
