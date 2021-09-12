@@ -14,7 +14,8 @@
     ],
     "require": {
         "php": ">=7.2",
-        "kuiper/http-client": "^0.5"
+        "kuiper/rpc": "^0.6",
+        "kuiper/http-client": "^0.6"
     },
     "autoload": {
         "psr-4": {
@@ -24,6 +25,13 @@
     "autoload-dev": {
         "psr-4": {
             "kuiper\\rpc\\registry\\": "tests/"
+        }
+    },
+    "extra": {
+        "kuiper": {
+            "configuration": [
+                "kuiper\\rpc\\registry\\RpcRegistryConfiguration"
+            ]
         }
     }
 }

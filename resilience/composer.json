@@ -14,7 +14,7 @@
     ],
     "require": {
         "php": ">=7.2",
-        "kuiper/helper": "^0.5"
+        "kuiper/helper": "^0.6"
     },
     "autoload": {
         "psr-4": {

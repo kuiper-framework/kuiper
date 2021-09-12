@@ -135,7 +135,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         $services = [];
         /** @var JsonRpcService $annotation */
         foreach (ComponentCollection::getAnnotations(JsonRpcService::class) as $annotation) {
-            $serviceClass = AbstractJsonRpcServerConfiguration::getServiceClass($annotation->getTarget());
+            $serviceClass = JsonRpcServerConfiguration::getServiceClass($annotation->getTarget());
             $services[$serviceClass] = true;
         }
 

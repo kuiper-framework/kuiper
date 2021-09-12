@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\config;
 
 use DI\Annotation\Inject;
-use function DI\autowire;
-use function DI\factory;
-use function DI\get;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
+use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\helper\PropertyResolverInterface;
 use kuiper\helper\Text;
 use kuiper\jsonrpc\annotation\JsonRpcService;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\server\JsonRpcServerFactory;
+use kuiper\jsonrpc\server\JsonRpcTcpReceiveEventListener;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\annotation\Ignore;
@@ -25,19 +25,26 @@ use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
 use kuiper\swoole\Application;
+use kuiper\swoole\constants\ServerSetting;
+use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerPort;
 use kuiper\web\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use function DI\autowire;
+use function DI\factory;
+use function DI\get;
 
-abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfiguration
+class JsonRpcServerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
 
     public function getDefinitions(): array
     {
         $this->addAccessLogger();
-        Application::getInstance()->getConfig()->merge([
+        $config = Application::getInstance()->getConfig();
+        $config->merge([
             'application' => [
                 'jsonrpc' => [
                     'server' => [
@@ -48,12 +55,59 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
                 ],
             ],
         ]);
+        if ($this->jsonrpcOnHttp($config)) {
+            $definitions = [
+                RequestHandlerInterface::class => factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']),
+            ];
+        } else {
+            $definitions = [
+                JsonRpcTcpReceiveEventListener::class => factory([JsonRpcServerFactory::class, 'createTcpRequestEventListener']),
+            ];
+            $config->merge([
+                'application'=> [
+                    'listeners' => [
+                        JsonRpcTcpReceiveEventListener::class,
+                    ],
+                    'swoole' => [
+                        ServerSetting::OPEN_EOF_SPLIT => true,
+                        ServerSetting::PACKAGE_EOF => JsonRpcProtocol::EOF,
+                    ],
+                ]
+            ]);
+        }
 
-        return [
+        return array_merge($definitions, [
             JsonRpcServerFactory::class => factory([JsonRpcServerFactory::class, 'createFromContainer']),
             'jsonrpcServerRequestLogFormatter' => autowire(RpcRequestLogFormatter::class),
             'registerServices' => get('jsonrpcServices'),
-        ];
+        ]);
+    }
+
+    /**
+     * @Bean("jsonrpcServices")
+     */
+    public function jsonrpcServices(ContainerInterface $container, ServerConfig $serverConfig, PropertyResolverInterface $config): array
+    {
+        $weight = $config->getInt('application.jsonrpc.server.weight');
+        if ($this->jsonrpcOnHttp($config)) {
+            return $this->getJsonrpcServices($container, $serverConfig, ServerType::HTTP, $weight);
+        }
+
+        return $this->getJsonrpcServices($container, $serverConfig, ServerType::TCP, $weight);
+    }
+
+    private function jsonrpcOnHttp(PropertyResolverInterface $config): bool
+    {
+        if ($config->getString("application.jsonrpc.server.protocol") === 'http') {
+            return true;
+        }
+        foreach ($config->get('application.server.ports') as $port => $portConfig) {
+            $serverType = is_string($portConfig) ? $portConfig : $portConfig['protocol'] ?? ServerType::HTTP;
+            if (ServerType::fromValue($serverType)->isHttpProtocol()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -124,7 +178,7 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
             }
         }
         if (!isset($serviceClass)) {
-            throw new \InvalidArgumentException('Cannot resolve service name from '.$class->getName());
+            throw new \InvalidArgumentException('Cannot resolve service name from ' . $class->getName());
         }
 
         return $serviceClass;
@@ -186,7 +240,7 @@ abstract class AbstractJsonRpcServerConfiguration implements DefinitionConfigura
                 'logging' => [
                     'loggers' => [
                         'JsonRpcServerRequestLogger' => LoggerConfiguration::createAccessLogger(
-                            $config->get('application.logging.jsonrpc_server_log_file', $path.'/jsonrpc-server.log')),
+                            $config->get('application.logging.jsonrpc_server_log_file', $path . '/jsonrpc-server.log')),
                     ],
                     'logger' => [
                         'JsonRpcServerRequestLogger' => 'JsonRpcServerRequestLogger',
