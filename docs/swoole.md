@@ -46,7 +46,7 @@ Application::run();
 
 ## 配置
 
-`\kuiper\swoole\Application` 在初始化时加载配置。配置使用的是 [Properties](properties.md) 对象存储。配置加载方式有以下方式：
+`\kuiper\swoole\Application` 在初始化时加载配置。配置使用的是 [Properties](helper.md#Properties) 对象存储。配置加载方式有以下方式：
 
 1. 通过命令行参数 `--config config.ini` 指定配置文件，使用 `parse_ini_file` 解析
 2. 通过命令行参数 `--define key=value` 指定

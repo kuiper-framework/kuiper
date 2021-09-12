@@ -1,7 +1,12 @@
-# 日志配置
+# Logger
 
-`\kuiper\logger\LoggerFactory` 实现按类名创建 Logger 对象，设置日志等级。
+`\kuiper\logger\LoggerFactory` 实现按类名创建 Logger 对象，并通过配置项可以设置日志类和日志等级。
 
+安装：
+
+```bash
+composer require kuiper/logger
+```
 使用方法：
 ```php
 <?php
@@ -22,6 +27,8 @@ $loggerFactory = new LoggerFactory([
 $logger = $loggerFactory->create(MyClass::class);
 $logger->info("test");
 ```
+
+> 通过 `kuiper\swoole\Application` 创建应用配置可以通过 `application.logging` 配置。
 
 配置中 `loggers` 用于配置 Logger 对象，必须包含 root 配置，配置方式见下文；`level` 用于设置日志等级，可以按命名空间设置，也可以设置具体某个类；
 `logger` 用于设置日志类，key 可以是命名空间或者具体类名，value 是 `loggers` 中的 key。

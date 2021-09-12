@@ -10,3 +10,4 @@
 * [Resilience](resilience.md)
 * [Cache](cache.md)
 * [Event Dispatcher](event.md)
+* [Utility Functions](helper.md)

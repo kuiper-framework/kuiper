@@ -24,7 +24,6 @@ use kuiper\swoole\listener\StartEventListener;
 use kuiper\swoole\listener\TaskEventListener;
 use kuiper\swoole\listener\WorkerExitEventListener;
 use kuiper\swoole\listener\WorkerStartEventListener;
-use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerFactory;
@@ -33,8 +32,6 @@ use kuiper\swoole\ServerStartCommand;
 use kuiper\swoole\ServerStopCommand;
 use kuiper\web\LineRequestLogFormatter;
 use kuiper\web\RequestLogFormatterInterface;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -154,30 +151,5 @@ class ServerConfiguration implements DefinitionConfiguration
         $serverConfig->setMasterPidFile($config->get('application.logging.path').'/master.pid');
 
         return $serverConfig;
-    }
-
-    public static function createAccessLogger(string $logFileName): array
-    {
-        return [
-            'handlers' => [
-                [
-                    'handler' => [
-                        'class' => StreamHandler::class,
-                        'constructor' => [
-                            'stream' => $logFileName,
-                        ],
-                    ],
-                    'formatter' => [
-                        'class' => LineFormatter::class,
-                        'constructor' => [
-                            'format' => "%message% %context% %extra%\n",
-                        ],
-                    ],
-                ],
-            ],
-            'processors' => [
-                CoroutineIdProcessor::class,
-            ],
-        ];
     }
 }

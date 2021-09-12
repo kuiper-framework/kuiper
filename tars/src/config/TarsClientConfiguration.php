@@ -13,6 +13,7 @@ use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
+use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
 use kuiper\rpc\JsonRpcRequestLogFormatter;
@@ -22,7 +23,6 @@ use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
 use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\swoole\Application;
-use kuiper\swoole\config\ServerConfiguration;
 use kuiper\tars\annotation\TarsClient;
 use kuiper\tars\client\middleware\RequestStat;
 use kuiper\tars\client\TarsProxyFactory;
@@ -220,7 +220,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
             'application' => [
                 'logging' => [
                     'loggers' => [
-                        'TarsRequestLogger' => ServerConfiguration::createAccessLogger(
+                        'TarsRequestLogger' => LoggerConfiguration::createAccessLogger(
                             $config->getString('application.logging.tars_client_log_file', $path.'/tars-client.log')),
                     ],
                     'logger' => [

@@ -17,9 +17,9 @@ use kuiper\di\annotation\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
-use kuiper\swoole\config\ServerConfiguration;
 use kuiper\web\exception\RedirectException;
 use kuiper\web\exception\UnauthorizedException;
 use kuiper\web\handler\DefaultLoginUrlBuilder;
@@ -87,9 +87,9 @@ class WebConfiguration implements DefinitionConfiguration
                 ],
                 'logging' => [
                     'loggers' => [
-                        'AccessLogLogger' => ServerConfiguration::createAccessLogger(
+                        'AccessLogLogger' => LoggerConfiguration::createAccessLogger(
                             $config->get('application.logging.access_log_file',
-                            $config->get('application.logging.path').'/access.log')),
+                                $config->get('application.logging.path').'/access.log')),
                     ],
                     'logger' => [
                         AccessLog::class => 'AccessLogLogger',

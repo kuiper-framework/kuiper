@@ -144,6 +144,11 @@ abstract class Enum implements \JsonSerializable
         return array_keys(static::getNames());
     }
 
+    public static function enums(): array
+    {
+        return array_values(self::getValues());
+    }
+
     /**
      * Gets all enums.
      *

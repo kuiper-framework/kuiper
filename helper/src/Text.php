@@ -57,7 +57,7 @@ final class Text
      *
      * @param bool $ignoreCase
      */
-    public static function startsWith(string $haystack, string $needle, $ignoreCase = true): bool
+    public static function startsWith(string $haystack, string $needle, bool $ignoreCase = true): bool
     {
         if ('' === $needle) {
             return true;
@@ -78,7 +78,7 @@ final class Text
      *
      * @param bool $ignoreCase
      */
-    public static function endsWith(string $haystack, string $needle, $ignoreCase = true): bool
+    public static function endsWith(string $haystack, string $needle, bool $ignoreCase = true): bool
     {
         if ('' === $needle) {
             return true;

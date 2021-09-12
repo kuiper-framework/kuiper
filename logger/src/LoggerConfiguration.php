@@ -1,0 +1,165 @@
+<?php
+
+declare(strict_types=1);
+
+namespace kuiper\logger;
+
+use DI\Definition\FactoryDefinition;
+use DI\Definition\ObjectDefinition;
+use function DI\factory;
+use kuiper\di\annotation\Bean;
+use kuiper\di\AwareInjection;
+use kuiper\di\ContainerBuilderAwareTrait;
+use kuiper\di\DefinitionConfiguration;
+use kuiper\helper\PropertyResolverInterface;
+use kuiper\swoole\monolog\CoroutineIdProcessor;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+
+class LoggerConfiguration implements DefinitionConfiguration
+{
+    use ContainerBuilderAwareTrait;
+
+    public function getDefinitions(): array
+    {
+        $this->containerBuilder->addAwareInjection(new AwareInjection(
+            LoggerAwareInterface::class,
+            'setLogger',
+            static function (ObjectDefinition $definition): array {
+                $name = $definition->getName().'.logger';
+                $class = $definition->getClassName();
+                $loggerDefinition = new FactoryDefinition(
+                    $name, static function (LoggerFactoryInterface $loggerFactory) use ($class): LoggerInterface {
+                        return $loggerFactory->create($class);
+                    });
+
+                return [$loggerDefinition];
+            }));
+
+        return [
+            LoggerInterface::class => factory(static function (LoggerFactoryInterface $loggerFactory) {
+                return $loggerFactory->create();
+            }),
+        ];
+    }
+
+    /**
+     * @Bean
+     */
+    public function loggerFactory(ContainerInterface $container): LoggerFactoryInterface
+    {
+        $config = $container->get(PropertyResolverInterface::class);
+        $config->mergeIfNotExists([
+            'application' => [
+                'logging' => [
+                    'loggers' => [
+                        'root' => [
+                            'console' => true,
+                            'level' => 'info',
+                        ],
+                    ],
+                    'level' => [
+                        'kuiper\\swoole' => 'info',
+                    ],
+                ],
+            ],
+        ]);
+        $loggingConfig = $config->get('application.logging', []);
+        $loggingConfig['loggers']['root'] = $this->createRootLogger($container->get('application.name') ?? 'app', $loggingConfig);
+
+        return new LoggerFactory($container, $loggingConfig);
+    }
+
+    /**
+     * @param string $name
+     * @param array  $config
+     *
+     * @return array
+     */
+    protected function createRootLogger(string $name, array $config): array
+    {
+        $rootLoggerConfig = $config['loggers']['root'] ?? [];
+        $loggerLevelName = strtoupper($rootLoggerConfig['level'] ?? 'error');
+
+        $loggerLevel = constant(Logger::class.'::'.$loggerLevelName);
+        if (!isset($loggerLevel)) {
+            throw new \InvalidArgumentException("Unknown logger level '{$loggerLevelName}'");
+        }
+        $handlers = [];
+        if (!empty($rootLoggerConfig['console'])) {
+            $handlers[] = [
+                'handler' => [
+                    'class' => StreamHandler::class,
+                    'constructor' => [
+                        'stream' => 'php://stderr',
+                        'level' => $loggerLevel,
+                    ],
+                ],
+                'formatter' => [
+                    'class' => LineFormatter::class,
+                    'constructor' => [
+                        'allowInlineLineBreaks' => true,
+                    ],
+                ],
+            ];
+        }
+        if (isset($config['path'])) {
+            $handlers[] = [
+                'handler' => [
+                    'class' => StreamHandler::class,
+                    'constructor' => [
+                        'stream' => $config['path'].'/default.log',
+                        'level' => $loggerLevel,
+                    ],
+                ],
+            ];
+
+            $handlers[] = [
+                'handler' => [
+                    'class' => StreamHandler::class,
+                    'constructor' => [
+                        'stream' => $config['path'].'/error.log',
+                        'level' => Logger::ERROR,
+                    ],
+                ],
+            ];
+        }
+
+        return [
+            'name' => $name,
+            'handlers' => $handlers,
+            'processors' => [
+                CoroutineIdProcessor::class,
+            ],
+        ];
+    }
+
+    public static function createAccessLogger(string $logFileName): array
+    {
+        return [
+            'handlers' => [
+                [
+                    'handler' => [
+                        'class' => StreamHandler::class,
+                        'constructor' => [
+                            'stream' => $logFileName,
+                        ],
+                    ],
+                    'formatter' => [
+                        'class' => LineFormatter::class,
+                        'constructor' => [
+                            'format' => "%message% %context% %extra%\n",
+                        ],
+                    ],
+                ],
+            ],
+            'processors' => [
+                CoroutineIdProcessor::class,
+            ],
+        ];
+    }
+}
