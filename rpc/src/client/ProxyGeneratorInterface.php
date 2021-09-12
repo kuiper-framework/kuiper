@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client;
 
+use kuiper\swoole\pool\GeneratedClass;
+
 interface ProxyGeneratorInterface
 {
     /**

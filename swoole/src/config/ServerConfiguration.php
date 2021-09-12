@@ -17,7 +17,6 @@ use kuiper\swoole\http\HttpMessageFactoryHolder;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use kuiper\swoole\http\SwooleResponseBridge;
 use kuiper\swoole\http\SwooleResponseBridgeInterface;
-use kuiper\swoole\listener\HttpRequestEventListener;
 use kuiper\swoole\listener\ManagerStartEventListener;
 use kuiper\swoole\listener\StartEventListener;
 use kuiper\swoole\listener\TaskEventListener;
@@ -65,7 +64,6 @@ class ServerConfiguration implements DefinitionConfiguration
                     WorkerStartEventListener::class,
                     WorkerExitEventListener::class,
                     TaskEventListener::class,
-                    HttpRequestEventListener::class,
                 ],
             ],
         ]);

@@ -18,6 +18,7 @@ use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
+use kuiper\swoole\listener\HttpRequestEventListener;
 use kuiper\swoole\logger\LineRequestLogFormatter;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\web\exception\RedirectException;
@@ -79,6 +80,9 @@ class WebConfiguration extends ServerConfiguration
                     'middleware' => [
                         AccessLog::class,
                     ],
+                ],
+                'listeners' => [
+                    HttpRequestEventListener::class,
                 ],
                 'logging' => [
                     'loggers' => [

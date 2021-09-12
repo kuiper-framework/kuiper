@@ -15,7 +15,7 @@ fi
 if [ "$1" = "" ]; then
     REPOS="annotations cache db di event helper http-client jsonrpc logger reflection resilience rpc rpc-registry serializer swoole tars web"
 else
-    REPOS=$1
+    REPOS="$@"
 fi
 
 function split()
@@ -26,7 +26,7 @@ function split()
 
 function remote()
 {
-    git remote add $1 $2 || true
+    git remote add $1 $2 2> /dev/null || true
 }
 
 # git pull origin $CURRENT_BRANCH

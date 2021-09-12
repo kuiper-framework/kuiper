@@ -28,6 +28,7 @@ use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
+use kuiper\swoole\listener\HttpRequestEventListener;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerPort;
@@ -54,6 +55,13 @@ class JsonRpcServerConfiguration extends ServerConfiguration
         ]);
         if ($this->jsonrpcOnHttp($config)) {
             $definitions[RequestHandlerInterface::class] = factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']);
+            $config->merge([
+                'application' => [
+                    'listeners' => [
+                        HttpRequestEventListener::class,
+                    ],
+                ],
+            ]);
         } else {
             $definitions[JsonRpcTcpReceiveEventListener::class] = factory([JsonRpcServerFactory::class, 'createTcpRequestEventListener']);
             $config->merge([
