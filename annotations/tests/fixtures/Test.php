@@ -6,8 +6,7 @@ namespace kuiper\annotations\fixtures;
 
 /**
  * @Foo(
- *     @Value(property="foo", value="{application.foo}/foo"),
- *     @Value(property="value", value="{application.foo}/value")
+ *     @Value(property="foo", value="{application.foo}/foo")
  * )
  */
 class Test

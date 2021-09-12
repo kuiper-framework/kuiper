@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\annotations;
 
+use Doctrine\Common\Annotations\Annotation;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\Reader;
 
@@ -20,9 +21,9 @@ class AnnotationReader implements AnnotationReaderInterface
     private $delegate;
 
     /**
-     * @var array
+     * @var Annotation[]
      */
-    private $loadedAnnotations;
+    private static $ANNOTATIONS;
 
     /**
      * AnnotationReader constructor.
@@ -35,11 +36,17 @@ class AnnotationReader implements AnnotationReaderInterface
     public static function getInstance(): AnnotationReaderInterface
     {
         if (null === self::$INSTANCE) {
-            AnnotationRegistry::registerLoader('class_exists');
-            self::$INSTANCE = new self(new \Doctrine\Common\Annotations\AnnotationReader());
+            self::$INSTANCE = self::create();
         }
 
         return self::$INSTANCE;
+    }
+
+    public static function create(): AnnotationReaderInterface
+    {
+        AnnotationRegistry::registerLoader('class_exists');
+
+        return new self(new \Doctrine\Common\Annotations\AnnotationReader());
     }
 
     /**
@@ -49,11 +56,11 @@ class AnnotationReader implements AnnotationReaderInterface
     {
         $cacheKey = $class->getName();
 
-        if (!isset($this->loadedAnnotations[$cacheKey])) {
-            $this->loadedAnnotations[$cacheKey] = $this->delegate->getClassAnnotations($class);
+        if (!isset(self::$ANNOTATIONS[$cacheKey])) {
+            self::$ANNOTATIONS[$cacheKey] = $this->delegate->getClassAnnotations($class);
         }
 
-        return $this->loadedAnnotations[$cacheKey];
+        return self::$ANNOTATIONS[$cacheKey];
     }
 
     /**
@@ -78,11 +85,11 @@ class AnnotationReader implements AnnotationReaderInterface
         $class = $method->getDeclaringClass();
         $cacheKey = $class->getName().'#'.$method->getName();
 
-        if (!isset($this->loadedAnnotations[$cacheKey])) {
-            $this->loadedAnnotations[$cacheKey] = $this->delegate->getMethodAnnotations($method);
+        if (!isset(self::$ANNOTATIONS[$cacheKey])) {
+            self::$ANNOTATIONS[$cacheKey] = $this->delegate->getMethodAnnotations($method);
         }
 
-        return $this->loadedAnnotations[$cacheKey];
+        return self::$ANNOTATIONS[$cacheKey];
     }
 
     /**
@@ -107,11 +114,11 @@ class AnnotationReader implements AnnotationReaderInterface
         $class = $property->getDeclaringClass();
         $cacheKey = $class->getName().'$'.$property->getName();
 
-        if (!isset($this->loadedAnnotations[$cacheKey])) {
-            $this->loadedAnnotations[$cacheKey] = $this->delegate->getPropertyAnnotations($property);
+        if (!isset(self::$ANNOTATIONS[$cacheKey])) {
+            self::$ANNOTATIONS[$cacheKey] = $this->delegate->getPropertyAnnotations($property);
         }
 
-        return $this->loadedAnnotations[$cacheKey];
+        return self::$ANNOTATIONS[$cacheKey];
     }
 
     /**

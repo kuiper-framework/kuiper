@@ -11,7 +11,6 @@ use DI\Definition\ObjectDefinition;
 use function DI\get;
 use function DI\value;
 use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\annotations\PooledAnnotationReader;
 use kuiper\di\annotation\Bean;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerAwareInterface;
@@ -90,14 +89,6 @@ class FoundationConfiguration implements DefinitionConfiguration
     public function consoleApplication(string $name): ConsoleApplication
     {
         return new ConsoleApplication($name);
-    }
-
-    /**
-     * @Bean
-     */
-    public function annotationReader(PoolFactoryInterface $poolFactory): AnnotationReaderInterface
-    {
-        return new PooledAnnotationReader($poolFactory);
     }
 
     /**

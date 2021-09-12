@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace kuiper\annotations\fixtures;
 
-use kuiper\annotations\AnnotationTrait;
-
 /**
  * @Annotation
  */
 class Foo
 {
-    use AnnotationTrait;
-
+    /**
+     * @var array
+     */
+    public $value;
     /**
      * @var string
      */
