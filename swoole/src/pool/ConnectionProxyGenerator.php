@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace kuiper\swoole\pool;
 
 use kuiper\helper\Text;
-use kuiper\rpc\client\GeneratedClass;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\ParameterGenerator;

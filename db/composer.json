@@ -18,6 +18,7 @@
         "php": "^7.0",
         "ext-pdo": "*",
         "aura/sqlquery": "^2.7",
+        "webmozart/assert": "^1.0",
         "kuiper/annotations": "^0.6",
         "kuiper/event": "^0.6",
         "kuiper/helper": "^0.6",

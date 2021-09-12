@@ -13,6 +13,8 @@
     "require": {
         "php": "^7.2",
         "ext-swoole": "*",
+        "webmozart/assert": "^1.0",
+        "laminas/laminas-code": "^3.4",
         "kuiper/di": "^0.6",
         "kuiper/event": "^0.6",
         "kuiper/logger": "^0.6",

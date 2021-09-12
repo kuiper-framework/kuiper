@@ -103,7 +103,6 @@ class ServerConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean
-     * @Inject({"name": "applicationName"})
      */
     public function consoleApplication(PropertyResolverInterface $config): ConsoleApplication
     {
@@ -167,9 +166,8 @@ class ServerConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"name": "applicationName"})
      */
-    public function serverConfig(string $name): ServerConfig
+    public function serverConfig(): ServerConfig
     {
         $config = Application::getInstance()->getConfig();
         $settings = array_merge([
@@ -205,7 +203,7 @@ class ServerConfiguration implements DefinitionConfiguration
             );
         }
 
-        $serverConfig = new ServerConfig($name, $ports);
+        $serverConfig = new ServerConfig($config->getString('application.name', 'app'), $ports);
         $serverConfig->setMasterPidFile($config->get('application.logging.path').'/master.pid');
 
         return $serverConfig;
