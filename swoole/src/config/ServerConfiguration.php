@@ -8,19 +8,12 @@ use DI\Annotation\Inject;
 use function DI\autowire;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnClass;
-use kuiper\di\Bootstrap;
-use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
-use kuiper\event\annotation\EventListener;
-use kuiper\event\EventListenerInterface;
-use kuiper\event\EventSubscriberInterface;
-use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
-use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\http\HttpMessageFactoryHolder;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use kuiper\swoole\http\SwooleResponseBridge;
@@ -43,14 +36,13 @@ use kuiper\web\RequestLogFormatterInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @ConditionalOnClass(ConsoleApplication::class)
  */
-class ServerConfiguration implements DefinitionConfiguration, Bootstrap
+class ServerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
 
@@ -74,6 +66,18 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
                 ],
             ],
         ]);
+        $config->merge([
+            'application' => [
+                'listeners' => [
+                    StartEventListener::class,
+                    ManagerStartEventListener::class,
+                    WorkerStartEventListener::class,
+                    WorkerExitEventListener::class,
+                    TaskEventListener::class,
+                    HttpRequestEventListener::class,
+                ],
+            ],
+        ]);
         if (!$config->has('application.server.ports')) {
             $config->set('application.server.ports', ['8000' => ServerType::HTTP]);
         }
@@ -82,48 +86,6 @@ class ServerConfiguration implements DefinitionConfiguration, Bootstrap
             SwooleResponseBridgeInterface::class => autowire(SwooleResponseBridge::class),
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
         ];
-    }
-
-    public function boot(ContainerInterface $container): void
-    {
-        $logger = $container->get(LoggerInterface::class);
-        $dispatcher = $container->get(EventDispatcherInterface::class);
-        $config = $container->get(PropertyResolverInterface::class);
-        $events = [];
-        $addListener = static function ($eventName, $listener) use ($container, $dispatcher, $logger, &$events): void {
-            $eventListener = is_string($listener) ? $container->get($listener) : $listener;
-            if ($eventListener instanceof EventListenerInterface) {
-                $event = $eventListener->getSubscribedEvent();
-                $dispatcher->addListener($event, $eventListener);
-                $events[$event] = true;
-                $logger->info(static::TAG."add event listener {$listener} for {$event}");
-            } elseif ($eventListener instanceof EventSubscriberInterface) {
-                foreach ($eventListener->getSubscribedEvents() as $event) {
-                    $dispatcher->addListener($event, $eventListener);
-                    $events[$event] = true;
-                    $logger->info(static::TAG."add event listener {$listener} for {$event}");
-                }
-            } elseif (is_string($eventName)) {
-                $dispatcher->addListener($eventName, $eventListener);
-                $events[$eventName] = true;
-            }
-        };
-        foreach ($config->get('application.listeners', []) as $key => $listener) {
-            $addListener($key, $listener);
-        }
-        $addListener(null, StartEventListener::class);
-        $addListener(null, ManagerStartEventListener::class);
-        $addListener(null, WorkerStartEventListener::class);
-        $addListener(null, WorkerExitEventListener::class);
-        $addListener(null, TaskEventListener::class);
-        /** @var EventListener $annotation */
-        foreach (ComponentCollection::getAnnotations(EventListener::class) as $annotation) {
-            $addListener($annotation->value, $annotation->getComponentId());
-        }
-        $serverConfig = $container->get(ServerConfig::class);
-        if (!isset($events[RequestEvent::class]) && $serverConfig->getPort()->isHttpProtocol()) {
-            $addListener(null, HttpRequestEventListener::class);
-        }
     }
 
     /**

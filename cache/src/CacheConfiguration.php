@@ -6,11 +6,9 @@ namespace kuiper\cache;
 
 use DI\Annotation\Inject;
 use kuiper\di\annotation\AllConditions;
-use kuiper\di\annotation\AnyCondition;
 use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\ConditionalOnProperty;
-use kuiper\di\annotation\Configuration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\pool\ConnectionProxyGenerator;
 use kuiper\swoole\pool\PoolFactoryInterface;
@@ -22,13 +20,6 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\ChainAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 
-/**
- * @Configuration()
- * @AnyCondition({
- *     @ConditionalOnProperty("application.redis"),
- *     @ConditionalOnProperty("application.cache")
- * })
- */
 class CacheConfiguration
 {
     /**

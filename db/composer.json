@@ -18,11 +18,11 @@
         "php": "^7.0",
         "ext-pdo": "*",
         "aura/sqlquery": "^2.7",
-        "kuiper/annotations": "^0.5",
-        "kuiper/event": "^0.5",
-        "kuiper/helper": "^0.5",
-        "kuiper/logger": "^0.5",
-        "kuiper/reflection": "^0.5"
+        "kuiper/annotations": "^0.6",
+        "kuiper/event": "^0.6",
+        "kuiper/helper": "^0.6",
+        "kuiper/logger": "^0.6",
+        "kuiper/reflection": "^0.6"
     },
     "autoload": {
         "psr-4": {

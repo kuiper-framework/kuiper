@@ -9,3 +9,4 @@
 * [Tars Server](tars.md)
 * [Resilience](resilience.md)
 * [Cache](cache.md)
+* [Event Dispatcher](event.md)

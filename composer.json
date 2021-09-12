@@ -105,6 +105,7 @@
             "kuiper\\annotations\\": "annotations/tests/",
             "kuiper\\db\\": "db/tests/",
             "kuiper\\di\\": "di/tests/",
+            "kuiper\\event\\": "event/tests/",
             "kuiper\\helper\\": "helper/tests/",
             "kuiper\\http\\client\\": "http-client/tests/",
             "kuiper\\logger\\": "logger/tests/",

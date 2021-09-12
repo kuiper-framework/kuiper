@@ -17,7 +17,6 @@ use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\di\PropertiesDefinitionSource;
-use kuiper\event\EventDispatcherAwareInterface;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerFactory;
 use kuiper\logger\LoggerFactoryInterface;
@@ -32,11 +31,9 @@ use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Container\ContainerInterface;
-use Psr\EventDispatcher\EventDispatcherInterface as PsrEventDispatcher;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -61,7 +58,6 @@ class FoundationConfiguration implements DefinitionConfiguration
                 return [$loggerDefinition];
             }));
         $this->containerBuilder->addAwareInjection(AwareInjection::create(ContainerAwareInterface::class));
-        $this->containerBuilder->addAwareInjection(AwareInjection::create(EventDispatcherAwareInterface::class));
         $config = Application::getInstance()->getConfig();
         $this->containerBuilder->addDefinitions(new PropertiesDefinitionSource($config));
 
@@ -69,8 +65,6 @@ class FoundationConfiguration implements DefinitionConfiguration
             PropertyResolverInterface::class => value($config),
             QueueInterface::class => autowire(Queue::class),
             DispatcherInterface::class => get(QueueInterface::class),
-            PsrEventDispatcher::class => get(EventDispatcherInterface::class),
-            EventDispatcherInterface::class => autowire(EventDispatcher::class),
         ];
     }
 
