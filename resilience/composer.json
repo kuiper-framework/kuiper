@@ -1,5 +1,5 @@
 {
-    "name": "kuiper/resilence",
+    "name": "kuiper/resilience",
     "type": "library",
     "description": "Fault tolerance library for PHP ",
     "keywords": [
@@ -24,6 +24,13 @@
     "autoload-dev": {
         "psr-4": {
             "kuiper\\resilience\\": "tests/"
+        }
+    },
+    "extra": {
+        "kuiper": {
+            "configuration": [
+                "kuiper\\resilience\\ResilienceConfiguration"
+            ]
         }
     }
 }

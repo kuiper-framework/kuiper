@@ -27,5 +27,12 @@
         "psr-4": {
             "kuiper\\tars\\": "tests/"
         }
+    },
+    "extra": {
+        "kuiper": {
+            "configuration": [
+                "kuiper\\tars\\config\\TarsClientConfiguration"
+            ]
+        }
     }
 }
