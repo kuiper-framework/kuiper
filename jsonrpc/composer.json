@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "php": ">=7.2",
+        "php": ">=7.2.5",
         "laminas/laminas-code": "^3.4",
         "kuiper/rpc": "^0.6"
     },

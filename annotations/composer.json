@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "php": "^7.2",
+        "php": ">=7.2.5",
         "doctrine/annotations": "^1.13"
     },
     "autoload": {

@@ -128,6 +128,12 @@ class ReflectionFile implements ReflectionFileInterface
         if (isset($this->namespaces)) {
             return;
         }
+        if (!defined('T_NAME_QUALIFIED')) {
+            define('T_NAME_QUALIFIED', 24001);
+        }
+        if (!defined('T_NAME_FULLY_QUALIFIED')) {
+            define('T_NAME_FULLY_QUALIFIED', 24002);
+        }
         $code = file_get_contents($this->file);
         if (false === $code) {
             throw new FileNotFoundException("Cannot read file '{$this->file}'");

@@ -85,7 +85,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
                         }
                     }
                 } catch (ReflectionException $e) {
-                    throw new ReflectionException("fail to parse file '$file'".$e->getMessage());
+                    throw new ReflectionException("fail to parse file '$file'".$e->getMessage(), 0, $e);
                 }
             }
         }

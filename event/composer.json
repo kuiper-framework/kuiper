@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "php": "^7.2",
+        "php": ">=7.2.5",
         "symfony/event-dispatcher": "^5.0"
     },
     "autoload": {

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\session;
 
-use Dflydev\FigCookies\SetCookie;
-use Dflydev\FigCookies\SetCookies;
+use kuiper\web\http\ResponseHelper;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -259,38 +258,38 @@ class CacheStoreSession implements SessionInterface
      */
     public function setCookie(ResponseInterface $response): ResponseInterface
     {
-        $cookies = SetCookies::fromResponse($response);
+        $cookies = ResponseHelper::parseSetCookieHeader($response->getHeader('set-cookie'));
         if ($this->isStarted()) {
             $sid = $this->getId();
             if (!empty($this->sessionData)) {
                 $this->sessionHandler->write($sid, $this->encode($this->sessionData));
             }
-            $cookie = SetCookie::create($this->cookieName, $sid)
-                ->withPath(ini_get('session.cookie_path'));
+            $attributes = ['Path' => ini_get('session.cookie_path')];
             $domain = ini_get('session.cookie_domain');
             if (!empty($domain)) {
-                $cookie = $cookie->withDomain($domain);
+                $attributes['Domain'] = $domain;
             }
             $httpOnly = ini_get('session.cookie_httponly');
             if ($httpOnly) {
-                $cookie = $cookie->withHttpOnly((bool) $httpOnly);
+                $attributes['HttpOnly'] = (bool) $httpOnly;
             }
             if ($this->cookieLifetime > 0) {
-                $cookie = $cookie->withExpires(time() + $this->cookieLifetime);
+                $attributes['Expires'] = gmdate('D, d M Y H:i:s T', time() + $this->cookieLifetime);
             }
             $secure = ini_get('session.cookie_secure');
             if ($secure) {
-                $cookie = $cookie->withSecure((bool) $secure);
+                $attributes['Secure'] = (bool) $secure;
             }
+            $cookies[$this->cookieName] = ResponseHelper::buildSetCookie($this->cookieName, $sid, $attributes);
 
-            return $cookies->with($cookie)
-                ->renderIntoSetCookieHeader($response);
+            return ResponseHelper::setCookie($response, $cookies);
         }
 
         // not start, remove session cookie
-        if ($cookies->has($this->cookieName)) {
-            return $cookies->without($this->cookieName)
-                ->renderIntoSetCookieHeader($response);
+        if (isset($cookies[$this->cookieName])) {
+            unset($cookies[$this->cookieName]);
+
+            return ResponseHelper::setCookie($response, $cookies);
         }
 
         return $response;

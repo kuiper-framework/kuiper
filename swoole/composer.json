@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "php": "^7.2",
+        "php": ">=7.2.5",
         "ext-swoole": "*",
         "webmozart/assert": "^1.0",
         "laminas/laminas-code": "^3.4",

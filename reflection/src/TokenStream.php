@@ -122,7 +122,7 @@ class TokenStream
     {
         $identifier = '';
         while (true) {
-            if (is_array($this->current) && in_array($this->current[0], [T_STRING, T_NS_SEPARATOR], true)) {
+            if (is_array($this->current) && in_array($this->current[0], [T_STRING, T_NS_SEPARATOR, T_NAME_QUALIFIED], true)) {
                 $identifier .= $this->current[1];
                 $this->next();
             } else {
@@ -150,7 +150,7 @@ class TokenStream
     {
         $this->next();
         $this->skipWhitespaceAndComment();
-        if (!is_array($this->current) || !in_array($this->current[0], [T_FUNCTION, T_CONST, T_STRING], true)) {
+        if (!is_array($this->current) || !in_array($this->current[0], [T_FUNCTION, T_CONST, T_STRING, T_NAME_QUALIFIED], true)) {
             throw new InvalidTokenException("expected class name or the keyword 'function' or 'const'");
         }
         $importType = $this->current[0];
