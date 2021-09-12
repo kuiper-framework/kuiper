@@ -54,11 +54,21 @@ trait RequestPacketTrait
         return $this->packet->context;
     }
 
+    public function setContext(array $context): void
+    {
+        $this->packet->context = $context;
+    }
+
     /**
      * @return string[]
      */
     public function getStatus(): array
     {
         return $this->packet->status;
+    }
+
+    public function setStatus(array $status): void
+    {
+        $this->packet->status = $status;
     }
 }
