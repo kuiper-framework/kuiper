@@ -10,8 +10,6 @@ use function DI\factory;
 use function DI\get;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
-use kuiper\di\ContainerBuilderAwareTrait;
-use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Arrays;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerConfiguration;
@@ -22,6 +20,7 @@ use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
 use kuiper\serializer\NormalizerInterface;
 use kuiper\swoole\Application;
+use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\swoole\ServerPort;
@@ -47,14 +46,13 @@ use kuiper\tars\server\TarsTcpReceiveEventListener;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
-class TarsServerConfiguration implements DefinitionConfiguration
+class TarsServerConfiguration extends ServerConfiguration
 {
-    use ContainerBuilderAwareTrait;
-
     protected const TAG = '['.__CLASS__.'] ';
 
     public function getDefinitions(): array
     {
+        $definitions = parent::getDefinitions();
         $this->addTarsRequestLog();
         Application::getInstance()->getConfig()->merge([
             'application' => [
@@ -78,7 +76,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
             ],
         ]);
 
-        return [
+        return array_merge($definitions, [
             TarsServerFactory::class => factory([TarsServerFactory::class, 'createFromContainer']),
             StatStore::class => autowire(SwooleTableStatStore::class),
             StatInterface::class => autowire(Stat::class),
@@ -87,7 +85,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
                 ->constructorParameter('collectors', get('monitorCollectors')),
             'tarsServerRequestLogFormatter' => autowire(JsonRpcRequestLogFormatter::class),
             TarsTcpReceiveEventListener::class => factory([TarsServerFactory::class, 'createTcpReceiveEventListener']),
-        ];
+        ]);
     }
 
     /**

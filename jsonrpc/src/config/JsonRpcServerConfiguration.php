@@ -11,8 +11,6 @@ use function DI\get;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
-use kuiper\di\ContainerBuilderAwareTrait;
-use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\helper\Text;
 use kuiper\jsonrpc\annotation\JsonRpcService;
@@ -27,6 +25,7 @@ use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
 use kuiper\swoole\Application;
+use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
@@ -35,12 +34,11 @@ use kuiper\swoole\ServerPort;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-class JsonRpcServerConfiguration implements DefinitionConfiguration
+class JsonRpcServerConfiguration extends ServerConfiguration
 {
-    use ContainerBuilderAwareTrait;
-
     public function getDefinitions(): array
     {
+        $definitions = parent::getDefinitions();
         $this->addAccessLogger();
         $config = Application::getInstance()->getConfig();
         $config->merge([
@@ -55,13 +53,9 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             ],
         ]);
         if ($this->jsonrpcOnHttp($config)) {
-            $definitions = [
-                RequestHandlerInterface::class => factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']),
-            ];
+            $definitions[RequestHandlerInterface::class] = factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']);
         } else {
-            $definitions = [
-                JsonRpcTcpReceiveEventListener::class => factory([JsonRpcServerFactory::class, 'createTcpRequestEventListener']),
-            ];
+            $definitions[JsonRpcTcpReceiveEventListener::class] = factory([JsonRpcServerFactory::class, 'createTcpRequestEventListener']);
             $config->merge([
                 'application' => [
                     'listeners' => [

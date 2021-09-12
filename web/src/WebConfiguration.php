@@ -14,11 +14,10 @@ use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\ConditionalOnMissingClass;
 use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\ComponentCollection;
-use kuiper\di\ContainerBuilderAwareTrait;
-use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
+use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\logger\LineRequestLogFormatter;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\web\exception\RedirectException;
@@ -57,19 +56,18 @@ use Twig\Environment as Twig;
 use Twig\Loader\FilesystemLoader;
 use Twig\Loader\LoaderInterface;
 
-class WebConfiguration implements DefinitionConfiguration
+class WebConfiguration extends ServerConfiguration
 {
-    use ContainerBuilderAwareTrait;
-
     public function getDefinitions(): array
     {
+        $definitions = parent::getDefinitions();
         $this->addAccessLoggerConfig();
 
-        return [
+        return array_merge($definitions, [
             ErrorRendererInterface::class => autowire(LogErrorRenderer::class),
             AclInterface::class => autowire(Acl::class),
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
-        ];
+        ]);
     }
 
     protected function addAccessLoggerConfig(): void

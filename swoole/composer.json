@@ -35,7 +35,7 @@
     "extra": {
         "kuiper": {
             "configuration": [
-                "kuiper\\swoole\\config\\ServerConfiguration",
+                "kuiper\\swoole\\config\\FoundationConfiguration",
                 "kuiper\\swoole\\config\\GuzzleHttpMessageFactoryConfiguration",
                 "kuiper\\swoole\\config\\DiactorosHttpMessageFactoryConfiguration"
             ]
