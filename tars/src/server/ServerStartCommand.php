@@ -50,7 +50,7 @@ class ServerStartCommand extends AbstractServerCommand
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$this->serverProperties->isExternalMode() || $input->getOption('server')) {
+        if (!$this->serverProperties->isExternalMode() || null !== $input->getOption('server')) {
             if ($this->server instanceof SwooleServer) {
                 Coroutine::enable();
             }

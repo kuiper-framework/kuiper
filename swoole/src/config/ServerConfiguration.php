@@ -81,7 +81,7 @@ class ServerConfiguration implements DefinitionConfiguration
      */
     public function consoleApplication(PropertyResolverInterface $config): ConsoleApplication
     {
-        return new ConsoleApplication($config->getString('application.name', 'app'));
+        return new ConsoleApplication($config->get('application.name', 'app'));
     }
 
     /**

@@ -51,12 +51,12 @@ parameters:
 			path: http-client/src/HttpClientFactory.php
 
 		-
-			message: "#^Parameter \\#2 \\$level of class Monolog\\\\Handler\\\\StreamHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|non\\-empty\\-string, int given\\.$#"
+			message: "#^Parameter \\#2 \\$level of class Monolog\\\\Handler\\\\StreamHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'error'\\|'ERROR'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
 			count: 1
 			path: logger/src/LoggerFactory.php
 
 		-
-			message: "#^Parameter \\#3 \\$level of class Monolog\\\\Handler\\\\RotatingFileHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|non\\-empty\\-string, int given\\.$#"
+			message: "#^Parameter \\#3 \\$level of class Monolog\\\\Handler\\\\RotatingFileHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'error'\\|'ERROR'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
 			count: 1
 			path: logger/src/LoggerFactory.php
 

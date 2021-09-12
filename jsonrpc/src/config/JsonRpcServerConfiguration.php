@@ -89,7 +89,7 @@ class JsonRpcServerConfiguration extends ServerConfiguration
      */
     public function jsonrpcServices(ContainerInterface $container, ServerConfig $serverConfig, PropertyResolverInterface $config): array
     {
-        $weight = $config->getInt('application.jsonrpc.server.weight');
+        $weight = (int) $config->get('application.jsonrpc.server.weight');
         if ($this->jsonrpcOnHttp($config)) {
             return $this->getJsonrpcServices($container, $serverConfig, ServerType::HTTP, $weight);
         }
@@ -99,7 +99,7 @@ class JsonRpcServerConfiguration extends ServerConfiguration
 
     private function jsonrpcOnHttp(PropertyResolverInterface $config): bool
     {
-        if ('http' === $config->getString('application.jsonrpc.server.protocol')) {
+        if ('http' === $config->get('application.jsonrpc.server.protocol')) {
             return true;
         }
         foreach ($config->get('application.server.ports') as $port => $portConfig) {

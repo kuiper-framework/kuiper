@@ -32,7 +32,8 @@ class TarsApplication extends Application
         $config->merge([
             'application' => [
                 'env' => $config->getString('application.tars.server.env', 'prod'),
-                'name' => $config->getString('application.tars.server.server', 'app'),
+                'name' => $config->getString('application.tars.server.app', 'app')
+                    .'.'.$config->getString('application.tars.server.server', 'server'),
                 'base_path' => $config->get('application.tars.server.basepath'),
                 'data_path' => $config->get('application.tars.server.datapath'),
                 'server' => [

@@ -41,7 +41,7 @@ class LoggerConfiguration implements DefinitionConfiguration
             }));
 
         return [
-            LoggerInterface::class => factory(static function (LoggerFactoryInterface $loggerFactory) {
+            LoggerInterface::class => factory(static function (LoggerFactoryInterface $loggerFactory): LoggerInterface {
                 return $loggerFactory->create();
             }),
         ];
