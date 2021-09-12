@@ -24,7 +24,7 @@ composer require --dev kuiper/component-installer
         "kuiper": {
             "config-file": "src/container.php",
             "whitelist": [
-                "kuiper/kuiper"
+                "kuiper/*"
             ]
         }
     }

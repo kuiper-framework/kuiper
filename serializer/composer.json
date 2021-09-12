@@ -26,5 +26,12 @@
         "psr-4": {
             "kuiper\\serializer\\": "tests/"
         }
+    },
+    "extra": {
+        "kuiper": {
+            "configuration": [
+                "kuiper\\serializer\\SerializerConfiguration"
+            ]
+        }
     }
 }

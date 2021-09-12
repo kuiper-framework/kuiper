@@ -13,10 +13,9 @@
     "require": {
         "php": "^7.2",
         "ext-swoole": "*",
-        "kuiper/helper": "^0.5",
-        "kuiper/event": "^0.5",
-        "kuiper/annotations": "^0.5",
-        "psr/container": "^1.0",
+        "kuiper/di": "^0.6",
+        "kuiper/event": "^0.6",
+        "kuiper/serializer": "^0.6",
         "psr/http-server-handler": "^1.0",
         "symfony/console": "^5.0"
     },
@@ -28,6 +27,15 @@
     "autoload-dev": {
         "psr-4": {
             "kuiper\\swoole\\": "tests/"
+        }
+    },
+    "extra": {
+        "kuiper": {
+            "configuration": [
+                "kuiper\\swoole\\config\\ServerConfiguration",
+                "kuiper\\swoole\\config\\GuzzleHttpMessageFactoryConfiguration",
+                "kuiper\\swoole\\config\\DiactorosHttpMessageFactoryConfiguration"
+            ]
         }
     }
 }

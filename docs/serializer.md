@@ -19,7 +19,7 @@ use kuiper\serializer\normalizer\DateTimeNormalizer;
 use kuiper\serializer\normalizer\EnumNormalizer;
 use kuiper\serializer\Serializer;
 
-$serializer = new Serializer(AnnotationReader::getInstance(), new ReflectionDocBlockFactory(), [
+$serializer = new Serializer(AnnotationReader::getInstance(), ReflectionDocBlockFactory::getInstance(), [
     \DateTimeInterface::class => new DateTimeNormalizer(),
     Enum::class => new EnumNormalizer() 
 ]); 

@@ -13,20 +13,14 @@
     "require": {
         "php": "^7.0",
         "dflydev/fig-cookies": "^1.0",
-        "nikic/fast-route": "^1.0",
+        "slim/slim": "^4.0",
         "psr/cache": "^1.0",
-        "psr/container": "^1.0",
         "psr/http-factory": "^1.0",
         "psr/http-message": "^1.0",
         "psr/http-server-handler": "^1.0",
         "psr/http-server-middleware": "^1.0",
         "psr/log": "^1.0",
-        "kuiper/annotations": "^0.5",
-        "kuiper/event": "^0.5"
-    },
-    "suggest": {
-        "http-interop/http-factory-guzzle": "for http message interfaces implements",
-        "kuiper/annotations": "for filter middleware annotations and route definition"
+        "kuiper/swoole": "^0.6"
     },
     "autoload": {
         "psr-4": {
@@ -41,8 +35,7 @@
     "extra": {
         "kuiper": {
             "configuration": [
-                "kuiper\\web\\WebConfiguration",
-                "kuiper\\web\\http\\DiactorosHttpMessageFactoryConfiguration"
+                "kuiper\\web\\WebConfiguration"
             ]
         }
     }

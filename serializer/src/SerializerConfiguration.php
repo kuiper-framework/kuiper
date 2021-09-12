@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace kuiper\serializer;
 
 use DI\Annotation\Inject;
-use function DI\factory;
 use function DI\get;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Enum;
-use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\serializer\normalizer\DateTimeNormalizer;
 use kuiper\serializer\normalizer\EnumNormalizer;
@@ -28,7 +26,6 @@ class SerializerConfiguration implements DefinitionConfiguration
         return [
             NormalizerInterface::class => get(Serializer::class),
             JsonSerializerInterface::class => get(Serializer::class),
-            ReflectionDocBlockFactoryInterface::class => factory([ReflectionDocBlockFactory::class, 'getInstance']),
         ];
     }
 

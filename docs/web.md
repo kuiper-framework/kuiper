@@ -5,39 +5,12 @@ Kuiper 默认启动了 Web Server，http 请求使用 [Slim](https://www.slimfra
 ## 安装
 
 ```bash
-composer require slim/slim
+composer require kuiper/web
 ```
 
 如果使用 twig 模板引擎，需要安装：
 ```bash
 composer require twig/tiwg
-```
-
-如果使用会话，需要安装：
-
-```bash
-composer require dflydev/fig-cookies
-```
-
-在 composer.json 中添加：
-```json
-
-{
-    "scripts": {
-        "container-config": "kuiper\\component\\ComponentInstaller::generate"
-    },
-    "extra": {
-        "kuiper": {
-            "config-file": "src/container.php",
-            "whitelist": [
-                "kuiper/kuiper"
-            ],
-            "configuration": [
-                "kuiper\\web\\WebConfiguration"
-            ]
-        }
-    }
-}
 ```
 
 ## 路由

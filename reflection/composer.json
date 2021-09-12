@@ -25,5 +25,12 @@
         "psr-4": {
             "kuiper\\reflection\\": "tests/"
         }
+    },
+    "extra": {
+        "kuiper": {
+            "configuration": [
+                "kuiper\\reflection\\ReflectionConfiguration"
+            ]
+        }
     }
 }
