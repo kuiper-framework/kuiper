@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuiper\rpc;
 
 use kuiper\rpc\server\ServerRequestHolder;
-use kuiper\web\LineRequestLogFormatter;
+use kuiper\swoole\logger\LineRequestLogFormatter;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 

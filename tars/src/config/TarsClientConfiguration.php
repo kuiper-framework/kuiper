@@ -23,6 +23,7 @@ use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
 use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\swoole\Application;
+use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\tars\annotation\TarsClient;
 use kuiper\tars\client\middleware\RequestStat;
 use kuiper\tars\client\TarsProxyFactory;
@@ -34,7 +35,6 @@ use kuiper\tars\integration\PropertyFServant;
 use kuiper\tars\integration\QueryFServant;
 use kuiper\tars\integration\ServerFServant;
 use kuiper\tars\integration\StatFServant;
-use kuiper\web\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
 
 class TarsClientConfiguration implements DefinitionConfiguration

@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web;
+namespace kuiper\swoole\logger;
 
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
-use kuiper\swoole\monolog\CoroutineIdProcessor;
 use kuiper\web\middleware\RemoteAddress;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -87,7 +86,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
     {
         $messageContext = $this->prepareMessageContext($request, $response, $responseTime);
         if (is_string($this->template)) {
-            return [strtr($this->template, Arrays::mapKeys($messageContext, function ($key) {
+            return [\strtr($this->template, Arrays::mapKeys($messageContext, function ($key) {
                 return '$'.$key;
             })), $messageContext['extra'] ?? []];
         }
@@ -150,7 +149,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
                     $extra['body'] = 'body with '.$bodySize.' bytes';
                 } else {
                     $body = (string) $request->getBody();
-                    if (mb_check_encoding($body, 'utf-8')) {
+                    if (\mb_check_encoding($body, 'utf-8')) {
                         $extra['body'] = $body;
                     } else {
                         $extra['body'] = 'binary data with '.$bodySize.'bytes';

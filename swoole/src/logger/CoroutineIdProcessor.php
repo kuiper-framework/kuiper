@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\swoole\monolog;
+namespace kuiper\swoole\logger;
 
 use kuiper\swoole\coroutine\Coroutine;
 use Monolog\Processor\ProcessorInterface;

@@ -23,6 +23,7 @@ use kuiper\rpc\ServiceLocator;
 use kuiper\serializer\NormalizerInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\constants\ServerType;
+use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\swoole\ServerPort;
 use kuiper\tars\annotation\TarsServant;
 use kuiper\tars\server\Adapter;
@@ -43,7 +44,6 @@ use kuiper\tars\server\stat\StatStore;
 use kuiper\tars\server\stat\SwooleTableStatStore;
 use kuiper\tars\server\TarsServerFactory;
 use kuiper\tars\server\TarsTcpReceiveEventListener;
-use kuiper\web\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 

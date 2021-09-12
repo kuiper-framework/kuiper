@@ -19,6 +19,8 @@ use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
+use kuiper\swoole\logger\LineRequestLogFormatter;
+use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\web\exception\RedirectException;
 use kuiper\web\exception\UnauthorizedException;
 use kuiper\web\handler\DefaultLoginUrlBuilder;

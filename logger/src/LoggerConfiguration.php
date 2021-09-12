@@ -12,7 +12,7 @@ use kuiper\di\AwareInjection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\PropertyResolverInterface;
-use kuiper\swoole\monolog\CoroutineIdProcessor;
+use kuiper\swoole\logger\CoroutineIdProcessor;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;

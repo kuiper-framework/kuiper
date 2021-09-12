@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web;
+namespace kuiper\swoole\logger;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;

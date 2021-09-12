@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\config;
 
 use DI\Annotation\Inject;
+use function DI\autowire;
+use function DI\factory;
+use function DI\get;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -27,14 +29,11 @@ use kuiper\rpc\ServiceLocator;
 use kuiper\swoole\Application;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
+use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerPort;
-use kuiper\web\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use function DI\autowire;
-use function DI\factory;
-use function DI\get;
 
 class JsonRpcServerConfiguration implements DefinitionConfiguration
 {
@@ -64,7 +63,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
                 JsonRpcTcpReceiveEventListener::class => factory([JsonRpcServerFactory::class, 'createTcpRequestEventListener']),
             ];
             $config->merge([
-                'application'=> [
+                'application' => [
                     'listeners' => [
                         JsonRpcTcpReceiveEventListener::class,
                     ],
@@ -72,7 +71,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
                         ServerSetting::OPEN_EOF_SPLIT => true,
                         ServerSetting::PACKAGE_EOF => JsonRpcProtocol::EOF,
                     ],
-                ]
+                ],
             ]);
         }
 
@@ -98,7 +97,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
 
     private function jsonrpcOnHttp(PropertyResolverInterface $config): bool
     {
-        if ($config->getString("application.jsonrpc.server.protocol") === 'http') {
+        if ('http' === $config->getString('application.jsonrpc.server.protocol')) {
             return true;
         }
         foreach ($config->get('application.server.ports') as $port => $portConfig) {
@@ -107,6 +106,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
                 return true;
             }
         }
+
         return false;
     }
 
@@ -178,7 +178,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             }
         }
         if (!isset($serviceClass)) {
-            throw new \InvalidArgumentException('Cannot resolve service name from ' . $class->getName());
+            throw new \InvalidArgumentException('Cannot resolve service name from '.$class->getName());
         }
 
         return $serviceClass;
@@ -240,7 +240,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
                 'logging' => [
                     'loggers' => [
                         'JsonRpcServerRequestLogger' => LoggerConfiguration::createAccessLogger(
-                            $config->get('application.logging.jsonrpc_server_log_file', $path . '/jsonrpc-server.log')),
+                            $config->get('application.logging.jsonrpc_server_log_file', $path.'/jsonrpc-server.log')),
                     ],
                     'logger' => [
                         'JsonRpcServerRequestLogger' => 'JsonRpcServerRequestLogger',

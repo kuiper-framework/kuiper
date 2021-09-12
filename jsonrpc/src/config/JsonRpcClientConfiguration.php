@@ -27,7 +27,7 @@ use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\swoole\Application;
 use kuiper\swoole\constants\ServerType;
-use kuiper\web\RequestLogFormatterInterface;
+use kuiper\swoole\logger\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
 
 class JsonRpcClientConfiguration implements DefinitionConfiguration

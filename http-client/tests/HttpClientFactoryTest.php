@@ -7,7 +7,7 @@ namespace kuiper\http\client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\MessageFormatter;
 use GuzzleHttp\Middleware;
-use kuiper\swoole\monolog\CoroutineIdProcessor;
+use kuiper\swoole\logger\CoroutineIdProcessor;
 use kuiper\swoole\pool\PoolFactory;
 use Monolog\Handler\ErrorLogHandler;
 use Monolog\Logger;

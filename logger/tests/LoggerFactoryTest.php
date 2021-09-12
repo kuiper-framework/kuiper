@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\logger;
 
-use kuiper\swoole\monolog\CoroutineIdProcessor;
+use kuiper\swoole\logger\CoroutineIdProcessor;
 use Monolog\Handler\TestHandler;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;

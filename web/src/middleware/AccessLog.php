@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\middleware;
 
-use kuiper\web\RequestLogFormatterInterface;
+use kuiper\swoole\logger\RequestLogFormatterInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
