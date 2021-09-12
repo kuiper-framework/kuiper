@@ -4,16 +4,10 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
-use Psr\Log\LoggerInterface;
 use Stash\Exception\InvalidArgumentException;
 use Stash\Interfaces\ItemInterface;
 use Stash\Pool;
 
-/**
- * Class CacheItemPool.
- *
- * @property LoggerInterface $logger
- */
 class CacheItemPool extends Pool
 {
     /**
@@ -50,6 +44,7 @@ class CacheItemPool extends Pool
         }
 
         if (isset($this->logger)) {
+            /** @noinspection PhpParamsInspection */
             $item->setLogger($this->logger);
         }
 

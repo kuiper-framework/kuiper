@@ -21,7 +21,7 @@ class AnnotationReader implements AnnotationReaderInterface
     private $delegate;
 
     /**
-     * @var Annotation[]
+     * @var Annotation[][]
      */
     private static $ANNOTATIONS;
 

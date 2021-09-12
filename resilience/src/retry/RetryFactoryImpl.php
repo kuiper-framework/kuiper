@@ -72,7 +72,7 @@ class RetryFactoryImpl implements RetryFactory
     public function create(string $name): Retry
     {
         if (!isset($this->retryPoolList[$name])) {
-            $this->retryPoolList[$name] = $this->poolFactory->create('retry_'.$name, function () use ($name) {
+            $this->retryPoolList[$name] = $this->poolFactory->create('retry_'.$name, function () use ($name): Retry {
                 return new RetryImpl(
                     $name,
                     $this->createConfig($name),

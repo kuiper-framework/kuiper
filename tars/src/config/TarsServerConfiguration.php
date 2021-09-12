@@ -122,7 +122,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
         $logger = $container->get(LoggerInterface::class);
 
         $this->registerAdminServant();
-        /** @var TarsServant[] $annotations */
+        /** @var TarsServant $annotation */
         foreach (ComponentCollection::getAnnotations(TarsServant::class) as $annotation) {
             $serviceImpl = $container->get($annotation->getComponentId());
             $servantName = $serverProperties->getServerName().'.'.$annotation->service;

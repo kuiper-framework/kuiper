@@ -6,12 +6,6 @@ namespace kuiper\cache;
 
 use Psr\SimpleCache\CacheInterface;
 
-/**
- * 存储服务地址
- *  - routes 里记录的数据为 "tcp -h 172.16.0.1 -t 20000 -p 10204 -e 0\ntcp -h 172.16.0.2 -t 20000 -p 10204 -e 0".
- *
- * Class SwooleTableRegistryCache
- */
 class ArrayCache implements CacheInterface
 {
     public const KEY_DATA = 0;
@@ -31,12 +25,6 @@ class ArrayCache implements CacheInterface
      */
     private $capacity;
 
-    /**
-     * SwooleTableRegistryCache constructor.
-     *
-     * @param int $ttl
-     * @param int $capacity number of address to save
-     */
     public function __construct(int $ttl = 60, int $capacity = 256)
     {
         $this->values = [];

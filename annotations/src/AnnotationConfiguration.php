@@ -15,6 +15,8 @@ class AnnotationConfiguration
      */
     public function annotationReader(PoolFactoryInterface $poolFactory): AnnotationReaderInterface
     {
-        return ConnectionProxyGenerator::create($poolFactory, AnnotationReaderInterface::class, [AnnotationReader::class, 'create']);
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return ConnectionProxyGenerator::create(
+            $poolFactory, AnnotationReaderInterface::class, [AnnotationReader::class, 'create']);
     }
 }

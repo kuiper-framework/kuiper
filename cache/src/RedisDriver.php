@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace kuiper\cache;
 
 use kuiper\helper\Text;
-use kuiper\swoole\pool\PoolInterface;
 use Stash\Driver\AbstractDriver;
 use Stash\Utilities;
 
@@ -22,9 +21,9 @@ class RedisDriver extends AbstractDriver
     /**
      * The Redis drivers.
      *
-     * @var PoolInterface
+     * @var \Redis
      */
-    protected $redisPool;
+    protected $redis;
 
     /**
      * @var string
@@ -38,27 +37,18 @@ class RedisDriver extends AbstractDriver
      */
     protected $keyCache = [];
 
-    /**
-     * RedisDriver constructor.
-     */
-    public function __construct(PoolInterface $redisPool, array $options = [])
-    {
-        $this->redisPool = $redisPool;
-        parent::__construct($options);
-    }
-
     protected function setOptions(array $options = []): void
     {
-        if (!isset($options['redisPool'])) {
-            throw new \InvalidArgumentException('redisPool is required');
+        if (!isset($options['redis'])) {
+            throw new \InvalidArgumentException('redis is required');
         }
         $this->prefix = $options['prefix'] ?? '';
-        $this->redisPool = $options['redisPool'];
+        $this->redis = $options['redis'];
     }
 
     private function getRedis(): \Redis
     {
-        return $this->redisPool->take();
+        return $this->redis;
     }
 
     /**

@@ -14,7 +14,7 @@ use Laminas\Code\Reflection\ParameterReflection;
 
 class ConnectionProxyGenerator
 {
-    public static function create(PoolFactoryInterface $poolFactory, string $className, callable $connectionFactory)
+    public static function create(PoolFactoryInterface $poolFactory, string $className, callable $connectionFactory): object
     {
         $generator = new ConnectionProxyGenerator();
         $result = $generator->generate($className);

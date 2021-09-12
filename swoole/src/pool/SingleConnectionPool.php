@@ -65,7 +65,7 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
         return $this->poolName;
     }
 
-    public function getConnections()
+    public function getConnections(): array
     {
         return [$this->connection];
     }

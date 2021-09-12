@@ -10,6 +10,7 @@ use kuiper\resilience\core\CounterFactory;
 use kuiper\resilience\core\MetricsFactory;
 use kuiper\resilience\core\SimpleClock;
 use kuiper\swoole\pool\PoolFactoryInterface;
+use kuiper\swoole\pool\PoolInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
@@ -48,7 +49,7 @@ class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
     private $clock;
 
     /**
-     * @var CircuitBreaker[]
+     * @var PoolInterface[]
      */
     private $circuitBreakerPoolList;
 
@@ -66,7 +67,7 @@ class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
     public function create(string $name): CircuitBreaker
     {
         if (!isset($this->circuitBreakerPoolList[$name])) {
-            $this->circuitBreakerPoolList[$name] = $this->poolFactory->create('circuitbreaker'.$name, function () use ($name) {
+            $this->circuitBreakerPoolList[$name] = $this->poolFactory->create('circuitbreaker'.$name, function () use ($name): CircuitBreaker {
                 return new CircuitBreakerImpl(
                     $name,
                     $this->createConfig($name),
