@@ -13,7 +13,7 @@ class UserService287144eeac08b48f7713f40fc08f345d implements UserService
     /**
      * @inheritdoc
      */
-    public function findUser(int $id) : \kuiper\rpc\fixtures\User
+    public function findUser(int $id) : ?\kuiper\rpc\fixtures\User
     {
         list ($ret) = $this->rpcExecutorFactory->createExecutor($this, __FUNCTION__, [$id])->execute();
         return $ret;

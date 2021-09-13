@@ -7,6 +7,8 @@ namespace kuiper\tars\client;
 use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\di\ContainerAwareInterface;
+use kuiper\di\ContainerAwareTrait;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
@@ -43,8 +45,10 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\NullLogger;
 
-class TarsProxyFactory
+class TarsProxyFactory implements ContainerAwareInterface
 {
+    use ContainerAwareTrait;
+
     /**
      * @var RequestFactoryInterface
      */
@@ -119,7 +123,7 @@ class TarsProxyFactory
 
     public static function createFromContainer(ContainerInterface $container, array $middlewares): self
     {
-        return new self(
+        $tarsProxyFactory = new self(
             $container->get(RequestFactoryInterface::class),
             $container->get(ResponseFactoryInterface::class),
             $container->get(StreamFactoryInterface::class),
@@ -129,6 +133,9 @@ class TarsProxyFactory
             $container->get(LoggerFactoryInterface::class),
             $middlewares
         );
+        $tarsProxyFactory->setContainer($container);
+
+        return $tarsProxyFactory;
     }
 
     /**
@@ -244,6 +251,13 @@ class TarsProxyFactory
                 $options['endpoint'] = Endpoint::removeScheme($options['endpoint']);
             } else {
                 unset($options['endpoint']);
+            }
+        }
+        if (isset($options['middleware'])) {
+            foreach ($options['middleware'] as $i => $middleware) {
+                if (is_string($middleware) && null !== $this->container) {
+                    $options['middleware'][$i] = $this->container->get($middleware);
+                }
             }
         }
 

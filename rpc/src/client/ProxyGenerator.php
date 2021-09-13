@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client;
 
-use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
@@ -13,9 +12,10 @@ use kuiper\swoole\pool\GeneratedClass;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\ParameterGenerator;
 use Laminas\Code\Generator\PropertyGenerator;
-use Laminas\Code\Generator\ValueGenerator;
 use Laminas\Code\Reflection\DocBlockReflection;
+use Laminas\Code\Reflection\ParameterReflection;
 
 class ProxyGenerator implements ProxyGeneratorInterface
 {
@@ -83,8 +83,8 @@ class ProxyGenerator implements ProxyGeneratorInterface
             $methodBody = $this->createBody($reflectionMethod);
             $methodGenerator = new MethodGenerator(
                 $reflectionMethod->getName(),
-                array_map(function ($parameter): array {
-                    return $this->createParameter($parameter);
+                array_map(function ($parameter) use ($reflectionMethod): ParameterGenerator {
+                    return $this->createParameter($reflectionMethod, $parameter);
                 }, $reflectionMethod->getParameters()),
                 MethodGenerator::FLAG_PUBLIC,
                 $methodBody,
@@ -108,16 +108,11 @@ class ProxyGenerator implements ProxyGeneratorInterface
         return $phpClass;
     }
 
-    private function createParameter(\ReflectionParameter $parameter): array
+    private function createParameter(\ReflectionMethod $method, \ReflectionParameter $parameter): ParameterGenerator
     {
-        $parameterType = $parameter->getType();
-
-        return Arrays::filter([
-            'name' => $parameter->getName(),
-            'type' => isset($parameterType) ? ($parameter->allowsNull() ? '?' : '').$parameterType : null,
-            'PassedByReference' => $parameter->isPassedByReference(),
-            'defaultValue' => $parameter->isDefaultValueAvailable() ? new ValueGenerator($parameter->getDefaultValue()) : null,
-        ]);
+        return ParameterGenerator::fromReflection(new ParameterReflection(
+            [$method->getDeclaringClass()->getName(), $method->getName()], $parameter->getName()
+        ));
     }
 
     private function createBody(\ReflectionMethod $reflectionMethod): string

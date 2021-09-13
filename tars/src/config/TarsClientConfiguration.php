@@ -80,32 +80,26 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return $middleware;
     }
 
+    public function createTarsClient(TarsProxyFactory $factory, string $clientClass, string $name = null, array $options = [])
+    {
+        $config = Application::getInstance()->getConfig();
+        $clientOptions = $config->get('application.jsonrpc.client.options', []);
+        $options = array_merge($options, $clientOptions['default'] ?? [], $clientOptions[$name ?? $clientClass] ?? []);
+
+        return $factory->create($clientClass, $options);
+    }
+
     private function createTarsClients(): array
     {
         $definitions = [];
         $config = Application::getInstance()->getConfig();
-        $options = $config->get('application.jsonrpc.client.options', []);
-        $createClient = static function (ContainerInterface $container, array $options) {
-            if (isset($options['middleware'])) {
-                foreach ($options['middleware'] as $i => $middleware) {
-                    if (is_string($middleware)) {
-                        $options['middleware'][$i] = $container->get($middleware);
-                    }
-                }
-            }
-
-            return $container->get(TarsProxyFactory::class)->create($options['class'], $options);
-        };
         /** @var TarsClient $annotation */
         foreach (ComponentCollection::getAnnotations(TarsClient::class) as $annotation) {
             $name = $annotation->getComponentId();
-            $clientOptions = array_merge(
-                Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
-                $options[$name] ?? []
-            );
-            $clientOptions['class'] = $annotation->getTargetClass();
-            $definitions[$name] = factory(function (ContainerInterface $container) use ($createClient, $clientOptions) {
-                return $createClient($container, $clientOptions);
+            $definitions[$name] = factory(function (TarsProxyFactory $factory) use ($annotation) {
+                $options = Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']);
+
+                return $this->createTarsClient($factory, $annotation->getTargetClass(), $annotation->getComponentId(), $options);
             });
         }
 
@@ -118,10 +112,8 @@ class TarsClientConfiguration implements DefinitionConfiguration
             QueryFServant::class,
         ], $config->get('application.tars.client.clients', [])) as $name => $service) {
             $componentId = is_string($name) ? $name : $service;
-            $clientOptions = array_merge($options[$componentId] ?? []);
-            $clientOptions['class'] = $service;
-            $definitions[$componentId] = factory(function (ContainerInterface $container) use ($createClient, $clientOptions) {
-                return $createClient($container, $clientOptions);
+            $definitions[$componentId] = factory(function (TarsProxyFactory $factory) use ($componentId, $service) {
+                return $this->createTarsClient($factory, $service, $componentId);
             });
         }
 
