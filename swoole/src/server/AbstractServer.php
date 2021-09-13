@@ -6,6 +6,7 @@ namespace kuiper\swoole\server;
 
 use kuiper\helper\Properties;
 use kuiper\swoole\event\AbstractServerEvent;
+use kuiper\swoole\event\MessageInterface;
 use kuiper\swoole\event\ServerEventFactory;
 use kuiper\swoole\ServerConfig;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -79,11 +80,11 @@ abstract class AbstractServer implements ServerInterface, LoggerAwareInterface
         return $this->eventDispatcher;
     }
 
-    public function sendMessage(string $message, int $workerId): void
+    public function sendMessage(MessageInterface $message, int $workerId): void
     {
     }
 
-    public function sendMessageToAll(string $message): void
+    public function sendMessageToAll(MessageInterface $message): void
     {
     }
 }

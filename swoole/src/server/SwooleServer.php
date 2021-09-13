@@ -7,6 +7,7 @@ namespace kuiper\swoole\server;
 use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\Event;
 use kuiper\swoole\constants\ServerType;
+use kuiper\swoole\event\MessageInterface;
 use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\http\HttpMessageFactoryHolder;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
@@ -198,16 +199,17 @@ class SwooleServer extends AbstractServer
         return $connectionInfo;
     }
 
-    public function sendMessage(string $message, int $workerId): void
+    public function sendMessage(MessageInterface $message, int $workerId): void
     {
+        $data = serialize($message);
         if ($workerId === $this->resource->worker_id) {
-            $this->dispatch(Event::PIPE_MESSAGE, [$message, $workerId]);
+            $this->dispatch(Event::PIPE_MESSAGE, [$workerId, $data]);
         } else {
-            $this->resource->sendMessage($message, $workerId);
+            $this->resource->sendMessage($data, $workerId);
         }
     }
 
-    public function sendMessageToAll(string $message): void
+    public function sendMessageToAll(MessageInterface $message): void
     {
         $workers = $this->resource->setting['worker_num'] + $this->resource->setting['task_worker_num'];
         foreach (range(0, $workers - 1) as $workerId) {

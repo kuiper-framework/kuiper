@@ -9,9 +9,15 @@ use kuiper\tars\server\servant\AdminServant;
 use kuiper\tars\server\servant\Notification;
 use kuiper\tars\server\servant\Stat;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
-class AdminServantImpl implements AdminServant
+class AdminServantImpl implements AdminServant, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
+    protected const TAG = '['.__CLASS__.'] ';
+
     /**
      * @var EventDispatcherInterface
      */
@@ -57,6 +63,7 @@ class AdminServantImpl implements AdminServant
 
     public function notify(Notification $notification): void
     {
+        $this->logger->info(static::TAG.'receive admin notification', ['message' => $notification]);
         $this->eventDispatcher->dispatch($notification);
     }
 }

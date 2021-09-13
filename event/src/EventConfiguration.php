@@ -8,8 +8,10 @@ use function DI\autowire;
 use function DI\get;
 use kuiper\di\AwareInjection;
 use kuiper\di\Bootstrap;
+use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\event\annotation\EventListener;
 use kuiper\helper\PropertyResolverInterface;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface as PsrEventDispatcher;
@@ -57,6 +59,10 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
                 $events[$eventName] = true;
             }
         };
+        foreach (ComponentCollection::getAnnotations(EventListener::class) as $annotation) {
+            /** @var EventListener $annotation */
+            $addListener($annotation->value, $annotation->getComponentId());
+        }
         foreach ($config->get('application.listeners', []) as $key => $listener) {
             $addListener($key, $listener);
         }

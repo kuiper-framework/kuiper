@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\swoole\server;
 
 use kuiper\swoole\ConnectionInfo;
+use kuiper\swoole\event\MessageInterface;
 use kuiper\swoole\exception\ServerStateException;
 use kuiper\swoole\ServerConfig;
 
@@ -91,15 +92,15 @@ interface ServerInterface
     public function getConnectionInfo(int $clientId): ?ConnectionInfo;
 
     /**
-     * @param string $message
-     * @param int    $workerId
+     * @param MessageInterface $message
+     * @param int              $workerId
      */
-    public function sendMessage(string $message, int $workerId): void;
+    public function sendMessage(MessageInterface $message, int $workerId): void;
 
     /**
-     * @param string $message
+     * @param MessageInterface $message
      */
-    public function sendMessageToAll(string $message): void;
+    public function sendMessageToAll(MessageInterface $message): void;
 
     public function stats(): array;
 }

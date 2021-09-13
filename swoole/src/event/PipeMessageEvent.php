@@ -12,7 +12,7 @@ class PipeMessageEvent extends AbstractServerEvent
     private $fromWorkerId;
 
     /**
-     * @var mixed
+     * @var MessageInterface
      */
     private $message;
 
@@ -27,17 +27,17 @@ class PipeMessageEvent extends AbstractServerEvent
     }
 
     /**
-     * @return mixed
+     * @return MessageInterface
      */
-    public function getMessage()
+    public function getMessage(): MessageInterface
     {
         return $this->message;
     }
 
     /**
-     * @param mixed $message
+     * @param MessageInterface $message
      */
-    public function setMessage($message): void
+    public function setMessage(MessageInterface $message): void
     {
         $this->message = $message;
     }

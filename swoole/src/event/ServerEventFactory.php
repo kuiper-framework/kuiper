@@ -170,7 +170,7 @@ class ServerEventFactory
     {
         $event = new PipeMessageEvent();
         $event->setFromWorkerId($fromWorkerId);
-        $event->setMessage($message);
+        $event->setMessage(unserialize($message, ['allowed_classes' => true]));
 
         return $event;
     }

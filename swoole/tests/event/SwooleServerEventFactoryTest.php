@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\swoole\event;
 
 use kuiper\swoole\constants\Event;
+use kuiper\swoole\fixtures\FooMessage;
 use PHPUnit\Framework\TestCase;
 
 class SwooleServerEventFactoryTest extends TestCase
@@ -23,5 +24,14 @@ class SwooleServerEventFactoryTest extends TestCase
     {
         $event = $this->factory->create(Event::START, []);
         $this->assertInstanceOf(StartEvent::class, $event);
+    }
+
+    public function testCreatePipeMessage()
+    {
+        $message = new FooMessage('key');
+        /** @var PipeMessageEvent $event */
+        $event = $this->factory->create(Event::PIPE_MESSAGE, [null, 1, serialize($message)]);
+        // print_r($event->getMessage());
+        $this->assertInstanceOf(FooMessage::class, $event->getMessage());
     }
 }
