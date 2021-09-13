@@ -16,7 +16,7 @@ use kuiper\tars\annotation\TarsReturnType;
 use kuiper\tars\annotation\TarsServant;
 
 /**
- * @TarsServant("AdminObj")
+ * @TarsServant("Admin")
  */
 interface AdminServant
 {

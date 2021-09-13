@@ -57,7 +57,7 @@ class PackageBuilder
         }
 
         //打包
-        $tgzFile = $basePath.'/'.sprintf('%s_%s.tar.gz', $serverName ?? $config->getServerName(), date('YmdHis'));
+        $tgzFile = $basePath.'/'.sprintf('%s_%s.tar.gz', $config->getServerName(), date('YmdHis'));
         $phar = new \PharData($tgzFile);
         $phar->compress(\Phar::GZ);
         $phar->buildFromDirectory($tempFile);

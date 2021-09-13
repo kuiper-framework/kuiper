@@ -236,6 +236,20 @@ class TarsProxyFactory implements ContainerAwareInterface
     public function create(string $className, array $options = [])
     {
         $class = new \ReflectionClass($className);
+        if (isset($options['endpoint'])) {
+            if (preg_match('#^\w+://#', $options['endpoint'])) {
+                $options['endpoint'] = Endpoint::removeScheme($options['endpoint']);
+            } else {
+                $serviceEndpoint = EndpointParser::parseServiceEndpoint($options['endpoint']);
+                $options['service'] = $serviceEndpoint->getServiceName();
+                $endpoints = array_values($serviceEndpoint->getEndpoints());
+                if (count($endpoints) > 1) {
+                    unset($options['endpoint']);
+                } else {
+                    $options['endpoint'] = (string) $endpoints[0];
+                }
+            }
+        }
         if (empty($options['service'])) {
             /** @var TarsClient $tarsClient */
             $tarsClient = $this->annotationReader->getClassAnnotation($class, TarsClient::class);
@@ -245,13 +259,6 @@ class TarsProxyFactory implements ContainerAwareInterface
             $proxyClass = $this->createProxyGenerator()->generate($className, $options);
             $proxyClass->eval();
             $className = $proxyClass->getClassName();
-        }
-        if (isset($options['endpoint'])) {
-            if (preg_match('#^\w+://#', $options['endpoint'])) {
-                $options['endpoint'] = Endpoint::removeScheme($options['endpoint']);
-            } else {
-                unset($options['endpoint']);
-            }
         }
         if (isset($options['middleware'])) {
             foreach ($options['middleware'] as $i => $middleware) {

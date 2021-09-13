@@ -81,7 +81,7 @@ class TarsApplication extends Application
                 file_put_contents($localFile, $content);
             }
 
-            return [$localFile];
+            return [$env];
         }
 
         return [];

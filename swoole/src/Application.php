@@ -239,7 +239,7 @@ class Application
         } else {
             $pos = strrpos(__DIR__, '/vendor/');
             if (false !== $pos) {
-                $basePath = Composer::detect(substr(__DIR__, 0, $pos));
+                $basePath = dirname(Composer::detect(substr(__DIR__, 0, $pos)));
             } else {
                 $basePath = env('APP_PATH');
             }

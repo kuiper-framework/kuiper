@@ -100,14 +100,11 @@ class KeepAlive implements EventListenerInterface, LoggerAwareInterface
             $serverInfo->application = $this->serverProperties->getApp();
             $serverInfo->pid = $pid;
             foreach ($this->serverProperties->getAdapters() as $adapter) {
-                if ('AdminObjAdapter' === $adapter->getAdapterName()) {
-                    continue;
-                }
                 $serverInfo->adapter = $adapter->getAdapterName();
                 $this->logger->debug(static::TAG.'send keep alive message', ['server' => $serverInfo]);
                 $this->serverFServant->keepAlive($serverInfo);
             }
-            $serverInfo->adapter = 'AdminObjAdapter';
+            $serverInfo->adapter = 'AdminAdapter';
             $this->serverFServant->keepAlive($serverInfo);
         } catch (\Exception $e) {
             $this->logger->error(static::TAG.'send server info fail', ['error' => $e->getMessage()]);
