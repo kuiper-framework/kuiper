@@ -70,3 +70,13 @@ parameters:
 			count: 1
 			path: reflection/src/ReflectionDocBlockFactory.php
 
+		-
+			message: "#^Call to an undefined method kuiper\\\\logger\\\\LoggerFactoryInterface\\:\\:getLoggers\\(\\)\\.$#"
+			count: 1
+			path: rpc/src/server/listener/ReopenLogFile.php
+
+		-
+			message: "#^Method kuiper\\\\tars\\\\config\\\\TarsClientConfiguration\\:\\:createTarsClient\\(\\) has no return typehint specified\\.$#"
+			count: 1
+			path: tars/src/config/TarsClientConfiguration.php
+

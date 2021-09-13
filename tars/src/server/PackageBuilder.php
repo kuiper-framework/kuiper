@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\swoole\Composer;
 use Symfony\Component\Console\Output\ConsoleOutput;
@@ -26,7 +27,7 @@ class PackageBuilder
         $output = new ConsoleOutput();
         $composerJson = Composer::detect();
         $basePath = dirname($composerJson);
-        $config = $this->loadConfig($composerJson);
+        $config = $this->loadConfig($serverName, $composerJson);
         $filesystem = new Filesystem();
 
         $tempFile = tempnam(sys_get_temp_dir(), 'tars-build');
@@ -65,10 +66,18 @@ class PackageBuilder
         $output->writeln("<info>create package $tgzFile</info>");
     }
 
-    private function loadConfig(string $composerJson): PackageConfig
+    private function loadConfig(?string $serverName, string $composerJson): PackageConfig
     {
         $json = Composer::getJson($composerJson);
+        $options = $json['extra']['tars'] ?? [];
 
-        return new PackageConfig(dirname($composerJson), $json['extra']['tars'] ?? []);
+        $options = Arrays::mapKeys($options, static function ($key): string {
+            return str_replace('-', '_', Text::snakeCase($key, '_'));
+        });
+        if (Text::isNotEmpty($serverName)) {
+            $options['server_name'] = $serverName;
+        }
+
+        return new PackageConfig(dirname($composerJson), $options);
     }
 }

@@ -49,10 +49,10 @@ class PackageConfig
     public function __construct(string $basePath, array $options)
     {
         $options = Arrays::mapKeys($options, static function ($key): string {
-            return Text::snakeCase($key, '-');
+            return str_replace('-', '_', Text::snakeCase($key, '_'));
         });
         $this->basePath = rtrim($basePath, '/');
-        $this->serverName = $options['server-name'] ?? '';
+        $this->serverName = $options['server_name'] ?? '';
         $this->finders[0] = [];
         $this->addFile('composer.json');
         $defaults = self::$DEFAULTS;
