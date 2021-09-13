@@ -44,7 +44,10 @@ class TarsApplication extends Application
                     'stop' => ServerStopCommand::class,
                 ],
                 'logging' => [
-                    'path' => $config->get('application.tars.server.logpath'),
+                    'path' => sprintf('%s/%s/%s',
+                        $config->get('application.tars.server.logpath'),
+                        $config->get('application.tars.server.app'),
+                        $config->get('application.tars.server.server')),
                     'level' => [
                         'kuiper\\tars' => 'info',
                     ],
