@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\rpc;
 
 use kuiper\helper\Arrays;
+use kuiper\swoole\logger\JsonRequestLogFormatter;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -40,20 +41,6 @@ class JsonRpcRequestLogFormatter extends RpcRequestLogFormatter
     {
         $messageContext = $this->prepareMessageContext($request, $response, $responseTime);
 
-        return [$this->jsonEncode(Arrays::select($messageContext, $this->fields))];
-    }
-
-    private function jsonEncode(array $fields): string
-    {
-        $json = json_encode($fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        if (false === $json) {
-            unset($fields['extra']);
-            $json = json_encode($fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            if (false === $json) {
-                $json = '';
-            }
-        }
-
-        return $json;
+        return [JsonRequestLogFormatter::jsonEncode(Arrays::select($messageContext, $this->fields))];
     }
 }
