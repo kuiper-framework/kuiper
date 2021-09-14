@@ -30,7 +30,7 @@ interface ContainerBuilderInterface
      *
      * @return static
      */
-    public function defer(callable $callback): ContainerBuilderInterface;
+    public function defer(callable $callback, int $priority = null): ContainerBuilderInterface;
 
     /**
      * @return static

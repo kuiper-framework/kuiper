@@ -244,9 +244,9 @@ class ContainerBuilder implements ContainerBuilderInterface
     /**
      * {@inheritDoc}
      */
-    public function defer(callable $callback, int $priority = DefinitionConfiguration::LOW_PRIORITY): ContainerBuilderInterface
+    public function defer(callable $callback, int $priority = null): ContainerBuilderInterface
     {
-        $this->deferCallbacks[$priority][] = $callback;
+        $this->deferCallbacks[$priority ?? DefinitionConfiguration::LOW_PRIORITY][] = $callback;
 
         return $this;
     }
