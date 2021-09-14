@@ -20,7 +20,7 @@ use kuiper\jsonrpc\server\JsonRpcTcpReceiveEventListener;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\annotation\Ignore;
-use kuiper\rpc\RpcRequestLogFormatter;
+use kuiper\rpc\JsonRpcRequestLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
@@ -79,7 +79,7 @@ class JsonRpcServerConfiguration extends ServerConfiguration
 
         return array_merge($definitions, [
             JsonRpcServerFactory::class => factory([JsonRpcServerFactory::class, 'createFromContainer']),
-            'jsonrpcServerRequestLogFormatter' => autowire(RpcRequestLogFormatter::class),
+            'jsonrpcServerRequestLogFormatter' => autowire(JsonRpcRequestLogFormatter::class),
             'registerServices' => get('jsonrpcServices'),
         ]);
     }
@@ -241,7 +241,7 @@ class JsonRpcServerConfiguration extends ServerConfiguration
             'application' => [
                 'logging' => [
                     'loggers' => [
-                        'JsonRpcServerRequestLogger' => LoggerConfiguration::createAccessLogger(
+                        'JsonRpcServerRequestLogger' => LoggerConfiguration::createJsonLogger(
                             $config->get('application.logging.jsonrpc_server_log_file', $path.'/jsonrpc-server.log')),
                     ],
                     'logger' => [

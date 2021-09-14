@@ -44,6 +44,12 @@ class TarsApplication extends Application
                     'stop' => ServerStopCommand::class,
                 ],
                 'logging' => [
+                    'loggers' => [
+                        'root' => [
+                            'console' => $config->getBool('application.tars.server.enable_console_logging', true),
+                            'level' => $config->getString('application.tars.server.loglevel', 'info'),
+                        ],
+                    ],
                     'path' => sprintf('%s/%s/%s',
                         $config->get('application.tars.server.logpath'),
                         $config->get('application.tars.server.app'),

@@ -94,9 +94,9 @@ class JsonRpcClientFactory implements LoggerAwareInterface
     /**
      * JsonRpcClientFactory constructor.
      *
+     * @param MiddlewareInterface[]    $middlewares
      * @param RpcResponseNormalizer    $rpcResponseNormalizer
      * @param ExceptionNormalizer      $exceptionNormalizer
-     * @param MiddlewareInterface[]    $middlewares
      * @param ResponseFactoryInterface $httpResponseFactory
      * @param StreamFactoryInterface   $streamFactory
      * @param RequestFactoryInterface  $httpRequestFactory
@@ -108,13 +108,13 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         AnnotationReaderInterface $annotationReader,
         RpcResponseNormalizer $rpcResponseNormalizer,
         ExceptionNormalizer $exceptionNormalizer,
-        array $middlewares,
         ResponseFactoryInterface $httpResponseFactory,
         StreamFactoryInterface $streamFactory,
         RequestFactoryInterface $httpRequestFactory,
         ProxyGeneratorInterface $proxyGenerator,
         LoggerFactoryInterface $loggerFactory,
         PoolFactoryInterface $poolFactory,
+        array $middlewares,
         HttpClientFactoryInterface $httpClientFactory = null)
     {
         $this->annotationReader = $annotationReader;

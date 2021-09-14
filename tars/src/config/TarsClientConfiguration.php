@@ -215,7 +215,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
             'application' => [
                 'logging' => [
                     'loggers' => [
-                        'TarsRequestLogger' => LoggerConfiguration::createAccessLogger(
+                        'TarsRequestLogger' => LoggerConfiguration::createJsonLogger(
                             $config->getString('application.logging.tars_client_log_file', $path.'/tars-client.log')),
                     ],
                     'logger' => [

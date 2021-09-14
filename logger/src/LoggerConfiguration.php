@@ -140,7 +140,17 @@ class LoggerConfiguration implements DefinitionConfiguration
 
     public static function createAccessLogger(string $logFileName): array
     {
-        return [
+        return self::createLogger($logFileName, false);
+    }
+
+    public static function createJsonLogger(string $logFileName): array
+    {
+        return self::createLogger($logFileName, true);
+    }
+
+    private static function createLogger(string $logFileName, bool $messageOnly): array
+    {
+        $logger = [
             'handlers' => [
                 [
                     'handler' => [
@@ -152,14 +162,18 @@ class LoggerConfiguration implements DefinitionConfiguration
                     'formatter' => [
                         'class' => LineFormatter::class,
                         'constructor' => [
-                            'format' => "%message% %context% %extra%\n",
+                            'format' => $messageOnly ? "%message%\n" : "%message% %context% %extra%\n",
                         ],
                     ],
                 ],
             ],
-            'processors' => [
-                CoroutineIdProcessor::class,
-            ],
         ];
+        if (!$messageOnly) {
+            $logger['processors'] = [
+                CoroutineIdProcessor::class,
+            ];
+        }
+
+        return $logger;
     }
 }

@@ -199,7 +199,7 @@ class TarsServerConfiguration extends ServerConfiguration
             'application' => [
                 'logging' => [
                     'loggers' => [
-                        'TarsServerRequestLogger' => LoggerConfiguration::createAccessLogger(
+                        'TarsServerRequestLogger' => LoggerConfiguration::createJsonLogger(
                             $config->getString('application.logging.tars_server_log_file', $path.'/tars-server.log')),
                     ],
                     'logger' => [

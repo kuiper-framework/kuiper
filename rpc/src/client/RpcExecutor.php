@@ -28,6 +28,21 @@ class RpcExecutor implements RpcExecutorInterface
         $this->middlewares = $middlewares;
     }
 
+    public function mapRequest(callable $callback): self
+    {
+        $this->request = $callback($this->request);
+
+        return $this;
+    }
+
+    /**
+     * @return RpcRequestInterface
+     */
+    public function getRequest(): RpcRequestInterface
+    {
+        return $this->request;
+    }
+
     /**
      * {@inheritDoc}
      */

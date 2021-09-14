@@ -101,7 +101,7 @@ class TarsProxyFactory implements ContainerAwareInterface
      * @param LoggerFactoryInterface|null        $loggerFactory
      * @param MiddlewareInterface[]              $middlewares
      */
-    public function __construct(
+    final public function __construct(
         RequestFactoryInterface $httpRequestFactory,
         ResponseFactoryInterface $httpResponseFactory,
         StreamFactoryInterface $streamFactory,
@@ -251,7 +251,7 @@ class TarsProxyFactory implements ContainerAwareInterface
             }
         }
         if (empty($options['service'])) {
-            /** @var TarsClient $tarsClient */
+            /** @var TarsClient|null $tarsClient */
             $tarsClient = $this->annotationReader->getClassAnnotation($class, TarsClient::class);
             if (null !== $tarsClient) {
                 $options['service'] = $tarsClient->service;

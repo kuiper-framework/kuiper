@@ -22,7 +22,7 @@ use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\ProxyGeneratorInterface;
-use kuiper\rpc\RpcRequestLogFormatter;
+use kuiper\rpc\JsonRpcRequestLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\swoole\Application;
@@ -51,7 +51,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
 
         return array_merge($this->createJsonRpcClients(), [
             ProxyGeneratorInterface::class => autowire(ProxyGenerator::class),
-            'jsonrpcClientRequestLogFormatter' => autowire(RpcRequestLogFormatter::class),
+            'jsonrpcClientRequestLogFormatter' => autowire(JsonRpcRequestLogFormatter::class),
             JsonRpcClientFactory::class => autowire(JsonRpcClientFactory::class)
                 ->constructorParameter('middlewares', get('jsonrpcClientMiddlewares'))
                 ->constructorParameter('httpClientFactory', factory(function (ContainerInterface $container) {
@@ -185,7 +185,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
             'application' => [
                 'logging' => [
                     'loggers' => [
-                        'JsonRpcRequestLogger' => LoggerConfiguration::createAccessLogger(
+                        'JsonRpcRequestLogger' => LoggerConfiguration::createJsonLogger(
                             $config->getString('application.logging.jsonrpc_client_log_file', $path.'/jsonrpc-client.log')),
                     ],
                     'logger' => [
