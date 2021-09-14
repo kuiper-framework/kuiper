@@ -48,7 +48,7 @@ class TarsClientTest extends TestCase
 
         $transporter = new HttpTransporter($client);
         $methodFactory = new TarsMethodFactory();
-        $requestFactory = new TarsRequestFactory(new RequestFactory(), new StreamFactory(), $methodFactory);
+        $requestFactory = new TarsRequestFactory(new RequestFactory(), new StreamFactory(), $methodFactory, '', 1);
         $responseFactory = new TarsResponseFactory();
         $rpcClient = new RpcClient($transporter, $responseFactory);
         /** @var HelloService $proxy */

@@ -123,7 +123,7 @@ class TarsProxyFactory implements ContainerAwareInterface
 
     public static function createFromContainer(ContainerInterface $container, array $middlewares): self
     {
-        $tarsProxyFactory = new self(
+        $tarsProxyFactory = new static(
             $container->get(RequestFactoryInterface::class),
             $container->get(ResponseFactoryInterface::class),
             $container->get(StreamFactoryInterface::class),
@@ -174,7 +174,7 @@ class TarsProxyFactory implements ContainerAwareInterface
             throw new \InvalidArgumentException('Cannot find ');
         }
 
-        return new self(
+        return new static(
             $httpRequestFactory,
             $httpResponseFactory,
             $streamFactory,
@@ -193,7 +193,7 @@ class TarsProxyFactory implements ContainerAwareInterface
 
     protected function createRpcRequestFactory(array $options): RpcRequestFactoryInterface
     {
-        return new TarsRequestFactory($this->httpRequestFactory, $this->streamFactory, new TarsMethodFactory($this->annotationReader), $options['endpoint'] ?? '/');
+        return new TarsRequestFactory($this->httpRequestFactory, $this->streamFactory, new TarsMethodFactory($this->annotationReader, $options), $options['endpoint'] ?? '/');
     }
 
     protected function createRpcClient(string $className, array $options): RpcRequestHandlerInterface
@@ -253,7 +253,11 @@ class TarsProxyFactory implements ContainerAwareInterface
         if (empty($options['service'])) {
             /** @var TarsClient $tarsClient */
             $tarsClient = $this->annotationReader->getClassAnnotation($class, TarsClient::class);
-            $options['service'] = $tarsClient->service;
+            if (null !== $tarsClient) {
+                $options['service'] = $tarsClient->service;
+            } else {
+                throw new \InvalidArgumentException('Cannot resolver eservice name');
+            }
         }
         if ($class->isInterface()) {
             $proxyClass = $this->createProxyGenerator()->generate($className, $options);

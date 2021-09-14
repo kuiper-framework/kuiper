@@ -39,11 +39,16 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
      * @var TarsMethodInterface[]
      */
     private $cache;
+    /**
+     * @var array|null
+     */
+    private $options;
 
-    public function __construct(?AnnotationReaderInterface $annotationReader = null)
+    public function __construct(?AnnotationReaderInterface $annotationReader = null, array $options = null)
     {
         $this->annotationReader = $annotationReader ?? AnnotationReader::getInstance();
         $this->typeParser = new TypeParser($this->annotationReader);
+        $this->options = $options;
     }
 
     /**
@@ -51,7 +56,8 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
      */
     public function create($service, string $method, array $args): RpcMethodInterface
     {
-        $key = (is_string($service) ? $service : get_class($service)).'::'.$method;
+        $serviceName = $this->options['service'] ?? (is_string($service) ? $service : get_class($service));
+        $key = $serviceName.'::'.$method;
         if (!isset($this->cache[$key])) {
             try {
                 $this->cache[$key] = $this->extractMethod($service, $method);
@@ -75,7 +81,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
         $servantAnnotation = $this->getTarsServantAnnotation($reflectionClass);
         [$parameters, $returnValue] = $this->getParameters($servant, $method);
 
-        return new TarsMethod($servant, $servantAnnotation->service ?? '', $method, [], $parameters, $returnValue);
+        return new TarsMethod($servant, $this->options['service'] ?? $servantAnnotation->service ?? '', $method, [], $parameters, $returnValue);
     }
 
     /**
