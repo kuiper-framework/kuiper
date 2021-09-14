@@ -28,18 +28,9 @@ class CacheConfiguration
      */
     public function redis(PoolFactoryInterface $poolFactory, ?array $redisConfig): \Redis
     {
-        $redisConfig = ($redisConfig ?? []);
-        $dsn = sprintf('redis://%s%s:%d',
-            isset($redisConfig['password']) ? $redisConfig['password'].'@' : '',
-            $redisConfig['host'] ?? 'localhost',
-            $redisConfig['port'] ?? 6379);
-        $database = (int) ($redisConfig['database'] ?? 0);
-        if (0 !== $database) {
-            $dsn .= '/'.$database;
-        }
         /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return ConnectionProxyGenerator::create($poolFactory, \Redis::class, static function () use ($dsn, $redisConfig) {
-            return RedisFactory::createConnection($dsn, $redisConfig);
+        return ConnectionProxyGenerator::create($poolFactory, \Redis::class, static function () use ($redisConfig) {
+            return RedisFactory::createConnection(RedisFactory::buildDsn($redisConfig), $redisConfig);
         });
     }
 

@@ -24,6 +24,20 @@ class RedisFactory
         'failover' => 'none',
     ];
 
+    public static function buildDsn(array $options): string
+    {
+        $dsn = sprintf('redis://%s%s:%d',
+            isset($options['password']) ? $options['password'].'@' : '',
+            $options['host'] ?? 'localhost',
+            $options['port'] ?? 6379);
+        $database = (int) ($options['database'] ?? 0);
+        if (0 !== $database) {
+            $dsn .= '/'.$database;
+        }
+
+        return $dsn;
+    }
+
     /**
      * Creates a Redis connection using a DSN configuration.
      *
