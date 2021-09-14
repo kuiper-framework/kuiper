@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\rpc\server;
 
 use kuiper\rpc\DelegateRequestHandler;
+use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\exception\ErrorCode;
 use kuiper\rpc\exception\InvalidRequestException;
 use kuiper\rpc\MiddlewareSupport;
@@ -27,10 +28,16 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
      */
     private $responseFactory;
 
-    public function __construct(array $services, RpcServerResponseFactoryInterface $responseFactory, array $middlewares = [])
+    /**
+     * @var ErrorHandlerInterface
+     */
+    private $errorHandler;
+
+    public function __construct(array $services, RpcServerResponseFactoryInterface $responseFactory, ErrorHandlerInterface $errorHandler, array $middlewares = [])
     {
         $this->services = $services;
         $this->responseFactory = $responseFactory;
+        $this->errorHandler = $errorHandler;
         $this->middlewares = $middlewares;
     }
 
@@ -68,7 +75,11 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
                 $parameters[] = $args[$i] ?? null;
             }
         }
-        $return = call_user_func_array([$target, $method->getMethodName()], $parameters);
+        try {
+            $return = call_user_func_array([$target, $method->getMethodName()], $parameters);
+        } catch (\Exception $e) {
+            return $this->errorHandler->handle($request, $e);
+        }
         $request = $request->withRpcMethod($method->withResult(array_merge([$return], $out)));
 
         return $this->responseFactory->createResponse($request);

@@ -41,7 +41,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
      */
     private $eventDispatcher;
     /**
-     * @var array
+     * @var Connection[]
      */
     private $connections;
 
@@ -71,8 +71,8 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     public function take()
     {
         $coroutineId = $this->getCoroutineId();
-        if (isset($this->connections[$coroutineId])) {
-            return $this->connections[$coroutineId][1];
+        if (isset($this->connections[$coroutineId]->conn)) {
+            return $this->connections[$coroutineId]->conn;
         }
 
         $num = $this->channel->size();
@@ -80,9 +80,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         if (0 === $num && $this->currentConnections < $this->poolConfig->getMaxConnections()) {
             ++$this->currentConnections;
             try {
-                $connection = $this->createConnection();
-
-                return $this->deferReleaseConnection($coroutineId, $connection);
+                return $this->deferReleaseConnection($coroutineId, $this->createConnection());
             } catch (\Exception $exception) {
                 --$this->currentConnections;
                 throw $exception;
@@ -93,13 +91,16 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         if (false === $connection) {
             throw new PoolTimeoutException($this);
         }
+        if (!isset($connection->conn)) {
+            $connection = $this->createConnection();
+        }
 
         return $this->deferReleaseConnection($coroutineId, $connection);
     }
 
     public function getConnections(): array
     {
-        return Arrays::pull($this->connections, '1');
+        return Arrays::pullField($this->connections, 'conn');
     }
 
     public function reset(): void
@@ -112,26 +113,25 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     }
 
     /**
-     * @param int   $coroutineId
-     * @param array $connection
+     * @param Connection $connection
      *
      * @return mixed
      */
-    private function deferReleaseConnection($coroutineId, $connection)
+    private function deferReleaseConnection(int $coroutineId, Connection $connection)
     {
         $this->connections[$coroutineId] = $connection;
         Coroutine::defer(function () use ($coroutineId): void {
             $connection = $this->connections[$coroutineId] ?? null;
-            if (isset($connection)) {
-                $this->logger->debug(self::TAG."release connection {$this->poolName}#{$connection[0]}");
+            if (isset($connection, $connection->conn)) {
+                $this->logger->debug(self::TAG."release connection {$this->poolName}#{$connection->id}");
                 $this->channel->push($connection);
                 $this->eventDispatcher->dispatch(new ConnectionReleaseEvent($this->poolName, $connection));
                 unset($this->connections[$coroutineId]);
             }
         });
-        $this->logger->debug(self::TAG."obtain connection {$this->poolName}#{$connection[0]}");
+        $this->logger->debug(self::TAG."obtain connection {$this->poolName}#{$connection->id}");
 
-        return $connection[1];
+        return $connection->conn;
     }
 
     public function getName(): string
@@ -139,12 +139,17 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         return $this->poolName;
     }
 
-    private function createConnection(): array
+    private function createConnection(): Connection
     {
-        $connectionId = self::$CONNECTION_ID++;
-        $this->logger->info(self::TAG.sprintf('create connection %s#%d', $this->poolName, $connectionId));
+        $connection = new Connection(self::$CONNECTION_ID++);
+        $this->logger->info(self::TAG.sprintf('create connection %s#%d', $this->poolName, $connection->id));
+        $ret = call_user_func_array($this->connectionFactory, [$connection->id, &$connection->conn]);
+        $this->eventDispatcher->dispatch(new ConnectionCreateEvent($this->poolName, $connection));
+        if (!isset($connection->conn)) {
+            $connection->conn = $ret;
+        }
 
-        return [$connectionId, call_user_func($this->connectionFactory, $connectionId)];
+        return $connection;
     }
 
     private function getCoroutineId(): int

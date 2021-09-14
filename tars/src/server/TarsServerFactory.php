@@ -6,6 +6,7 @@ namespace kuiper\tars\server;
 
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
@@ -77,27 +78,32 @@ class TarsServerFactory
         $this->middlewares = $middlewares;
     }
 
-    public function getRpcMethodFactory(): RpcMethodFactoryInterface
+    public function createRpcMethodFactory(): RpcMethodFactoryInterface
     {
         return new TarsServerMethodFactory($this->serverProperties, $this->services, $this->annotationReader);
     }
 
-    public function getServerResponseFactory(): RpcServerResponseFactoryInterface
+    public function createServerResponseFactory(): RpcServerResponseFactoryInterface
     {
         return new TarsServerResponseFactory($this->httpResponseFactory, $this->streamFactory);
     }
 
-    public function getServerRequestFactory(): RpcServerRequestFactoryInterface
+    public function createServerRequestFactory(): RpcServerRequestFactoryInterface
     {
-        $tarsServerRequestFactory = new TarsServerRequestFactory($this->getRpcMethodFactory(), $this->services);
+        $tarsServerRequestFactory = new TarsServerRequestFactory($this->createRpcMethodFactory(), $this->services);
         $tarsServerRequestFactory->setLogger($this->loggerFactory->create(TarsServerRequestFactory::class));
 
         return $tarsServerRequestFactory;
     }
 
+    public function createErrorHandler(): ErrorHandlerInterface
+    {
+        return new ErrorHandler($this->httpResponseFactory);
+    }
+
     public function getRequestHandler(): RpcRequestHandlerInterface
     {
-        return new RpcServerRpcRequestHandler($this->services, $this->getServerResponseFactory(), $this->middlewares);
+        return new RpcServerRpcRequestHandler($this->services, $this->createServerResponseFactory(), $this->createErrorHandler(), $this->middlewares);
     }
 
     public static function createFromContainer(ContainerInterface $container): self
@@ -118,7 +124,7 @@ class TarsServerFactory
     {
         return new TarsTcpReceiveEventListener(
             $this->httpRequestFactory,
-            $this->getServerRequestFactory(),
+            $this->createServerRequestFactory(),
             $this->getRequestHandler()
         );
     }

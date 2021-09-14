@@ -6,10 +6,10 @@ namespace kuiper\jsonrpc\server;
 
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
+use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\rpc\server\ServerRequestHolder;
-use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -27,14 +27,13 @@ class JsonRpcHttpRequestHandler implements RequestHandlerInterface
     private $requestHandler;
 
     /**
-     * @var ResponseFactoryInterface
+     * @var InvalidRequestHandlerInterface
      */
-    private $responseFactory;
-
+    private $invalidRequestHandler;
     /**
-     * @var ErrorResponseHandlerInterface
+     * @var ErrorHandlerInterface
      */
-    private $errorResponseHandler;
+    private $errorHandler;
 
     /**
      * JsonRpcHttpRequestHandler constructor.
@@ -42,13 +41,13 @@ class JsonRpcHttpRequestHandler implements RequestHandlerInterface
     public function __construct(
         RpcServerRequestFactoryInterface $requestFactory,
         RpcRequestHandlerInterface $requestHandler,
-        ResponseFactoryInterface $responseFactory,
-        ErrorResponseHandlerInterface $errorResponseHandler
+        InvalidRequestHandlerInterface $invalidRequestHandler,
+        ErrorHandlerInterface $errorHandler
     ) {
         $this->requestFactory = $requestFactory;
         $this->requestHandler = $requestHandler;
-        $this->responseFactory = $responseFactory;
-        $this->errorResponseHandler = $errorResponseHandler;
+        $this->invalidRequestHandler = $invalidRequestHandler;
+        $this->errorHandler = $errorHandler;
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -57,23 +56,14 @@ class JsonRpcHttpRequestHandler implements RequestHandlerInterface
             /** @var JsonRpcRequestInterface $rpcRequest */
             $rpcRequest = $this->requestFactory->createRequest($request);
         } catch (JsonRpcRequestException $e) {
-            return $this->createResponse(400, $this->errorResponseHandler->handle($e));
+            return $this->invalidRequestHandler->handleInvalidRequest($request, $e);
         }
         try {
             ServerRequestHolder::setRequest($rpcRequest);
 
             return $this->requestHandler->handle($rpcRequest);
         } catch (\Exception $e) {
-            return $this->createResponse(500, $this->errorResponseHandler->handle($e, $rpcRequest));
+            return $this->errorHandler->handle($rpcRequest, $e);
         }
-    }
-
-    private function createResponse(int $statusCode, string $body): ResponseInterface
-    {
-        $response = $this->responseFactory->createResponse($statusCode)
-            ->withHeader('content-type', 'application/json');
-        $response->getBody()->write($body);
-
-        return $response;
     }
 }

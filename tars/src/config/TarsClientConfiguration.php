@@ -25,10 +25,12 @@ use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\tars\annotation\TarsClient;
+use kuiper\tars\client\middleware\AddRequestReferer;
 use kuiper\tars\client\middleware\RequestStat;
 use kuiper\tars\client\TarsProxyFactory;
 use kuiper\tars\client\TarsRegistryResolver;
 use kuiper\tars\core\EndpointParser;
+use kuiper\tars\core\TarsRequestLogFormatter;
 use kuiper\tars\integration\ConfigServant;
 use kuiper\tars\integration\LogServant;
 use kuiper\tars\integration\PropertyFServant;
@@ -46,6 +48,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
         $this->addTarsRequestLog();
         $config = Application::getInstance()->getConfig();
         $middlewares = [
+            AddRequestReferer::class,
             'tarsServiceDiscovery',
             'tarsClientRequestLog',
         ];
@@ -63,7 +66,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
         ]);
 
         return array_merge($this->createTarsClients(), [
-            'tarsClientRequestLogFormatter' => autowire(JsonRpcRequestLogFormatter::class)
+            'tarsClientRequestLogFormatter' => autowire(TarsRequestLogFormatter::class)
                 ->constructorParameter('fields', JsonRpcRequestLogFormatter::CLIENT),
         ]);
     }

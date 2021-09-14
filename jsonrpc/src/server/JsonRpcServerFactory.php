@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
+use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\rpc\server\RpcServerResponseFactoryInterface;
@@ -71,9 +72,14 @@ class JsonRpcServerFactory
     private $rpcRequestHandler;
 
     /**
-     * @var ErrorResponseHandlerInterface|null
+     * @var InvalidRequestHandlerInterface|null
      */
-    private $errorResponseHandler;
+    private $invalidRequestHandler;
+
+    /**
+     * @var ErrorHandlerInterface|null
+     */
+    private $errorHandler;
 
     /**
      * JsonRpcServerFactory constructor.
@@ -139,7 +145,7 @@ class JsonRpcServerFactory
     public function getRpcRequestHandler(): ?RpcRequestHandlerInterface
     {
         if (null === $this->rpcRequestHandler) {
-            $this->rpcRequestHandler = new RpcServerRpcRequestHandler($this->services, $this->getRpcResponseFactory(), $this->middlewares);
+            $this->rpcRequestHandler = new RpcServerRpcRequestHandler($this->services, $this->getRpcResponseFactory(), $this->getErrorHandler(), $this->middlewares);
         }
 
         return $this->rpcRequestHandler;
@@ -154,23 +160,43 @@ class JsonRpcServerFactory
     }
 
     /**
-     * @return ErrorResponseHandlerInterface|null
+     * @return InvalidRequestHandlerInterface|null
      */
-    public function getErrorResponseHandler(): ?ErrorResponseHandlerInterface
+    public function getInvalidRequestHandler(): ?InvalidRequestHandlerInterface
     {
-        if (null === $this->errorResponseHandler) {
-            $this->errorResponseHandler = new ErrorResponseHandler(new ExceptionNormalizer());
+        if (null === $this->invalidRequestHandler) {
+            $this->invalidRequestHandler = new ErrorHandler($this->httpResponseFactory, $this->streamFactory, new ExceptionNormalizer());
         }
 
-        return $this->errorResponseHandler;
+        return $this->invalidRequestHandler;
     }
 
     /**
-     * @param ErrorResponseHandlerInterface|null $errorResponseHandler
+     * @param InvalidRequestHandlerInterface|null $invalidRequestHandler
      */
-    public function setErrorResponseHandler(?ErrorResponseHandlerInterface $errorResponseHandler): void
+    public function setInvalidRequestHandler(?InvalidRequestHandlerInterface $invalidRequestHandler): void
     {
-        $this->errorResponseHandler = $errorResponseHandler;
+        $this->invalidRequestHandler = $invalidRequestHandler;
+    }
+
+    /**
+     * @return ErrorHandlerInterface|null
+     */
+    public function getErrorHandler(): ?ErrorHandlerInterface
+    {
+        if (null === $this->errorHandler) {
+            $this->errorHandler = new ErrorHandler($this->httpResponseFactory, $this->streamFactory, new ExceptionNormalizer());
+        }
+
+        return $this->errorHandler;
+    }
+
+    /**
+     * @param ErrorHandlerInterface|null $errorHandler
+     */
+    public function setErrorHandler(?ErrorHandlerInterface $errorHandler): void
+    {
+        $this->errorHandler = $errorHandler;
     }
 
     public static function createFromContainer(ContainerInterface $container): self
@@ -192,8 +218,8 @@ class JsonRpcServerFactory
         return new JsonRpcHttpRequestHandler(
             $this->getRpcServerRequestFactory(),
             $this->getRpcRequestHandler(),
-            $this->httpResponseFactory,
-            $this->getErrorResponseHandler()
+            $this->getInvalidRequestHandler(),
+            $this->getErrorHandler()
         );
     }
 
@@ -203,7 +229,8 @@ class JsonRpcServerFactory
             $this->httpRequestFactory,
             $this->getRpcServerRequestFactory(),
             $this->getRpcRequestHandler(),
-            $this->getErrorResponseHandler()
+            $this->getInvalidRequestHandler(),
+            $this->getErrorHandler()
         );
     }
 }

@@ -14,7 +14,6 @@ use kuiper\helper\Arrays;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
-use kuiper\rpc\JsonRpcRequestLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
@@ -25,6 +24,7 @@ use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\swoole\ServerPort;
 use kuiper\tars\annotation\TarsServant;
+use kuiper\tars\core\TarsRequestLogFormatter;
 use kuiper\tars\server\Adapter;
 use kuiper\tars\server\AdminServantImpl;
 use kuiper\tars\server\ClientProperties;
@@ -83,7 +83,7 @@ class TarsServerConfiguration extends ServerConfiguration
             AdminServant::class => autowire(AdminServantImpl::class),
             MonitorInterface::class => autowire(Monitor::class)
                 ->constructorParameter('collectors', get('monitorCollectors')),
-            'tarsServerRequestLogFormatter' => autowire(JsonRpcRequestLogFormatter::class),
+            'tarsServerRequestLogFormatter' => autowire(TarsRequestLogFormatter::class),
             TarsTcpReceiveEventListener::class => factory([TarsServerFactory::class, 'createTcpReceiveEventListener']),
         ]);
     }

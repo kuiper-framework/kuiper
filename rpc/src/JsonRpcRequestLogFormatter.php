@@ -18,7 +18,7 @@ class JsonRpcRequestLogFormatter extends RpcRequestLogFormatter
 
     public const CLIENT = [
         'service', 'method', 'status', 'server_addr', 'time_local',
-        'referer', 'callee_servant', 'callee_method',
+        'callee_servant', 'callee_method',
         'body_bytes_sent', 'request_id', 'request_time', 'extra',
     ];
 

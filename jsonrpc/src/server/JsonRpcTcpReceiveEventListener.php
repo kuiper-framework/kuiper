@@ -7,6 +7,7 @@ namespace kuiper\jsonrpc\server;
 use kuiper\event\EventListenerInterface;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
+use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestHelper;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
@@ -33,9 +34,13 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface
     private $requestHandler;
 
     /**
-     * @var ErrorResponseHandlerInterface
+     * @var InvalidRequestHandlerInterface
      */
-    private $errorResponseHandler;
+    private $invalidRequestHandler;
+    /**
+     * @var ErrorHandlerInterface
+     */
+    private $errorHandler;
 
     /**
      * TcpReceiveEventListener constructor.
@@ -44,12 +49,14 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface
         RequestFactoryInterface $httpRequestFactory,
         RpcServerRequestFactoryInterface $serverRequestFactory,
         RpcRequestHandlerInterface $requestHandler,
-        ErrorResponseHandlerInterface $errorResponseHandler)
+        InvalidRequestHandlerInterface $errorResponseHandler,
+        ErrorHandlerInterface $errorHandler)
     {
         $this->httpRequestFactory = $httpRequestFactory;
         $this->serverRequestFactory = $serverRequestFactory;
         $this->requestHandler = $requestHandler;
-        $this->errorResponseHandler = $errorResponseHandler;
+        $this->invalidRequestHandler = $errorResponseHandler;
+        $this->errorHandler = $errorHandler;
     }
 
     /**
@@ -69,7 +76,8 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface
             /** @var JsonRpcRequestInterface $serverRequest */
             $serverRequest = $this->serverRequestFactory->createRequest($request);
         } catch (JsonRpcRequestException $e) {
-            $server->send($event->getClientId(), $this->errorResponseHandler->handle($e));
+            $server->send($event->getClientId(), (string) $this->invalidRequestHandler->handleInvalidRequest($request, $e)
+                ->getBody());
 
             return;
         }
@@ -80,7 +88,8 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface
             $server->send($event->getClientId(), (string) $response->getBody());
         } catch (\Exception $e) {
             /** @var JsonRpcRequestInterface $serverRequest */
-            $server->send($event->getClientId(), $this->errorResponseHandler->handle($e, $serverRequest));
+            $server->send($event->getClientId(), (string) $this->errorHandler->handle($serverRequest, $e)
+                ->getBody());
         }
     }
 

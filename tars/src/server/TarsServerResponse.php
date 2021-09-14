@@ -7,6 +7,7 @@ namespace kuiper\tars\server;
 use kuiper\rpc\RpcResponse;
 use kuiper\tars\core\TarsMethodInterface;
 use kuiper\tars\core\TarsRequestInterface;
+use kuiper\tars\core\TarsResponseInterface;
 use kuiper\tars\stream\ResponsePacket;
 use kuiper\tars\stream\TarsConst;
 use kuiper\tars\stream\TarsOutputStream;
@@ -15,7 +16,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 
-class TarsServerResponse extends RpcResponse
+class TarsServerResponse extends RpcResponse implements TarsResponseInterface
 {
     /**
      * @var ResponsePacket
@@ -31,6 +32,11 @@ class TarsServerResponse extends RpcResponse
         parent::__construct($request, $response);
         $this->packet = ResponsePacket::createFromRequest($request);
         $this->streamFactory = $streamFactory;
+    }
+
+    public function getResponsePacket(): ResponsePacket
+    {
+        return $this->packet;
     }
 
     /**
