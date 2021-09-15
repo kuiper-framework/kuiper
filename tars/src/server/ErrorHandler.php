@@ -9,6 +9,7 @@ use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
 use kuiper\tars\client\TarsResponse;
 use kuiper\tars\core\TarsRequestInterface;
+use kuiper\tars\exception\ErrorCode;
 use kuiper\tars\stream\ResponsePacket;
 use Psr\Http\Message\ResponseFactoryInterface;
 
@@ -33,7 +34,13 @@ class ErrorHandler implements ErrorHandlerInterface
     {
         /** @var TarsRequestInterface $request */
         $packet = ResponsePacket::createFromRequest($request);
-        $packet->iRet = $error->getCode();
+        if ($error->getCode() > 0) {
+            $packet->iRet = $error->getCode();
+        } elseif ($error instanceof \InvalidArgumentException) {
+            $packet->iRet = ErrorCode::INVALID_ARGUMENT;
+        } else {
+            $packet->iRet = ErrorCode::UNKNOWN;
+        }
         $packet->sResultDesc = $error->getMessage();
         $packet->sBuffer = '';
 
