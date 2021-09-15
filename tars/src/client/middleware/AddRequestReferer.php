@@ -40,6 +40,6 @@ class AddRequestReferer implements MiddlewareInterface
 
     public static function getReferer(TarsRequestInterface $request): ?string
     {
-        return $request->getStatus()[self::CONTEXT_KEY] ?? null;
+        return $request->getContext()[self::CONTEXT_KEY] ?? null;
     }
 }
