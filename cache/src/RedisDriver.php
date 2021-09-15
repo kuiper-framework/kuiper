@@ -33,9 +33,9 @@ class RedisDriver extends AbstractDriver
     /**
      * The cache of indexed keys.
      *
-     * @var array
+     * @var ArrayCache
      */
-    protected $keyCache = [];
+    protected $keyCache;
 
     protected function setOptions(array $options = []): void
     {
@@ -44,6 +44,7 @@ class RedisDriver extends AbstractDriver
         }
         $this->prefix = $options['prefix'] ?? '';
         $this->redis = $options['redis'];
+        $this->keyCache = new ArrayCache(5);
     }
 
     private function getRedis(): \Redis
@@ -101,7 +102,7 @@ class RedisDriver extends AbstractDriver
         $redis->del($keyReal); // remove direct item.
         if ($this->isGroupKey($key)) {
             $keyString = $this->makeKeyString($key, true);
-            unset($this->keyCache[$keyString]);
+            $this->keyCache->delete($keyString);
             $redis->incr($keyString); // increment index for children items
         }
 
@@ -152,11 +153,11 @@ class RedisDriver extends AbstractDriver
             $pathKey = ':pathdb::'.$keyString;
             $pathKey = $this->prefix.md5($pathKey);
 
-            if (isset($this->keyCache[$pathKey])) {
-                $index = $this->keyCache[$pathKey];
+            if ($this->keyCache->has($pathKey)) {
+                $index = $this->keyCache->get($pathKey);
             } else {
                 $index = $redis->get($pathKey);
-                $this->keyCache[$pathKey] = $index;
+                $this->keyCache->set($pathKey, $index);
             }
 
             //a. cache:::name0:::
