@@ -297,12 +297,14 @@ class TarsInputStream implements TarsInputStreamInterface
             switch ($type->asPrimitiveType()->getTarsType()) {
                 case Type::INT8:
                     $value = $this->readInt8($tag, $require);
-                    $phpType = $type->asPrimitiveType()->getPhpType();
-                    if (PrimitiveType::BOOL === $phpType) {
-                        return (bool) $value;
-                    }
-                    if (PrimitiveType::CHAR === $phpType) {
-                        return chr($value);
+                    if (isset($value)) {
+                        $phpType = $type->asPrimitiveType()->getPhpType();
+                        if (PrimitiveType::BOOL === $phpType) {
+                            return (bool) $value;
+                        }
+                        if (PrimitiveType::CHAR === $phpType) {
+                            return chr($value);
+                        }
                     }
 
                     return $value;

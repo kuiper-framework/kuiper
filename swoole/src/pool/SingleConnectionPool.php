@@ -49,7 +49,11 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
     {
         if (!isset($this->connection)) {
             $this->logger->info(static::TAG."create $this->poolName connection");
-            $this->connection = call_user_func($this->connectionFactory, self::$CONNECTION_ID++);
+            $this->connection = null;
+            $ret = call_user_func_array($this->connectionFactory, [self::$CONNECTION_ID++, &$this->connection]);
+            if (null === $this->connection) {
+                $this->connection = $ret;
+            }
         }
 
         return $this->connection;

@@ -56,7 +56,7 @@ class DbConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
-     * @Inject({"tablePrefix" = "application.database.table-prefix"})
+     * @Inject({"tablePrefix" = "application.database.table_prefix"})
      */
     public function namingStrategy(?string $tablePrefix): NamingStrategyInterface
     {
