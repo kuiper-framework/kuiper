@@ -7,6 +7,7 @@ namespace kuiper\swoole\pool;
 use kuiper\helper\Text;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionType;
+use kuiper\reflection\type\MixedType;
 use kuiper\reflection\type\VoidType;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\MethodGenerator;
