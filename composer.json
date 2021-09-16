@@ -20,7 +20,6 @@
         "ext-pdo": "*",
         "aura/sqlquery": "^2.7",
         "monolog/monolog": "^2.0",
-        "nikic/fast-route": "^1.0",
         "php-di/php-di": "^6.0",
         "psr/cache": "^1.0",
         "psr/http-factory": "^1.0",
@@ -52,8 +51,7 @@
         "winwin/composer-phpcs-plugin": "^0.2"
     },
     "suggest": {
-        "nikic/fast-route": "Required to use web component",
-        "dflydev/fig-cookies": "Required to use web component",
+        "slim/slim": "Required to use web component",
         "twig/twig": "Required to use twig template"
     },
     "replace": {
@@ -119,26 +117,25 @@
             "kuiper\\web\\": "web/tests/"
         }
     },
-    "archive": {
-        "exclude": [
-            "*/tests/"
-        ]
-    },
     "scripts": {
         "lint": "./vendor/bin/phpstan analyze --error-format=raw"
     },
     "extra": {
         "kuiper": {
             "configuration": [
+                "kuiper\\annotations\\AnnotationConfiguration",
                 "kuiper\\cache\\CacheConfiguration",
                 "kuiper\\db\\DbConfiguration",
+                "kuiper\\event\\EventConfiguration",
                 "kuiper\\http\\client\\HttpClientConfiguration",
-                "kuiper\\serializer\\SerializerConfiguration",
+                "kuiper\\logger\\LoggerConfiguration",
+                "kuiper\\reflection\\ReflectionConfiguration",
                 "kuiper\\resilience\\ResilienceConfiguration",
+                "kuiper\\serializer\\SerializerConfiguration",
+                "kuiper\\swoole\\config\\DiactorosHttpMessageFactoryConfiguration",
                 "kuiper\\swoole\\config\\FoundationConfiguration",
-                "kuiper\\swoole\\config\\ServerConfiguration",
                 "kuiper\\swoole\\config\\GuzzleHttpMessageFactoryConfiguration",
-                "kuiper\\swoole\\config\\DiactorosHttpMessageFactoryConfiguration"
+                "kuiper\\tars\\config\\TarsClientConfiguration"
             ]
         }
     }

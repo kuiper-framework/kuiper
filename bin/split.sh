@@ -32,7 +32,7 @@ function remote()
 # git pull origin $CURRENT_BRANCH
 
 for REPO in $REPOS ; do
-    remote repo-$REPO git@github.com:wenbinye/kuiper-$REPO.git
+    remote repo-$REPO git@github.com:kuiper-framework/$REPO.git
 
     split "$REPO" repo-$REPO
 done
