@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace kuiper\swoole\pool;
 
 use kuiper\helper\Text;
+use kuiper\reflection\ReflectionDocBlockFactory;
+use kuiper\reflection\ReflectionType;
+use kuiper\reflection\type\VoidType;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\ParameterGenerator;
@@ -64,13 +67,20 @@ class ConnectionProxyGenerator
         );
 
         foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
-            if ('__construct' === $reflectionMethod->getName()) {
+            if ('__construct' === $reflectionMethod->getName() || $reflectionMethod->isStatic()) {
                 continue;
             }
             $params = array_map(function ($parameter) use ($reflectionMethod): ParameterGenerator {
                 return $this->createParameter($reflectionMethod, $parameter);
             }, $reflectionMethod->getParameters());
-            $methodBody = sprintf('return $this->pool->take()->%s(%s);', $reflectionMethod->getName(),
+            try {
+                $returnType = ReflectionDocBlockFactory::getInstance()->createMethodDocBlock($reflectionMethod)
+                    ->getReturnType();
+            } catch (\Exception $e) {
+                $returnType = $reflectionMethod->hasReturnType() ? ReflectionType::fromPhpType($reflectionMethod->getReturnType()) : new MixedType();
+            }
+            $methodBody = ($returnType instanceof VoidType ? '' : 'return ')
+                .sprintf('$this->pool->take()->%s(%s);', $reflectionMethod->getName(),
                 empty($params) ? '' : implode(', ', array_map(static function (ParameterGenerator $param) {
                     if ($param->getVariadic()) {
                         return '...$'.$param->getName();
