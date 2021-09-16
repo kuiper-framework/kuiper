@@ -1,6 +1,7 @@
 {
     "name": "kuiper/logger",
     "description": "Logger Util",
+    "license": "MIT",
     "keywords": [
         "mysql",
         "pdo"
