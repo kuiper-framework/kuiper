@@ -15,7 +15,7 @@ class ConnectionProxyGenerator
 {
     public static function create(PoolFactoryInterface $poolFactory, string $className, callable $connectionFactory): object
     {
-        $generator = new ConnectionProxyGenerator();
+        $generator = new self();
         $result = $generator->generate($className);
         $result->eval();
         $proxyClass = $result->getClassName();
@@ -26,8 +26,6 @@ class ConnectionProxyGenerator
     public function generate(string $className): GeneratedClass
     {
         $phpClass = $this->createClassGenerator($className);
-
-        $className = ltrim($phpClass->getNamespaceName().'\\'.$phpClass->getName(), '\\');
 
         return new GeneratedClass($phpClass->getNamespaceName().'\\'.$phpClass->getName(), $phpClass->generate());
     }

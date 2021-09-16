@@ -9,6 +9,7 @@ use kuiper\helper\Text;
 use kuiper\reflection\ReflectionType;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\tars\core\EndpointParser;
+use kuiper\tars\core\TarsProtocol;
 use kuiper\tars\exception\ConfigException;
 
 class Config
@@ -70,7 +71,7 @@ class Config
                     if (isset($adapter['endpoint'])) {
                         $endpoint = EndpointParser::parse($adapter['endpoint']);
                         $ports[$endpoint->getPort()] = [
-                            'protocol' => $endpoint->getProtocol(),
+                            'protocol' => TarsProtocol::fromValue($adapter['protocol'] ?? 'tars')->serverType,
                             'host' => $endpoint->getHost(),
                         ];
                     }
