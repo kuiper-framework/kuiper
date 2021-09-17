@@ -18,6 +18,7 @@ use function DI\autowire;
 use function DI\factory;
 use function DI\get;
 use kuiper\di\annotation\Bean;
+use kuiper\di\annotation\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -57,6 +58,9 @@ use kuiper\tars\server\TarsTcpReceiveEventListener;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @Configuration(dependOn={ServerConfiguration::class})
+ */
 class TarsServerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
@@ -65,7 +69,6 @@ class TarsServerConfiguration implements DefinitionConfiguration
 
     public function getDefinitions(): array
     {
-        $this->containerBuilder->addConfiguration(new ServerConfiguration());
         $this->addTarsRequestLog();
         Application::getInstance()->getConfig()->merge([
             'application' => [

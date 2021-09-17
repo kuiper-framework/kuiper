@@ -25,6 +25,11 @@ class Configuration implements ComponentInterface, ContainerBuilderAwareInterfac
     use ComponentTrait;
     use ContainerBuilderAwareTrait;
 
+    /**
+     * @var array
+     */
+    public $dependOn;
+
     public function handle(): void
     {
         $this->containerBuilder->addConfiguration($this->class->newInstance());

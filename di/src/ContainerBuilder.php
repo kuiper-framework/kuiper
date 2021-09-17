@@ -34,6 +34,7 @@ use DI\Proxy\ProxyFactory;
 use InvalidArgumentException;
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\di\annotation\Configuration;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 use Psr\Container\ContainerInterface;
@@ -479,6 +480,13 @@ class ContainerBuilder implements ContainerBuilderInterface
     {
         if ($configuration instanceof ContainerBuilderAwareInterface) {
             $configuration->setContainerBuilder($this);
+        }
+        $annotation = $this->getAnnotationReader()->getClassAnnotation(new \ReflectionClass($configuration), Configuration::class);
+        /** @var Configuration|null $annotation */
+        if (null !== $annotation && !empty($annotation->dependOn)) {
+            foreach ($annotation->dependOn as $dep) {
+                $this->addConfiguration(new $dep());
+            }
         }
         $this->configurations[get_class($configuration)] = $configuration;
 

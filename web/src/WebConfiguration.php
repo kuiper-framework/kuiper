@@ -22,6 +22,7 @@ use kuiper\di\annotation\Bean;
 use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\ConditionalOnMissingClass;
 use kuiper\di\annotation\ConditionalOnProperty;
+use kuiper\di\annotation\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -68,13 +69,15 @@ use Twig\Environment as Twig;
 use Twig\Loader\FilesystemLoader;
 use Twig\Loader\LoaderInterface;
 
+/**
+ * @Configuration(dependOn={ServerConfiguration::class})
+ */
 class WebConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
 
     public function getDefinitions(): array
     {
-        $this->containerBuilder->addConfiguration(new ServerConfiguration());
         $this->addAccessLoggerConfig();
 
         return [
