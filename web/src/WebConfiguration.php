@@ -23,6 +23,8 @@ use kuiper\di\annotation\ConditionalOnClass;
 use kuiper\di\annotation\ConditionalOnMissingClass;
 use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\ComponentCollection;
+use kuiper\di\ContainerBuilderAwareTrait;
+use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
@@ -66,18 +68,20 @@ use Twig\Environment as Twig;
 use Twig\Loader\FilesystemLoader;
 use Twig\Loader\LoaderInterface;
 
-class WebConfiguration extends ServerConfiguration
+class WebConfiguration implements DefinitionConfiguration
 {
+    use ContainerBuilderAwareTrait;
+
     public function getDefinitions(): array
     {
-        $definitions = parent::getDefinitions();
+        $this->containerBuilder->addConfiguration(new ServerConfiguration());
         $this->addAccessLoggerConfig();
 
-        return array_merge($definitions, [
+        return [
             ErrorRendererInterface::class => autowire(LogErrorRenderer::class),
             AclInterface::class => autowire(Acl::class),
             RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
-        ]);
+        ];
     }
 
     protected function addAccessLoggerConfig(): void

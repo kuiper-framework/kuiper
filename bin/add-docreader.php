@@ -17,10 +17,10 @@ $finder = Finder::create()
 $docreader = file_get_contents('.docreader');
 foreach ($finder->files() as $file) {
     echo $file, "\n";
-    add_docreader($file, $docreader);
+    add_docreader($file->getRealPath(), $docreader);
 }
 
-function add_docreader($file, $doc): void
+function add_docreader(string $file, string $doc): void
 {
     $code = file_get_contents($file);
     if (false !== strpos($code, $doc)) {

@@ -19,6 +19,8 @@ use function DI\factory;
 use function DI\get;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
+use kuiper\di\ContainerBuilderAwareTrait;
+use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Arrays;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerConfiguration;
@@ -55,13 +57,15 @@ use kuiper\tars\server\TarsTcpReceiveEventListener;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
-class TarsServerConfiguration extends ServerConfiguration
+class TarsServerConfiguration implements DefinitionConfiguration
 {
+    use ContainerBuilderAwareTrait;
+
     protected const TAG = '['.__CLASS__.'] ';
 
     public function getDefinitions(): array
     {
-        $definitions = parent::getDefinitions();
+        $this->containerBuilder->addConfiguration(new ServerConfiguration());
         $this->addTarsRequestLog();
         Application::getInstance()->getConfig()->merge([
             'application' => [
@@ -85,7 +89,7 @@ class TarsServerConfiguration extends ServerConfiguration
             ],
         ]);
 
-        return array_merge($definitions, [
+        return [
             TarsServerFactory::class => factory([TarsServerFactory::class, 'createFromContainer']),
             StatStore::class => autowire(SwooleTableStatStore::class),
             StatInterface::class => autowire(Stat::class),
@@ -94,7 +98,7 @@ class TarsServerConfiguration extends ServerConfiguration
                 ->constructorParameter('collectors', get('monitorCollectors')),
             'tarsServerRequestLogFormatter' => autowire(TarsRequestLogFormatter::class),
             TarsTcpReceiveEventListener::class => factory([TarsServerFactory::class, 'createTcpReceiveEventListener']),
-        ]);
+        ];
     }
 
     /**

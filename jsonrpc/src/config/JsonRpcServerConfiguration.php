@@ -20,6 +20,8 @@ use function DI\get;
 use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\annotation\Bean;
 use kuiper\di\ComponentCollection;
+use kuiper\di\ContainerBuilderAwareTrait;
+use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\helper\Text;
 use kuiper\jsonrpc\annotation\JsonRpcService;
@@ -44,11 +46,13 @@ use kuiper\swoole\ServerPort;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-class JsonRpcServerConfiguration extends ServerConfiguration
+class JsonRpcServerConfiguration implements DefinitionConfiguration
 {
+    use ContainerBuilderAwareTrait;
+
     public function getDefinitions(): array
     {
-        $definitions = parent::getDefinitions();
+        $this->containerBuilder->addConfiguration(new ServerConfiguration());
         $this->addAccessLogger();
         $config = Application::getInstance()->getConfig();
         $config->merge([
@@ -62,6 +66,7 @@ class JsonRpcServerConfiguration extends ServerConfiguration
                 ],
             ],
         ]);
+        $definitions = [];
         if ($this->jsonrpcOnHttp($config)) {
             $definitions[RequestHandlerInterface::class] = factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']);
             $config->merge([

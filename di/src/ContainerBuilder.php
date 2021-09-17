@@ -150,6 +150,11 @@ class ContainerBuilder implements ContainerBuilderInterface
     private $configurations = [];
 
     /**
+     * @var int[]
+     */
+    private $configurationPriorities = [];
+
+    /**
      * @var array
      */
     private $scanNamespaces = [];
@@ -475,7 +480,21 @@ class ContainerBuilder implements ContainerBuilderInterface
         if ($configuration instanceof ContainerBuilderAwareInterface) {
             $configuration->setContainerBuilder($this);
         }
-        $this->configurations[] = $configuration;
+        $this->configurations[get_class($configuration)] = $configuration;
+
+        return $this;
+    }
+
+    public function removeConfiguration($configuration): ContainerBuilderInterface
+    {
+        unset($this->configurations[is_string($configuration) ? $configuration : get_class($configuration)]);
+
+        return $this;
+    }
+
+    public function setConfigurationPriorities(array $priorities): ContainerBuilderInterface
+    {
+        $this->configurationPriorities = array_merge($this->configurationPriorities, $priorities);
 
         return $this;
     }
@@ -566,11 +585,18 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $this;
     }
 
-    public function componentScan(array $namespaces): self
+    public function componentScan(array $namespaces): ContainerBuilderInterface
     {
         foreach ($namespaces as $namespace) {
             $this->scanNamespaces[$namespace] = true;
         }
+
+        return $this;
+    }
+
+    public function componentScanExclude(string $namespace): ContainerBuilderInterface
+    {
+        $this->getComponentScanner()->exclude($namespace);
 
         return $this;
     }
@@ -599,6 +625,17 @@ class ContainerBuilder implements ContainerBuilderInterface
             $this->getComponentScanner()->scan(array_keys($this->scanNamespaces));
         }
         if (!empty($this->configurations)) {
+            $configurations = array_values($this->configurations);
+            $priorities = $this->configurationPriorities;
+            foreach ($configurations as $i => $configuration) {
+                if (!isset($priorities[get_class($configuration)])) {
+                    $priorities[get_class($configuration)] = $i;
+                }
+            }
+            usort($configurations, static function ($conf1, $conf2) use ($priorities): int {
+                return $priorities[get_class($conf1)] - $priorities[get_class($conf2)];
+            });
+            $this->configurations = $configurations;
             foreach ($this->configurations as $configuration) {
                 $this->addDefinitions($this->getConfigurationDefinitionLoader()->getDefinitions($configuration));
             }
