@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use DateTimeInterface;
 
 class CarbonDateTimeFactory extends DateTimeFactory
@@ -23,6 +23,6 @@ class CarbonDateTimeFactory extends DateTimeFactory
      */
     public function stringToTime(string $timeString): ?DateTimeInterface
     {
-        return Carbon::parse($timeString);
+        return CarbonImmutable::parse($timeString);
     }
 }

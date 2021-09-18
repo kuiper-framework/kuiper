@@ -23,6 +23,7 @@ class ConnectionProxyGeneratorTest extends TestCase
     {
         $generator = new ConnectionProxyGenerator();
         $result = $generator->generate(AnnotationReaderInterface::class);
+        // echo $result->getCode();
         $result->eval();
         $class = $result->getClassName();
         $reader = new $class(new SingleConnectionPool('reader', function () {

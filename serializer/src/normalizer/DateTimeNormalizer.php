@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\normalizer;
 
+use kuiper\helper\Text;
 use kuiper\serializer\NormalizerInterface;
 
 class DateTimeNormalizer implements NormalizerInterface
@@ -34,13 +35,16 @@ class DateTimeNormalizer implements NormalizerInterface
      */
     public function denormalize($data, $className)
     {
+        $dateTimeClass = Text::isNotEmpty($className) && is_a($className, \DateTimeImmutable::class, true)
+            ? \DateTimeImmutable::class
+            : \DateTime::class;
         if (is_string($data)) {
-            return new \DateTime($data);
+            return new $dateTimeClass($data);
         }
 
         if (isset($data['date'], $data['timezone']) && is_array($data)) {
             // \DateTime array
-            return new \DateTime($data['date'], new \DateTimeZone($data['timezone']));
+            return new $dateTimeClass($data['date'], new \DateTimeZone($data['timezone']));
         }
         throw new \InvalidArgumentException('not valid date');
     }

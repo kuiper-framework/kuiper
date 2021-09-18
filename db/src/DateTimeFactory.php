@@ -32,7 +32,7 @@ class DateTimeFactory implements DateTimeFactoryInterface
      */
     public function stringToTime(string $timeString): ?DateTimeInterface
     {
-        return new \DateTime($timeString);
+        return new \DateTimeImmutable($timeString);
     }
 
     /**

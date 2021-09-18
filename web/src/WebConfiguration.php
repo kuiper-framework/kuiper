@@ -79,6 +79,7 @@ class WebConfiguration implements DefinitionConfiguration
     public function getDefinitions(): array
     {
         $this->addAccessLoggerConfig();
+        Application::getInstance()->getConfig()->set('application.server.http_factory', 'diactoros');
 
         return [
             ErrorRendererInterface::class => autowire(LogErrorRenderer::class),
