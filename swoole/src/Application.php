@@ -179,6 +179,11 @@ class Application
         $this->config->mergeIfNotExists([
             'application' => [
                 'env' => env('ENV', 'prod'),
+                'name' => 'app',
+                'base_path' => $this->getBasePath(),
+                'logging' => [
+                    'path' => $this->getBasePath().'/logs',
+                ],
             ],
             'ENV' => array_merge($_ENV, $_SERVER),
         ]);

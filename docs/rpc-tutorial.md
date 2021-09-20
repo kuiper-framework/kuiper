@@ -116,3 +116,45 @@ interface HelloService
 ```
 
 我们在 HelloService 上添加 `@kuiper\jsonrpc\annotation\JsonRpcClient` 注解，并设置注解的 service 属性为我们启动服务的服务名称。
+
+在 `src/config.php` 中添加配置，设置服务调用地址：
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use function kuiper\helper\env;
+
+use app2\service\HelloService;
+
+return [
+    'application' => [
+        'jsonrpc' => [
+            'client' => [
+                'options' => [
+                    HelloService::class => [
+                        'endpoint' => 'tcp://localhost:8000'
+                    ]
+                ],
+            ]
+        ]
+    ],
+];
+```
+
+最后我们写一个测试脚本 `test.php`，验证服务调用过程：
+
+```php
+<?php
+
+require __DIR__ . '/vendor/autoload.php';
+
+use kuiper\swoole\Application;
+use app2\service\HelloService;
+
+$service = Application::create()->getContainer()->get(HelloService::class);
+echo $service->hello('kuiper'), "\n";
+```
+
+执行 

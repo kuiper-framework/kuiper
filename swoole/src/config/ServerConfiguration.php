@@ -51,18 +51,12 @@ class ServerConfiguration implements DefinitionConfiguration
     public function getDefinitions(): array
     {
         $config = Application::getInstance()->getConfig();
-        $basePath = Application::getInstance()->getBasePath();
         $config->mergeIfNotExists([
             'application' => [
-                'name' => 'app',
-                'base_path' => $basePath,
                 'default_command' => 'start',
                 'commands' => [
                     'start' => ServerStartCommand::class,
                     'stop' => ServerStopCommand::class,
-                ],
-                'logging' => [
-                    'path' => $basePath.'/logs',
                 ],
             ],
         ]);

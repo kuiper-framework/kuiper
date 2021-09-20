@@ -156,7 +156,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         /** @var JsonRpcService $annotation */
         foreach (ComponentCollection::getAnnotations(JsonRpcService::class) as $annotation) {
             $serviceName = $annotation->service ?? $this->getServiceName($annotation->getTarget());
-            $logger->info(static::TAG."register jsonrpc service $serviceName serve by ".$annotation->getTargetClass());
+            $logger->info(static::TAG."register jsonrpc service $serviceName which served by ".$annotation->getTargetClass());
             $services[$serviceName] = new Service(
                 new ServiceLocator($serviceName, $annotation->version ?? '1.0', JsonRpcProtocol::NS),
                 $container->get($annotation->getComponentId()),
@@ -174,7 +174,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             if (!is_string($serviceName)) {
                 $serviceName = $service['service'] ?? $this->getServiceName($class);
             }
-            $logger->info(static::TAG."register jsonrpc service $serviceName serve by ".$service['class']);
+            $logger->info(static::TAG."register jsonrpc service $serviceName which served by ".$service['class']);
             $services[$serviceName] = new Service(
                 new ServiceLocator($serviceName, $service['version'] ?? '1.0', JsonRpcProtocol::NS),
                 $serviceImpl,
