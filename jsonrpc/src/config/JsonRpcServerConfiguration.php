@@ -46,6 +46,7 @@ use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerPort;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * @Configuration(dependOn={ServerConfiguration::class})
@@ -53,6 +54,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 class JsonRpcServerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
+
+    protected const TAG = '['.__CLASS__.'] ';
 
     public function getDefinitions(): array
     {
@@ -147,11 +150,13 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         if ('0.0.0.0' === $serverPort->getHost()) {
             $serverPort = new ServerPort(gethostbyname(gethostname()), $serverPort->getPort(), $serverPort->getServerType());
         }
+        $logger = $container->get(LoggerInterface::class);
         $annotationReader = $container->get(AnnotationReaderInterface::class);
         $services = [];
         /** @var JsonRpcService $annotation */
         foreach (ComponentCollection::getAnnotations(JsonRpcService::class) as $annotation) {
             $serviceName = $annotation->service ?? $this->getServiceName($annotation->getTarget());
+            $logger->info(static::TAG."register jsonrpc service $serviceName serve by ".$annotation->getTargetClass());
             $services[$serviceName] = new Service(
                 new ServiceLocator($serviceName, $annotation->version ?? '1.0', JsonRpcProtocol::NS),
                 $container->get($annotation->getComponentId()),
@@ -169,6 +174,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             if (!is_string($serviceName)) {
                 $serviceName = $service['service'] ?? $this->getServiceName($class);
             }
+            $logger->info(static::TAG."register jsonrpc service $serviceName serve by ".$service['class']);
             $services[$serviceName] = new Service(
                 new ServiceLocator($serviceName, $service['version'] ?? '1.0', JsonRpcProtocol::NS),
                 $serviceImpl,

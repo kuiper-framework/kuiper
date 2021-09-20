@@ -1,5 +1,6 @@
 * Quick Start
   - [Tutorial](tutorial.md)
+  - [RPC Tutorial](rpc-tutorial.md)
 * Reference
   - [DI](di.md)
   - [Logging](logger.md)

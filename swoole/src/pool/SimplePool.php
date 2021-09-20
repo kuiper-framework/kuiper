@@ -151,7 +151,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     private function createConnection(): Connection
     {
         $connection = new Connection(self::$CONNECTION_ID++);
-        $this->logger->info(self::TAG.sprintf('create connection %s#%d', $this->poolName, $connection->id));
+        $this->logger->debug(self::TAG.sprintf('create connection %s#%d', $this->poolName, $connection->id));
         $ret = call_user_func_array($this->connectionFactory, [$connection->id, &$connection->conn]);
         $this->eventDispatcher->dispatch(new ConnectionCreateEvent($this->poolName, $connection));
         if (!isset($connection->conn)) {

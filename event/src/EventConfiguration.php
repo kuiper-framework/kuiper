@@ -56,12 +56,12 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
                 $event = $eventListener->getSubscribedEvent();
                 $dispatcher->addListener($event, $eventListener);
                 $events[$event] = true;
-                $logger->info(static::TAG."add event listener {$listener} for {$event}");
+                $logger->debug(static::TAG."add event listener {$listener} for {$event}");
             } elseif ($eventListener instanceof EventSubscriberInterface) {
                 foreach ($eventListener->getSubscribedEvents() as $event) {
                     $dispatcher->addListener($event, $eventListener);
                     $events[$event] = true;
-                    $logger->info(static::TAG."add event listener {$listener} for {$event}");
+                    $logger->debug(static::TAG."add event listener {$listener} for {$event}");
                 }
             } elseif (is_string($eventName)) {
                 $dispatcher->addListener($eventName, $eventListener);

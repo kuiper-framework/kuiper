@@ -240,25 +240,29 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         $this->replacePlaceholderRecursive($this, function (array $matches) {
             $name = $matches[1];
             if (!$this->has($name)) {
-                throw new \RuntimeException("Unknown config entry: '$name'");
+                throw new \InvalidArgumentException("Unknown config entry: '$name'");
             }
 
             return $this->get($name);
         });
     }
 
-    protected function replacePlaceholderRecursive(Properties $properties, callable $replacer): void
+    protected function replacePlaceholderRecursive(Properties $properties, callable $replacer, string $prefix = ''): void
     {
         $re = self::PLACEHOLDER_REGEXP;
         foreach ($properties as $key => $value) {
             if (is_string($value) && preg_match(self::PLACEHOLDER_REGEXP, $value)) {
                 do {
-                    $value = preg_replace_callback($re, $replacer, $value);
+                    try {
+                        $value = preg_replace_callback($re, $replacer, $value);
+                    } catch (\InvalidArgumentException $e) {
+                        throw new \InvalidArgumentException("Fail to replace placeholder $prefix.$key: ".$e->getMessage());
+                    }
                 } while (preg_match(self::PLACEHOLDER_REGEXP, $value));
 
                 $properties[$key] = $value;
             } elseif ($value instanceof self) {
-                $this->replacePlaceholderRecursive($value, $replacer);
+                $this->replacePlaceholderRecursive($value, $replacer, ('' === $prefix ? '' : $prefix.'.').$key);
             }
         }
     }
