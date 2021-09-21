@@ -171,14 +171,13 @@ class JsonRpcClientFactory implements LoggerAwareInterface
     {
         $responseFactory = $this->createRpcResponseFactory($options['out_params'] ?? false);
         $logger = $this->loggerFactory->create($className);
-        $transporter = new PooledTransporter($this->poolFactory->create($className, function ($connId) use ($logger, $className, $options): TransporterInterface {
+        $transporter = new PooledTransporter($this->poolFactory->create($className, function ($connId) use ($logger , $options): TransporterInterface {
             $options = array_merge([
                 ClientSettings::OPEN_LENGTH_CHECK => false,
                 ClientSettings::OPEN_EOF_CHECK => true,
                 ClientSettings::PACKAGE_EOF => JsonRpcProtocol::EOF,
             ], $options);
             $connectionClass = Coroutine::isEnabled() ? SwooleCoroutineTcpTransporter::class : SwooleTcpTransporter::class;
-            $logger->info("[$className] create connection $connId", ['class' => $connectionClass]);
             $transporter = new $connectionClass($this->httpResponseFactory, $options);
             $transporter->setLogger($logger);
 

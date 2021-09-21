@@ -216,7 +216,6 @@ class TarsProxyFactory implements ContainerAwareInterface
             $logger = null !== $this->loggerFactory
                 ? $this->loggerFactory->create($className)
                 : new NullLogger();
-            $logger->info("[$className] create connection $connId", ['class' => get_class($transporter)]);
             $transporter->setLogger($logger);
 
             return $transporter;
