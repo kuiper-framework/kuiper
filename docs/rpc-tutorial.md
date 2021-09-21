@@ -9,10 +9,10 @@ RPC 的实现都包含传输协议和序列化协议两个部分。这里我们�
 我们还是使用项目模板创建项目：
 
 ```bash
-composer create-project kuiper/skeleton myapp
+composer create-project kuiper/skeleton app
 ```
 
-使用项目模板创建项目时，需要回答提供一些项目配置选项。首先需要指定服务类型：
+这次我们选择第3项 JsonRPC TCP 服务：
 
 ```
 Choose server type: 
@@ -24,7 +24,6 @@ Choose server type:
 Make your selection (1): 3
 ```
 
-这次我们选择第3项 JsonRPC TCP 服务。
 
 ## 文件目录结构
 
@@ -75,7 +74,7 @@ class HelloServiceImpl implements HelloService
 使用 `composer serve` 启动服务后，通过 telnet 来验证我们的服务：
 
 ```bash
-$ telnet localhost 8000
+$ telnet localhost 7000
 {"jsonrpc": "2.0", "id": 1, "method": "app.service.HelloService.hello", "params": ["kuiper"]}
 {"jsonrpc":"2.0","id":1,"result":"hello kuiper"}
 ```
@@ -85,7 +84,7 @@ $ telnet localhost 8000
 我们通过新建另一个项目来调用启用的服务。
 
 ```bash
-composer create-project kuiper/skeleton myapp2
+composer create-project kuiper/skeleton app2
 ```
 
 还是选择第3项 JsonRPC TCP Server 作为服务类型。删除新项目中 src/service/HelloServiceImpl.php 实现。
@@ -134,7 +133,7 @@ return [
             'client' => [
                 'options' => [
                     HelloService::class => [
-                        'endpoint' => 'tcp://localhost:8000'
+                        'endpoint' => 'tcp://localhost:7000'
                     ]
                 ],
             ]
@@ -157,4 +156,11 @@ $service = Application::create()->getContainer()->get(HelloService::class);
 echo $service->hello('kuiper'), "\n";
 ```
 
-执行 
+执行 `php test.php` 查看 RPC 调用结果：
+
+```bash
+$ php test.php
+hello kuiper
+```
+
+下一节：[TARS Tutorial](tars-tutorial.md)

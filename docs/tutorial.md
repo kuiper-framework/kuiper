@@ -3,7 +3,7 @@
 Kuiper 使用 composer 管理项目依赖。创建 Kuiper 项目最好的方式是使用 `kuiper/skeleton` 项目模板来初始化：
 
 ```bash
-composer create-project kuiper/skeleton myapp
+composer create-project kuiper/skeleton app
 ```
 
 使用项目模板创建项目时，需要回答提供一些项目配置选项。首先需要指定服务类型：
@@ -92,6 +92,8 @@ class IndexController extends AbstractController
 ## 启动服务
 
 和一般 PHP-FPM 服务不同，Kuiper 服务必须使用 CLI 方式运行。在项目根目录通过命令行 `composer serve` 来启动。当 Console 界面显示服务启动后，便可通过 cURL 或浏览器访问服务。
+
+> composer 命令执行有超时限制，可以通过 `composer config -g process-timeout 0` 设置为永不超时。
 
 Kuiper 提供多种服务启动方式选择。通常情况使用上面 `composer serve` 启动服务。当需要设置启动服务的参数时，可以通过 `./console start` 或者直接使用 `php src/index.php start` 启动。当系统安装 [fswatch](https://github.com/emcrisostomo/fswatch) 后，可以通过 `./resource/serve.sh` 脚本启动服务，可以实现修改 src 目录下文件自动重启服务。
 

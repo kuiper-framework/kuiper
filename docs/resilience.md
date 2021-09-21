@@ -2,13 +2,17 @@
 
 kuiper resilience 用于 RPC 容错处理库。resilience 库代码参考 [resilience4j](https://resilience4j.readme.io/docs) 项目。
 
+## 安装
+
+```bash
+composer require kuiper/resilience:^0.6
+```
+
 ## 重试
 
 使用方式：
 
 ```php
-<?php
-
 $container->get(RetryFactory::class)->create('name1')->call($callable);
 ```
 

@@ -1,34 +1,11 @@
 # Server
 
-Kuiper 对 Swoole 服务创建过程进行封装，使用 PSR-14 事件接口封装 swoole 事件处理，
-对于 http request 事件处理使用 PSR-15 HTTP Handler，支持 PSR-7 Http Message。
+Kuiper 对 Swoole 服务创建过程进行封装，使用 [PSR-14](https://www.php-fig.org/psr/psr-14/) 事件接口封装 swoole 事件处理，对于 http request 事件处理使用 [PSR-15](https://www.php-fig.org/psr/psr-15/) HTTP Handler，支持 [PSR-7](https://www.php-fig.org/psr/psr-7/) Http Message。
 
-## 应用配置
-
-项目中需要先使用 composer 安装以下包：
+## 安装
 
 ```bash
-composer require kuiper/kuiper
-composer require symfony/console
-composer require --dev kuiper/component-installer
-```
-
-在项目 `composer.json` 中添加 :
-
-```json
-{
-    "scripts": {
-        "container-config": "kuiper\\component\\ComponentInstaller::generate"
-    },
-    "extra": {
-        "kuiper": {
-            "config-file": "src/container.php",
-            "whitelist": [
-                "kuiper/*"
-            ]
-        }
-    }
-}
+composer install kuiper/swoole:^0.6
 ```
 
 创建启动文件 `src/index.php` ：
@@ -42,11 +19,12 @@ require APP_PATH . '/vendor/autoload.php';
 Application::run();
 ```
 
-这里定义了常量 `APP_PATH` ，在运行时可以通过 `Application::getInstance()->getBasePath()` 获取。
+这里定义了常量 `APP_PATH`，在运行时可以通过 `Application::getInstance()->getBasePath()` 获取。
 
 ## 配置
 
-`\kuiper\swoole\Application` 在初始化时加载配置。配置使用的是 [Properties](helper.md#Properties) 对象存储。配置加载方式有以下方式：
+`\kuiper\swoole\Application::create` 方法会创建 `Application` 单例对象，可以通过 `Application::getInstance()` 方法获取单例对象。
+在 `Application` 构造函数中会执行配置加载。配置加载方式有以下几种：
 
 1. 通过命令行参数 `--config config.ini` 指定配置文件，使用 `parse_ini_file` 解析
 2. 通过命令行参数 `--define key=value` 指定
@@ -70,6 +48,8 @@ return [
     ]
 ];
 ```
+
+> 配置使用的是 [Properties](helper.md#Properties) 对象存储。所以可以通过 `.` 方式获取配置值。
 
 在配置中我们可以使用 `\kuiper\helper\env()` 函数获取环境变量的值。环境变量的值配置可以通过 `.env` 文件设置。
 在不同运行环境下，我们需要加载不同的环境变量。运行环境可以通过环境变量 `ENV` 或者配置项 `application.env` 设置。
@@ -108,7 +88,7 @@ return [
 ];
 ```
 
-在 kuiper di 扫描命名空间中的类使用 `@Command` 注解可以自动添加到命令列表中：
+在 kuiper di 扫描命名空间中的类使用 `@Command` 注解可以自动添加到命令列表中，例如：
 
 ```php
 <?php
@@ -116,7 +96,7 @@ return [
 namespace app\command;
 
 use kuiper\di\annotation\Command;
-use \Symfony\Component\Console\Command\Command as ConsoleCommand;
+use Symfony\Component\Console\Command\Command as ConsoleCommand;
 
 /**
  * @Command("foo")
@@ -127,7 +107,7 @@ class FooCommand extends ConsoleCommand {
 
 ## 事件
 
-事件分成以下几种类型：
+服务事件分成以下几种类型：
 
 - 进程生命周期事件
 - 连接协议处理事件
@@ -167,13 +147,11 @@ class FooCommand extends ConsoleCommand {
 `\kuiper\swoole\listener\ManagerStartEventListener`,
 `\kuiper\swoole\listener\WorkerStartEventListener`, 
 和 `\kuiper\swoole\listener\TaskEventListener`。
-并通过命名空间扫描注解 `@\kuiper\event\annotation\EventListener` 
-自动添加监听器。
+并通过命名空间扫描注解 `@\kuiper\event\annotation\EventListener` 自动添加监听器。
 
 ## 协程
 
-swoole 协程和非协程在开发中会有差异，对于单元测试或者需要调试时会产生一些干扰。
-kuiper swoole 包中对协程做了相应包装，可以在未开启协程情况，进行降级处理。
+swoole 协程和非协程在开发中会有差异，对于单元测试或者需要调试时会产生一些干扰。Kuiper swoole 中对协程做了相应包装，可以在未开启协程情况，进行降级处理。
 
 通过 `\kuiper\swoole\coroutine\Coroutine::enable()` 方法用协程编程。
 使用 `Coroutine::isEnabled()` 判断是否启用协程编程。在 swoole 4以上版本，协程默认是开启的。
@@ -227,11 +205,22 @@ return [
 ];
 ```
 
-swoole 服务器的配置通过 `application.swoole` 配置。
+swoole 服务器的配置通过 `application.swoole` 设置。例如：
+
+```php
+return [
+     'application' => [
+         'swoole' => [
+             'package_max_length' => 10*1024*1024,
+         ]
+     ]
+];
+```
 
 ## Task
 
 Kuiper 对 swoole 中的任务进行简单的封装，更容易使用。
+
 首先创建一个 Task 类：
 
 ```php
@@ -269,3 +258,5 @@ class MyTaskProcessor implements ProcessorInterface
 $container->get(kuiper\swoole\task\QueueInterface::class)
     ->put(new MyTask($arg));
 ```
+
+kuiper swoole 并没有具体服务实现，请通过使用 [kuiper/web](web.md)、[kuiper/jsonrpc](rpc.md) 或 [kuiper/tars](tars.md) 等进行业务服务开发。

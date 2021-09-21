@@ -2,6 +2,12 @@
 
 RPC 服务可以有多种协议，这里以 jsonrpc 协议为例说明 RPC 服务端和客户端使用方式。
 
+## 安装
+
+```bash
+composer require kuiper/jsonrpc:^0.6
+```
+
 ## JSON RPC Server
 
 jsonrpc 服务传输方式可以使用 http 协议和 tcp 协议两种服务。
@@ -16,7 +22,7 @@ jsonrpc 服务传输方式可以使用 http 协议和 tcp 协议两种服务。
         "kuiper": {
             "config-file": "src/container.php",
             "whitelist": [
-                "kuiper/kuiper"
+                "kuiper/*"
             ],
             "configuration": [
                 "kuiper\\jsonrpc\\config\\JsonRpcHttpServerConfiguration"
@@ -37,7 +43,7 @@ jsonrpc 服务传输方式可以使用 http 协议和 tcp 协议两种服务。
         "kuiper": {
             "config-file": "src/container.php",
             "whitelist": [
-                "kuiper/kuiper"
+                "kuiper/*"
             ],
             "configuration": [
                 "kuiper\\jsonrpc\\config\\JsonRpcTcpServerConfiguration"
@@ -181,26 +187,10 @@ jsonrpc 客户端中间件可以通过配置项 `application.jsonrpc.client.midd
 
 ## 服务发现
 
-通过使用 consul 等服务注册中心可以自动发现服务。使用服务发现需要进行以下配置。
-
-首先使用 composer 安装 `guzzlehttp/guzzle` 包：
+通过使用 consul 等服务注册中心可以自动发现服务。
 
 ```bash
-composer require guzzlehttp/guzzle
-```
-
-在 composer.json 中添加配置：
-
-```json
-{
-    "extra": {
-        "kuiper": {
-            "configuration": [
-                "kuiper\\rpc\\registry\\RpcRegistryConfiguration"
-            ]
-        }
-    }
-}
+composer require kuiper/rpc-registry:^0.6
 ```
 
 在 `src/config.php` 中添加 consul 服务地址配置：
@@ -214,7 +204,7 @@ composer require guzzlehttp/guzzle
     ]
 ]
 ```
-consul 其他配置参数参考 http-client 。
+consul 其他配置参数参考 [http-client](http-client.md) 。
 
 对于 rpc 服务端，需要添加事件监听器：
 
@@ -249,6 +239,6 @@ consul 其他配置参数参考 http-client 。
 
 | 配置项                                           | 说明                                               |
 |--------------------------------------------------|----------------------------------------------------|
-| application.server.service_disovery.type         | 服务注册类型，目前只支持 consul                    |
-| application.client.service_disovery.type         | 服务发现类型，目前只支持 consul                    |
+| application.server.service_disovery.type         | 服务端服务注册类型，目前只支持 consul                    |
+| application.client.service_disovery.type         | 客户端服务发现类型，目前只支持 consul                    |
 | application.client.service_disovery.load_balance | 负载均衡算法，可选值 round_robin, random, equality |

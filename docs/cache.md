@@ -6,7 +6,7 @@ Kuiper cache 提供协程环境下的基于 redis 缓存方案。Kuiper cache �
 ## 安装 
 
 ```bash
-composer require kuiper/cache
+composer require kuiper/cache:^0.6
 ```
 
 在 `src/config.php` 中配置：
@@ -50,8 +50,6 @@ return [
 基于 PSR-6 或者 PSR-16 接口使用缓存。例如：
 
 ```php
-<?php
-
 $cache = $container->get(\Psr\Cache\CacheItemPoolInterface::class);
 $item = $cache->getItem("foo");
 if (!$item->isHit()) {
@@ -64,8 +62,6 @@ $value = $item->get();
 使用 stash 实现可以基于缓存前缀删除缓存（使用 `/` 作为前缀分隔符）。为和普通缓存 key 区分，基于前缀的缓存 key 必须使用 `group.` 开头。例如：
 
 ```php
-<?php
-
 $cache = $container->get(\Psr\Cache\CacheItemPoolInterface::class);
 $item = $cache->getItem("group.foo/bar");
 $cache->save($item->set("bar content"));

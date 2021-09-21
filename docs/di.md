@@ -1,6 +1,12 @@
-# Kuiper DI
+# DI
 
-Kuiper DI 是基于 [php-di](http://php-di.org/) 实现，增加 Configuration 类声明定义、命名空间扫描、条件注解等特性。
+Kuiper DI(Dependency Injection)依赖注入是基于 [php-di](http://php-di.org/) 实现，增加 Configuration 类声明定义、命名空间扫描、条件注解等特性。
+
+## 安装
+
+```bash
+composer require kuiper/di:^0.6
+```
 
 ## ContainerBuilder 
 
@@ -15,11 +21,13 @@ $builder = new ContainerBuilder();
 $container = $builder->build();
 ```
 
-`ContainerBuilder` 兼容 [php-di](http://php-di.org/doc/container-configuration.html) 文档中的相关说明。 
+`ContainerBuilder` 兼容 [php-di](http://php-di.org/doc/container-configuration.html) 文档中的相关说明。
+与 php-di 的 ContainerBuilder 不同的是，Kuiper ContainerBuilder 默认开启了注解。
+
 
 ## Configuration 
 
-容器支持使用 `Configuration` 类配置注入对象。在 `Configuration` 类中，所有添加了 `@\kuiper\di\annotation\Bean` 
+容器的配置推荐使用使用 `Configuration` 类完成。在 `Configuration` 类中，所有添加了 `@\kuiper\di\annotation\Bean` 
 注解的方法将以 [factory](https://php-di.org/doc/php-definitions.html#factories) 的方式注册到容器中。例如：
 
 ```php
@@ -40,7 +48,7 @@ class MyConfiguration
 $builer->addConfiguration(new MyConfiguration());
 ```
 
-需要注意的是容器中定义名字默认使用函数的返回类型。如果函数无返回类型或需要指定定义名字，需要使用 `@Bean` 注解的 `name` 值，例如：
+需要注意的是容器中定义名字默认使用函数的返回类型。如果函数无返回类型或需要指定定义名字可以通过 `@Bean("beanName")` 方式设置，例如：
 
 ```php
 <?php
@@ -49,7 +57,7 @@ use kuiper\di\annotation\Bean;
 class Configuration
 {
     /**
-     * @Bean(name="userRegistrationService")
+     * @Bean("userRegistrationService")
      */
     public function userRegistrationService(UserRepository $userRepository): UserRegistrationService
     {
@@ -58,10 +66,7 @@ class Configuration
 }
 ```
 
-> Doctrine Annotation 会把注解第一个属性设置为默认属性，设置注解属性值时可以忽略属性名称，例如这里也可以使用 
-> `@Bean("userRegistrationService")` 。
-
-在 php-di 中，factory 参数解析是使用参数类型。如果参数不是一个 class 类型或者容器中定义名不是 class 类型，则需要使用
+在 php-di 中，factory 通过参数类型解析参数。如果参数不是一个 class 类型或者容器中定义名不是 class 类型，则需要使用
 `@\DI\Annotation\Inject` 注解来设置参数。注解的使用方式参考 [php-di 文档](https://php-di.org/doc/annotations.html#inject) 。
 
 如果需要使用 php-di 提供的方法来创建定义，可以通过实现 `\kuiper\di\DefinitionConfiguration` 接口进行定义声明，例如：
@@ -238,11 +243,12 @@ $container->get('redis.host');
 
 ## 根据项目配置容器
 
-通过使用 Configuration 类和命名空间扫描可以实现所有容器的配置操作。我们可以把所有 Configuration 类名和需要扫描
-的命名空间写到配置文件中，通过调用 `ContainterBuilder::create($path)` 方法完成容器配置。在这个方法中会通过
-`require "$path/vendor/autoload.php"` 配置 Composer ClassLoader，在 `$path/composer.json` 查找
+通过使用 `Configuration` 类和 ComponentScan 可以完成容器的配置。我们可以把所有 `Configuration` 类名和需要扫描
+的命名空间写到配置文件中，通过调用 `ContainterBuilder::create($projectPath)` 方法完成容器配置。在这个方法中会通过
+`require "$path/vendor/autoload.php"` 配置 Composer ClassLoader，在 `$projectPath/composer.json` 查找
 `extra.kuiper.config-file` 配置项，如果存在就加载此配置文件；否则使用默认配置文件 `config/container.php` 。
 这个配置文件格式如下：
+
 ```php
 <?php
 
@@ -261,14 +267,6 @@ return [
 
 ## 初始化
 
-通过调用 `ContainerBuilder::defer($callback)` 方法可以设置容器创建后需要执行的初始化操作。
-参数中的回调函数的参数为容器对象，例如：
-```php
-<?php
+`Configuration` 类可以实现接口 `\kuiper\di\Bootstrap` 来进行初始化操作。ContainerBuilder 在完成容器对象创建后会调用实现了 Boostrap 接口的 configuration 类的 `boot($container)` 方法。 
 
-$builder->defer(function(ContainerInterface $container) {
-   // bootstrap
-});
-```
-
-如果需要控制回调运行的顺序，可以使用第二个参数指定优先级，值为 1-1024 的整数，值越小，越早执行。
+下一节: [Logging](logger.md)

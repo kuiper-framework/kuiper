@@ -3,7 +3,7 @@
 ## 安装 
 
 ```bash
-composer require kuiper/helper
+composer require kuiper/helper:^0.6
 ```
 
 ## Enum

@@ -16,10 +16,9 @@ Tars 服务目前只提供 tcp 协议的服务。首先在 composer.json 中配�
         "kuiper": {
             "config-file": "src/container.php",
             "whitelist": [
-                "kuiper/kuiper"
+                "kuiper/*"
             ],
             "configuration": [
-                "kuiper\\tars\\config\\TarsClientConfiguration",
                 "kuiper\\tars\\config\\TarsServerConfiguration"
             ]
         }

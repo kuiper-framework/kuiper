@@ -1,17 +1,21 @@
 # Serializer
 
-在应用中大量场景需要进行对象序列化，例如RPC的参数和返回值解析，配置项转换为配置对象，缓存等。 
+在应用中很多场景中需要进行对象序列化，例如RPC的参数和返回值解析，配置项转换为配置对象，缓存等。 
 php 内置的 `serialize` 序列化结果对人是不友好的。一些开源库也提供序列化实现，例如
 [Symfony Serializer](https://symfony.com/doc/current/components/serializer.html) ，和
 [JMS Seriealizer](https://jmsyst.com/libs/serializer) 。kuiper 基于 reflection 库提供一个 简单但能满足绝大多数场景的序列化实现。
+
+## 安装
+
+```bash
+composer require kuiper/serializer:^0.6
+```
 
 ## 使用方法
 
 首先我们需要创建出 `\kuiper\serializer\Serializer` 对象：
 
 ```php
-<?php
-
 use kuiper\annotations\AnnotationReader;
 use kuiper\helper\Enum;
 use kuiper\reflection\ReflectionDocBlockFactory;
@@ -35,11 +39,11 @@ Serializer 可以读取方法或属性上的注解实现序列化的定制功能
 第三个参数 `normalizers` 用于支持自定义对象类型的序列化。
 
 序列化调用方法：
-```php
-<?php
 
+```php
 $serializer->normalize($var);
 ```
+
 如果 `$var` 是数组，则对数组元素递归调用 `normalize` 方法。
 如果 `$var` 是对象，则使用对象序列化规则进行序列化。
 其他情况不做处理，直接返回变量值。
@@ -56,8 +60,6 @@ Serializer 对象的序列化规则为，首先判断对象是否实现了 `Json
 反序列化调用方法：
 
 ```php
-<?php
-
 $serializer->denormalize($data, $type);
 ```
 反序列化时必须提供序列化结果的类型信息。类型信息可以是类型名，参考 `\kuiper\reflection\ReflectionType::parse` 说明。
@@ -84,3 +86,9 @@ $serializer->denormalize($data, $type);
 注意到 `ObjectNormalizer` 的 normalize 使用 `JsonSerializable::jsonSerialize` 序列化，而反序列化是没有对应
 的函数，也就是说在实现 `JsonSerializable::jsonSerialize` 时必须满足反序列化规则，否则反序列化时可能会出现错误。
 
+
+## SerializerConfiguration
+
+当使用 [DI](di.md) 创建项目容器，可以使用 `\kuiper\serializer\SerializerConfiguration` 配置 Serializer。
+
+下一节：[Server](swoole.md)

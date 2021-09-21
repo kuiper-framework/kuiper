@@ -3,12 +3,13 @@
 kuiper 提供 Http 客户端工厂类，并提供类似 [Spring Cloud OpenFeign](https://spring.io/projects/spring-cloud-openfeign) 声明式 
 构建 http 代理类。
 
-## HttpClientFactory
+## 安装
 
-首先安装 `guzzlehttp/guzzle` 包：
 ```bash
-composer require guzzlehttp/guzzle
+composer require kuiper/http-client:^0.6
 ```
+
+## HttpClientFactory
 
 在 `src/config.php` 配置：
 

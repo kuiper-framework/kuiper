@@ -5,7 +5,7 @@ Kuiper 默认启动了 Web Server，http 请求使用 [Slim](https://www.slimfra
 ## 安装
 
 ```bash
-composer require kuiper/web
+composer require kuiper/web:^0.6
 ```
 
 如果使用 twig 模板引擎，需要安装：
@@ -15,7 +15,7 @@ composer require twig/tiwg
 
 ## 路由
 
-和 Slim 框架中使用 php 代码配置路由不同，Kuiper 中通过注解配置路由。
+我们推荐使用注解配置路由。在 DI 命名空间扫描时，会记录所有 `@kuiper\di\annotation\Controller` 标记的控制类，`kuiper\web\AnnotationProcessor` 会根据 `application.web.namespace` 配置处理指定命名空间下的控制器类。在控制器通过 `@RequestMapping` 注解标记的方法会作为路由方法添加到 Slim 应用中。例如： 
 
 ```php
 <?php
@@ -41,8 +41,8 @@ class IndexController extends AbstractController
 }
 ```
 
-`@Controller` 标记的类会扫描 `@RequestMapping` 注解。`@RequestMapping` 可以使用 `method` 属性设置
-请求的 http 方法，可以使用 `@GetMapping` , `@PostMapping` 等 指定。以下是注解和对应的代码路由注册示例：
+`@RequestMapping` 可以使用 `method` 属性设置 请求的 http 方法，通常我们可以使用 `@GetMapping` , `@PostMapping` 指定请求方法。以下是注解和对应的代码路由注册示例：
+
 ```php
 @GetMapping("/books/{id}")               // $app->get("/books/{id}", 'Controller:method')
 @PostMapping("/books")                   // $app->post("/books", 'Controller:method')
@@ -192,7 +192,7 @@ twig 模板配置选项：
 ```php
 <?php
 
-use kuiper\web\annotation\filter\CsrfToken;
+use kuiper\web\annotation\CsrfToken;
 
 /**
  * @Controller
@@ -213,7 +213,9 @@ class BookController extends AbstractController
 
 ## 会话
 
-会话使用 PSR-6 CacheItemPoolInterface 对象存储。会话配置项：
+由于 Swoole 服务是常驻内存进程，PHP 的会话不再适用。需要通过使用 `\kuiper\web\session\SessionInterface` 接口操作会话数据。
+
+会话使用 PSR-6 `CacheItemPoolInterface` 对象存储。会话配置项：
 
 ```php
 [
@@ -348,7 +350,7 @@ Kuiper 提供简单的基于角色的权限判断。一个权限是由 `{resourc
 
 use kuiper\di\annotation\Controller;
 use kuiper\web\AbstractController;
-use kuiper\web\annotation\filter\PreAuthorize;
+use kuiper\web\annotation\PreAuthorize;
 use kuiper\web\annotation\GetMapping;
 
 /**

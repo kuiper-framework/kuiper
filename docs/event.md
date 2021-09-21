@@ -5,7 +5,7 @@ Kuiper Event 是基于 PSR-14 接口，使用 `symfony/event-dispatcher` 实现�
 ## 安装
 
 ```bash
-composer require kuiper/event
+composer require kuiper/event:^0.6
 ```
 
 在 `src/config.php` 中配置：
