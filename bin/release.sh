@@ -4,7 +4,6 @@ set -e
 NOW=$(date +%s)
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 VERSION=$(git tag --points-at HEAD)
-BASEPATH=$(cd `dirname $0`; cd ../src/; pwd)
 
 # Always prepend with "v"
 if [[ $VERSION != v*  ]]
@@ -12,9 +11,13 @@ then
     VERSION="v$VERSION"
 fi
 
-repos="annotations cache db di event helper http-client jsonrpc logger reflection resilience rpc rpc-registry serializer swoole tars web"
+if [ "$1" = "" ]; then
+    REPOS="annotations cache db di event helper http-client jsonrpc logger reflection resilience rpc rpc-registry serializer swoole tars web"
+else
+    REPOS="$@"
+fi
 
-for REMOTE in $repos
+for REMOTE in $REPOS
 do
     echo ""
     echo ""

@@ -64,7 +64,7 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
 
         $connectionInfo = $server->getConnectionInfo($event->getClientId());
         Assert::notNull($connectionInfo, 'cannot get connection info');
-        $request = $this->httpRequestFactory->createRequest('POST', sprintf('tcp://%s:%d', 'localhost', $connectionInfo->getServerPort()));
+        $request = $this->httpRequestFactory->createRequest('POST', sprintf('//%s:%d', 'localhost', $connectionInfo->getServerPort()));
         $request->getBody()->write($event->getData());
         try {
             $serverRequest = $this->serverRequestFactory->createRequest($request);

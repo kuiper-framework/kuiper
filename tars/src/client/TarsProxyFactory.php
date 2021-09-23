@@ -246,7 +246,7 @@ class TarsProxyFactory implements ContainerAwareInterface
         $class = new \ReflectionClass($className);
         if (isset($options['endpoint'])) {
             if (preg_match('#^\w+://#', $options['endpoint'])) {
-                $options['endpoint'] = Endpoint::removeScheme($options['endpoint']);
+                $options['endpoint'] = Endpoint::removeTcpScheme($options['endpoint']);
             } else {
                 $serviceEndpoint = EndpointParser::parseServiceEndpoint($options['endpoint']);
                 $options['service'] = $serviceEndpoint->getServiceName();

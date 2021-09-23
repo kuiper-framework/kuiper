@@ -154,7 +154,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
             new JsonRpcMethodFactory($this->annotationReader, [
                 $className => $options,
             ]),
-            $options['base_uri'] ?? $options['endpoint'] ?? '/'
+            Endpoint::removeTcpScheme($options['base_uri'] ?? $options['endpoint'] ?? '/')
         );
     }
 
@@ -171,7 +171,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
     {
         $responseFactory = $this->createRpcResponseFactory($options['out_params'] ?? false);
         $logger = $this->loggerFactory->create($className);
-        $transporter = new PooledTransporter($this->poolFactory->create($className, function ($connId) use ($logger , $options): TransporterInterface {
+        $transporter = new PooledTransporter($this->poolFactory->create($className, function ($connId) use ($logger, $options): TransporterInterface {
             $options = array_merge([
                 ClientSettings::OPEN_LENGTH_CHECK => false,
                 ClientSettings::OPEN_EOF_CHECK => true,
@@ -212,7 +212,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         $class = $proxyClass->getClassName();
         if (isset($options['endpoint'])) {
             // Laminas\Diactoros\Uri cannot accept tcp scheme
-            $options['endpoint'] = Endpoint::removeScheme($options['endpoint']);
+            $options['endpoint'] = Endpoint::removeTcpScheme($options['endpoint']);
         }
 
         if (ServerType::TCP === ($options['protocol'] ?? ServerType::TCP)) {
