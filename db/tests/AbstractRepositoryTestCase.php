@@ -31,7 +31,7 @@ abstract class AbstractRepositoryTestCase extends TestCase
             $type = ReflectionType::parse($typeName);
             $registry->register($type->getName(), new PrimitiveConverter($type));
         }
-        $registry->register(\DateTime::class, new DateTimeConverter(new DateTimeFactory()));
+        $registry->register(\DateTimeInterface::class, new DateTimeConverter(new DateTimeFactory()));
         $registry->register(DateConverter::class, new DateConverter(new DateTimeFactory()));
 
         return $registry;

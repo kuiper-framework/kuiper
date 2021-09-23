@@ -31,14 +31,14 @@ class Department
     /**
      * @CreationTimestamp()
      *
-     * @var \DateTime
+     * @var \DateTimeInterface
      */
     private $createTime;
 
     /**
      * @UpdateTimestamp()
      *
-     * @var \DateTime
+     * @var \DateTimeInterface
      */
     private $updateTime;
 
@@ -65,14 +65,14 @@ class Department
     }
 
     /**
-     * @return \DateTime
+     * @return \DateTimeInterface
      */
     public function getCreateTime()
     {
         return $this->createTime;
     }
 
-    public function setCreateTime(\DateTime $createTime): Department
+    public function setCreateTime(\DateTimeInterface $createTime): Department
     {
         $this->createTime = $createTime;
 
@@ -80,14 +80,14 @@ class Department
     }
 
     /**
-     * @return \DateTime
+     * @return \DateTimeInterface
      */
     public function getUpdateTime()
     {
         return $this->updateTime;
     }
 
-    public function setUpdateTime(\DateTime $updateTime): Department
+    public function setUpdateTime(\DateTimeInterface $updateTime): Department
     {
         $this->updateTime = $updateTime;
 

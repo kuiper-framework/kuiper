@@ -123,7 +123,7 @@ class DbConfiguration implements DefinitionConfiguration
             $type = ReflectionType::parse($typeName);
             $registry->register($type->getName(), new PrimitiveConverter($type));
         }
-        $registry->register(\DateTime::class, new DateTimeConverter($dateTimeFactory));
+        $registry->register(\DateTimeInterface::class, new DateTimeConverter($dateTimeFactory));
         $registry->register(DateConverter::class, new DateConverter($dateTimeFactory));
         $registry->register(JsonConverter::class, new JsonConverter());
         $registry->register(JoinerConverter::class, new JoinerConverter());
