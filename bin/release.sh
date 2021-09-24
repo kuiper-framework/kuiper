@@ -3,7 +3,7 @@ set -e
 
 NOW=$(date +%s)
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-VERSION=$(git tag --points-at HEAD)
+VERSION=$(git tag --points-at HEAD --sort -version:refname | head -1)
 
 # Always prepend with "v"
 if [[ $VERSION != v*  ]]
