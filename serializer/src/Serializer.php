@@ -122,7 +122,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         }
         if ($type->isClass()) {
             $className = $type->getName();
-            if (!class_exists($className)) {
+            if (!class_exists($className) && !interface_exists($className)) {
                 throw new SerializeException("Class '$className' does not exist");
             }
 

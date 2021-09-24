@@ -35,7 +35,8 @@ class DateTimeNormalizer implements NormalizerInterface
      */
     public function denormalize($data, $className)
     {
-        $dateTimeClass = Text::isNotEmpty($className) && is_a($className, \DateTimeImmutable::class, true)
+        $dateTimeClass = Text::isNotEmpty($className)
+            && (\DateTimeInterface::class === $className || is_a($className, \DateTimeImmutable::class, true))
             ? \DateTimeImmutable::class
             : \DateTime::class;
         if (is_string($data)) {
