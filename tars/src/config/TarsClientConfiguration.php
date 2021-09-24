@@ -24,6 +24,7 @@ use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\rpc\client\middleware\Retry;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
 use kuiper\rpc\JsonRpcRequestLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
@@ -57,6 +58,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
         $this->addTarsRequestLog();
         $config = Application::getInstance()->getConfig();
         $middlewares = [
+            Retry::class,
             AddRequestReferer::class,
             'tarsServiceDiscovery',
             'tarsClientRequestLog',
@@ -188,6 +190,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
         /** @var QueryFServant $queryClient */
         $queryClient = TarsProxyFactory::createFromContainer($container, [
             new ServiceDiscovery($container->get(InMemoryServiceResolver::class)),
+            $container->get(Retry::class),
         ])->create(QueryFServant::class);
 
         return new TarsRegistryResolver($queryClient);
