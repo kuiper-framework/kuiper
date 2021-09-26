@@ -141,6 +141,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         $ipList = $this->getIpList($request);
         $statusCode = isset($response) ? $response->getStatusCode() : 500;
         $responseBodySize = isset($response) ? $response->getBody()->getSize() : 0;
+        $requestBodySize = $request->getBody()->getSize();
         $messageContext = [
             'remote_addr' => $ipList[0] ?? '-',
             'remote_user' => $request->getUri()->getUserInfo() ?? '-',
@@ -153,6 +154,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
                 .strtoupper('' !== $request->getUri()->getScheme() ? $request->getUri()->getScheme() : 'tcp').'/'.$request->getProtocolVersion(),
             'status' => $statusCode,
             'body_bytes_sent' => $responseBodySize,
+            'body_bytes_recv' => $requestBodySize,
             'http_referer' => $request->getHeaderLine('Referer'),
             'http_user_agent' => $request->getHeaderLine('User-Agent'),
             'http_x_forwarded_for' => implode(',', $ipList),

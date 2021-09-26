@@ -15,10 +15,11 @@ namespace kuiper\tars\client;
 
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponse;
+use kuiper\tars\core\TarsResponseInterface;
 use kuiper\tars\stream\ResponsePacket;
 use Psr\Http\Message\ResponseInterface;
 
-class TarsResponse extends RpcResponse
+class TarsResponse extends RpcResponse implements TarsResponseInterface
 {
     /**
      * @var ResponsePacket

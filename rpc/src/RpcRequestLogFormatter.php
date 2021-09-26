@@ -42,6 +42,10 @@ class RpcRequestLogFormatter extends LineRequestLogFormatter
                 $context['callee_service'] = $calleeMethod->getServiceLocator()->getName();
                 $context['callee_method'] = $calleeMethod->getMethodName();
             }
+        } else {
+            // client request exchange body bytes
+            [$context['body_bytes_recv'], $context['body_bytes_send']]
+            = [$context['body_bytes_send'], $context['body_bytes_recv']];
         }
         if (in_array('params', $this->getExtra(), true)) {
             $param = str_replace('"', "'", (string) json_encode($rpcMethod->getArguments(),

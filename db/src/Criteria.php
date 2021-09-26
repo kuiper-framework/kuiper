@@ -392,8 +392,10 @@ class Criteria
             $stmt->select(...$this->getColumns());
         }
         if (isset($this->limit)) {
-            $stmt->limit($this->getLimit())
-                ->offset($this->getOffset());
+            $stmt->limit($this->getLimit());
+            if (isset($this->offset)) {
+                $stmt->offset($this->getOffset());
+            }
         }
         if (!empty($this->orderBy)) {
             $stmt->orderBy(array_map(static function (Sort $sort): string {

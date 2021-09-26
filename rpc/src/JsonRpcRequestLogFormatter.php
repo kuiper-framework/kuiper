@@ -22,13 +22,13 @@ class JsonRpcRequestLogFormatter extends RpcRequestLogFormatter
 {
     public const SERVER = [
         'service', 'method', 'status', 'remote_addr', 'time_local',
-        'referer', 'body_bytes_sent', 'request_id', 'request_time', 'extra',
+        'referer', 'body_bytes_sent', 'body_bytes_recv', 'request_id', 'request_time', 'extra',
     ];
 
     public const CLIENT = [
         'service', 'method', 'status', 'server_addr', 'time_local',
         'callee_servant', 'callee_method',
-        'body_bytes_sent', 'request_id', 'request_time', 'extra',
+        'body_bytes_sent', 'body_bytes_recv', 'request_id', 'request_time', 'extra',
     ];
 
     /**
