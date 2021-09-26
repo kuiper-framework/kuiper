@@ -66,6 +66,14 @@ class JsonRpcRequest extends RpcRequest implements JsonRpcRequestInterface
         return $this->getRpcMethod()->getServiceLocator()->getName().'.'.$this->getRpcMethod()->getMethodName();
     }
 
+    public function withBody(StreamInterface $body)
+    {
+        $copy = clone $this;
+        $copy->body = $body;
+
+        return $copy;
+    }
+
     /**
      * {@inheritDoc}
      */

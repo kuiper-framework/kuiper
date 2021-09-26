@@ -136,7 +136,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
      */
     protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, float $startTime, float $endTime): array
     {
-        $time = round(($startTime - $endTime) * 1000, 2);
+        $time = round(($endTime - $startTime) * 1000, 2);
 
         $ipList = $this->getIpList($request);
         $statusCode = isset($response) ? $response->getStatusCode() : 500;

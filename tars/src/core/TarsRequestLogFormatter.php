@@ -32,8 +32,6 @@ class TarsRequestLogFormatter extends JsonRpcRequestLogFormatter
         }
         /** @var TarsRequestInterface $request */
         $context['referer'] = AddRequestReferer::getReferer($request);
-        $context['servant'] = $context['service'];
-        unset($context['service']);
 
         return $context;
     }

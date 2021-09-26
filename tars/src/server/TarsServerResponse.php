@@ -36,6 +36,11 @@ class TarsServerResponse extends RpcResponse implements TarsResponseInterface
      */
     private $streamFactory;
 
+    /**
+     * @var StreamInterface
+     */
+    private $body;
+
     public function __construct(TarsRequestInterface $request, ResponseInterface $response, StreamFactoryInterface $streamFactory)
     {
         parent::__construct($request, $response);
@@ -48,13 +53,21 @@ class TarsServerResponse extends RpcResponse implements TarsResponseInterface
         return $this->packet;
     }
 
+    public function withBody(StreamInterface $body)
+    {
+        $copy = clone $this;
+        $copy->body = $body;
+
+        return $copy;
+    }
+
     /**
      * {@inheritDoc}
      */
     public function getBody(): StreamInterface
     {
-        $packet = $this->packet;
-        if (null === $packet->sBuffer) {
+        if (null === $this->body) {
+            $packet = $this->packet;
             /** @var TarsMethodInterface $rpcMethod */
             $rpcMethod = $this->getRequest()->getRpcMethod();
             $returnValues = $rpcMethod->getResult();
@@ -78,9 +91,9 @@ class TarsServerResponse extends RpcResponse implements TarsResponseInterface
                 }
                 $packet->sBuffer = (string) $os;
             }
-            $this->httpResponse = $this->httpResponse->withBody($this->streamFactory->createStream((string) $packet->encode()));
+            $this->body = $this->streamFactory->createStream((string) $packet->encode());
         }
 
-        return parent::getBody();
+        return $this->body;
     }
 }

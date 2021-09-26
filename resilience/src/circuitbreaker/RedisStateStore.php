@@ -58,7 +58,7 @@ class RedisStateStore implements StateStore
 
     public function getOpenAt(string $name): int
     {
-        $values = $this->redis->mget([
+        $values = $this->redis->mGet([
             $this->keyPrefix.$name,
             $this->keyPrefix.'open'.$name,
         ]);

@@ -41,6 +41,14 @@ class JsonRpcServerResponse extends RpcResponse
         $this->streamFactory = $streamFactory;
     }
 
+    public function withBody(StreamInterface $body)
+    {
+        $copy = clone $this;
+        $copy->body = $body;
+
+        return $copy;
+    }
+
     public function getBody(): StreamInterface
     {
         if (null === $this->body) {
