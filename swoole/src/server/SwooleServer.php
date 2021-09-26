@@ -49,11 +49,6 @@ class SwooleServer extends AbstractServer
      */
     private $resource;
 
-    /**
-     * @var Server
-     */
-    private $workerServer;
-
     public function getHttpMessageFactoryHolder(): HttpMessageFactoryHolder
     {
         return $this->httpMessageFactoryHolder;
@@ -161,7 +156,7 @@ class SwooleServer extends AbstractServer
      */
     public function isTaskWorker(): bool
     {
-        return $this->hasWorker() && (bool) $this->getWorker()->taskworker;
+        return (bool) $this->resource->taskworker;
     }
 
     /**
@@ -169,9 +164,7 @@ class SwooleServer extends AbstractServer
      */
     public function send(int $clientId, string $data): void
     {
-        if ($this->getWorker()) {
-            $this->getWorker()->send($clientId, $data);
-        }
+        $this->resource->send($clientId, $data);
     }
 
     /**
@@ -274,27 +267,8 @@ class SwooleServer extends AbstractServer
 
                 return;
             }
-            $server = clone $this;
-            if ($args[0] instanceof Server) {
-                $server->setWorker(array_shift($args));
-            }
-            $server->dispatch($eventName, $args);
+            $this->dispatch($eventName, $args);
         };
-    }
-
-    private function setWorker(?Server $server): void
-    {
-        $this->workerServer = $server;
-    }
-
-    private function hasWorker(): bool
-    {
-        return isset($this->workerServer);
-    }
-
-    private function getWorker(): ?Server
-    {
-        return $this->workerServer;
     }
 
     private function attach(string $event): void

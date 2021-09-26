@@ -22,6 +22,8 @@ use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\event\annotation\EventListener;
 use kuiper\helper\PropertyResolverInterface;
+use kuiper\swoole\server\ServerInterface;
+use kuiper\swoole\task\QueueInterface;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface as PsrEventDispatcher;
 use Psr\Log\LoggerInterface;
@@ -37,9 +39,21 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
     public function getDefinitions(): array
     {
         $this->containerBuilder->addAwareInjection(AwareInjection::create(EventDispatcherAwareInterface::class));
+        $this->containerBuilder->defer(function (ContainerInterface $container): void {
+            $taskWorkers = (int) $container->get('application.swoole.task_worker_num');
+            if ($taskWorkers > 0) {
+                $eventDispatcher = $container->get(PsrEventDispatcher::class);
+                if ($eventDispatcher instanceof AsyncEventDispatcher) {
+                    $eventDispatcher->setServer($container->get(ServerInterface::class));
+                    $eventDispatcher->setTaskQueue($container->get(QueueInterface::class));
+                }
+            }
+        });
 
         return [
-            PsrEventDispatcher::class => get(EventDispatcherInterface::class),
+            PsrEventDispatcher::class => autowire(AsyncEventDispatcher::class)
+                ->constructorParameter('eventDispatcher', get(EventDispatcherInterface::class)),
+            AsyncEventDispatcherInterface::class => get(PsrEventDispatcher::class),
             EventDispatcherInterface::class => autowire(EventDispatcher::class),
         ];
     }
