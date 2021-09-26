@@ -53,7 +53,7 @@ class TarsServerRpcRequestHandlerTest extends TestCase
         $serverProperties->setAdapters([$adapter]);
         $httpFactory = new HttpFactory();
         $responseFactory = new TarsServerResponseFactory($httpFactory, $httpFactory);
-        $handler = new RpcServerRpcRequestHandler($services, $responseFactory, []);
+        $handler = new RpcServerRpcRequestHandler($services, $responseFactory, new ErrorHandler($httpFactory), []);
         $rpcMethodFactory = new TarsServerMethodFactory($serverProperties, $services, AnnotationReader::getInstance());
         $requestFactory = new TarsServerRequestFactory($rpcMethodFactory, $services);
         $httpRequest = $httpFactory->createRequest('GET', 'tcp://localhost:8003');

@@ -18,6 +18,8 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
+use kuiper\resilience\core\SimpleCounter;
+use kuiper\rpc\client\RequestIdGenerator;
 use kuiper\rpc\client\RpcClient;
 use kuiper\rpc\client\RpcExecutorFactory;
 use kuiper\rpc\transporter\HttpTransporter;
@@ -57,7 +59,7 @@ class TarsClientTest extends TestCase
 
         $transporter = new HttpTransporter($client);
         $methodFactory = new TarsMethodFactory();
-        $requestFactory = new TarsRequestFactory(new RequestFactory(), new StreamFactory(), $methodFactory, '', 1);
+        $requestFactory = new TarsRequestFactory(new RequestFactory(), new StreamFactory(), $methodFactory, new RequestIdGenerator(new SimpleCounter(), 0), '');
         $responseFactory = new TarsResponseFactory();
         $rpcClient = new RpcClient($transporter, $responseFactory);
         /** @var HelloService $proxy */

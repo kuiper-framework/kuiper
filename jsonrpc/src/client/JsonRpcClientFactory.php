@@ -18,6 +18,7 @@ use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\client\ProxyGeneratorInterface;
+use kuiper\rpc\client\RequestIdGeneratorInterface;
 use kuiper\rpc\client\RpcClient;
 use kuiper\rpc\client\RpcExecutorFactory;
 use kuiper\rpc\client\RpcExecutorFactoryInterface;
@@ -99,6 +100,10 @@ class JsonRpcClientFactory implements LoggerAwareInterface
      * @var HttpClientFactoryInterface|null
      */
     private $httpClientFactory;
+    /**
+     * @var RequestIdGeneratorInterface
+     */
+    private $requestIdGenerator;
 
     /**
      * JsonRpcClientFactory constructor.
@@ -123,6 +128,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         ProxyGeneratorInterface $proxyGenerator,
         LoggerFactoryInterface $loggerFactory,
         PoolFactoryInterface $poolFactory,
+        RequestIdGeneratorInterface $requestIdGenerator,
         array $middlewares,
         HttpClientFactoryInterface $httpClientFactory = null)
     {
@@ -135,6 +141,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         $this->httpRequestFactory = $httpRequestFactory;
         $this->proxyGenerator = $proxyGenerator;
         $this->loggerFactory = $loggerFactory;
+        $this->requestIdGenerator = $requestIdGenerator;
         $this->poolFactory = $poolFactory;
         $this->httpClientFactory = $httpClientFactory;
     }
@@ -154,6 +161,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
             new JsonRpcMethodFactory($this->annotationReader, [
                 $className => $options,
             ]),
+            $this->requestIdGenerator,
             Endpoint::removeTcpScheme($options['base_uri'] ?? $options['endpoint'] ?? '/')
         );
     }

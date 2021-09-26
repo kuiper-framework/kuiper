@@ -19,6 +19,7 @@ use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\transporter\TransporterInterface;
 use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\fixtures\HelloService;
+use kuiper\tars\server\TarsServerRequest;
 use kuiper\tars\server\TarsServerResponse;
 use Laminas\Diactoros\StreamFactory;
 use PHPUnit\Framework\TestCase;
@@ -39,11 +40,12 @@ class TarsProxyFactoryTest extends TestCase
     {
         TarsProxyFactoryMockHelper::$transporter = \Mockery::mock(TransporterInterface::class);
         TarsProxyFactoryMockHelper::$transporter->shouldReceive('sendRequest')
+            ->withArgs([\Mockery::capture($req)])
             ->andReturnUsing(function (TarsRequestInterface $req) {
-                error_log('server '.$req->getServantName());
+                $args = $req->getRpcMethod()->getArguments();
 
                 return new TarsServerResponse($req->withRpcMethod($req
-                    ->getRpcMethod()->withResult(['hello world'])), new Response(), new StreamFactory());
+                    ->getRpcMethod()->withResult(['hello '.$args[0]])), new Response(), new StreamFactory());
             });
 
         $factory = TarsProxyFactoryMockHelper::createDefault(
@@ -55,12 +57,16 @@ class TarsProxyFactoryTest extends TestCase
             'service' => 'app.service.HelloObj',
         ]);
         $ret = $client->hello('foo');
-        var_export($ret);
+        /** @var TarsServerRequest $req */
+        $this->assertEquals('app.service.HelloObj', $req->getServantName());
+        $this->assertEquals('hello foo', $ret);
+        // var_export($ret);
 
         $client = $factory->create(HelloService::class, [
             'service' => 'app.service2.HelloObj',
         ]);
         $ret = $client->hello('foo');
-        var_export($ret);
+        $this->assertEquals('app.service2.HelloObj', $req->getServantName());
+        $this->assertEquals('hello foo', $ret);
     }
 }

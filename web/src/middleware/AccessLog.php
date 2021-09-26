@@ -60,8 +60,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
             return $response;
         } finally {
             if (null === $this->requestFilter || (bool) call_user_func($this->requestFilter, $request, $response)) {
-                $responseTime = (microtime(true) - $start) * 1000;
-                $this->logger->info(...$this->formatter->format($request, $response, $responseTime));
+                $this->logger->info(...$this->formatter->format($request, $response, $start, microtime(true)));
             }
         }
     }

@@ -23,9 +23,9 @@ class RpcRequestLogFormatter extends LineRequestLogFormatter
     /**
      * {@inheritDoc}
      */
-    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, float $responseTime): array
+    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, float $startTime, float $endTime): array
     {
-        $context = parent::prepareMessageContext($request, $response, $responseTime);
+        $context = parent::prepareMessageContext($request, $response, $startTime, $endTime);
         /** @var RpcRequestInterface $request */
         $rpcMethod = $request->getRpcMethod();
         $context['service'] = $rpcMethod->getServiceLocator()->getName();

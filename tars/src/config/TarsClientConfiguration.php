@@ -24,8 +24,11 @@ use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\resilience\core\SwooleAtomicCounter;
 use kuiper\rpc\client\middleware\Retry;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
+use kuiper\rpc\client\RequestIdGenerator;
+use kuiper\rpc\client\RequestIdGeneratorInterface;
 use kuiper\rpc\JsonRpcRequestLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\servicediscovery\ChainedServiceResolver;
@@ -80,6 +83,14 @@ class TarsClientConfiguration implements DefinitionConfiguration
             'tarsClientRequestLogFormatter' => autowire(TarsRequestLogFormatter::class)
                 ->constructorParameter('fields', JsonRpcRequestLogFormatter::CLIENT),
         ]);
+    }
+
+    /**
+     * @Bean
+     */
+    public function requestIdGenerator(): RequestIdGeneratorInterface
+    {
+        return new RequestIdGenerator(new SwooleAtomicCounter());
     }
 
     /**
@@ -189,8 +200,9 @@ class TarsClientConfiguration implements DefinitionConfiguration
     {
         /** @var QueryFServant $queryClient */
         $queryClient = TarsProxyFactory::createFromContainer($container, [
-            new ServiceDiscovery($container->get(InMemoryServiceResolver::class)),
             $container->get(Retry::class),
+            new ServiceDiscovery($container->get(InMemoryServiceResolver::class)),
+            $container->get('tarsClientRequestLog'),
         ])->create(QueryFServant::class);
 
         return new TarsRegistryResolver($queryClient);

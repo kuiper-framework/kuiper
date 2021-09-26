@@ -1,0 +1,58 @@
+[
+    {
+        "AggregatedStatus": "passing",
+        "Service": {
+            "ID": "app.service.UserService@10.1.1.165:8002",
+            "Service": "app.service.UserService",
+            "Tags": [],
+            "Meta": {},
+            "Port": 8002,
+            "Address": "10.1.1.165",
+            "SocketPath": "",
+            "TaggedAddresses": {
+                "lan_ipv4": {
+                    "Address": "10.1.1.165",
+                    "Port": 8002
+                },
+                "wan_ipv4": {
+                    "Address": "10.1.1.165",
+                    "Port": 8002
+                }
+            },
+            "Weights": {
+                "Passing": 1,
+                "Warning": 1
+            },
+            "EnableTagOverride": false,
+            "Datacenter": "dc1"
+        },
+        "Checks": [
+            {
+                "Node": "WenbindeMBP",
+                "CheckID": "service:app.service.UserService@10.1.1.165:8002",
+                "Name": "Service 'app.service.UserService' check",
+                "Status": "passing",
+                "Notes": "",
+                "Output": "TCP connect 10.1.1.165:8002: Success",
+                "ServiceID": "app.service.UserService@10.1.1.165:8002",
+                "ServiceName": "app.service.UserService",
+                "ServiceTags": null,
+                "Type": "",
+                "Definition": {
+                    "Interval": "0s",
+                    "Timeout": "0s",
+                    "DeregisterCriticalServiceAfter": "0s",
+                    "HTTP": "",
+                    "Header": null,
+                    "Method": "",
+                    "Body": "",
+                    "TLSServerName": "",
+                    "TLSSkipVerify": false,
+                    "TCP": ""
+                },
+                "CreateIndex": 0,
+                "ModifyIndex": 0
+            }
+        ]
+    }
+]

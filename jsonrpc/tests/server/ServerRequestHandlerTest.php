@@ -23,6 +23,7 @@ use kuiper\rpc\fixtures\UserService;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
+use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\serializer\Serializer;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\ServerPort;
@@ -48,7 +49,11 @@ class ServerRequestHandlerTest extends TestCase
         $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
         $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
         $services = $this->buildServices([UserService::class => $userService]);
-        $handler = new RpcServerRpcRequestHandler($services, new JsonRpcServerResponseFactory(new ResponseFactory(), new StreamFactory(), OutParamJsonRpcServerResponse::class));
+        $handler = new RpcServerRpcRequestHandler(
+            $services,
+            new JsonRpcServerResponseFactory(new ResponseFactory(), new StreamFactory(), OutParamJsonRpcServerResponse::class),
+            new ErrorHandler(new ResponseFactory(), new StreamFactory(), new ExceptionNormalizer())
+        );
 
         $request = new Request('POST', '/', [], json_encode([
             'jsonrpc' => '2.0',
@@ -93,7 +98,11 @@ class ServerRequestHandlerTest extends TestCase
 
         $services = $this->buildServices([UserService::class => $userService]);
         $rpcMethodFactory = new JsonRpcServerMethodFactory($services, $normalizer, $reflectionDocBlockFactory);
-        $handler = new RpcServerRpcRequestHandler($services, new JsonRpcServerResponseFactory($httpFactory, $httpFactory));
+        $handler = new RpcServerRpcRequestHandler(
+            $services,
+            new JsonRpcServerResponseFactory($httpFactory, $httpFactory),
+            new ErrorHandler($httpFactory, $httpFactory, new ExceptionNormalizer())
+        );
 
         $request = new Request('POST', '/', [], json_encode([
             'jsonrpc' => '2.0',

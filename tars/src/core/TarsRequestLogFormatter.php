@@ -20,15 +20,20 @@ use Psr\Http\Message\ResponseInterface;
 
 class TarsRequestLogFormatter extends JsonRpcRequestLogFormatter
 {
-    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, float $responseTime): array
+    /**
+     * {@inheritDoc}
+     */
+    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, float $startTime, $endTime): array
     {
-        $context = parent::prepareMessageContext($request, $response, $responseTime);
+        $context = parent::prepareMessageContext($request, $response, $startTime, $endTime);
         if ($response instanceof TarsResponseInterface) {
             $packet = $response->getResponsePacket();
             $context['status'] = $packet->iRet;
         }
         /** @var TarsRequestInterface $request */
         $context['referer'] = AddRequestReferer::getReferer($request);
+        $context['servant'] = $context['service'];
+        unset($context['service']);
 
         return $context;
     }

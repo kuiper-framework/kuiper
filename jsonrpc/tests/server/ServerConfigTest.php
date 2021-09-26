@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use GuzzleHttp\Psr7\Utils;
+use kuiper\jsonrpc\config\JsonRpcServerConfiguration;
 use kuiper\jsonrpc\fixtures\service\CalculatorService;
 use kuiper\jsonrpc\TestCase;
 use Laminas\Diactoros\ServerRequestFactory;
@@ -40,5 +41,12 @@ class ServerConfigTest extends TestCase
             'id' => 1,
             'result' => 3.1,
         ], json_decode((string) $response->getBody(), true));
+    }
+
+    public function getConfigurations(): array
+    {
+        return [
+            new JsonRpcServerConfiguration(),
+        ];
     }
 }

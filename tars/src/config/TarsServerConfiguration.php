@@ -139,7 +139,11 @@ class TarsServerConfiguration implements DefinitionConfiguration
         /** @var TarsServant $annotation */
         foreach (ComponentCollection::getAnnotations(TarsServant::class) as $annotation) {
             $serviceImpl = $container->get($annotation->getComponentId());
-            $servantName = $serverProperties->getServerName().'.'.$annotation->service;
+            if (false !== strpos($annotation->service, '.')) {
+                $servantName = $annotation->service;
+            } else {
+                $servantName = $serverProperties->getServerName().'.'.$annotation->service;
+            }
             $methods = Arrays::pull($annotation->getTarget()->getMethods(\ReflectionMethod::IS_PUBLIC), 'name');
             $services[$servantName] = new Service(
                 new ServiceLocator($servantName),

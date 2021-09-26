@@ -22,7 +22,9 @@ use GuzzleHttp\Psr7\Response;
 use kuiper\annotations\AnnotationReader;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\reflection\ReflectionDocBlockFactory;
+use kuiper\resilience\core\SimpleCounter;
 use kuiper\rpc\client\ProxyGenerator;
+use kuiper\rpc\client\RequestIdGenerator;
 use kuiper\rpc\client\RpcClient;
 use kuiper\rpc\client\RpcExecutorFactory;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
@@ -64,7 +66,7 @@ class JsonRpcClientTest extends TestCase
         $transporter = new HttpTransporter($client);
         $rpcMethodFactory = new JsonRpcMethodFactory(AnnotationReader::getInstance());
         $httpFactory = new HttpFactory();
-        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), $httpFactory, $rpcMethodFactory, '/', 1);
+        $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), $httpFactory, $rpcMethodFactory, new RequestIdGenerator(new SimpleCounter(), 0), '/');
         if (null === $responseFactory) {
             $responseFactory = new SimpleJsonRpcResponseFactory();
         }

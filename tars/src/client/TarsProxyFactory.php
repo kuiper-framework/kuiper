@@ -21,8 +21,12 @@ use kuiper\di\ContainerAwareTrait;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
+use kuiper\resilience\core\Counter;
+use kuiper\resilience\core\SimpleCounter;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
 use kuiper\rpc\client\ProxyGeneratorInterface;
+use kuiper\rpc\client\RequestIdGenerator;
+use kuiper\rpc\client\RequestIdGeneratorInterface;
 use kuiper\rpc\client\RpcClient;
 use kuiper\rpc\client\RpcExecutorFactory;
 use kuiper\rpc\client\RpcExecutorFactoryInterface;
@@ -97,6 +101,14 @@ class TarsProxyFactory implements ContainerAwareInterface
      * @var MiddlewareInterface[]
      */
     private $middlewares;
+    /**
+     * @var Counter
+     */
+    private $counter;
+    /**
+     * @var RequestIdGeneratorInterface
+     */
+    private $requestIdGenerator;
 
     /**
      * TarsProxyFactory constructor.
@@ -117,6 +129,7 @@ class TarsProxyFactory implements ContainerAwareInterface
         AnnotationReaderInterface $annotationReader,
         ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory,
         PoolFactoryInterface $poolFactory,
+        RequestIdGeneratorInterface $requestIdGenerator,
         ?LoggerFactoryInterface $loggerFactory,
         array $middlewares = []
     ) {
@@ -126,6 +139,7 @@ class TarsProxyFactory implements ContainerAwareInterface
         $this->annotationReader = $annotationReader;
         $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
         $this->poolFactory = $poolFactory;
+        $this->requestIdGenerator = $requestIdGenerator;
         $this->loggerFactory = $loggerFactory;
         $this->middlewares = $middlewares;
     }
@@ -139,6 +153,7 @@ class TarsProxyFactory implements ContainerAwareInterface
             $container->get(AnnotationReaderInterface::class),
             $container->get(ReflectionDocBlockFactoryInterface::class),
             $container->get(PoolFactoryInterface::class),
+            $container->get(RequestIdGeneratorInterface::class),
             $container->get(LoggerFactoryInterface::class),
             $middlewares
         );
@@ -190,6 +205,7 @@ class TarsProxyFactory implements ContainerAwareInterface
             AnnotationReader::getInstance(),
             ReflectionDocBlockFactory::getInstance(),
             new PoolFactory(),
+            new RequestIdGenerator(new SimpleCounter()),
             null,
             [new ServiceDiscovery($serviceResolver)]
         );
@@ -202,7 +218,13 @@ class TarsProxyFactory implements ContainerAwareInterface
 
     protected function createRpcRequestFactory(array $options): RpcRequestFactoryInterface
     {
-        return new TarsRequestFactory($this->httpRequestFactory, $this->streamFactory, new TarsMethodFactory($this->annotationReader, $options), $options['endpoint'] ?? '/');
+        return new TarsRequestFactory(
+            $this->httpRequestFactory,
+            $this->streamFactory,
+            new TarsMethodFactory($this->annotationReader, $options),
+            $this->requestIdGenerator,
+            $options['endpoint'] ?? '/'
+        );
     }
 
     protected function createRpcClient(string $className, array $options): RpcRequestHandlerInterface

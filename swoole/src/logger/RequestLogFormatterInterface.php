@@ -21,9 +21,10 @@ interface RequestLogFormatterInterface
     /**
      * @param RequestInterface       $request
      * @param ResponseInterface|null $response
-     * @param float                  $responseTime
+     * @param float                  $startTime
+     * @param float                  $endTime
      *
      * @return array formatted message and extra info
      */
-    public function format(RequestInterface $request, ?ResponseInterface $response, float $responseTime): array;
+    public function format(RequestInterface $request, ?ResponseInterface $response, float $startTime, float $endTime): array;
 }

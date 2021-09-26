@@ -17,6 +17,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
+use kuiper\jsonrpc\config\JsonRpcClientConfiguration;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\fixtures\service\CalculatorService;
 use kuiper\jsonrpc\TestCase;
@@ -39,10 +40,18 @@ class JsonRpcClientFactoryTest extends TestCase
                 'result' => 4.1,
             ]));
         });
-        echo get_class($impl);
+        // echo get_class($impl);
         $ret = $impl->add(1, 3.1);
-        echo $ret;
-        echo $this->requests[0]['request']->getBody();
+        $this->assertEquals(4.1, $ret);
+        $data = json_decode((string) $this->requests[0]['request']->getBody(), true);
+        $this->assertEquals('calculator.add', $data['method']);
+    }
+
+    protected function getConfigurations(): array
+    {
+        return [
+            new JsonRpcClientConfiguration(),
+        ];
     }
 
     protected function getConfig(): array

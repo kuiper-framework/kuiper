@@ -32,7 +32,7 @@ class SerializerTest extends TestCase
 {
     public function createSerializer()
     {
-        return new Serializer(AnnotationReader::getInstance(), new ReflectionDocBlockFactory(), [
+        return new Serializer(AnnotationReader::getInstance(), ReflectionDocBlockFactory::getInstance(), [
             \DateTime::class => new DateTimeNormalizer(),
             Enum::class => new EnumNormalizer(),
         ]);

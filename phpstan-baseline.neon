@@ -73,7 +73,7 @@ parameters:
 		-
 			message: "#^Call to an undefined method kuiper\\\\logger\\\\LoggerFactoryInterface\\:\\:getLoggers\\(\\)\\.$#"
 			count: 1
-			path: rpc/src/server/listener/ReopenLogFile.php
+			path: swoole/src/listener/ReopenLogFile.php
 
 		-
 			message: "#^Method kuiper\\\\tars\\\\config\\\\TarsClientConfiguration\\:\\:createTarsClient\\(\\) has no return typehint specified\\.$#"

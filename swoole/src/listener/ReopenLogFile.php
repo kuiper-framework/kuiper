@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\rpc\server\listener;
+namespace kuiper\swoole\listener;
 
 use kuiper\event\EventListenerInterface;
 use kuiper\logger\LoggerFactoryInterface;

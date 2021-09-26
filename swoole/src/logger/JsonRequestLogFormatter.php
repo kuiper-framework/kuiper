@@ -37,9 +37,12 @@ class JsonRequestLogFormatter extends LineRequestLogFormatter
         $this->fields = $fields;
     }
 
-    public function format(RequestInterface $request, ?ResponseInterface $response, float $responseTime): array
+    /**
+     * {@inheritDoc}
+     */
+    public function format(RequestInterface $request, ?ResponseInterface $response, float $startTime, $endTime): array
     {
-        $messageContext = $this->prepareMessageContext($request, $response, $responseTime);
+        $messageContext = $this->prepareMessageContext($request, $response, $startTime, $endTime);
 
         return [self::jsonEncode(Arrays::select($messageContext, $this->fields))];
     }

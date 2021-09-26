@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\client;
 
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
+use kuiper\rpc\client\RequestIdGeneratorInterface;
 use kuiper\rpc\client\RpcRequestFactoryInterface;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
@@ -43,17 +44,17 @@ class JsonRpcRequestFactory implements RpcRequestFactoryInterface
     private $baseUri;
 
     /**
-     * @var int
+     * @var RequestIdGeneratorInterface
      */
-    private $id;
+    private $requestIdGenerator;
 
-    public function __construct(RequestFactoryInterface $httpRequestFactory, StreamFactoryInterface $streamFactory, RpcMethodFactoryInterface $rpcMethodFactory, string $baseUri = '/', ?int $id = null)
+    public function __construct(RequestFactoryInterface $httpRequestFactory, StreamFactoryInterface $streamFactory, RpcMethodFactoryInterface $rpcMethodFactory, RequestIdGeneratorInterface $requestIdGenerator, string $baseUri = '/')
     {
         $this->httpRequestFactory = $httpRequestFactory;
         $this->streamFactory = $streamFactory;
         $this->rpcMethodFactory = $rpcMethodFactory;
         $this->baseUri = $baseUri;
-        $this->id = $id ?? random_int(0, 1 << 20);
+        $this->requestIdGenerator = $requestIdGenerator;
     }
 
     public function createRequest(object $proxy, string $method, array $args): RpcRequestInterface
@@ -61,20 +62,12 @@ class JsonRpcRequestFactory implements RpcRequestFactoryInterface
         $invokingMethod = $this->rpcMethodFactory->create($proxy, $method, $args);
         $request = $this->httpRequestFactory->createRequest('POST', $this->createUri($invokingMethod));
 
-        return new JsonRpcRequest($request, $invokingMethod, $this->streamFactory, $this->generateId(), JsonRpcRequestInterface::JSONRPC_VERSION);
+        return new JsonRpcRequest($request, $invokingMethod, $this->streamFactory, $this->requestIdGenerator->next(), JsonRpcRequestInterface::JSONRPC_VERSION);
     }
 
     protected function createUri(RpcMethodInterface $method): string
     {
         return $this->baseUri;
-    }
-
-    protected function generateId(): int
-    {
-        $id = $this->id;
-        ++$this->id;
-
-        return $id;
     }
 
     /**

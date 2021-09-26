@@ -29,8 +29,11 @@ use kuiper\jsonrpc\annotation\JsonRpcService;
 use kuiper\jsonrpc\client\JsonRpcClientFactory;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\resilience\core\SwooleAtomicCounter;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\ProxyGeneratorInterface;
+use kuiper\rpc\client\RequestIdGenerator;
+use kuiper\rpc\client\RequestIdGeneratorInterface;
 use kuiper\rpc\JsonRpcRequestLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\transporter\Endpoint;
@@ -67,6 +70,14 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                     return $container->has(HttpClientFactoryInterface::class) ? $container->get(HttpClientFactoryInterface::class) : null;
                 })),
         ]);
+    }
+
+    /**
+     * @Bean
+     */
+    public function requestIdGenerator(): RequestIdGeneratorInterface
+    {
+        return new RequestIdGenerator(new SwooleAtomicCounter());
     }
 
     /**

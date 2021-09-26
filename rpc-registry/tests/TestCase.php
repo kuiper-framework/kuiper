@@ -20,6 +20,7 @@ use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\http\client\HttpClientConfiguration;
+use kuiper\reflection\ReflectionConfiguration;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\serializer\SerializerConfiguration;
@@ -44,6 +45,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     {
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $builder = new ContainerBuilder();
+        $builder->addConfiguration(new ReflectionConfiguration());
         $builder->addConfiguration(new SerializerConfiguration());
         $builder->addConfiguration(new HttpClientConfiguration());
         $builder->addConfiguration(new RpcRegistryConfiguration());
@@ -62,8 +64,18 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             ServiceResolverInterface::class => new InMemoryServiceResolver(),
             AnnotationReaderInterface::class => AnnotationReader::getInstance(),
         ]);
+        $builder->defer(function (ContainerInterface $container) {
+            foreach ($this->getDefinitions() as $name => $definition) {
+                $container->set($name, $definition);
+            }
+        });
 
         return $app->getContainer();
+    }
+
+    protected function getDefinitions(): array
+    {
+        return [];
     }
 
     protected function getConfig(): array

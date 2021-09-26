@@ -17,7 +17,7 @@ use kuiper\serializer\Serializer;
 use kuiper\tars\server\ClientProperties;
 use kuiper\tars\server\Config;
 use kuiper\tars\server\ServerProperties;
-use PHPUnit\Framework\TestCase;
+use kuiper\tars\TestCase;
 
 class TarsServerConfigurationTest extends TestCase
 {
@@ -35,5 +35,13 @@ class TarsServerConfigurationTest extends TestCase
         $clientProperties = $normalizer->denormalize($config->get('application.tars.client'), ClientProperties::class);
         // var_export($clientProperties);
         $this->assertNotNull($clientProperties->getLocator());
+    }
+
+    protected function getConfigurations(): array
+    {
+        return [
+            new TarsClientConfiguration(),
+            new TarsServerConfiguration(),
+        ];
     }
 }

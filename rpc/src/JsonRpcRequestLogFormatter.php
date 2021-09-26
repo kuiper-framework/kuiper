@@ -46,9 +46,12 @@ class JsonRpcRequestLogFormatter extends RpcRequestLogFormatter
         $this->fields = $fields;
     }
 
-    public function format(RequestInterface $request, ?ResponseInterface $response, float $responseTime): array
+    /**
+     * {@inheritDoc}
+     */
+    public function format(RequestInterface $request, ?ResponseInterface $response, float $startTime, float $endTime): array
     {
-        $messageContext = $this->prepareMessageContext($request, $response, $responseTime);
+        $messageContext = $this->prepareMessageContext($request, $response, $startTime, $endTime);
 
         return [JsonRequestLogFormatter::jsonEncode(Arrays::select($messageContext, $this->fields))];
     }

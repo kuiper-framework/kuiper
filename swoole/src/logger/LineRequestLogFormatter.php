@@ -15,6 +15,7 @@ namespace kuiper\swoole\logger;
 
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
+use kuiper\reflection\ReflectionType;
 use kuiper\web\middleware\RemoteAddress;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -43,7 +44,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
     private $bodyMaxSize;
 
     /**
-     * @var callable
+     * @var DateFormatterInterface
      */
     private $dateFormatter;
 
@@ -57,7 +58,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
      *
      * @param string|callable $template
      * @param string[]        $extra
-     * @param string|callable $dateFormat
+     * @param mixed           $dateFormat
      */
     public function __construct(
         $template = self::MAIN,
@@ -73,27 +74,35 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         $this->extra = $extra;
         $this->bodyMaxSize = $bodyMaxSize;
         $this->pidProcessor = new CoroutineIdProcessor();
-        if (is_string($dateFormat)) {
-            if (substr_count($dateFormat, '%') >= 2) {
-                $this->dateFormatter = static function () use ($dateFormat): string {
-                    return strftime($dateFormat);
-                };
-            } else {
-                $this->dateFormatter = static function () use ($dateFormat): string {
-                    return date_create()->format($dateFormat);
-                };
-            }
-        } elseif (is_callable($dateFormat)) {
-            $this->dateFormatter = $dateFormat;
+        $this->dateFormatter = self::createDateFormatter($dateFormat);
+    }
+
+    /**
+     * @param mixed $dateFormatter
+     *
+     * @return DateFormatterInterface
+     */
+    public static function createDateFormatter($dateFormatter): DateFormatterInterface
+    {
+        if ($dateFormatter instanceof DateFormatterInterface) {
+            return $dateFormatter;
         }
+        if (is_string($dateFormatter)) {
+            if (substr_count($dateFormatter, '%') >= 2) {
+                return new StrftimeDateFormatter($dateFormatter);
+            }
+
+            return new DateFormatter($dateFormatter);
+        }
+        throw new \InvalidArgumentException('Unknown date formatter, must by string or DateFormatterInterface, got '.ReflectionType::describe($dateFormatter));
     }
 
     /**
      * {@inheritDoc}
      */
-    public function format(RequestInterface $request, ?ResponseInterface $response, float $responseTime): array
+    public function format(RequestInterface $request, ?ResponseInterface $response, float $startTime, float $endTime): array
     {
-        $messageContext = $this->prepareMessageContext($request, $response, $responseTime);
+        $messageContext = $this->prepareMessageContext($request, $response, $startTime, $endTime);
         if (is_string($this->template)) {
             return [\strtr($this->template, Arrays::mapKeys($messageContext, function ($key) {
                 return '$'.$key;
@@ -120,13 +129,14 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
      *
      * @param RequestInterface       $request
      * @param ResponseInterface|null $response
-     * @param float                  $responseTime
+     * @param float                  $startTime
+     * @param float                  $endTime
      *
      * @return array
      */
-    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, float $responseTime): array
+    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, float $startTime, float $endTime): array
     {
-        $time = round($responseTime, 2);
+        $time = round(($startTime - $endTime) * 1000, 2);
 
         $ipList = $this->getIpList($request);
         $statusCode = isset($response) ? $response->getStatusCode() : 500;
@@ -134,7 +144,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         $messageContext = [
             'remote_addr' => $ipList[0] ?? '-',
             'remote_user' => $request->getUri()->getUserInfo() ?? '-',
-            'time_local' => call_user_func($this->dateFormatter),
+            'time_local' => $this->dateFormatter->format($startTime),
             'request_method' => $request->getMethod(),
             'request_uri' => (string) $request->getUri(),
             'request' => strtoupper($request->getMethod()).' '
@@ -174,7 +184,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
                 $header = substr($name, 7);
                 $extra[$header] = $request->getHeaderLine($header);
             } elseif ('pid' === $name) {
-                $extra = array_merge($extra, call_user_func($this->pidProcessor, [])['extra']);
+                $extra += call_user_func($this->pidProcessor, [])['extra'];
             }
         }
         $extra = array_filter($extra);
@@ -238,9 +248,9 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
     }
 
     /**
-     * @return callable
+     * @return DateFormatterInterface
      */
-    public function getDateFormatter()
+    public function getDateFormatter(): DateFormatterInterface
     {
         return $this->dateFormatter;
     }
