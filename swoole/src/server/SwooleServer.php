@@ -267,6 +267,9 @@ class SwooleServer extends AbstractServer
 
                 return;
             }
+            if ($args[0] instanceof Server) {
+                array_shift($args);
+            }
             $this->dispatch($eventName, $args);
         };
     }
