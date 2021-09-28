@@ -43,7 +43,7 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
             $taskWorkers = (int) $container->get('application.swoole.task_worker_num');
             if ($taskWorkers > 0) {
                 $eventDispatcher = $container->get(PsrEventDispatcher::class);
-                if ($eventDispatcher instanceof AsyncEventDispatcher) {
+                if ($eventDispatcher instanceof AsyncEventDispatcher && $container->has(ServerInterface::class)) {
                     $eventDispatcher->setServer($container->get(ServerInterface::class));
                     $eventDispatcher->setTaskQueue($container->get(QueueInterface::class));
                 }

@@ -53,6 +53,7 @@ class ServerPort
             throw new \InvalidArgumentException("Unknown server type $serverType");
         }
         $this->serverType = $serverType;
+        $this->settings = [];
         foreach ($settings as $name => $value) {
             if (ServerSetting::hasValue($name)) {
                 $this->settings[$name] = $value;

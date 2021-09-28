@@ -156,7 +156,7 @@ class SwooleServer extends AbstractServer
      */
     public function isTaskWorker(): bool
     {
-        return (bool) $this->resource->taskworker;
+        return !isset($this->resource) || $this->resource->taskworker;
     }
 
     /**

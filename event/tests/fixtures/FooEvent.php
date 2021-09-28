@@ -13,6 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\event\fixtures;
 
+use kuiper\event\annotation\Async;
+
+/**
+ * @Async()
+ */
 class FooEvent
 {
 }

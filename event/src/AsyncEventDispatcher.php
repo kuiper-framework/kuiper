@@ -58,7 +58,6 @@ class AsyncEventDispatcher implements AsyncEventDispatcherInterface
     public function dispatch(object $event)
     {
         $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($event), Async::class);
-        error_log('dispatch '.get_class($event).' pid='.getmypid().' worker='.$this->server->isTaskWorker());
         if (null !== $annotation && null !== $this->server && !$this->server->isTaskWorker()) {
             $this->dispatchAsync($event);
 
@@ -66,6 +65,14 @@ class AsyncEventDispatcher implements AsyncEventDispatcherInterface
         }
 
         return $this->delegateEventDispatcher->dispatch($event);
+    }
+
+    /**
+     * @return EventDispatcherInterface
+     */
+    public function getDelegateEventDispatcher(): EventDispatcherInterface
+    {
+        return $this->delegateEventDispatcher;
     }
 
     /**
