@@ -44,8 +44,8 @@ class RpcRequestLogFormatter extends LineRequestLogFormatter
             }
         } else {
             // client request exchange body bytes
-            [$context['body_bytes_recv'], $context['body_bytes_send']]
-            = [$context['body_bytes_send'], $context['body_bytes_recv']];
+            [$context['body_bytes_recv'], $context['body_bytes_sent']]
+            = [$context['body_bytes_sent'], $context['body_bytes_recv']];
         }
         if (in_array('params', $this->getExtra(), true)) {
             $param = str_replace('"', "'", (string) json_encode($rpcMethod->getArguments(),
