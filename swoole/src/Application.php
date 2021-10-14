@@ -130,7 +130,9 @@ class Application
             /* @noinspection PhpIncludeInspection */
             $this->config->merge(require $configFile);
         }
-        $this->config->replacePlaceholder();
+        $this->config->replacePlaceholder(static function (string $key) {
+            return !Text::startsWith($key, 'ENV.');
+        });
     }
 
     /**
@@ -158,7 +160,7 @@ class Application
     protected function addCommandLineOptions(array $properties): void
     {
         foreach ($properties as $i => $value) {
-            if (!strpos($value, 'application.')) {
+            if (!Text::startsWith($value, 'application.')) {
                 $value = 'application.'.$value;
                 $properties[$i] = $value;
             }
@@ -328,7 +330,7 @@ class Application
                 $rest[] = $token;
                 break;
             }
-            if (0 === strpos($token, '--')) {
+            if (Text::startsWith($token, '--')) {
                 $name = substr($token, 2);
                 $pos = strpos($name, '=');
                 if (false !== $pos) {

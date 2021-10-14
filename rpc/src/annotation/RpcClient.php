@@ -43,4 +43,9 @@ class RpcClient implements ComponentInterface
      * @var string
      */
     public $protocol;
+
+    /**
+     * @var string
+     */
+    public $endpoint;
 }

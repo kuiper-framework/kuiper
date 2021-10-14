@@ -75,7 +75,9 @@ class ServerConfiguration implements DefinitionConfiguration
             ],
         ]);
         if (!$config->has('application.server.ports')) {
-            $config->set('application.server.ports', ['8000' => ServerType::HTTP]);
+            $config->set('application.server.ports', [
+                $config->getString('application.server.port', '8000') => $config->getString('application.server.type', ServerType::HTTP),
+            ]);
         }
 
         return [

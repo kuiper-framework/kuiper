@@ -252,4 +252,45 @@ class PropertiesTest extends TestCase
         ksort($middleware);
         $this->assertEquals(['c', 'd', 'b', 'e'], array_values($middleware));
     }
+
+    public function testReplacePlaceholder()
+    {
+        $properties = Properties::create([
+            'base_path' => '/path',
+            'view_path' => '{base_path}/views',
+            'tmpl_path' => '{view_path}/a.html',
+        ]);
+        $properties->replacePlaceholder();
+        $this->assertEquals([
+            'base_path' => '/path',
+            'view_path' => '/path/views',
+            'tmpl_path' => '/path/views/a.html',
+        ], $properties->toArray());
+    }
+
+    public function testReplacePlaceholderWithPredicate()
+    {
+        $properties = Properties::create([
+            'application' => [
+                'base_path' => '{ENV.APP_PATH}',
+            ],
+            'ENV' => [
+                'BASE_MODULE' => 'function () { eval }',
+                'APP_PATH' => '/path',
+            ],
+        ]);
+        // $properties->replacePlaceholder();
+        $properties->replacePlaceholder(function (string $key) {
+            return !Text::startsWith($key, 'ENV.');
+        });
+        $this->assertEquals([
+            'application' => [
+                    'base_path' => '/path',
+                ],
+            'ENV' => [
+                    'BASE_MODULE' => 'function () { eval }',
+                    'APP_PATH' => '/path',
+                ],
+        ], $properties->toArray());
+    }
 }

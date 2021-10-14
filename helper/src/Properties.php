@@ -235,7 +235,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         return $config;
     }
 
-    public function replacePlaceholder(): void
+    public function replacePlaceholder(callable $predicate = null): void
     {
         $this->replacePlaceholderRecursive($this, function (array $matches) {
             $name = $matches[1];
@@ -244,14 +244,17 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
             }
 
             return $this->get($name);
-        });
+        }, $predicate);
     }
 
-    protected function replacePlaceholderRecursive(Properties $properties, callable $replacer, string $prefix = ''): void
+    protected function replacePlaceholderRecursive(Properties $properties, callable $replacer, callable $predicate = null, string $prefix = ''): void
     {
         $re = self::PLACEHOLDER_REGEXP;
         foreach ($properties as $key => $value) {
             if (is_string($value) && preg_match(self::PLACEHOLDER_REGEXP, $value)) {
+                if (null !== $predicate && !$predicate($prefix.'.'.$key)) {
+                    continue;
+                }
                 do {
                     try {
                         $value = preg_replace_callback($re, $replacer, $value);
@@ -262,7 +265,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
 
                 $properties[$key] = $value;
             } elseif ($value instanceof self) {
-                $this->replacePlaceholderRecursive($value, $replacer, ('' === $prefix ? '' : $prefix.'.').$key);
+                $this->replacePlaceholderRecursive($value, $replacer, $predicate, ('' === $prefix ? '' : $prefix.'.').$key);
             }
         }
     }
