@@ -4,6 +4,10 @@ set -e
 NOW=$(date +%s)
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 VERSION=$(git tag --points-at HEAD --sort -version:refname | head -1)
+if [[ $VERSION = "" ]]; then
+    echo "Current HEAD does not tag. Use git tag version"
+    exit -1
+fi
 
 # Always prepend with "v"
 if [[ $VERSION != v*  ]]
