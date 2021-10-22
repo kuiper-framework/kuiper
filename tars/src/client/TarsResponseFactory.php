@@ -39,6 +39,9 @@ class TarsResponseFactory implements RpcResponseFactoryInterface
             throw new RequestIdMismatchException();
         }
         if (ErrorCode::SERVER_SUCCESS !== $packet->iRet) {
+            if (ErrorCode::INVALID_ARGUMENT === $packet->iRet) {
+                throw new \InvalidArgumentException($packet->sResultDesc);
+            }
             throw new ServerException($packet->sResultDesc, $packet->iRet);
         }
         /** @var TarsMethodInterface $method */
