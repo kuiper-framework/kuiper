@@ -122,11 +122,20 @@ abstract class ReflectionType implements ReflectionTypeInterface
 
     public static function fromPhpType(\ReflectionType $type): ReflectionTypeInterface
     {
-        $typeName = (string) $type;
-        if ('?' === $typeName[0]) {
-            return static::forName($typeName);
+        return self::parse(self::phpTypeAsString($type));
+    }
+
+    public static function phpTypeAsString(\ReflectionType $type): string
+    {
+        if ($type instanceof \ReflectionNamedType) {
+            $typeName = $type->getName();
+            if ('?' === $typeName[0]) {
+                return $typeName;
+            } else {
+                return ($type->allowsNull() ? '?' : '').$typeName;
+            }
         } else {
-            return static::forName(($type->allowsNull() ? '?' : '').$typeName);
+            return (string) $type;
         }
     }
 

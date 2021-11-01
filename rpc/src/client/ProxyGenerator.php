@@ -16,6 +16,7 @@ namespace kuiper\rpc\client;
 use kuiper\helper\Text;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
+use kuiper\reflection\ReflectionType;
 use kuiper\reflection\type\VoidType;
 use kuiper\swoole\pool\GeneratedClass;
 use Laminas\Code\Generator\ClassGenerator;
@@ -100,7 +101,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
                 DocBlockGenerator::fromReflection(new DocBlockReflection('/** @inheritdoc */'))
             );
             /* @phpstan-ignore-next-line */
-            $methodGenerator->setReturnType($reflectionMethod->getReturnType());
+            $methodGenerator->setReturnType(ReflectionType::phpTypeAsString($reflectionMethod->getReturnType()));
             $phpClass->addMethodFromGenerator($methodGenerator);
         }
         if (!$class->hasMethod('getRpcExecutorFactory')) {
