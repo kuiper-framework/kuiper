@@ -57,6 +57,7 @@ use kuiper\tars\server\TarsServerFactory;
 use kuiper\tars\server\TarsTcpReceiveEventListener;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Webmozart\Assert\Assert;
 
 /**
  * @Configuration(dependOn={ServerConfiguration::class})
@@ -127,7 +128,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
         /** @var Adapter[] $adapters */
         $adapters = Arrays::assoc(array_filter($serverProperties->getAdapters(), static function (Adapter $adapter): bool {
             return ServerType::TCP === $adapter->getServerType();
-        }), 'name');
+        }), 'servant');
         if (empty($adapters)) {
             return [];
         }
@@ -148,6 +149,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
             }
             $adapter = $adapters[$servantName];
             $endpoint = $adapter->getEndpoint();
+            Assert::notNull($endpoint);
             $serverPort = new ServerPort($endpoint->getHost(), $endpoint->getPort(), $adapter->getServerType());
 
             $methods = Arrays::pull($annotation->getTarget()->getMethods(\ReflectionMethod::IS_PUBLIC), 'name');
