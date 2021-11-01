@@ -125,14 +125,12 @@ class TarsServerConfiguration implements DefinitionConfiguration
     {
         $services = [];
         /** @var Adapter[] $adapters */
-        $adapters = array_values(array_filter($serverProperties->getAdapters(), static function (Adapter $adapter): bool {
+        $adapters = Arrays::assoc(array_filter($serverProperties->getAdapters(), static function (Adapter $adapter): bool {
             return ServerType::TCP === $adapter->getServerType();
-        }));
+        }), 'name');
         if (empty($adapters)) {
             return [];
         }
-        $adapter = $adapters[0];
-        $serverPort = new ServerPort($adapter->getEndpoint()->getHost(), $adapter->getEndpoint()->getPort(), $adapter->getServerType());
         $logger = $container->get(LoggerInterface::class);
 
         $this->registerAdminServant();
@@ -144,6 +142,14 @@ class TarsServerConfiguration implements DefinitionConfiguration
             } else {
                 $servantName = $serverProperties->getServerName().'.'.$annotation->service;
             }
+            if (!isset($adapters[$servantName])) {
+                $logger->warning(self::TAG."servant $servantName not defined in conf");
+                continue;
+            }
+            $adapter = $adapters[$servantName];
+            $endpoint = $adapter->getEndpoint();
+            $serverPort = new ServerPort($endpoint->getHost(), $endpoint->getPort(), $adapter->getServerType());
+
             $methods = Arrays::pull($annotation->getTarget()->getMethods(\ReflectionMethod::IS_PUBLIC), 'name');
             $services[$servantName] = new Service(
                 new ServiceLocator($servantName),
@@ -151,7 +157,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
                 $methods,
                 $serverPort
             );
-            $logger->info(self::TAG."register servant $servantName");
+            $logger->info(self::TAG."register servant $servantName listen on {$endpoint}");
         }
 
         return $services;
