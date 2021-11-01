@@ -35,7 +35,7 @@ class DateFormatter implements DateFormatterInterface
      */
     public function format(float $time): string
     {
-        return \DateTime::createFromFormat('U.u', (string) $time)
+        return \DateTime::createFromFormat('U.u', sprintf('%.3f', $time))
             ->setTimezone($this->timezone)
             ->format($this->format);
     }
