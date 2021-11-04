@@ -47,7 +47,7 @@ class SwooleTableStatStore implements StatStore
         $table->create();
 
         $keyTable = new Table($size);
-        $keyTable->column(self::KEY_ENTRY, Table::TYPE_STRING, 128);
+        $keyTable->column(self::KEY_ENTRY, Table::TYPE_STRING, 256);
         $keyTable->create();
         $this->statTable = $table;
         $this->keyTable = $keyTable;
