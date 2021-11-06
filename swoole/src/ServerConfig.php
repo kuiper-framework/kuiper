@@ -53,6 +53,13 @@ class ServerConfig
     {
         $this->serverName = $serverName;
         Assert::notEmpty($ports, 'at least one server port should be set');
+        usort($ports, static function (ServerPort $a, ServerPort $b) {
+            if ($a->isHttpProtocol()) {
+                return $b->isHttpProtocol() ? 0 : -1;
+            }
+
+            return $b->isHttpProtocol() ? 1 : 0;
+        });
         $this->ports = array_values($ports);
         $this->settings = Properties::create($this->ports[0]->getSettings());
     }
