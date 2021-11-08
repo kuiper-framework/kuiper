@@ -105,7 +105,7 @@ class ConnectionProxyGenerator
                 $methodBody
             );
             /* @phpstan-ignore-next-line */
-            $methodGenerator->setReturnType($reflectionMethod->getReturnType());
+            $methodGenerator->setReturnType(ReflectionType::phpTypeAsString($reflectionMethod->getReturnType()));
             $phpClass->addMethodFromGenerator($methodGenerator);
         }
 
