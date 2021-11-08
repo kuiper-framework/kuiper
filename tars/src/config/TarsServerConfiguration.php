@@ -56,7 +56,6 @@ use kuiper\tars\server\stat\SwooleTableStatStore;
 use kuiper\tars\server\TarsServerFactory;
 use kuiper\tars\server\TarsTcpReceiveEventListener;
 use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerInterface;
 use Webmozart\Assert\Assert;
 
 /**
@@ -132,7 +131,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
         if (empty($adapters)) {
             return [];
         }
-        $logger = $container->get(LoggerInterface::class);
+        $logger = $container->get(LoggerFactoryInterface::class)->create(__CLASS__);
 
         $this->registerAdminServant();
         /** @var TarsServant $annotation */
