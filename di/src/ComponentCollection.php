@@ -22,6 +22,15 @@ class ComponentCollection
      */
     private static $COMPONENTS;
 
+    public static function clear(string $annotationClass = null): void
+    {
+        if (null === $annotationClass) {
+            self::$COMPONENTS = [];
+        } else {
+            unset(self::$COMPONENTS[$annotationClass]);
+        }
+    }
+
     /**
      * @param ComponentInterface $annotation
      */
