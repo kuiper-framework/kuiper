@@ -98,7 +98,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             $this->writeHead($tag, Type::ZERO);
         } else {
             $this->writeHead($tag, Type::INT8);
-            fwrite($this->buffer, chr($value));
+            fwrite($this->buffer, pack('c', $value));
             ++$this->length;
         }
     }
@@ -214,7 +214,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
 
         if ($len <= TarsConst::MAX_STRING1_LEN) {
             $this->writeHead($tag, Type::STRING1);
-            fwrite($this->buffer, chr($len));
+            fwrite($this->buffer, pack('C', $len));
             ++$this->length;
         } else {
             $this->writeHead($tag, Type::STRING4);

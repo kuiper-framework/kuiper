@@ -32,4 +32,16 @@ class TarsInputStreamTest extends TestCase
         $this->assertNull($obj->stringOpt);
         $this->assertNull($obj->intOpt);
     }
+
+    public function testInt()
+    {
+        $request = new Request();
+        $request->intOpt = -10;
+        $typeParser = new TypeParser(AnnotationReader::getInstance());
+        $type = $typeParser->parse('Request', 'kuiper\\tars\\fixtures');
+        $data = TarsOutputStream::pack($type, $request);
+        /** @var Request $obj */
+        $obj = TarsInputStream::unpack($type, $data);
+        $this->assertEquals(-10, $obj->intOpt);
+    }
 }

@@ -225,7 +225,12 @@ class TarsInputStream implements TarsInputStreamInterface
             return 0;
         }
 
-        return ord($this->readInternal(1));
+        $unpack = unpack('c', $this->readInternal(1));
+        if (false === $unpack) {
+            throw TarsStreamException::outOfRange();
+        }
+
+        return $unpack[1];
     }
 
     /**
