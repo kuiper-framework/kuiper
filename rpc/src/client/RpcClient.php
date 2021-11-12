@@ -71,13 +71,13 @@ class RpcClient implements RpcRequestHandlerInterface
                 return $this->send($request);
             } catch (RequestIdMismatchException $e) {
                 if ($this->transporter instanceof Receivable) {
-                    do {
+                    while (true) {
                         try {
                             return $this->responseFactory->createResponse($request, $this->transporter->recv());
                         } catch (RequestIdMismatchException $e) {
                             // noOp
                         }
-                    } while (true);
+                    }
                 } else {
                     throw $e;
                 }

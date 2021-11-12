@@ -59,7 +59,7 @@ class RpcExecutor implements RpcExecutorInterface
     {
         $response = $this->buildMiddlewareStack($this->requestHandler)->handle($this->request);
 
-        return $response->getRequest()->getRpcMethod()->getResult() ?? [];
+        return $response->getRequest()->getRpcMethod()->getResult();
     }
 
     public static function create(object $client, string $method, array $args): self

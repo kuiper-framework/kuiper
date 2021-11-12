@@ -3,5 +3,6 @@
 .php_cs.cache
 .phpunit.result.cache
 .tars-gen.cache
+.php-cs-fixer.cache
 .env
 /swoole/demo/

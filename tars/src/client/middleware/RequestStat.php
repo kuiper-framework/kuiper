@@ -59,7 +59,7 @@ class RequestStat implements MiddlewareInterface
             $this->stat->success($response, $responseTime);
 
             return $response;
-        } catch (ServerException | TimedOutException $e) {
+        } catch (ServerException|TimedOutException $e) {
             $responseTime = (int) (1000 * (microtime(true) - $time));
             $packet = new ResponsePacket();
             $response = new TarsResponse($request, $this->response, $packet);

@@ -121,7 +121,7 @@ class RetryImpl implements Retry
     public function decorate(callable $call): callable
     {
         return function () use ($call) {
-            do {
+            while (true) {
                 try {
                     $result = $call(...func_get_args());
                     $shouldRetry = $this->onResult($result);
@@ -133,7 +133,7 @@ class RetryImpl implements Retry
                 } catch (\Exception $e) {
                     $this->onError($e);
                 }
-            } while (true);
+            }
         };
     }
 

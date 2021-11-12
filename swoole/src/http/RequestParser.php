@@ -36,7 +36,7 @@ class RequestParser
     private $clientId;
 
     /**
-     * @var ServerRequestInterface
+     * @var ServerRequestInterface|null
      */
     private $request;
 
@@ -117,7 +117,7 @@ class RequestParser
         // parts[0] = HTTP头;
         // parts[1] = HTTP主体，GET请求没有body
         $headerLines = explode(self::END_OF_LINE, $this->head);
-        if (empty($headerLines)) {
+        if ($headerLines[0]) {
             throw new BadHttpRequestException('Bad http request: '.$this->head);
         }
         $protocolLine = array_shift($headerLines);

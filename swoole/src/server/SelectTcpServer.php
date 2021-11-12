@@ -20,7 +20,6 @@ use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\exception\ServerStateException;
 use kuiper\swoole\server\workers\ForkedWorkerManager;
 use kuiper\swoole\server\workers\SingleWorkerManager;
-use kuiper\swoole\server\workers\Task;
 use kuiper\swoole\server\workers\WorkerManagerInterface;
 
 class SelectTcpServer extends AbstractServer

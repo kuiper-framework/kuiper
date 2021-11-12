@@ -112,7 +112,7 @@ class StatEntry
 
     public static function success(int $index, ServerProperties $serverProperties, RpcResponseInterface $response, int $responseTime): StatEntry
     {
-        $entry = static::create($index, $serverProperties, $response, $responseTime);
+        $entry = self::create($index, $serverProperties, $response, $responseTime);
         $entry->body->count = 1;
 
         return $entry;
@@ -120,7 +120,7 @@ class StatEntry
 
     public static function fail(int $index, ServerProperties $serverProperties, RpcResponseInterface $response, int $responseTime): StatEntry
     {
-        $entry = static::create($index, $serverProperties, $response, $responseTime);
+        $entry = self::create($index, $serverProperties, $response, $responseTime);
         $entry->body->execCount = 1;
 
         return $entry;
@@ -128,7 +128,7 @@ class StatEntry
 
     public static function timedOut(int $index, ServerProperties $serverProperties, RpcResponseInterface $response, int $responseTime): StatEntry
     {
-        $entry = static::create($index, $serverProperties, $response, $responseTime);
+        $entry = self::create($index, $serverProperties, $response, $responseTime);
         $entry->body->timeoutCount = 1;
 
         return $entry;

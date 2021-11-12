@@ -37,7 +37,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
      */
     private $workers;
     /**
-     * @var WorkerInterface
+     * @var WorkerInterface|null
      */
     private $worker;
     /**

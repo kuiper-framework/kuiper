@@ -21,7 +21,6 @@ use kuiper\di\ContainerAwareTrait;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
-use kuiper\resilience\core\Counter;
 use kuiper\resilience\core\SimpleCounter;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
 use kuiper\rpc\client\ProxyGeneratorInterface;
@@ -101,10 +100,6 @@ class TarsProxyFactory implements ContainerAwareInterface
      * @var MiddlewareInterface[]
      */
     private $middlewares;
-    /**
-     * @var Counter
-     */
-    private $counter;
     /**
      * @var RequestIdGeneratorInterface
      */

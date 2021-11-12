@@ -17,6 +17,12 @@ module admin {
         4 require string payload;
     };
 
+    struct TarsFile {
+        0 require string name;
+        1 require string md5;
+        2 optional string content;
+    };
+
     interface Admin {
         /**
          * For healthy check
@@ -32,5 +38,15 @@ module admin {
          * receive notification
          */
         void notify(Notification notification);
+
+        /**
+         * Gets servant files
+         */
+        vector<TarsFile> getTarsFiles();
+
+        /**
+         * Gets servant file with content
+         */
+        vector<TarsFile> getTarsFileContents();
     };
 };

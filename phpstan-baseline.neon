@@ -21,11 +21,6 @@ parameters:
 			path: db/src/Connection.php
 
 		-
-			message: "#^Method kuiper\\\\db\\\\PdoInterface\\:\\:lastInsertId\\(\\) has no return typehint specified\\.$#"
-			count: 1
-			path: db/src/PdoInterface.php
-
-		-
 			message: "#^PHPDoc tag @param for parameter \\$fetch_arg2 with type mixed is not subtype of native type array\\.$#"
 			count: 1
 			path: db/src/PdoInterface.php
@@ -74,9 +69,4 @@ parameters:
 			message: "#^Call to an undefined method kuiper\\\\logger\\\\LoggerFactoryInterface\\:\\:getLoggers\\(\\)\\.$#"
 			count: 1
 			path: swoole/src/listener/ReopenLogFile.php
-
-		-
-			message: "#^Method kuiper\\\\tars\\\\config\\\\TarsClientConfiguration\\:\\:createTarsClient\\(\\) has no return typehint specified\\.$#"
-			count: 1
-			path: tars/src/config/TarsClientConfiguration.php
 

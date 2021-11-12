@@ -36,7 +36,7 @@ class ServerPort
     private $serverType;
 
     /**
-     * @var int
+     * @var int|null
      */
     private $socketType;
 

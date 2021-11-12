@@ -18,51 +18,30 @@ declare(strict_types=1);
  * Tars Generator version: 1.0
  */
 
-namespace kuiper\tars\integration;
+namespace kuiper\tars\server\servant;
 
 use kuiper\tars\annotation\TarsProperty;
 
-final class GetConfigListInfo
+final class TarsFile
 {
     /**
      * @TarsProperty(order=0, required=true, type="string")
      *
      * @var string|null
      */
-    public $appname;
+    public $name;
 
     /**
-     * @TarsProperty(order=1, required=false, type="string")
+     * @TarsProperty(order=1, required=true, type="string")
      *
      * @var string|null
      */
-    public $servername;
+    public $md5;
 
     /**
-     * @TarsProperty(order=2, required=false, type="bool")
-     *
-     * @var bool|null
-     */
-    public $bAppOnly = false;
-
-    /**
-     * @TarsProperty(order=3, required=false, type="string")
+     * @TarsProperty(order=2, required=false, type="string")
      *
      * @var string|null
      */
-    public $host = '';
-
-    /**
-     * @TarsProperty(order=4, required=false, type="string")
-     *
-     * @var string|null
-     */
-    public $setdivision = '';
-
-    /**
-     * @TarsProperty(order=5, required=false, type="string")
-     *
-     * @var string|null
-     */
-    public $containername = '';
+    public $content;
 }

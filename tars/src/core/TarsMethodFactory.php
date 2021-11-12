@@ -70,7 +70,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
         if (!isset($this->cache[$key])) {
             try {
                 $this->cache[$key] = $this->extractMethod($service, $method);
-            } catch (ReflectionException | SyntaxErrorException $e) {
+            } catch (ReflectionException|SyntaxErrorException $e) {
                 throw new InvalidMethodException('read method metadata failed: '.$e->getMessage(), $e->getCode(), $e);
             }
         }

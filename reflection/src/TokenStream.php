@@ -24,7 +24,7 @@ class TokenStream
     private $tokens;
 
     /**
-     * @var array|string
+     * @var array|string|null
      */
     private $current;
 
@@ -181,7 +181,7 @@ class TokenStream
     private function matchImportList(string $stopToken, $hasSubList = true): array
     {
         $imports = [];
-        do {
+        while (true) {
             foreach ($this->matchUseList($hasSubList) as $alias => $name) {
                 if (isset($imports[$alias])) {
                     throw new InvalidTokenException(sprintf("Duplicated import alias '%s' for '%s', previous '%s'", $name, $alias, $imports[$alias]));
@@ -198,7 +198,7 @@ class TokenStream
             } else {
                 throw new InvalidTokenException('Expected comma or semicolon here');
             }
-        } while (true);
+        }
 
         return $imports;
     }

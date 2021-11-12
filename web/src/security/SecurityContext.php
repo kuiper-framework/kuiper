@@ -50,17 +50,17 @@ class SecurityContext
 
     public function getFlash(): FlashInterface
     {
-        return static::createComponent(FlashInterface::class, $this->session);
+        return self::createComponent(FlashInterface::class, $this->session);
     }
 
     public function getCsrfToken(): CsrfTokenInterface
     {
-        return static::createComponent(CsrfTokenInterface::class, $this->session);
+        return self::createComponent(CsrfTokenInterface::class, $this->session);
     }
 
     public function getAuth(): AuthInterface
     {
-        return static::createComponent(AuthInterface::class, $this->session);
+        return self::createComponent(AuthInterface::class, $this->session);
     }
 
     public function getSession(): SessionInterface
@@ -119,7 +119,7 @@ class SecurityContext
             throw new \BadMethodCallException('SessionMiddleware not enabled');
         }
 
-        return static::createComponent(SecurityContext::class, $session);
+        return self::createComponent(SecurityContext::class, $session);
     }
 
     /**
@@ -127,7 +127,7 @@ class SecurityContext
      */
     private static function createComponent(string $component, SessionInterface $session)
     {
-        $class = static::$COMPONENTS[$component];
+        $class = self::$COMPONENTS[$component];
 
         return new $class($session);
     }

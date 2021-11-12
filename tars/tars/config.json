@@ -9,5 +9,9 @@
             "QueryF": "tars.tarsregistry.QueryObj",
             "Config": "tars.tarsconfig.ConfigObj"
         }
+    },
+    "servant": {
+        "namespace": "kuiper\\tars\\server\\servant",
+        "output": "src/server/servant"
     }
 }

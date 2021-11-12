@@ -100,7 +100,6 @@ class ProxyGenerator implements ProxyGeneratorInterface
                 $methodBody,
                 DocBlockGenerator::fromReflection(new DocBlockReflection('/** @inheritdoc */'))
             );
-            /* @phpstan-ignore-next-line */
             $methodGenerator->setReturnType(ReflectionType::phpTypeAsString($reflectionMethod->getReturnType()));
             $phpClass->addMethodFromGenerator($methodGenerator);
         }
@@ -144,7 +143,9 @@ class ProxyGenerator implements ProxyGeneratorInterface
         while (in_array($returnValueName, $outParameters, true)) {
             $returnValueName = 'ret'.$i++;
         }
-        array_unshift($outParameters, $returnValueName);
+        if ($hasReturnValue || !empty($outParameters)) {
+            array_unshift($outParameters, $returnValueName);
+        }
         // 参数顺序 $returnValue, ...$out
         $call = '$this->rpcExecutorFactory->createExecutor($this, __FUNCTION__, ['.
             (empty($parameters) ? '' : $this->buildParameters($parameters)).'])->execute();';

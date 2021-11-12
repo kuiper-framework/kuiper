@@ -34,17 +34,15 @@ class TarsRequestFactory implements RpcRequestFactoryInterface
     private $streamFactory;
 
     /**
-     * @var int
-     */
-    private $id;
-    /**
      * @var string|null
      */
     private $baseUri;
+
     /**
      * @var RpcMethodFactoryInterface
      */
     private $rpcMethodFactory;
+
     /**
      * @var RequestIdGeneratorInterface
      */

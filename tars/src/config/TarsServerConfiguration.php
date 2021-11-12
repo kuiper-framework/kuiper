@@ -96,7 +96,8 @@ class TarsServerConfiguration implements DefinitionConfiguration
             TarsServerFactory::class => factory([TarsServerFactory::class, 'createFromContainer']),
             StatStore::class => autowire(SwooleTableStatStore::class),
             StatInterface::class => autowire(Stat::class),
-            AdminServant::class => autowire(AdminServantImpl::class),
+            AdminServant::class => autowire(AdminServantImpl::class)
+                ->constructorParameter('tarsFilePath', Application::getInstance()->getBasePath().'/tars/servant'),
             MonitorInterface::class => autowire(Monitor::class)
                 ->constructorParameter('collectors', get('monitorCollectors')),
             'tarsServerRequestLogFormatter' => autowire(TarsRequestLogFormatter::class),

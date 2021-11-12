@@ -44,7 +44,7 @@ class Column implements ColumnInterface
     private $id;
 
     /**
-     * @var ?string
+     * @var string|null
      */
     private $generateStrategy;
 

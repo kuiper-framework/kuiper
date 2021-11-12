@@ -50,7 +50,7 @@ class MetaModel implements MetaModelInterface
     private $annotatedColumns;
 
     /**
-     * @var MetaModelProperty
+     * @var MetaModelProperty|null
      */
     private $idProperty;
 

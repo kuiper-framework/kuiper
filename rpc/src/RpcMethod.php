@@ -124,7 +124,7 @@ class RpcMethod implements RpcMethodInterface
 
     public function getResult(): array
     {
-        return $this->result;
+        return $this->result ?? [];
     }
 
     /**
