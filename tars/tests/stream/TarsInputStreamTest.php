@@ -15,6 +15,7 @@ namespace kuiper\tars\stream;
 
 use kuiper\annotations\AnnotationReader;
 use kuiper\tars\fixtures\Request;
+use kuiper\tars\fixtures\RequestWithDefault;
 use kuiper\tars\type\TypeParser;
 use PHPUnit\Framework\TestCase;
 
@@ -43,5 +44,19 @@ class TarsInputStreamTest extends TestCase
         /** @var Request $obj */
         $obj = TarsInputStream::unpack($type, $data);
         $this->assertEquals(-10, $obj->intOpt);
+    }
+
+    public function testDefaultValue()
+    {
+        $request = new Request();
+        $request->intOpt = -10;
+        $typeParser = new TypeParser(AnnotationReader::getInstance());
+        $type = $typeParser->parse('Request', 'kuiper\\tars\\fixtures');
+        $data = TarsOutputStream::pack($type, $request);
+
+        $type = $typeParser->parse('RequestWithDefault', 'kuiper\\tars\\fixtures');
+        /** @var RequestWithDefault $obj */
+        $obj = TarsInputStream::unpack($type, $data);
+        $this->assertEquals([], $obj->arrayOpt);
     }
 }

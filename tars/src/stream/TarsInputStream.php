@@ -484,10 +484,14 @@ class TarsInputStream implements TarsInputStreamInterface
             return null;
         }
         $className = $structType->getClassName();
+
         $obj = new $className();
         foreach ($structType->getFields() as $field) {
-            /* @phpstan-ignore-next-line */
-            $obj->{$field->getName()} = $this->read($field->getTag(), $field->isRequired(), $field->getType());
+            $value = $this->read($field->getTag(), $field->isRequired(), $field->getType());
+            if (null !== $value) {
+                /* @phpstan-ignore-next-line */
+                $obj->{$field->getName()} = $value;
+            }
         }
         $this->match(0, Type::STRUCT_END, true);
 
