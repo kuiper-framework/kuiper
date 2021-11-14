@@ -44,6 +44,11 @@ class AdminServantImpl implements AdminServant, LoggerAwareInterface
     private $tarsFilePath;
 
     /**
+     * @var TarsFile[]|null
+     */
+    private $tarsFiles;
+
+    /**
      * AdminServantImpl constructor.
      *
      * @param EventDispatcherInterface $eventDispatcher
@@ -85,15 +90,26 @@ class AdminServantImpl implements AdminServant, LoggerAwareInterface
 
     public function getTarsFiles(): array
     {
-        return $this->listTarsFiles(false);
+        if (!isset($this->tarsFiles)) {
+            $this->tarsFiles = $this->listTarsFiles();
+        }
+
+        return $this->tarsFiles;
     }
 
     public function getTarsFileContents(): array
     {
-        return $this->listTarsFiles(true);
+        $ret = [];
+        foreach ($this->getTarsFiles() as $tarsFile) {
+            $copy = clone $tarsFile;
+            $copy->content = file_get_contents($this->tarsFilePath.'/'.$tarsFile->name);
+            $ret[] = $copy;
+        }
+
+        return $ret;
     }
 
-    private function listTarsFiles(bool $withContent): array
+    private function listTarsFiles(): array
     {
         $list = [];
         if (isset($this->tarsFilePath) && is_dir($this->tarsFilePath)) {
@@ -103,9 +119,6 @@ class AdminServantImpl implements AdminServant, LoggerAwareInterface
                     $tarsFile = new TarsFile();
                     $tarsFile->name = basename($file);
                     $tarsFile->md5 = md5_file($file);
-                    if ($withContent) {
-                        $tarsFile->content = file_get_contents($file);
-                    }
                     $list[] = $tarsFile;
                 }
             }
