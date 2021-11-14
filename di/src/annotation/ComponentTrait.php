@@ -24,7 +24,7 @@ trait ComponentTrait
     protected $class;
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $componentId;
 

@@ -38,13 +38,14 @@ class ServiceMonitor implements EventListenerInterface
     public function __invoke($event): void
     {
         $config = Application::getInstance()->getConfig();
-        /** @var WorkerStartEvent $event */
-        if (!$event->getServer()->isTaskWorker()
-            || '' === $config->getString('application.tars.server.node')) {
+        if (!$config->getBool('application.tars.server.enable_monitor')) {
             return;
         }
-        $reportInterval = $config
-            ->getInt('application.tars.client.report_interval', 60000);
+        /** @var WorkerStartEvent $event */
+        if (!$event->getServer()->isTaskWorker()) {
+            return;
+        }
+        $reportInterval = $config->getInt('application.tars.client.report_interval', 60000);
         $event->getServer()->tick($reportInterval, function (): void {
             $this->monitor->report();
         });

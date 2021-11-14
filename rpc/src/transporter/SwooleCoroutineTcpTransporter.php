@@ -29,6 +29,6 @@ class SwooleCoroutineTcpTransporter extends SwooleTcpTransporter
 
     protected function doRecv(float $timeout)
     {
-        return $this->getResource()->recv($timeout ?? $this->getEndpoint()->getConnectTimeout());
+        return $this->getResource()->recv($timeout);
     }
 }

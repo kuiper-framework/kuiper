@@ -66,7 +66,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
             'tarsServiceDiscovery',
             'tarsClientRequestLog',
         ];
-        if ($config->has('application.tars.server.node')) {
+        if ($config->getBool('application.tars.client.enable_stat')) {
             $middlewares[] = RequestStat::class;
         }
         $config->merge([

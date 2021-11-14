@@ -38,7 +38,7 @@ class RpcMethod implements RpcMethodInterface
     /**
      * 返回值，形式为 [$returnValue, ...$outParams].
      *
-     * @var array
+     * @var array|null
      */
     private $result;
 

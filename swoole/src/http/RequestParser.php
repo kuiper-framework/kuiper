@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\http;
 
+use kuiper\helper\Text;
 use kuiper\swoole\constants\HttpHeaderName;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\exception\BadHttpRequestException;
@@ -114,10 +115,8 @@ class RequestParser
      */
     private function parseHeader(): void
     {
-        // parts[0] = HTTP头;
-        // parts[1] = HTTP主体，GET请求没有body
         $headerLines = explode(self::END_OF_LINE, $this->head);
-        if ($headerLines[0]) {
+        if (Text::isEmpty($headerLines[0])) {
             throw new BadHttpRequestException('Bad http request: '.$this->head);
         }
         $protocolLine = array_shift($headerLines);

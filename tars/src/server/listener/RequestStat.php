@@ -47,9 +47,11 @@ class RequestStat implements EventListenerInterface
     public function __invoke($event): void
     {
         $config = Application::getInstance()->getConfig();
+        if (!$config->getBool('application.tars.client.enable_stat')) {
+            return;
+        }
         /** @var WorkerStartEvent $event */
-        if (!$event->getServer()->isTaskWorker()
-        || '' === $config->getString('application.tars.server.node')) {
+        if (!$event->getServer()->isTaskWorker()) {
             return;
         }
         $reportInterval = $config

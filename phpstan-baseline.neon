@@ -21,6 +21,11 @@ parameters:
 			path: db/src/Connection.php
 
 		-
+			message: "#^Method kuiper\\\\db\\\\PdoInterface\\:\\:lastInsertId\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: db/src/PdoInterface.php
+
+		-
 			message: "#^PHPDoc tag @param for parameter \\$fetch_arg2 with type mixed is not subtype of native type array\\.$#"
 			count: 1
 			path: db/src/PdoInterface.php
@@ -36,14 +41,64 @@ parameters:
 			path: db/src/Statement.php
 
 		-
+			message: "#^Property kuiper\\\\db\\\\metadata\\\\Column\\:\\:\\$generateStrategy is never read, only written\\.$#"
+			count: 1
+			path: db/src/metadata/Column.php
+
+		-
+			message: "#^Property kuiper\\\\di\\\\annotation\\\\ComponentScan\\:\\:\\$basePackages \\(array\\<string\\>\\) on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: di/src/ComponentScanner.php
+
+		-
 			message: "#^Instanceof between mixed and ArrayAccess will always evaluate to false\\.$#"
 			count: 1
 			path: helper/src/Arrays.php
 
 		-
+			message: "#^Dead catch \\- ReflectionException is never thrown in the try block\\.$#"
+			count: 1
+			path: helper/src/Enum.php
+
+		-
+			message: "#^Anonymous function uses \\$this assigned to variable \\$self\\. Use \\$this directly in the function body\\.$#"
+			count: 2
+			path: http-client/src/HttpClientConfiguration.php
+
+		-
 			message: "#^Parameter \\#3 \\$logLevel of static method GuzzleHttp\\\\Middleware\\:\\:log\\(\\) expects 'alert'\\|'critical'\\|'debug'\\|'emergency'\\|'error'\\|'info'\\|'notice'\\|'warning', string given\\.$#"
 			count: 1
 			path: http-client/src/HttpClientFactory.php
+
+		-
+			message: "#^Property kuiper\\\\jsonrpc\\\\annotation\\\\JsonRpcService\\:\\:\\$service \\(string\\) on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: jsonrpc/src/config/JsonRpcServerConfiguration.php
+
+		-
+			message: "#^Property kuiper\\\\jsonrpc\\\\annotation\\\\JsonRpcService\\:\\:\\$version \\(string\\) on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: jsonrpc/src/config/JsonRpcServerConfiguration.php
+
+		-
+			message: "#^Dead catch \\- kuiper\\\\jsonrpc\\\\exception\\\\JsonRpcRequestException is never thrown in the try block\\.$#"
+			count: 1
+			path: jsonrpc/src/server/JsonRpcHttpRequestHandler.php
+
+		-
+			message: "#^Property kuiper\\\\jsonrpc\\\\server\\\\JsonRpcHttpRequestHandler\\:\\:\\$invalidRequestHandler is never read, only written\\.$#"
+			count: 1
+			path: jsonrpc/src/server/JsonRpcHttpRequestHandler.php
+
+		-
+			message: "#^Dead catch \\- kuiper\\\\jsonrpc\\\\exception\\\\JsonRpcRequestException is never thrown in the try block\\.$#"
+			count: 1
+			path: jsonrpc/src/server/JsonRpcTcpReceiveEventListener.php
+
+		-
+			message: "#^Property kuiper\\\\jsonrpc\\\\server\\\\JsonRpcTcpReceiveEventListener\\:\\:\\$invalidRequestHandler is never read, only written\\.$#"
+			count: 1
+			path: jsonrpc/src/server/JsonRpcTcpReceiveEventListener.php
 
 		-
 			message: "#^Parameter \\#2 \\$level of class Monolog\\\\Handler\\\\StreamHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'error'\\|'ERROR'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
@@ -66,7 +121,112 @@ parameters:
 			path: reflection/src/ReflectionDocBlockFactory.php
 
 		-
+			message: "#^Static property kuiper\\\\reflection\\\\ReflectionDocBlockFactory\\:\\:\\$INSTANCE \\(kuiper\\\\reflection\\\\ReflectionDocBlockFactoryInterface\\) on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: reflection/src/ReflectionDocBlockFactory.php
+
+		-
+			message: "#^Property kuiper\\\\rpc\\\\registry\\\\consul\\\\RegisterServiceCheck\\:\\:\\$TTL is unused\\.$#"
+			count: 1
+			path: rpc-registry/src/consul/RegisterServiceCheck.php
+
+		-
+			message: "#^Property kuiper\\\\rpc\\\\registry\\\\consul\\\\ServiceCheck\\:\\:\\$TTL is unused\\.$#"
+			count: 1
+			path: rpc-registry/src/consul/ServiceCheck.php
+
+		-
+			message: "#^Property kuiper\\\\swoole\\\\annotation\\\\KuiperApplication\\:\\:\\$exclude \\(array\\) on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: swoole/src/annotation/KuiperApplication.php
+
+		-
+			message: "#^Property kuiper\\\\swoole\\\\annotation\\\\KuiperApplication\\:\\:\\$excludeNamespaces \\(array\\) on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: swoole/src/annotation/KuiperApplication.php
+
+		-
 			message: "#^Call to an undefined method kuiper\\\\logger\\\\LoggerFactoryInterface\\:\\:getLoggers\\(\\)\\.$#"
 			count: 1
 			path: swoole/src/listener/ReopenLogFile.php
+
+		-
+			message: "#^Property kuiper\\\\swoole\\\\pool\\\\PoolConfig\\:\\:\\$connectTimeout is never read, only written\\.$#"
+			count: 1
+			path: swoole/src/pool/PoolConfig.php
+
+		-
+			message: "#^Property kuiper\\\\swoole\\\\pool\\\\PoolConfig\\:\\:\\$heartbeat is never read, only written\\.$#"
+			count: 1
+			path: swoole/src/pool/PoolConfig.php
+
+		-
+			message: "#^Property kuiper\\\\swoole\\\\pool\\\\PoolConfig\\:\\:\\$maxIdleTime is never read, only written\\.$#"
+			count: 1
+			path: swoole/src/pool/PoolConfig.php
+
+		-
+			message: "#^Property kuiper\\\\swoole\\\\pool\\\\PoolConfig\\:\\:\\$minConnections is never read, only written\\.$#"
+			count: 1
+			path: swoole/src/pool/PoolConfig.php
+
+		-
+			message: "#^Negated boolean expression is always true\\.$#"
+			count: 1
+			path: swoole/src/server/workers/ForkedWorkerManager.php
+
+		-
+			message: "#^Negated boolean expression is always true\\.$#"
+			count: 1
+			path: swoole/src/server/workers/SingleWorkerManager.php
+
+		-
+			message: "#^Variable \\$read in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: swoole/src/server/workers/SocketChannel.php
+
+		-
+			message: "#^Method kuiper\\\\tars\\\\config\\\\TarsClientConfiguration\\:\\:createTarsClient\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: tars/src/config/TarsClientConfiguration.php
+
+		-
+			message: "#^Property kuiper\\\\tars\\\\annotation\\\\TarsParameter\\:\\:\\$order \\(int\\) on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: tars/src/core/TarsMethodFactory.php
+
+		-
+			message: "#^Property kuiper\\\\tars\\\\annotation\\\\TarsParameter\\:\\:\\$out \\(bool\\) on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: tars/src/core/TarsMethodFactory.php
+
+		-
+			message: "#^Property kuiper\\\\tars\\\\annotation\\\\TarsServant\\:\\:\\$service \\(string\\) on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: tars/src/core/TarsMethodFactory.php
+
+		-
+			message: "#^Dead catch \\- kuiper\\\\tars\\\\exception\\\\TarsRequestException is never thrown in the try block\\.$#"
+			count: 1
+			path: tars/src/server/TarsTcpReceiveEventListener.php
+
+		-
+			message: "#^Method kuiper\\\\tars\\\\server\\\\TarsTcpReceiveEventListener\\:\\:createInvalidTarsRequestResponse\\(\\) is unused\\.$#"
+			count: 1
+			path: tars/src/server/TarsTcpReceiveEventListener.php
+
+		-
+			message: "#^Anonymous function uses \\$this assigned to variable \\$self\\. Use \\$this directly in the function body\\.$#"
+			count: 1
+			path: web/src/AnnotationProcessor.php
+
+		-
+			message: "#^Property kuiper\\\\web\\\\annotation\\\\RequestMapping\\:\\:\\$method \\(array\\<string\\>\\) in isset\\(\\) is not nullable\\.$#"
+			count: 1
+			path: web/src/AnnotationProcessor.php
+
+		-
+			message: "#^Method kuiper\\\\web\\\\session\\\\CacheSessionHandler\\:\\:gc\\(\\) should return int\\|false but returns true\\.$#"
+			count: 1
+			path: web/src/session/CacheSessionHandler.php
 

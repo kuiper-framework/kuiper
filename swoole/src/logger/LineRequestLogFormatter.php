@@ -144,7 +144,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         $requestBodySize = $request->getBody()->getSize();
         $messageContext = [
             'remote_addr' => $ipList[0] ?? '-',
-            'remote_user' => $request->getUri()->getUserInfo() ?? '-',
+            'remote_user' => $request->getUri()->getUserInfo(),
             'time_local' => $this->dateFormatter->format($startTime),
             'request_method' => $request->getMethod(),
             'request_uri' => (string) $request->getUri(),
@@ -166,7 +166,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
                 $extra['query'] = $this->getQueryString($request);
             } elseif ('body' === $name) {
                 $bodySize = $request->getBody()->getSize();
-                if (isset($this->bodyMaxSize) && $bodySize > $this->bodyMaxSize) {
+                if ($bodySize > $this->bodyMaxSize) {
                     $extra['body'] = 'body with '.$bodySize.' bytes';
                 } else {
                     $body = (string) $request->getBody();

@@ -38,7 +38,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
     private $extensions;
 
     /**
-     * @var string[]
+     * @var string[]|null
      */
     private $classes;
 

@@ -26,6 +26,7 @@ use kuiper\helper\Arrays;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
@@ -70,7 +71,18 @@ class TarsServerConfiguration implements DefinitionConfiguration
     public function getDefinitions(): array
     {
         $this->addTarsRequestLog();
-        Application::getInstance()->getConfig()->merge([
+        $config = Application::getInstance()->getConfig();
+        $listeners = [
+            KeepAlive::class,
+            TarsTcpReceiveEventListener::class,
+        ];
+        if ($config->getBool('application.tars.client.enable_stat')) {
+            $listeners[] = RequestStat::class;
+        }
+        if ($config->getBool('application.tars.server.enable_monitor')) {
+            $listeners[] = ServiceMonitor::class;
+        }
+        $config->merge([
             'application' => [
                 'tars' => [
                     'server' => [
@@ -83,12 +95,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
                         ],
                     ],
                 ],
-                'listeners' => [
-                    KeepAlive::class,
-                    RequestStat::class,
-                    ServiceMonitor::class,
-                    TarsTcpReceiveEventListener::class,
-                ],
+                'listeners' => $listeners,
             ],
         ]);
 
@@ -111,7 +118,10 @@ class TarsServerConfiguration implements DefinitionConfiguration
      */
     public function tarsServerRequestLog(RequestLogFormatterInterface $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
     {
-        $middleware = new AccessLog($requestLogFormatter);
+        $excludeRegexp = Application::getInstance()->getConfig()->getString('application.tars.server.log_excludes', '#^tars.tarsnode#');
+        $middleware = new AccessLog($requestLogFormatter, static function (RpcRequestInterface $request) use ($excludeRegexp) {
+            return !preg_match($excludeRegexp, $request->getRpcMethod()->getServiceLocator()->getName());
+        });
         $middleware->setLogger($loggerFactory->create('TarsServerRequestLogger'));
 
         return $middleware;
