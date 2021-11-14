@@ -30,6 +30,7 @@ use kuiper\rpc\client\middleware\ServiceDiscovery;
 use kuiper\rpc\client\RequestIdGenerator;
 use kuiper\rpc\client\RequestIdGeneratorInterface;
 use kuiper\rpc\JsonRpcRequestLogFormatter;
+use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\servicediscovery\ChainedServiceResolver;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
@@ -99,8 +100,11 @@ class TarsClientConfiguration implements DefinitionConfiguration
      */
     public function tarsRequestLog(RequestLogFormatterInterface $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
     {
-        $middleware = new AccessLog($requestLogFormatter);
-        $middleware->setLogger($loggerFactory->create('TarsRequestLogger'));
+        $excludeRegexp = Application::getInstance()->getConfig()->getString('application.tars.client.log_excludes', '#^tars.tarsnode#');
+        $middleware = new AccessLog($requestLogFormatter, static function (RpcRequestInterface $request) use ($excludeRegexp) {
+            return !preg_match($excludeRegexp, $request->getRpcMethod()->getServiceLocator()->getName());
+        });
+        $middleware->setLogger($loggerFactory->create('TarsServerRequestLogger'));
 
         return $middleware;
     }

@@ -26,7 +26,6 @@ use kuiper\helper\Arrays;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
-use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
@@ -118,10 +117,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
      */
     public function tarsServerRequestLog(RequestLogFormatterInterface $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
     {
-        $excludeRegexp = Application::getInstance()->getConfig()->getString('application.tars.server.log_excludes', '#^tars.tarsnode#');
-        $middleware = new AccessLog($requestLogFormatter, static function (RpcRequestInterface $request) use ($excludeRegexp) {
-            return !preg_match($excludeRegexp, $request->getRpcMethod()->getServiceLocator()->getName());
-        });
+        $middleware = new AccessLog($requestLogFormatter);
         $middleware->setLogger($loggerFactory->create('TarsServerRequestLogger'));
 
         return $middleware;
