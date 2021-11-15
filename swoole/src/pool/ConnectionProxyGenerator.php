@@ -75,9 +75,10 @@ class ConnectionProxyGenerator
             MethodGenerator::FLAG_PUBLIC,
             '$this->pool = $pool;'
         );
+        $phpClass->addMethod('__destruct');
 
         foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
-            if ('__construct' === $reflectionMethod->getName() || $reflectionMethod->isStatic()) {
+            if (in_array($reflectionMethod->getName(), ['__construct', '__destruct'], true) || $reflectionMethod->isStatic()) {
                 continue;
             }
             $params = array_map(function ($parameter) use ($reflectionMethod): ParameterGenerator {

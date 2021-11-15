@@ -15,6 +15,7 @@ namespace kuiper\swoole\pool;
 
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\swoole\fixtures\FooConnection;
 use PHPUnit\Framework\TestCase;
 
 class ConnectionProxyGeneratorTest extends TestCase
@@ -30,5 +31,20 @@ class ConnectionProxyGeneratorTest extends TestCase
             return AnnotationReader::getInstance();
         }));
         $this->assertInstanceOf(AnnotationReaderInterface::class, $reader);
+    }
+
+    public function testDestructNotCall()
+    {
+        $poolFactory = new PoolFactory();
+        $test = static function () use ($poolFactory) {
+            $object = ConnectionProxyGenerator::create($poolFactory, FooConnection::class, function () {
+                throw new \InvalidArgumentException('should not call');
+                // return AnnotationReader::getInstance();
+            });
+            // $object->__destruct();
+            unset($object);
+        };
+        $test();
+        $this->assertTrue(true);
     }
 }

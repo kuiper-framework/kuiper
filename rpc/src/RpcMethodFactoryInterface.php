@@ -24,7 +24,7 @@ interface RpcMethodFactoryInterface
      *
      * @return RpcMethodInterface
      *
-     * @throws InvalidMethodException
+     * @throws InvalidMethodException if service or method does not exists or annotation not valid
      */
     public function create($service, string $method, array $args): RpcMethodInterface;
 }

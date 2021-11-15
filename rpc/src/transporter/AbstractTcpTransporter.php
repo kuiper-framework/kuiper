@@ -35,6 +35,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
     protected const TAG = '['.__CLASS__.'] ';
 
     private const ERROR_EXCEPTIONS = [
+        ErrorCode::INVALID_ENDPOINT => CannotResolveEndpointException::class,
         ErrorCode::SOCKET_CLOSED => ConnectionClosedException::class,
         ErrorCode::SOCKET_TIMEOUT => TimedOutException::class,
         ErrorCode::SOCKET_CONNECT_FAILED => ConnectFailedException::class,
@@ -146,7 +147,6 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
 
     /**
      * @throws CannotResolveEndpointException
-     * @throws ConnectionException
      */
     protected function resolveEndpoint(?Endpoint $endpoint): void
     {
@@ -161,7 +161,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
             }
         }
         if (null === $this->endpoint) {
-            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::INVALID_ENDPOINT), 'endpoint is empty');
+            throw new CannotResolveEndpointException('endpoint is empty');
         }
     }
 
