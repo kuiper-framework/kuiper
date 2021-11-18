@@ -112,7 +112,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
     public function createTarsClient(TarsProxyFactory $factory, string $clientClass, string $name = null, array $options = [])
     {
         $config = Application::getInstance()->getConfig();
-        $clientOptions = $config->get('application.jsonrpc.client.options', []);
+        $clientOptions = $config->get('application.tars.client.options', []);
         $options = array_merge($options, $clientOptions['default'] ?? [], $clientOptions[$name ?? $clientClass] ?? []);
 
         return $factory->create($clientClass, $options);

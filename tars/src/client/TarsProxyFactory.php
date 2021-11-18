@@ -281,7 +281,7 @@ class TarsProxyFactory implements ContainerAwareInterface
             if (null !== $tarsClient) {
                 $options['service'] = $tarsClient->service;
             } else {
-                throw new \InvalidArgumentException('Cannot resolver eservice name');
+                throw new \InvalidArgumentException('Cannot resolver service name');
             }
         }
         if ($class->isInterface()) {

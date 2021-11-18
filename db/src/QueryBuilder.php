@@ -50,6 +50,14 @@ class QueryBuilder implements QueryBuilderInterface
         return $this->pool;
     }
 
+    /**
+     * @return EventDispatcherInterface|null
+     */
+    public function getEventDispatcher()
+    {
+        return $this->eventDispatcher;
+    }
+
     public function getQueryFactory(): QueryFactory
     {
         return $this->queryFactory;
