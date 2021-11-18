@@ -104,7 +104,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
         $middleware = new AccessLog($requestLogFormatter, static function (RpcRequestInterface $request) use ($excludeRegexp) {
             return !preg_match($excludeRegexp, $request->getRpcMethod()->getServiceLocator()->getName());
         });
-        $middleware->setLogger($loggerFactory->create('TarsServerRequestLogger'));
+        $middleware->setLogger($loggerFactory->create('TarsRequestLogger'));
 
         return $middleware;
     }
