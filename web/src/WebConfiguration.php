@@ -97,13 +97,20 @@ class WebConfiguration implements DefinitionConfiguration
     protected function addAccessLoggerConfig(): void
     {
         $config = Application::getInstance()->getConfig();
-        $config->merge([
-            'application' => [
-                'web' => [
-                    'middleware' => [
-                        AccessLog::class,
+
+        if (!in_array(AccessLog::class, $config->get('application.web.middleware', []), true)) {
+            $config->merge([
+                'application' => [
+                    'web' => [
+                        'middleware' => [
+                            AccessLog::class,
+                        ],
                     ],
                 ],
+            ]);
+        }
+        $config->merge([
+            'application' => [
                 'listeners' => [
                     HttpRequestEventListener::class,
                 ],

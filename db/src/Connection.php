@@ -455,6 +455,6 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
 
     public static function isRetryableError(\PDOException $e): bool
     {
-        return in_array($e->errorInfo[1], [ErrorCode::CR_SERVER_LOST, ErrorCode::CR_SERVER_GONE_ERROR], true);
+        return isset($e->errorInfo[1]) && in_array($e->errorInfo[1], [ErrorCode::CR_SERVER_LOST, ErrorCode::CR_SERVER_GONE_ERROR], true);
     }
 }
