@@ -239,7 +239,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
         if (null === $path) {
             return;
         }
-        $config->merge([
+        $config->mergeIfNotExists([
             'application' => [
                 'logging' => [
                     'loggers' => [

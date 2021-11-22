@@ -30,6 +30,7 @@ use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
+use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\listener\HttpRequestEventListener;
 use kuiper\swoole\logger\LineRequestLogFormatter;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
@@ -109,10 +110,10 @@ class WebConfiguration implements DefinitionConfiguration
                 ],
             ]);
         }
-        $config->merge([
+        $config->mergeIfNotExists([
             'application' => [
                 'listeners' => [
-                    HttpRequestEventListener::class,
+                    RequestEvent::class => HttpRequestEventListener::class,
                 ],
                 'logging' => [
                     'loggers' => [
