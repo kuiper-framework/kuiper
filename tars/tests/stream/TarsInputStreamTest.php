@@ -66,7 +66,8 @@ class TarsInputStreamTest extends TestCase
      */
     public function testIntBound(int $num)
     {
-        $os = TarsOutputStream::pack(PrimitiveType::long(), $num);
+        $type = PrimitiveType::long();
+        $os = TarsOutputStream::pack($type, $num);
         $payload = \TUPAPI::putInt64((string) 0, $num, 3);
         $is = new TarsInputStream($payload);
         var_export($payload);
@@ -74,6 +75,9 @@ class TarsInputStreamTest extends TestCase
         $is = new TarsInputStream($os);
         var_export($is->tokenize());
         $this->assertEquals($os, $payload);
+
+        $value = TarsInputStream::unpack($type, $os);
+        $this->assertEquals($value, $num);
     }
 
     public function testFloat()
@@ -104,9 +108,9 @@ class TarsInputStreamTest extends TestCase
 
     public function testInt1()
     {
-        $num = TarsConst::MIN_INT16;
-        $num = -32767;
-        $os = TarsOutputStream::pack(PrimitiveType::long(), $num);
+        $num = TarsConst::MIN_INT32 - 1;
+        $type = PrimitiveType::long();
+        $os = TarsOutputStream::pack($type, $num);
         $payload = \TUPAPI::putInt64((string) 0, $num, 3);
         $is = new TarsInputStream($payload);
 
@@ -119,6 +123,8 @@ class TarsInputStreamTest extends TestCase
         $is = new TarsInputStream($os);
         var_export($is->tokenize());
         $this->assertEquals($os, $payload);
+        $value = TarsInputStream::unpack($type, $os);
+        $this->assertEquals($num, $value);
     }
 
     public static function toPayload(string $name, string $payload): string

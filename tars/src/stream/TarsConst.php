@@ -33,6 +33,13 @@ class TarsConst
     public const RESULT_CODE = '__CODE';
     public const RESULT_DESC = '__DESC';
 
+    public const PACK_UINT8 = 'C';
+    public const PACK_UINT16 = 'n';
+    public const PACK_UINT32 = 'N';
+    public const PACK_UINT64 = 'J';
+    public const PACK_FLOAT = 'G';
+    public const PACK_DOUBLE = 'E';
+
     public static function check(): void
     {
         if (PHP_INT_SIZE !== 8) {

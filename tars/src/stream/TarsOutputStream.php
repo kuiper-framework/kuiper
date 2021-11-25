@@ -99,7 +99,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             $this->writeHead($tag, Type::ZERO);
         } else {
             $this->writeHead($tag, Type::INT8);
-            fwrite($this->buffer, pack('C', $value));
+            fwrite($this->buffer, pack(TarsConst::PACK_UINT8, $value));
             ++$this->length;
         }
     }
@@ -121,7 +121,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             $this->writeInt8($tag, $value);
         } else {
             $this->writeHead($tag, Type::INT16);
-            fwrite($this->buffer, pack('n', $value));
+            fwrite($this->buffer, pack(TarsConst::PACK_UINT16, $value));
             $this->length += 2;
         }
     }
@@ -135,7 +135,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             $this->writeInt16($tag, $value);
         } else {
             $this->writeHead($tag, Type::INT32);
-            fwrite($this->buffer, pack('N', $value));
+            fwrite($this->buffer, pack(TarsConst::PACK_UINT32, $value));
             $this->length += 4;
         }
     }
@@ -149,7 +149,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             $this->writeInt32($tag, $value);
         } else {
             $this->writeHead($tag, Type::INT64);
-            fwrite($this->buffer, pack('J', $value));
+            fwrite($this->buffer, pack(TarsConst::PACK_UINT64, $value));
             $this->length += 8;
         }
     }
@@ -190,7 +190,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             $this->writeHead($tag, Type::ZERO);
         } else {
             $this->writeHead($tag, Type::FLOAT);
-            fwrite($this->buffer, pack('G', $value));
+            fwrite($this->buffer, pack(TarsConst::PACK_FLOAT, $value));
             $this->length += 4;
         }
     }
@@ -204,7 +204,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             $this->writeHead($tag, Type::ZERO);
         } else {
             $this->writeHead($tag, Type::DOUBLE);
-            fwrite($this->buffer, pack('E', $value));
+            fwrite($this->buffer, pack(TarsConst::PACK_DOUBLE, $value));
             $this->length += 8;
         }
     }
