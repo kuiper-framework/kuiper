@@ -103,7 +103,7 @@ redirect_stderr=true
 ', [
                 '{cwd}' => getcwd(),
                 '{server_name}' => $serviceName,
-                '{php}' => PHP_BINARY,
+                '{php}' => $this->serverProperties->getPhp() ?? PHP_BINARY,
                 '{env}' => $env,
                 '{script_file}' => realpath($_SERVER['SCRIPT_FILENAME']),
                 '{log_file}' => $this->serverProperties->getAppLogPath().'/'.$serviceName.'.log',

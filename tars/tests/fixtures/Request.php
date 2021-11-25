@@ -58,4 +58,11 @@ final class Request
      * @var string|null
      */
     public $stringOpt;
+
+    /**
+     * @TarsProperty(order=6, required=true, type="long")
+     *
+     * @var int|null
+     */
+    public $longRequired;
 }

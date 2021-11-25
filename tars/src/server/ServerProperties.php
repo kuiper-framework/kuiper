@@ -148,6 +148,11 @@ class ServerProperties
      * @var string|null
      */
     private $supervisorctl;
+
+    /**
+     * @var string|null
+     */
+    private $php;
     /**
      * @Assert\Count(min=1)
      *
@@ -428,6 +433,22 @@ class ServerProperties
             throw new InvalidArgumentException("logpath '$logPath' does not exist");
         }
         $this->logPath = rtrim(realpath($logPath), '/');
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPhp(): ?string
+    {
+        return $this->php;
+    }
+
+    /**
+     * @param string|null $php
+     */
+    public function setPhp(?string $php): void
+    {
+        $this->php = $php;
     }
 
     public function getAppLogPath(): string

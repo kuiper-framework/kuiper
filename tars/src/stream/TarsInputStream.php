@@ -225,12 +225,17 @@ class TarsInputStream implements TarsInputStreamInterface
             return 0;
         }
 
-        $unpack = unpack('c', $this->readInternal(1));
+        $unpack = unpack('C', $this->readInternal(1));
         if (false === $unpack) {
             throw TarsStreamException::outOfRange();
         }
 
-        return $unpack[1];
+        $value = $unpack[1];
+        if ($value > TarsConst::MAX_INT8) {
+            return $value - TarsConst::MAX_UINT8 - 1;
+        }
+
+        return $value;
     }
 
     /**
@@ -244,7 +249,12 @@ class TarsInputStream implements TarsInputStreamInterface
                 throw TarsStreamException::outOfRange();
             }
 
-            return $unpack[1];
+            $value = $unpack[1];
+            if ($value > TarsConst::MAX_INT16) {
+                return $value - TarsConst::MAX_UINT16 - 1;
+            }
+
+            return $value;
         }
 
         return $this->readInt8Internal($type);
@@ -261,7 +271,12 @@ class TarsInputStream implements TarsInputStreamInterface
                 throw TarsStreamException::outOfRange();
             }
 
-            return $unpack[1];
+            $value = $unpack[1];
+            if ($value > TarsConst::MAX_UINT32) {
+                return $value - TarsConst::MAX_UINT32 - 1;
+            }
+
+            return $value;
         }
 
         return $this->readInt16Internal($type);
@@ -273,7 +288,7 @@ class TarsInputStream implements TarsInputStreamInterface
     private function readInt64Internal(int $type): int
     {
         if (Type::INT64 === $type) {
-            $unpack = unpack('J', $this->readInternal(8));
+            $unpack = unpack('Q', $this->readInternal(8));
             if (false === $unpack) {
                 throw TarsStreamException::outOfRange();
             }

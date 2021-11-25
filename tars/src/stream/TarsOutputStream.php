@@ -21,6 +21,7 @@ use kuiper\tars\type\StructMapEntry;
 use kuiper\tars\type\StructType;
 use kuiper\tars\type\Type;
 use kuiper\tars\type\VectorType;
+use Webmozart\Assert\Assert;
 
 class TarsOutputStream implements TarsOutputStreamInterface
 {
@@ -98,7 +99,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             $this->writeHead($tag, Type::ZERO);
         } else {
             $this->writeHead($tag, Type::INT8);
-            fwrite($this->buffer, pack('c', $value));
+            fwrite($this->buffer, pack('C', $value));
             ++$this->length;
         }
     }
@@ -158,6 +159,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
      */
     public function writeUInt8(int $tag, int $value): void
     {
+        Assert::true($value >= 0 && $value <= TarsConst::MAX_UINT8, "expect $value uint8");
         $this->writeInt16($tag, $value);
     }
 
@@ -166,6 +168,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
      */
     public function writeUInt16(int $tag, int $value): void
     {
+        Assert::true($value >= 0 && $value <= TarsConst::MAX_UINT16, "expect $value uint16");
         $this->writeInt32($tag, $value);
     }
 
@@ -174,6 +177,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
      */
     public function writeUInt32(int $tag, int $value): void
     {
+        Assert::true($value >= 0 && $value <= TarsConst::MAX_UINT32, "expect $value uint32");
         $this->writeInt64($tag, $value);
     }
 

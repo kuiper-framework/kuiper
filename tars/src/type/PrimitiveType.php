@@ -18,6 +18,7 @@ namespace kuiper\tars\type;
  * @method static PrimitiveType bool(): static
  * @method static PrimitiveType char(): static
  * @method static PrimitiveType int(): static
+ * @method static PrimitiveType long(): static
  * @method static PrimitiveType double(): static
  * @method static PrimitiveType float(): static
  */

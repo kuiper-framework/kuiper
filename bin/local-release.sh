@@ -46,6 +46,10 @@ do
 
         if [[ $(git log --pretty="%d" -n 1 | grep tag --count) -eq 0 ]]; then
             echo "Releasing $REMOTE"
+            if git rev-parse -q --verify "refs/tags/$VERSION" > /dev/null; then
+                git tag -d $VERSION
+                git push origin :refs/tags/$VERSION
+            fi
             git tag $VERSION
             git push origin --tags
         fi
