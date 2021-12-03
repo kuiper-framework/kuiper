@@ -21,9 +21,13 @@ use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\exception\ErrorCode;
 use kuiper\tars\stream\ResponsePacket;
 use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
-class ErrorHandler implements ErrorHandlerInterface
+class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     /**
      * @var ResponseFactoryInterface
      */
@@ -41,6 +45,13 @@ class ErrorHandler implements ErrorHandlerInterface
 
     public function handle(RpcRequestInterface $request, \Throwable $error): RpcResponseInterface
     {
+        if ($error instanceof \InvalidArgumentException) {
+            $this->logger->info(sprintf('process %s#%s failed: %s',
+                $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(), $error));
+        } else {
+            $this->logger->error(sprintf('process %s#%s failed: %s',
+                $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(), $error));
+        }
         /** @var TarsRequestInterface $request */
         $packet = ResponsePacket::createFromRequest($request);
         if ($error->getCode() > 0) {
