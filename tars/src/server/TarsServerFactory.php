@@ -107,7 +107,10 @@ class TarsServerFactory
 
     public function createErrorHandler(): ErrorHandlerInterface
     {
-        return new ErrorHandler($this->httpResponseFactory);
+        $errorHandler = new ErrorHandler($this->httpResponseFactory);
+        $errorHandler->setLogger($this->loggerFactory->create(ErrorHandler::class));
+
+        return $errorHandler;
     }
 
     public function getRequestHandler(): RpcRequestHandlerInterface
