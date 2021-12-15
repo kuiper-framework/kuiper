@@ -7,7 +7,7 @@ namespace kuiper\rpc\client\listener;
 use kuiper\event\EventListenerInterface;
 use kuiper\resilience\retry\event\RetryOnRetry;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
-use kuiper\rpc\exception\ConnectFailedException;
+use kuiper\rpc\exception\ConnectionException;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\transporter\AbstractTcpTransporter;
 
@@ -34,7 +34,7 @@ class RetryOnRetryRemoveEndpointListener implements EventListenerInterface
             return;
         }
         $error = $event->getLastException();
-        if (!$error instanceof ConnectFailedException) {
+        if (!$error instanceof ConnectionException) {
             return;
         }
         $connection = $error->getConnection();
