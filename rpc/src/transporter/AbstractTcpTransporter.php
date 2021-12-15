@@ -63,6 +63,11 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
     private $resource;
 
     /**
+     * @var RequestInterface|null
+     */
+    private $request;
+
+    /**
      * AbstractTcpTransporter constructor.
      */
     public function __construct(ResponseFactoryInterface $responseFactory, array $options = [], LoggerInterface $logger = null)
@@ -75,6 +80,14 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
     public function getEndpoint(): Endpoint
     {
         return $this->endpoint;
+    }
+
+    /**
+     * @return RequestInterface|null
+     */
+    public function getRequest(): ?RequestInterface
+    {
+        return $this->request;
     }
 
     public function setOptions(array $options): void
@@ -135,6 +148,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
      */
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
+        $this->request = $request;
         $endpoint = Endpoint::fromUri($request->getUri());
         $this->connect($endpoint->getPort() > 0 ? $endpoint : null);
         $this->beforeSend();

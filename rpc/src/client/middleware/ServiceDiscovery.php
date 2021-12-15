@@ -81,10 +81,18 @@ class ServiceDiscovery implements MiddlewareInterface
     public function removeAddress(ServiceLocator $serviceLocator, string $address): void
     {
         $serviceEndpoint = $this->getServiceEndpoint($serviceLocator);
-        $serviceEndpoint = $serviceEndpoint->remove($serviceEndpoint->getEndpoint($address));
+        $endpoint = $serviceEndpoint->getEndpoint($address);
+        if (null === $endpoint) {
+            return;
+        }
+        $serviceEndpoint = $serviceEndpoint->remove($endpoint);
         $key = (string) $serviceLocator;
-        $this->cache->set($key, $serviceEndpoint);
-        $this->lb[$key] = $this->createLoadBalance($serviceEndpoint);
+        if ($serviceEndpoint->isEmpty()) {
+            $this->cache->delete($key);
+        } else {
+            $this->cache->set($key, $serviceEndpoint);
+            $this->lb[$key] = $this->createLoadBalance($serviceEndpoint);
+        }
     }
 
     private function resolve(ServiceLocator $serviceLocator): ServiceEndpoint

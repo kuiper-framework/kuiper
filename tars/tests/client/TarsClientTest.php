@@ -18,11 +18,24 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
+use kuiper\event\NullEventDispatcher;
 use kuiper\resilience\core\SimpleCounter;
+use kuiper\resilience\core\SimpleCounterFactory;
+use kuiper\resilience\retry\RetryFactoryImpl;
+use kuiper\rpc\client\middleware\Retry;
+use kuiper\rpc\client\middleware\ServiceDiscovery;
 use kuiper\rpc\client\RequestIdGenerator;
 use kuiper\rpc\client\RpcClient;
 use kuiper\rpc\client\RpcExecutorFactory;
+use kuiper\rpc\exception\ConnectFailedException;
+use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\servicediscovery\ServiceEndpoint;
+use kuiper\rpc\servicediscovery\ServiceResolverInterface;
+use kuiper\rpc\ServiceLocator;
+use kuiper\rpc\transporter\Endpoint;
 use kuiper\rpc\transporter\HttpTransporter;
+use kuiper\rpc\transporter\TransporterInterface;
+use kuiper\swoole\pool\PoolFactory;
 use kuiper\tars\core\TarsMethodFactory;
 use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\fixtures\HelloService;
@@ -72,5 +85,50 @@ class TarsClientTest extends TestCase
         $packet = RequestPacket::decode((string) $request->getBody());
         $this->assertEquals('app.hello.HelloObj', $packet->sServantName);
         $this->assertEquals('hello', $packet->sFuncName);
+    }
+
+    public function testServiceDiscovery()
+    {
+        $proxyGenerator = new TarsProxyGenerator();
+        $generatedClass = $proxyGenerator->generate(HelloService::class);
+        $generatedClass->eval();
+        $class = $generatedClass->getClassName();
+        $packet = new ResponsePacket();
+        $packet->iRequestId = 1;
+        $packet->sBuffer = TarsOutputStream::pack(MapType::byteArrayMap(), [
+            '' => TarsOutputStream::pack(PrimitiveType::string(), 'hello world'),
+        ]);
+        $transporter = \Mockery::mock(TransporterInterface::class);
+        $transporter->shouldReceive('sendRequest')
+            ->andReturnUsing(function (RpcRequestInterface $request) use ($packet, $transporter) {
+                error_log('send request '.$request->getUri());
+                if ('host1' === $request->getUri()->getHost()) {
+                    throw new ConnectFailedException($transporter, 'connect host1 failed', 0);
+                }
+
+                return new TarsResponse($request, new Response(200, [], (string) $packet->encode()), $packet);
+            });
+
+        $serviceResolver = \Mockery::mock(ServiceResolverInterface::class);
+        $serviceResolver->shouldReceive('resolve')
+            ->andReturnUsing(function (ServiceLocator $locator) {
+                error_log('resolving '.$locator);
+
+                return new ServiceEndpoint($locator, [
+                    Endpoint::fromString('http://host1:80'),
+                    Endpoint::fromString('http://host2:80'),
+                ]);
+            });
+        $methodFactory = new TarsMethodFactory();
+        $requestFactory = new TarsRequestFactory(new RequestFactory(), new StreamFactory(), $methodFactory, new RequestIdGenerator(new SimpleCounter(), 0), '');
+        $responseFactory = new TarsResponseFactory();
+        $rpcClient = new RpcClient($transporter, $responseFactory);
+        /** @var HelloService $proxy */
+        $proxy = new $class(new RpcExecutorFactory($requestFactory, $rpcClient, [
+            new Retry(new RetryFactoryImpl(new PoolFactory(), new SimpleCounterFactory(), new NullEventDispatcher())),
+            new ServiceDiscovery($serviceResolver),
+        ]));
+        $result = $proxy->hello('world');
+        $this->assertEquals($result, 'hello world');
     }
 }

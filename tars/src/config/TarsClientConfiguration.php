@@ -25,6 +25,7 @@ use kuiper\helper\Text;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\resilience\core\SwooleAtomicCounter;
+use kuiper\rpc\client\listener\RetryOnRetryRemoveEndpointListener;
 use kuiper\rpc\client\middleware\Retry;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
 use kuiper\rpc\client\RequestIdGenerator;
@@ -76,6 +77,13 @@ class TarsClientConfiguration implements DefinitionConfiguration
                     'client' => [
                         'middleware' => $middlewares,
                     ],
+                ],
+            ],
+        ]);
+        $config->merge([
+            'application' => [
+                'listeners' => [
+                    'tarsRetryOnRetryRemoveEndpointListener',
                 ],
             ],
         ]);
@@ -230,6 +238,15 @@ class TarsClientConfiguration implements DefinitionConfiguration
         $serviceEndpoints = array_values(array_map([EndpointParser::class, 'parseServiceEndpoint'], array_filter($endpoints)));
 
         return InMemoryServiceResolver::create($serviceEndpoints);
+    }
+
+    /**
+     * @Bean("tarsRetryOnRetryRemoveEndpointListener")
+     * @Inject({"serviceDiscovery": "tarsServiceDiscovery"})
+     */
+    public function retryOnRetryRemoveEndpointListener(ServiceDiscovery $serviceDiscovery): RetryOnRetryRemoveEndpointListener
+    {
+        return new RetryOnRetryRemoveEndpointListener($serviceDiscovery);
     }
 
     private function addTarsRequestLog(): void
