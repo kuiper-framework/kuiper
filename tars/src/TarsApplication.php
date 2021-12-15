@@ -56,7 +56,7 @@ class TarsApplication extends Application
                     'loggers' => [
                         'root' => [
                             'console' => $config->getBool('application.tars.server.enable_console_logging', true),
-                            'level' => $config->getString('application.tars.server.loglevel', 'info'),
+                            'level' => $config->getString('application.tars.server.logLevel', 'info'),
                         ],
                     ],
                     'path' => sprintf('%s/%s/%s',

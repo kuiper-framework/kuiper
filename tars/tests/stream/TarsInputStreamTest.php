@@ -163,4 +163,14 @@ class TarsInputStreamTest extends TestCase
         $obj = TarsInputStream::unpack($type, $data);
         $this->assertEquals([], $obj->arrayOpt);
     }
+
+    public function testMapVector()
+    {
+        $typeParser = new TypeParser(AnnotationReader::getInstance());
+        $type = $typeParser->parse('map<string,vector<string>>', '');
+        $data = TarsOutputStream::pack($type, ['a' => ['b']]);
+
+        $ret = TarsInputStream::unpack($type, $data);
+        var_export($ret);
+    }
 }
