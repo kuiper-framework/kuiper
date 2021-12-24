@@ -100,9 +100,9 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
     /**
      * {@inheritDoc}
      */
-    public function format(RequestInterface $request, ?ResponseInterface $response, float $startTime, float $endTime): array
+    public function format(RequestInterface $request, ?ResponseInterface $response, ?\Throwable $error, float $startTime, float $endTime): array
     {
-        $messageContext = $this->prepareMessageContext($request, $response, $startTime, $endTime);
+        $messageContext = $this->prepareMessageContext($request, $response, $error, $startTime, $endTime);
         if (is_string($this->template)) {
             return [\strtr($this->template, Arrays::mapKeys($messageContext, function ($key) {
                 return '$'.$key;
@@ -129,17 +129,24 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
      *
      * @param RequestInterface       $request
      * @param ResponseInterface|null $response
+     * @param \Throwable|null        $error
      * @param float                  $startTime
      * @param float                  $endTime
      *
      * @return array
      */
-    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, float $startTime, float $endTime): array
+    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, ?\Throwable $error, float $startTime, float $endTime): array
     {
         $time = round(($endTime - $startTime) * 1000, 2);
 
         $ipList = $this->getIpList($request);
-        $statusCode = isset($response) ? $response->getStatusCode() : 500;
+        if (isset($response)) {
+            $statusCode = $response->getStatusCode();
+        } elseif (isset($error)) {
+            $statusCode = $error->getCode();
+        } else {
+            $statusCode = 500;
+        }
         $responseBodySize = isset($response) ? $response->getBody()->getSize() : 0;
         $requestBodySize = $request->getBody()->getSize();
         $messageContext = [

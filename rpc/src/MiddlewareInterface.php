@@ -20,6 +20,8 @@ interface MiddlewareInterface
      * @param RpcRequestHandlerInterface $handler
      *
      * @return RpcResponseInterface
+     *
+     * @throws \Exception
      */
     public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $handler): RpcResponseInterface;
 }

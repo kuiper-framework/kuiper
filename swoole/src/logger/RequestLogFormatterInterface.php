@@ -15,16 +15,18 @@ namespace kuiper\swoole\logger;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 interface RequestLogFormatterInterface
 {
     /**
      * @param RequestInterface       $request
      * @param ResponseInterface|null $response
+     * @param Throwable|null         $error
      * @param float                  $startTime
      * @param float                  $endTime
      *
      * @return array formatted message and extra info
      */
-    public function format(RequestInterface $request, ?ResponseInterface $response, float $startTime, float $endTime): array;
+    public function format(RequestInterface $request, ?ResponseInterface $response, ?Throwable $error, float $startTime, float $endTime): array;
 }

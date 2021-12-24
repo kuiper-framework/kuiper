@@ -35,7 +35,6 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
     protected const TAG = '['.__CLASS__.'] ';
 
     private const ERROR_EXCEPTIONS = [
-        ErrorCode::INVALID_ENDPOINT => CannotResolveEndpointException::class,
         ErrorCode::SOCKET_CLOSED => ConnectionClosedException::class,
         ErrorCode::SOCKET_TIMEOUT => TimedOutException::class,
         ErrorCode::SOCKET_CONNECT_FAILED => ConnectFailedException::class,

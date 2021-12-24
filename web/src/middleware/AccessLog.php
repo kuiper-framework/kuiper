@@ -53,15 +53,16 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $start = microtime(true);
-        $response = null;
         try {
             $response = $handler->handle($request);
+            if (null === $this->requestFilter || (bool) call_user_func($this->requestFilter, $request, $response)) {
+                $this->logger->info(...$this->formatter->format($request, $response, null, $start, microtime(true)));
+            }
 
             return $response;
-        } finally {
-            if (null === $this->requestFilter || (bool) call_user_func($this->requestFilter, $request, $response)) {
-                $this->logger->info(...$this->formatter->format($request, $response, $start, microtime(true)));
-            }
+        } catch (\Exception $error) {
+            $this->logger->info(...$this->formatter->format($request, null, $error, $start, microtime(true)));
+            throw $error;
         }
     }
 }

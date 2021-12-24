@@ -89,7 +89,7 @@ class TarsServerFactory
 
     public function createRpcMethodFactory(): RpcMethodFactoryInterface
     {
-        return new TarsServerMethodFactory($this->serverProperties, $this->services, $this->annotationReader);
+        return new TarsServerMethodFactory($this->serverProperties->getServerName(), $this->services, $this->annotationReader);
     }
 
     public function createServerResponseFactory(): RpcServerResponseFactoryInterface

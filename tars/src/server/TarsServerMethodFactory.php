@@ -31,21 +31,21 @@ class TarsServerMethodFactory extends TarsMethodFactory
      */
     private $services;
     /**
-     * @var ServerProperties
+     * @var string
      */
-    private $serverProperties;
+    private $serverName;
 
     /**
      * TarsServerMethodFactory constructor.
      *
-     * @param ServerProperties          $serverProperties
-     * @param array                     $services
+     * @param string                    $serverName
+     * @param Service[]                 $services
      * @param AnnotationReaderInterface $annotationReader
      */
-    public function __construct(ServerProperties $serverProperties, array $services, AnnotationReaderInterface $annotationReader)
+    public function __construct(string $serverName, array $services, AnnotationReaderInterface $annotationReader)
     {
         parent::__construct($annotationReader);
-        $this->serverProperties = $serverProperties;
+        $this->serverName = $serverName;
         $this->services = $services;
     }
 
@@ -57,7 +57,7 @@ class TarsServerMethodFactory extends TarsMethodFactory
         if (is_object($service)) {
             $tarsServant = $this->getTarsServantAnnotation(new \ReflectionClass($service));
             if (false === strpos($tarsServant->service, '.')) {
-                $serviceName = $this->serverProperties->getServerName().'.'.$tarsServant->service;
+                $serviceName = $this->serverName.'.'.$tarsServant->service;
             } else {
                 $serviceName = $tarsServant->service;
             }

@@ -23,9 +23,9 @@ class TarsRequestLogFormatter extends JsonRpcRequestLogFormatter
     /**
      * {@inheritDoc}
      */
-    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, float $startTime, $endTime): array
+    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, ?\Throwable $error, float $startTime, $endTime): array
     {
-        $context = parent::prepareMessageContext($request, $response, $startTime, $endTime);
+        $context = parent::prepareMessageContext($request, $response, $error, $startTime, $endTime);
         if ($response instanceof TarsResponseInterface) {
             $packet = $response->getResponsePacket();
             $context['status'] = $packet->iRet;
