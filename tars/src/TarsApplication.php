@@ -65,6 +65,7 @@ class TarsApplication extends Application
                         $config->get('application.tars.server.server')),
                     'level' => [
                         'kuiper\\tars' => 'info',
+                        'kuiper\\event' => 'info',
                     ],
                 ],
             ],

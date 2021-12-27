@@ -22,6 +22,7 @@ use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\event\annotation\EventListener;
 use kuiper\helper\PropertyResolverInterface;
+use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\task\QueueInterface;
 use Psr\Container\ContainerInterface;
@@ -60,11 +61,13 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
 
     public function boot(ContainerInterface $container): void
     {
-        $logger = $container->get(LoggerInterface::class);
+        $logger = $container->has(LoggerFactoryInterface::class)
+            ? $container->get(LoggerFactoryInterface::class)->create(__CLASS__)
+            : $container->get(LoggerInterface::class);
         $dispatcher = $container->get(EventDispatcherInterface::class);
         $config = $container->get(PropertyResolverInterface::class);
         $events = [];
-        $addListener = static function ($eventName, $listener) use ($container, $dispatcher, $logger, &$events): void {
+        $addListener = static function ($eventName, $listener) use ($container, $logger, $dispatcher, &$events): void {
             $eventListener = is_string($listener) ? $container->get($listener) : $listener;
             if ($eventListener instanceof EventListenerInterface) {
                 $event = $eventListener->getSubscribedEvent();

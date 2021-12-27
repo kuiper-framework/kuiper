@@ -142,7 +142,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         $ipList = $this->getIpList($request);
         if (isset($response)) {
             $statusCode = $response->getStatusCode();
-        } elseif (isset($error)) {
+        } elseif (isset($error) && is_int($error->getCode()) && $error->getCode() > 0) {
             $statusCode = $error->getCode();
         } else {
             $statusCode = 500;
