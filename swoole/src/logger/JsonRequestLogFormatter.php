@@ -20,7 +20,7 @@ use Psr\Http\Message\ResponseInterface;
 class JsonRequestLogFormatter extends LineRequestLogFormatter
 {
     public const MAIN = ['remote_addr', 'remote_user', 'time_local', 'request', 'status', 'body_bytes_sent', 'http_referer',
-        'http_user_agent', 'http_x_forwarded_for', 'request_time', ];
+        'http_user_agent', 'http_x_forwarded_for', 'request_time', 'extra', ];
 
     /**
      * @var string[]
@@ -29,7 +29,7 @@ class JsonRequestLogFormatter extends LineRequestLogFormatter
 
     public function __construct(
         array $fields = self::MAIN,
-        array $extra = ['query', 'body'],
+        array $extra = ['query', 'body', 'pid'],
         int $bodyMaxSize = 4096,
         $dateFormat = 'Y-m-d\TH:i:s.v')
     {
