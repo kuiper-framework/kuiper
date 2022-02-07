@@ -13,14 +13,15 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\listener;
 
-use kuiper\event\EventListenerInterface;
+use kuiper\event\EventSubscriberInterface;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\swoole\event\ManagerStartEvent;
+use kuiper\swoole\event\StartEvent;
 use kuiper\swoole\event\WorkerStartEvent;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
-use Webmozart\Assert\Assert;
 
-class ReopenLogFile implements EventListenerInterface
+class ReopenLogFile implements EventSubscriberInterface
 {
     /**
      * @var LoggerFactoryInterface
@@ -47,17 +48,16 @@ class ReopenLogFile implements EventListenerInterface
      */
     public function __invoke($event): void
     {
-        Assert::isInstanceOf($event, WorkerStartEvent::class);
-        $this->tryReopen();
-        /* @var WorkerStartEvent $event */
-        $event->getServer()->tick(10000, function (): void {
-            $this->tryReopen();
-        });
+        $this->tryClose();
+        if ($event instanceof WorkerStartEvent) {
+            $event->getServer()->tick(10000, function (): void {
+                $this->tryReopen();
+            });
+        }
     }
 
-    public function tryReopen(): void
+    private function forEachHandler(callable $callback): void
     {
-        clearstatcache();
         foreach ($this->loggerFactory->getLoggers() as $logger) {
             if (!($logger instanceof Logger)) {
                 continue;
@@ -66,22 +66,43 @@ class ReopenLogFile implements EventListenerInterface
                 if (!($handler instanceof StreamHandler)) {
                     continue;
                 }
-                $fileExists = file_exists($handler->getUrl());
-                if (!isset($this->fileInodes[$handler->getUrl()])) {
-                    if (!$fileExists) {
-                        continue;
-                    }
-                    $this->fileInodes[$handler->getUrl()] = fileinode($handler->getUrl());
-                }
-                if (!$fileExists || $this->fileInodes[$handler->getUrl()] !== fileinode($handler->getUrl())) {
-                    $handler->close();
-                }
+                $callback($handler);
             }
         }
     }
 
-    public function getSubscribedEvent(): string
+    public function tryClose(): void
     {
-        return WorkerStartEvent::class;
+        $this->forEachHandler(function (StreamHandler $handler) {
+            $handler->close();
+        });
+    }
+
+    public function tryReopen(): void
+    {
+        clearstatcache();
+        $this->forEachHandler(function (StreamHandler $handler) {
+            $filename = $handler->getUrl();
+            $fileExists = file_exists($filename);
+            if (!isset($this->fileInodes[$filename])) {
+                if (!$fileExists) {
+                    return;
+                }
+                $this->fileInodes[$filename] = fileinode($filename);
+            }
+            if (!$fileExists || $this->fileInodes[$filename] !== fileinode($filename)) {
+                $handler->close();
+                unset($this->fileInodes[$filename]);
+            }
+        });
+    }
+
+    public function getSubscribedEvents(): array
+    {
+        return [
+            StartEvent::class,
+            ManagerStartEvent::class,
+            WorkerStartEvent::class,
+        ];
     }
 }
