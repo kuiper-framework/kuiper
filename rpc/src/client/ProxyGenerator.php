@@ -100,7 +100,9 @@ class ProxyGenerator implements ProxyGeneratorInterface
                 $methodBody,
                 DocBlockGenerator::fromReflection(new DocBlockReflection('/** @inheritdoc */'))
             );
-            $methodGenerator->setReturnType(ReflectionType::phpTypeAsString($reflectionMethod->getReturnType()));
+            if (null !== $reflectionMethod->getReturnType()) {
+                $methodGenerator->setReturnType(ReflectionType::phpTypeAsString($reflectionMethod->getReturnType()));
+            }
             $phpClass->addMethodFromGenerator($methodGenerator);
         }
         if (!$class->hasMethod('getRpcExecutorFactory')) {
@@ -149,15 +151,13 @@ class ProxyGenerator implements ProxyGeneratorInterface
         // 参数顺序 $returnValue, ...$out
         $call = '$this->rpcExecutorFactory->createExecutor($this, __FUNCTION__, ['.
             (empty($parameters) ? '' : $this->buildParameters($parameters)).'])->execute();';
-        if (empty($outParameters)) {
+        if (empty($outParameters) || !$hasReturnValue) {
             return $call;
         }
-        $body = 'list ('.$this->buildParameters($outParameters).') = '.$call;
-        if ($hasReturnValue) {
-            $body .= "\nreturn $".$outParameters[0].';';
-        }
 
-        return $body;
+        $body = 'list ('.$this->buildParameters($outParameters).') = '.$call;
+
+        return $body."\nreturn $".$outParameters[0].';';
     }
 
     private function buildParameters(array $parameters): string

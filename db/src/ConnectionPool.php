@@ -29,6 +29,6 @@ class ConnectionPool implements ConnectionPoolInterface
 
     public function take(): ConnectionInterface
     {
-        return $this->pool->take();
+        return $this->pool->take()->getResource();
     }
 }

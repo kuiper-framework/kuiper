@@ -57,7 +57,7 @@ class SwooleTableStateStore implements StateStore
     public function getOpenAt(string $name): int
     {
         $value = $this->table->get($name);
-        if (State::OPEN === $value[self::STATE]) {
+        if (is_array($value) && State::OPEN === $value[self::STATE]) {
             return $value[self::OPEN_AT];
         }
 

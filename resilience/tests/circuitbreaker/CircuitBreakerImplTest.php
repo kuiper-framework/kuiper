@@ -55,7 +55,7 @@ class CircuitBreakerImplTest extends TestCase
             ->build();
         $counterFactory = new SimpleCounterFactory();
         $metricFactory = new MetricsFactoryImpl($this->clock, $counterFactory);
-        $this->circuitBreaker = new CircuitBreakerImpl('test', $this->config, $this->clock, $counterFactory, $metricFactory, $this->eventDispatcher);
+        $this->circuitBreaker = new CircuitBreakerImpl('test', $this->config, $this->clock, new SwooleTableStateStore(), $counterFactory, $metricFactory, $this->eventDispatcher);
     }
 
     public function testSuccess()
@@ -102,7 +102,7 @@ class CircuitBreakerImplTest extends TestCase
         $counterFactory = new SimpleCounterFactory();
         $counterFactory->create('test.state')->set(State::OPEN);
         $metricFactory = new MetricsFactoryImpl($this->clock, $counterFactory);
-        $this->circuitBreaker = new CircuitBreakerImpl('test', $this->config, $this->clock, $counterFactory, $metricFactory, $this->eventDispatcher);
+        $this->circuitBreaker = new CircuitBreakerImpl('test', $this->config, $this->clock, new SwooleTableStateStore(), $counterFactory, $metricFactory, $this->eventDispatcher);
         $this->assertEquals(State::OPEN(), $this->circuitBreaker->getState());
         $this->clock->tick($this->config->getWaitIntervalInOpenState(1) + 10);
         $call = function () {

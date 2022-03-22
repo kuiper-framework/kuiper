@@ -25,6 +25,11 @@ class RpcRequestHolder
         Coroutine::getContext()[self::REQUEST_CONTEXT_KEY] = $request;
     }
 
+    public static function clear(): void
+    {
+        Coroutine::getContext()[self::REQUEST_CONTEXT_KEY] = null;
+    }
+
     public static function getRequest(): ?RpcRequestInterface
     {
         return Coroutine::getContext()[self::REQUEST_CONTEXT_KEY] ?? null;

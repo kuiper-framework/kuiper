@@ -31,6 +31,7 @@ use kuiper\rpc\fixtures\HelloService;
 use kuiper\rpc\fixtures\RpcRequestFactory;
 use kuiper\rpc\fixtures\RpcResponseFactory;
 use kuiper\rpc\registry\TestCase;
+use kuiper\rpc\transporter\SimpleSession;
 use kuiper\rpc\transporter\TransporterInterface;
 use kuiper\swoole\pool\PoolFactory;
 use kuiper\swoole\pool\PoolFactoryInterface;
@@ -46,7 +47,7 @@ class CircuitBreakerMiddlewareTest extends TestCase
         $class->eval();
         $className = $class->getClassName();
         $transporter = \Mockery::mock(TransporterInterface::class);
-        $transporter->shouldReceive('sendRequest')
+        $transporter->shouldReceive('createSession')
             ->andReturnUsing(function (RequestInterface $req) use (&$c) {
                 static $c = [];
                 error_log('send request');
@@ -57,7 +58,7 @@ class CircuitBreakerMiddlewareTest extends TestCase
                     throw new \InvalidArgumentException("invalid arg $args[0]");
                 }
 
-                return new Response();
+                return new SimpleSession(new Response());
             });
         $responseFactory = new RpcResponseFactory();
         $rpcClient = new RpcClient($transporter, $responseFactory);

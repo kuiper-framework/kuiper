@@ -31,6 +31,7 @@ use kuiper\rpc\fixtures\HelloService;
 use kuiper\rpc\fixtures\RpcRequestFactory;
 use kuiper\rpc\fixtures\RpcResponseFactory;
 use kuiper\rpc\registry\TestCase;
+use kuiper\rpc\transporter\SimpleSession;
 use kuiper\rpc\transporter\TransporterInterface;
 use kuiper\swoole\pool\PoolFactory;
 use kuiper\swoole\pool\PoolFactoryInterface;
@@ -46,14 +47,14 @@ class RetryMiddlewareTest extends TestCase
         $className = $class->getClassName();
         $transporter = \Mockery::mock(TransporterInterface::class);
         $c = 1;
-        $transporter->shouldReceive('sendRequest')
+        $transporter->shouldReceive('createSession')
             ->andReturnUsing(function ($req) use (&$c) {
                 error_log('send request');
                 if ($c++ < 2) {
                     throw new \InvalidArgumentException('fail');
                 }
 
-                return new Response();
+                return new SimpleSession(new Response());
             });
         $responseFactory = new RpcResponseFactory();
         $rpcClient = new RpcClient($transporter, $responseFactory);
@@ -96,7 +97,7 @@ class RetryMiddlewareTest extends TestCase
             $c = 1;
             try {
                 $ret[$times] = $service->hello('world');
-            } catch (CallNotPermittedException | \InvalidArgumentException $e) {
+            } catch (CallNotPermittedException|\InvalidArgumentException $e) {
             }
         }
         $events = $eventDispatcher->getEvents();

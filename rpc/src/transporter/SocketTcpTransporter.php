@@ -52,14 +52,12 @@ class SocketTcpTransporter extends AbstractTcpTransporter
     /**
      * {@inheritdoc}
      */
-    protected function doSend(string $data): ResponseInterface
+    protected function doSend(string $data): void
     {
         $socket = $this->getResource();
         if (!\socket_write($socket, $data, strlen($data))) {
             $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_SEND_FAILED));
         }
-
-        return $this->recv();
     }
 
     /**

@@ -20,6 +20,13 @@ use PHPUnit\Framework\TestCase;
 
 class ConnectionProxyGeneratorTest extends TestCase
 {
+    public function testCode()
+    {
+        $generator = new ConnectionProxyGenerator();
+        $result = $generator->generate(AnnotationReaderInterface::class);
+        $this->assertEquals($result->getCode(), file_get_contents(__DIR__.'/../fixtures/AnnotaionReaderProxy.txt'));
+    }
+
     public function testName()
     {
         $generator = new ConnectionProxyGenerator();
@@ -29,7 +36,7 @@ class ConnectionProxyGeneratorTest extends TestCase
         $class = $result->getClassName();
         $reader = new $class(new SingleConnectionPool('reader', function () {
             return AnnotationReader::getInstance();
-        }));
+        }, new PoolConfig()));
         $this->assertInstanceOf(AnnotationReaderInterface::class, $reader);
     }
 

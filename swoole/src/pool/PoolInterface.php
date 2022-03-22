@@ -13,21 +13,34 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use kuiper\swoole\exception\PoolClosedException;
 use kuiper\swoole\exception\PoolTimeoutException;
 
 interface PoolInterface
 {
     /**
-     * @return mixed the connection
+     * @return ConnectionInterface the connection
      *
-     * @throws PoolTimeoutException
+     * @throws PoolTimeoutException|PoolClosedException
      */
-    public function take();
+    public function take(): ConnectionInterface;
 
     /**
-     * reset current connection.
+     * Release the connection.
+     *
+     * @param ConnectionInterface $connection
      */
-    public function reset(): void;
+    public function release(): void;
 
+    /**
+     * Close the pool.
+     */
+    public function close(): void;
+
+    /**
+     * Gets the pool name.
+     *
+     * @return string
+     */
     public function getName(): string;
 }

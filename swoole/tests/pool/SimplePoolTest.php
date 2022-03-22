@@ -47,6 +47,7 @@ class SimplePoolTest extends TestCase
             $this->connections[$i] = null;
         }
         $connection = $pool->take();
+        $pool->release();
         $events = $eventDispatcher->getEvents();
         $this->assertCount(2, $events);
     }

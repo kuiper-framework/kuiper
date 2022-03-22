@@ -13,16 +13,16 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
+use kuiper\rpc\Closable;
 use kuiper\rpc\exception\CommunicationException;
 use kuiper\rpc\exception\InvalidRequestException;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
-interface TransporterInterface
+interface TransporterInterface extends Closable
 {
     /**
      * @throws CommunicationException
      * @throws InvalidRequestException
      */
-    public function sendRequest(RequestInterface $request): ResponseInterface;
+    public function createSession(RequestInterface $request): Session;
 }

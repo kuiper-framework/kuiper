@@ -25,11 +25,11 @@ class ConnectionCreateEvent implements StoppableEventInterface
     private $poolName;
 
     /**
-     * @var Connection
+     * @var ConnectionInterface
      */
     private $connection;
 
-    public function __construct(string $poolName, Connection $connection)
+    public function __construct(string $poolName, ConnectionInterface $connection)
     {
         $this->connection = $connection;
         $this->poolName = $poolName;
@@ -41,9 +41,9 @@ class ConnectionCreateEvent implements StoppableEventInterface
     }
 
     /**
-     * @return Connection
+     * @return ConnectionInterface
      */
-    public function getConnection(): Connection
+    public function getConnection(): ConnectionInterface
     {
         return $this->connection;
     }

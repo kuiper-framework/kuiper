@@ -44,8 +44,6 @@ class CacheConfigurationTest extends TestCase
 
     public function testCheckConfigCondition()
     {
-        $container = $this->createContainer([]);
-        $this->assertFalse($container->has(CacheItemPoolInterface::class));
         $container = $this->createContainer([
             'application' => [
                 'cache' => [

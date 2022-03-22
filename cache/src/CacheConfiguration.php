@@ -37,6 +37,9 @@ class CacheConfiguration
      */
     public function redis(PoolFactoryInterface $poolFactory, ?array $redisConfig): \Redis
     {
+        if (!isset($redisConfig)) {
+            $redisConfig = [];
+        }
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return ConnectionProxyGenerator::create($poolFactory, \Redis::class, static function () use ($redisConfig) {
             return RedisFactory::createConnection(RedisFactory::buildDsn($redisConfig), $redisConfig);

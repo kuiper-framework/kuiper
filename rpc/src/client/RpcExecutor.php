@@ -59,6 +59,7 @@ class RpcExecutor implements RpcExecutorInterface
     {
         RpcRequestHolder::setRequest($this->request);
         $response = $this->buildMiddlewareStack($this->requestHandler)->handle($this->request);
+        RpcRequestHolder::clear();
 
         return $response->getRequest()->getRpcMethod()->getResult();
     }

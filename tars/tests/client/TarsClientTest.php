@@ -31,6 +31,7 @@ use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\rpc\ServiceLocator;
 use kuiper\rpc\transporter\Endpoint;
+use kuiper\rpc\transporter\SimpleSession;
 use kuiper\rpc\transporter\TransporterInterface;
 use kuiper\swoole\pool\PoolFactory;
 use kuiper\tars\core\TarsMethodFactory;
@@ -77,7 +78,7 @@ class TarsClientTest extends TestCase
     private function createClient(array $middlewares = []): HelloService
     {
         $transporter = \Mockery::mock(TransporterInterface::class);
-        $transporter->shouldReceive('sendRequest')
+        $transporter->shouldReceive('createSession')
             ->andReturnUsing(function (RpcRequestInterface $request) use ($transporter) {
                 $response = array_shift($this->responses);
                 if ($response instanceof ResponsePacket) {
@@ -89,7 +90,7 @@ class TarsClientTest extends TestCase
                 }
                 $this->requests[] = ['request' => $request, 'response' => $packet];
 
-                return new TarsResponse($request, new Response(200, [], (string) $packet->encode()), $packet);
+                return new SimpleSession(new TarsResponse($request, new Response(200, [], (string) $packet->encode()), $packet));
             });
 
         $methodFactory = new TarsMethodFactory();

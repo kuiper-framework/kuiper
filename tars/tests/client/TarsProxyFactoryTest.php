@@ -16,6 +16,7 @@ namespace kuiper\tars\client;
 use GuzzleHttp\Psr7\Response;
 use kuiper\rpc\client\RpcClient;
 use kuiper\rpc\RpcRequestHandlerInterface;
+use kuiper\rpc\transporter\SimpleSession;
 use kuiper\rpc\transporter\TransporterInterface;
 use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\fixtures\HelloService;
@@ -39,13 +40,13 @@ class TarsProxyFactoryTest extends TestCase
     public function testName()
     {
         TarsProxyFactoryMockHelper::$transporter = \Mockery::mock(TransporterInterface::class);
-        TarsProxyFactoryMockHelper::$transporter->shouldReceive('sendRequest')
+        TarsProxyFactoryMockHelper::$transporter->shouldReceive('createSession')
             ->withArgs([\Mockery::capture($req)])
             ->andReturnUsing(function (TarsRequestInterface $req) {
                 $args = $req->getRpcMethod()->getArguments();
 
-                return new TarsServerResponse($req->withRpcMethod($req
-                    ->getRpcMethod()->withResult(['hello '.$args[0]])), new Response(), new StreamFactory());
+                return new SimpleSession(new TarsServerResponse($req->withRpcMethod($req
+                    ->getRpcMethod()->withResult(['hello '.$args[0]])), new Response(), new StreamFactory()));
             });
 
         $factory = TarsProxyFactoryMockHelper::createDefault(

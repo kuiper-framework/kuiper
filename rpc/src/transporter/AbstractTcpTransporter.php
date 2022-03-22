@@ -28,7 +28,7 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-abstract class AbstractTcpTransporter implements TransporterInterface, Receivable, LoggerAwareInterface
+abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
@@ -94,10 +94,10 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
      */
     public function __destruct()
     {
-        $this->disconnect();
+        $this->close();
     }
 
-    public function isConnected(): bool
+    public function isOpen(): bool
     {
         return isset($this->resource);
     }
@@ -105,15 +105,15 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
     /**
      * @throws CommunicationException|CannotResolveEndpointException
      */
-    public function connect(?Endpoint $endpoint): void
+    public function open(?Endpoint $endpoint): void
     {
         $this->resolveEndpoint($endpoint);
-        if (!$this->isConnected()) {
+        if (!$this->isOpen()) {
             $this->resource = $this->createResource();
         }
     }
 
-    public function disconnect(): void
+    public function close(): void
     {
         if (isset($this->resource)) {
             $this->destroyResource();
@@ -129,19 +129,13 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
         return $this->resource;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function sendRequest(RequestInterface $request): ResponseInterface
+    public function createSession(RequestInterface $request): Session
     {
         $endpoint = Endpoint::fromUri($request->getUri());
-        $this->connect($endpoint->getPort() > 0 ? $endpoint : null);
-        $this->beforeSend();
-        try {
-            return $this->doSend((string) $request->getBody());
-        } finally {
-            $this->afterSend();
-        }
+        $this->open($endpoint->getPort() > 0 ? $endpoint : null);
+        $this->doSend((string) $request->getBody());
+
+        return new TcpSession($this);
     }
 
     /**
@@ -152,7 +146,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
         if (null !== $endpoint) {
             if (null !== $this->endpoint) {
                 if (!$this->endpoint->equals($endpoint)) {
-                    $this->disconnect();
+                    $this->close();
                     $this->endpoint = $endpoint->merge($this->endpoint);
                 }
             } else {
@@ -180,7 +174,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
     protected function onConnectionError(ErrorCode $errorCode, string $message = null): void
     {
         $exception = $this->createException($errorCode, $message);
-        $this->disconnect();
+        $this->close();
 
         throw $exception;
     }
@@ -215,19 +209,10 @@ abstract class AbstractTcpTransporter implements TransporterInterface, Receivabl
     /**
      * @throws CommunicationException
      */
-    abstract protected function doSend(string $data): ResponseInterface;
+    abstract protected function doSend(string $data): void;
 
     /**
-     * callback before send data.
+     * @return ResponseInterface
      */
-    protected function beforeSend(): void
-    {
-    }
-
-    /**
-     * callback after send data.
-     */
-    protected function afterSend(): void
-    {
-    }
+    abstract public function recv(): ResponseInterface;
 }

@@ -32,14 +32,14 @@ class Employee
     /**
      * @CreationTimestamp()
      *
-     * @var \DateTime
+     * @var \DateTimeInterface
      */
     private $createTime;
 
     /**
      * @UpdateTimestamp()
      *
-     * @var \DateTime
+     * @var \DateTimeInterface
      */
     private $updateTime;
     /**

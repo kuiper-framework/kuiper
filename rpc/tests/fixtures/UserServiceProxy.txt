@@ -1,6 +1,6 @@
 namespace kuiper\rpc\fixtures;
 
-class UserService287144eeac08b48f7713f40fc08f345d implements UserService
+class UserService77db530f911d931cbce393d66ceda611 implements UserService
 {
 
     private $rpcExecutorFactory = null;
@@ -33,7 +33,7 @@ class UserService287144eeac08b48f7713f40fc08f345d implements UserService
      */
     public function saveUser(\kuiper\rpc\fixtures\User $user) : void
     {
-        list ($ret) = $this->rpcExecutorFactory->createExecutor($this, __FUNCTION__, [$user])->execute();
+        $this->rpcExecutorFactory->createExecutor($this, __FUNCTION__, [$user])->execute();
     }
 
     public function getRpcExecutorFactory() : \kuiper\rpc\client\RpcExecutorFactoryInterface

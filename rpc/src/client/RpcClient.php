@@ -13,15 +13,16 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client;
 
+use kuiper\rpc\Closable;
 use kuiper\rpc\exception\RequestIdMismatchException;
 use kuiper\rpc\HasRequestIdInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
-use kuiper\rpc\transporter\Receivable;
+use kuiper\rpc\transporter\Session;
 use kuiper\rpc\transporter\TransporterInterface;
 
-class RpcClient implements RpcRequestHandlerInterface
+class RpcClient implements RpcRequestHandlerInterface, Closable
 {
     /**
      * @var TransporterInterface
@@ -53,6 +54,11 @@ class RpcClient implements RpcRequestHandlerInterface
         return $this->transporter;
     }
 
+    public function close(): void
+    {
+        $this->transporter->close();
+    }
+
     /**
      * @return RpcResponseFactoryInterface
      */
@@ -66,29 +72,30 @@ class RpcClient implements RpcRequestHandlerInterface
      */
     public function handle(RpcRequestInterface $request): RpcResponseInterface
     {
-        if ($request instanceof HasRequestIdInterface) {
-            try {
-                return $this->send($request);
-            } catch (RequestIdMismatchException $e) {
-                if ($this->transporter instanceof Receivable) {
+        $session = $this->transporter->createSession($request);
+        try {
+            if ($request instanceof HasRequestIdInterface) {
+                try {
+                    return $this->createResponse($request, $session);
+                } catch (RequestIdMismatchException $e) {
                     while (true) {
                         try {
-                            return $this->responseFactory->createResponse($request, $this->transporter->recv());
+                            return $this->createResponse($request, $session);
                         } catch (RequestIdMismatchException $e) {
                             // noOp
                         }
                     }
-                } else {
-                    throw $e;
                 }
+            } else {
+                return $this->createResponse($request, $session);
             }
-        } else {
-            return $this->send($request);
+        } finally {
+            $session->close();
         }
     }
 
-    private function send(RpcRequestInterface $request): RpcResponseInterface
+    protected function createResponse($request, Session $session): RpcResponseInterface
     {
-        return $this->responseFactory->createResponse($request, $this->transporter->sendRequest($request));
+        return $this->responseFactory->createResponse($request, $session->recv());
     }
 }

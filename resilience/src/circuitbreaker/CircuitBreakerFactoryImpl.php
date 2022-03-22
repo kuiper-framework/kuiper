@@ -88,7 +88,7 @@ class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
                 );
             });
         }
-        $circuitBreaker = $this->circuitBreakerPoolList[$name]->take();
+        $circuitBreaker = $this->circuitBreakerPoolList[$name]->take()->getResource();
         $circuitBreaker->reset();
 
         return $circuitBreaker;
@@ -99,7 +99,14 @@ class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
      */
     public function getCircuitBreakerList(): array
     {
-        return Arrays::flatten(Arrays::pull($this->circuitBreakerPoolList, 'connections'));
+        $list = [];
+        foreach ($this->circuitBreakerPoolList as $pool) {
+            foreach ($pool->getConnections() as $conn) {
+                $list[] = $conn->getResource();
+            }
+        }
+
+        return $list;
     }
 
     private function createConfig(string $name): CircuitBreakerConfig

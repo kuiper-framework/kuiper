@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use kuiper\helper\Arrays;
 use PHPUnit\Framework\TestCase;
 
 class ApplicationTest extends TestCase
@@ -21,9 +22,9 @@ class ApplicationTest extends TestCase
     {
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $app = Application::create();
-        $this->assertEquals($app->getConfig()['application']->toArray(), [
+        $this->assertEquals([
             'env' => 'prod',
-        ]);
+        ], Arrays::select($app->getConfig()['application']->toArray(), ['env']));
     }
 
     public function testCreateWithConfigFile()
@@ -31,9 +32,7 @@ class ApplicationTest extends TestCase
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $_SERVER['argv'] = ['--config', __DIR__.'/fixtures/config.ini'];
         $app = Application::create();
-        $this->assertEquals($app->getConfig()['application']->toArray(), [
-            'env' => 'dev',
-        ]);
+        $this->assertEquals($app->getConfig()['application']->toArray()['env'], 'dev');
     }
 
     public function testCreateWithCommandOption()
@@ -41,8 +40,6 @@ class ApplicationTest extends TestCase
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $_SERVER['argv'] = ['--define', 'env=dev'];
         $app = Application::create();
-        $this->assertEquals($app->getConfig()['application']->toArray(), [
-            'env' => 'dev',
-        ]);
+        $this->assertEquals($app->getConfig()['application']->toArray()['env'], 'dev');
     }
 }

@@ -44,7 +44,10 @@ class PooledHttpClient implements ClientInterface
     public function __call(string $method, array $args)
     {
         /* @phpstan-ignore-next-line */
-        return $this->httpClientPool->take()->$method(...$args);
+        $ret = $this->httpClientPool->take()->$method(...$args);
+        $this->httpClientPool->release();
+
+        return $ret;
     }
 
     /**
@@ -52,7 +55,7 @@ class PooledHttpClient implements ClientInterface
      */
     public function send(RequestInterface $request, array $options = []): ResponseInterface
     {
-        return $this->httpClientPool->take()->send($request, $options);
+        return $this->__call(__METHOD__, [$request, $options]);
     }
 
     /**
@@ -60,7 +63,7 @@ class PooledHttpClient implements ClientInterface
      */
     public function sendAsync(RequestInterface $request, array $options = []): PromiseInterface
     {
-        return $this->httpClientPool->take()->sendAsync($request, $options);
+        return $this->__call(__METHOD__, [$request, $options]);
     }
 
     /**
@@ -68,7 +71,7 @@ class PooledHttpClient implements ClientInterface
      */
     public function request($method, $uri, array $options = []): ResponseInterface
     {
-        return $this->httpClientPool->take()->request($method, $uri, $options);
+        return $this->__call(__METHOD__, [$method, $uri, $options]);
     }
 
     /**
@@ -76,7 +79,7 @@ class PooledHttpClient implements ClientInterface
      */
     public function requestAsync($method, $uri, array $options = []): PromiseInterface
     {
-        return $this->httpClientPool->take()->requestAsync($method, $uri, $options);
+        return $this->__call(__METHOD__, [$method, $uri, $options]);
     }
 
     /**
@@ -84,6 +87,6 @@ class PooledHttpClient implements ClientInterface
      */
     public function getConfig(?string $option = null)
     {
-        return $this->httpClientPool->take()->getConfig($option);
+        return $this->__call(__METHOD__, [$option]);
     }
 }

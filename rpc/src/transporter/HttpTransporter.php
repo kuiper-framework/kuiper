@@ -15,7 +15,6 @@ namespace kuiper\rpc\transporter;
 
 use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
 class HttpTransporter implements TransporterInterface
 {
@@ -32,8 +31,12 @@ class HttpTransporter implements TransporterInterface
         $this->httpClient = $httpClient;
     }
 
-    public function sendRequest(RequestInterface $request): ResponseInterface
+    public function close(): void
     {
-        return $this->httpClient->send($request);
+    }
+
+    public function createSession(RequestInterface $request): Session
+    {
+        return new SimpleSession($this->httpClient->send($request));
     }
 }

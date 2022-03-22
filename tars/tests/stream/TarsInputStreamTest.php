@@ -23,6 +23,16 @@ use PHPUnit\Framework\TestCase;
 
 class TarsInputStreamTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        if (!extension_loaded('phptars')) {
+            $this->markTestSkipped(
+                'The phptars extension is not available.'
+            );
+        }
+    }
+
     public function testOptional()
     {
         $request = new Request();

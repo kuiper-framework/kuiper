@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\http\client;
 
+use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\MessageFormatter;
 use GuzzleHttp\Middleware;
+use kuiper\swoole\pool\ConnectionProxyGenerator;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -68,7 +70,12 @@ class HttpClientFactory implements HttpClientFactoryInterface, LoggerAwareInterf
             }
         }
 
-        return new PooledHttpClient($this->poolFactory, $options);
+        /** @var ClientInterface $client */
+        $client = ConnectionProxyGenerator::create($this->poolFactory, ClientInterface::class, static function () use ($options) {
+            return new Client($options);
+        });
+
+        return $client;
     }
 
     public function createRetryCallback(int $maxRetries): callable

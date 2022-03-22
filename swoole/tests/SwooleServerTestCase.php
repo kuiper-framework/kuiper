@@ -44,11 +44,11 @@ abstract class SwooleServerTestCase extends TestCase
             ->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class))
             ->addDefinitions([
                 ServerConfig::class => new ServerConfig('test_server', [
-                    ServerSetting::DAEMONIZE => 0,
-                    ServerSetting::TASK_WORKER_NUM => 1,
-                    ServerSetting::WORKER_NUM => 1,
-                ], [
-                    new ServerPort('0.0.0.0', 9876, ServerType::HTTP),
+                    new ServerPort('0.0.0.0', 9876, ServerType::HTTP, [
+                        ServerSetting::DAEMONIZE => 0,
+                        ServerSetting::TASK_WORKER_NUM => 1,
+                        ServerSetting::WORKER_NUM => 1,
+                    ]),
                 ]),
                 LoggerInterface::class => function () {
                     return new Logger('test', [new ErrorLogHandler()]);

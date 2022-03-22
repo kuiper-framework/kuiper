@@ -15,7 +15,6 @@ namespace kuiper\rpc\transporter;
 
 use kuiper\swoole\pool\PoolInterface;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
 class PooledTransporter implements TransporterInterface
 {
@@ -32,13 +31,15 @@ class PooledTransporter implements TransporterInterface
         $this->pool = $pool;
     }
 
-    public function sendRequest(RequestInterface $request): ResponseInterface
+    public function close(): void
     {
-        return $this->pool->take()->sendRequest($request);
+        $this->pool->close();
     }
 
-    public function recv(): ResponseInterface
+    public function createSession(RequestInterface $request): Session
     {
-        return $this->pool->take()->recv();
+        $session = $this->pool->take()->getResource()->createSession($request);
+
+        return new PooledSession($this->pool, $session);
     }
 }

@@ -11,14 +11,15 @@
 
 declare(strict_types=1);
 
-namespace kuiper\rpc\transporter;
+namespace kuiper\swoole\exception;
 
-use Psr\Http\Message\ResponseInterface;
-
-interface Receivable
+class PoolClosedException extends \Exception
 {
     /**
-     * @return ResponseInterface
+     * PoolTimeoutException constructor.
      */
-    public function recv(): ResponseInterface;
+    public function __construct()
+    {
+        parent::__construct('Cannot get connection because pool is closed');
+    }
 }

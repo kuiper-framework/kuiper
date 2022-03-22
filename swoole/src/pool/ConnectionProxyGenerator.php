@@ -75,6 +75,24 @@ class ConnectionProxyGenerator
             MethodGenerator::FLAG_PUBLIC,
             '$this->pool = $pool;'
         );
+        $phpClass->addMethod('__call',
+            [
+                [
+                    'type' => 'string',
+                    'name' => 'method',
+                ],
+                [
+                    'type' => 'array',
+                    'name' => 'args',
+                ],
+            ],
+            MethodGenerator::FLAG_PUBLIC,
+            implode("\n", [
+                '$ret = $this->pool->take()->getResource()->$method(...$args);',
+                '$this->pool->release();',
+                'return $ret;',
+            ])
+        );
         $phpClass->addMethod('__destruct');
 
         foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
@@ -90,15 +108,19 @@ class ConnectionProxyGenerator
             } catch (\Exception $e) {
                 $returnType = $reflectionMethod->hasReturnType() ? ReflectionType::fromPhpType($reflectionMethod->getReturnType()) : new MixedType();
             }
-            $methodBody = ($returnType instanceof VoidType ? '' : 'return ')
-                .sprintf('$this->pool->take()->%s(%s);', $reflectionMethod->getName(),
-                empty($params) ? '' : implode(', ', array_map(static function (ParameterGenerator $param) {
-                    if ($param->getVariadic()) {
-                        return '...$'.$param->getName();
-                    }
+            $stmts = [
+                sprintf('$ret = $this->pool->take()->getResource()->%s(%s);', $reflectionMethod->getName(),
+                    empty($params) ? '' : implode(', ', array_map(static function (ParameterGenerator $param) {
+                        if ($param->getVariadic()) {
+                            return '...$'.$param->getName();
+                        }
 
-                    return '$'.$param->getName();
-                }, $params)));
+                        return '$'.$param->getName();
+                    }, $params))),
+                '$this->pool->release();',
+                ($returnType instanceof VoidType ? '' : 'return $ret;'),
+            ];
+            $methodBody = implode("\n", $stmts);
             $methodGenerator = new MethodGenerator(
                 $reflectionMethod->getName(),
                 $params,

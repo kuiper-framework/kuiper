@@ -13,25 +13,57 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
-class Connection
+class Connection implements ConnectionInterface
 {
     /**
      * @var int
      */
-    public $id;
+    private $id;
 
     /**
      * @var mixed
      */
-    public $conn;
+    private $resource;
 
     /**
-     * Connection constructor.
-     *
-     * @param int $id
+     * @var float
      */
-    public function __construct(int $id)
+    private $createdAt;
+
+    public function __construct(int $id, $resource)
     {
         $this->id = $id;
+        $this->resource = $resource;
+        $this->createdAt = microtime(true);
+    }
+
+    /**
+     * @return int
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getResource()
+    {
+        return $this->resource;
+    }
+
+    public function getCreatedAt(): float
+    {
+        return $this->createdAt;
+    }
+
+    public function close(): void
+    {
+        if (is_object($this->resource)) {
+            foreach (['close', 'disconnect'] as $method) {
+                if (method_exists($this->resource, $method)) {
+                    $this->resource->close();
+                }
+            }
+        }
+        unset($this->resource);
     }
 }

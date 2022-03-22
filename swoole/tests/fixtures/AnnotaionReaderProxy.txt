@@ -1,0 +1,67 @@
+namespace kuiper\annotations;
+
+class AnnotationReaderInterface1d356f758499c39080313a53a357a2b2 implements AnnotationReaderInterface
+{
+
+    private $pool = null;
+
+    public function __construct(\kuiper\swoole\pool\PoolInterface $pool)
+    {
+        $this->pool = $pool;
+    }
+
+    public function __call(string $method, array $args)
+    {
+        $ret = $this->pool->take()->getResource()->$method(...$args);
+        $this->pool->release();
+        return $ret;
+    }
+
+    public function __destruct()
+    {
+    }
+
+    public function getClassAnnotations(\ReflectionClass $class)
+    {
+        $ret = $this->pool->take()->getResource()->getClassAnnotations($class);
+        $this->pool->release();
+        return $ret;
+    }
+
+    public function getClassAnnotation(\ReflectionClass $class, $annotationName)
+    {
+        $ret = $this->pool->take()->getResource()->getClassAnnotation($class, $annotationName);
+        $this->pool->release();
+        return $ret;
+    }
+
+    public function getMethodAnnotations(\ReflectionMethod $method)
+    {
+        $ret = $this->pool->take()->getResource()->getMethodAnnotations($method);
+        $this->pool->release();
+        return $ret;
+    }
+
+    public function getMethodAnnotation(\ReflectionMethod $method, $annotationName)
+    {
+        $ret = $this->pool->take()->getResource()->getMethodAnnotation($method, $annotationName);
+        $this->pool->release();
+        return $ret;
+    }
+
+    public function getPropertyAnnotations(\ReflectionProperty $property)
+    {
+        $ret = $this->pool->take()->getResource()->getPropertyAnnotations($property);
+        $this->pool->release();
+        return $ret;
+    }
+
+    public function getPropertyAnnotation(\ReflectionProperty $property, $annotationName)
+    {
+        $ret = $this->pool->take()->getResource()->getPropertyAnnotation($property, $annotationName);
+        $this->pool->release();
+        return $ret;
+    }
+
+
+}

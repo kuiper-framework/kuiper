@@ -67,10 +67,18 @@ class PoolConfig
     private $maxIdleTime = -1;
 
     /**
+     * Specifies the interval in seconds before a physical connection is discarded.
+     *
+     * @var float
+     */
+    private $agedTimeout = -1;
+
+    /**
      * PoolConfig constructor.
      * options:
      *  - max_connections
-     *  - wait_timeout.
+     *  - wait_timeout
+     *  - aged_timeout.
      */
     public function __construct(array $options = [])
     {
@@ -80,6 +88,8 @@ class PoolConfig
                 $this->maxConnections = (int) $value;
             } elseif ('waitTimeout' === $key) {
                 $this->waitTimeout = (float) $value;
+            } elseif ('agedTimeout' === $key) {
+                $this->agedTimeout = (float) $value;
             }
         }
     }
@@ -92,5 +102,13 @@ class PoolConfig
     public function getWaitTimeout(): float
     {
         return $this->waitTimeout;
+    }
+
+    /**
+     * @return float
+     */
+    public function getAgedTimeout(): float
+    {
+        return $this->agedTimeout;
     }
 }

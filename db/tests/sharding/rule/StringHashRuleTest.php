@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\http\client\sharding\rule;
+namespace kuiper\db\sharding\rule;
 
 use kuiper\db\sharding\rule\StringHashRule;
 use PHPUnit\Framework\TestCase;

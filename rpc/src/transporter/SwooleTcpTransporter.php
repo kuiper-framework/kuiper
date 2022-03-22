@@ -94,15 +94,13 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
     /**
      * {@inheritDoc}
      */
-    protected function doSend(string $data): ResponseInterface
+    protected function doSend(string $data): void
     {
         /** @var Client $client */
         $client = $this->getResource();
         if (false === $client->send($data)) {
             $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_CONNECT_FAILED));
         }
-
-        return $this->recv();
     }
 
     /**

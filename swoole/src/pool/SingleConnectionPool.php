@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use kuiper\swoole\exception\PoolClosedException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -33,9 +34,13 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
      */
     private $connectionFactory;
     /**
-     * @var object|null
+     * @var ConnectionInterface|null
      */
     private $connection;
+    /**
+     * @var PoolConfig
+     */
+    private $poolConfig;
     /**
      * @var int
      */
@@ -44,33 +49,43 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
     /**
      * SingleConnectionPool constructor.
      */
-    public function __construct(string $poolName, callable $connectionFactory, LoggerInterface $logger = null)
+    public function __construct(string $poolName, callable $connectionFactory, PoolConfig $poolConfig, LoggerInterface $logger = null)
     {
         $this->poolName = $poolName;
         $this->connectionFactory = $connectionFactory;
+        $this->poolConfig = $poolConfig;
         $this->setLogger($logger ?? new NullLogger());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function take()
+    public function take(): ConnectionInterface
     {
+        if (!isset($this->connectionFactory)) {
+            throw new PoolClosedException();
+        }
+        if (isset($this->connection)
+            && $this->connection->getCreatedAt() + $this->poolConfig->getAgedTimeout() < time()) {
+            $this->connection->close();
+            unset($this->connection);
+        }
         if (!isset($this->connection)) {
             $this->logger->info(static::TAG."create $this->poolName connection");
-            $this->connection = null;
-            $ret = call_user_func_array($this->connectionFactory, [self::$CONNECTION_ID++, &$this->connection]);
-            if (null === $this->connection) {
-                $this->connection = $ret;
+            $conn = null;
+            $id = self::$CONNECTION_ID++;
+            $ret = call_user_func_array($this->connectionFactory, [$id, &$conn]);
+            if (null === $conn) {
+                $conn = $ret;
             }
+            $this->connection = new Connection($id, $conn);
         }
 
         return $this->connection;
     }
 
-    public function reset(): void
+    public function release(): void
     {
-        $this->connection = null;
     }
 
     public function getName(): string
@@ -81,5 +96,13 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
     public function getConnections(): array
     {
         return [$this->connection];
+    }
+
+    public function close(): void
+    {
+        if (isset($this->connection)) {
+            $this->connection->close();
+        }
+        unset($this->connectionFactory, $this->connection);
     }
 }

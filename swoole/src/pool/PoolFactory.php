@@ -79,7 +79,7 @@ class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface
         if ($this->coroutineEnabled) {
             $pool = new SimplePool($poolName, $connectionFactory, $poolConfig, $this->eventDispatcher, $this->logger);
         } else {
-            $pool = new SingleConnectionPool($poolName, $connectionFactory, $this->logger);
+            $pool = new SingleConnectionPool($poolName, $connectionFactory, $poolConfig, $this->logger);
         }
 
         return $pool;

@@ -32,7 +32,7 @@ class TarsServerMethodFactoryTest extends TestCase
         $serverProperties->setApp('app');
         $serverProperties->setServer('server');
 
-        $factory = new TarsServerMethodFactory($serverProperties, $this->createServices([
+        $factory = new TarsServerMethodFactory('app.server.HelloObj', $this->createServices([
             'app.server.HelloObj' => \Mockery::mock(HelloService::class),
         ]), AnnotationReader::getInstance());
         $requestPacket = new RequestPacket();

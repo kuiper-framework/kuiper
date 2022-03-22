@@ -25,6 +25,7 @@ use kuiper\di\PropertiesDefinitionSource;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\http\client\fixtures\GithubService;
 use kuiper\http\client\fixtures\GitRepository;
+use kuiper\reflection\ReflectionConfiguration;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\serializer\SerializerConfiguration;
 use kuiper\swoole\Application;
@@ -75,6 +76,7 @@ class HttpClientConfigurationTest extends TestCase
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new HttpClientConfiguration());
+        $builder->addConfiguration(new ReflectionConfiguration());
         $builder->addConfiguration(new SerializerConfiguration());
         $app = Application::create(function () use ($builder) {
             return $builder->build();
