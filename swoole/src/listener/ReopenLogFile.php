@@ -51,6 +51,7 @@ class ReopenLogFile implements EventSubscriberInterface
         $this->tryClose();
         if ($event instanceof WorkerStartEvent) {
             $event->getServer()->tick(10000, function (): void {
+                gc_collect_cycles();
                 $this->tryReopen();
             });
         }
