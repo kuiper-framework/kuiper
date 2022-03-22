@@ -110,6 +110,7 @@ class Statement implements StatementInterface
         }
         if (null !== $this->connection) {
             $this->connection = null;
+            $this->pool->release();
         }
     }
 

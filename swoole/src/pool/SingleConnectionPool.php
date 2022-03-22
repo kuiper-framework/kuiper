@@ -66,6 +66,7 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
             throw new PoolClosedException();
         }
         if (isset($this->connection)
+            && $this->poolConfig->getAgedTimeout() > 0
             && $this->connection->getCreatedAt() + $this->poolConfig->getAgedTimeout() < time()) {
             $this->connection->close();
             unset($this->connection);

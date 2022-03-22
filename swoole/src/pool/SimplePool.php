@@ -113,7 +113,8 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         if (false === $connection) {
             throw new PoolTimeoutException($this);
         }
-        if ($connection->getCreatedAt() + $this->poolConfig->getAgedTimeout() < time()) {
+        if ($this->poolConfig->getAgedTimeout() > 0
+            && $connection->getCreatedAt() + $this->poolConfig->getAgedTimeout() < time()) {
             $connection->close();
             $connection = $this->createConnection();
         }
@@ -132,7 +133,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
             return;
         }
         $connection = $this->connections[$coroutineId];
-        $this->logger->debug(self::TAG."release connection {$this->poolName}#{$connection->getId()}");
+        //$this->logger->error(self::TAG."release connection {$this->poolName}#{$connection->getId()}");
         $this->channel->push($connection);
         $this->eventDispatcher->dispatch(new ConnectionReleaseEvent($this->poolName, $connection));
         unset($this->connections[$coroutineId]);
@@ -149,7 +150,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         Coroutine::defer(function () use ($coroutineId): void {
             $this->releaseCoroutineConnection($coroutineId);
         });
-        $this->logger->debug(self::TAG."obtain connection {$this->poolName}#{$connection->getId()}");
+        //$this->logger->error(self::TAG."obtain connection {$this->poolName}#{$connection->getId()}");
 
         return $connection;
     }

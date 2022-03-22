@@ -29,4 +29,8 @@ class SingleConnectionPool implements ConnectionPoolInterface
     {
         return $this->connection;
     }
+
+    public function release(): void
+    {
+    }
 }

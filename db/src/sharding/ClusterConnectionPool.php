@@ -59,4 +59,9 @@ class ClusterConnectionPool implements ConnectionPoolInterface
 
         return $this->poolList[$this->connectionId]->take();
     }
+
+    public function release(): void
+    {
+        $this->poolList[$this->connectionId]->release();
+    }
 }

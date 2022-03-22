@@ -78,6 +78,11 @@ class TarsClientConfiguration implements DefinitionConfiguration
                         'middleware' => $middlewares,
                     ],
                 ],
+                'pool' => [
+                    'tars.tarsregistry.QueryObj' => [
+                        'aged_timeout' => 50,
+                    ],
+                ],
             ],
         ]);
         $config->merge([

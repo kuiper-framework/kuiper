@@ -31,4 +31,9 @@ class ConnectionPool implements ConnectionPoolInterface
     {
         return $this->pool->take()->getResource();
     }
+
+    public function release(): void
+    {
+        $this->pool->release();
+    }
 }

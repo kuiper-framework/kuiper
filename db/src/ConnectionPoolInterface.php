@@ -16,4 +16,6 @@ namespace kuiper\db;
 interface ConnectionPoolInterface
 {
     public function take(): ConnectionInterface;
+
+    public function release(): void;
 }
