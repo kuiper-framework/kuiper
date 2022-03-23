@@ -42,7 +42,7 @@ class RetryOnRetryRemoveEndpointListener implements EventListenerInterface
         if (!$connection instanceof AbstractTcpTransporter) {
             return;
         }
-        $request = RpcRequestHolder::getRequest();
+        $request = RpcRequestHolder::peek();
         if (!$request instanceof RpcRequestInterface) {
             return;
         }

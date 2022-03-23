@@ -20,13 +20,26 @@ class RpcRequestHolder
 {
     private const REQUEST_CONTEXT_KEY = '__RpcRequest';
 
-    public static function setRequest(RpcRequestInterface $request): void
+    public static function push(RpcRequestInterface $request): void
     {
-        Coroutine::getContext()[self::REQUEST_CONTEXT_KEY] = $request;
+        Coroutine::getContext()[self::REQUEST_CONTEXT_KEY][] = $request;
     }
 
-    public static function getRequest(): ?RpcRequestInterface
+    public static function pop(): void
     {
-        return Coroutine::getContext()[self::REQUEST_CONTEXT_KEY] ?? null;
+        $context = Coroutine::getContext();
+        if (isset($context[self::REQUEST_CONTEXT_KEY])) {
+            array_pop($context[self::REQUEST_CONTEXT_KEY]);
+        }
+    }
+
+    public static function peek(): ?RpcRequestInterface
+    {
+        $context = Coroutine::getContext();
+        if (!empty($context[self::REQUEST_CONTEXT_KEY])) {
+            return end($context[self::REQUEST_CONTEXT_KEY]);
+        }
+
+        return null;
     }
 }
