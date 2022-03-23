@@ -88,9 +88,9 @@ class ConnectionProxyGenerator
             ],
             MethodGenerator::FLAG_PUBLIC,
             implode("\n", [
-                '$ret = $this->pool->take()->getResource()->$method(...$args);',
-                '$this->pool->release();',
-                'return $ret;',
+                'return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($method, $args) {',
+                'return $conn->$method(...$args);',
+                '});',
             ])
         );
         $phpClass->addMethod('__destruct');
@@ -108,17 +108,21 @@ class ConnectionProxyGenerator
             } catch (\Exception $e) {
                 $returnType = $reflectionMethod->hasReturnType() ? ReflectionType::fromPhpType($reflectionMethod->getReturnType()) : new MixedType();
             }
-            $stmts = [
-                sprintf('$ret = $this->pool->take()->getResource()->%s(%s);', $reflectionMethod->getName(),
-                    empty($params) ? '' : implode(', ', array_map(static function (ParameterGenerator $param) {
-                        if ($param->getVariadic()) {
-                            return '...$'.$param->getName();
-                        }
+            $return = ($returnType instanceof VoidType ? '' : 'return ');
+            $useArgs = empty($params) ? '' : implode(', ', array_map(static function (ParameterGenerator $param) {
+                return ($param->getPassedByReference() ? '&' : '').'$'.$param->getName();
+            }, $params));
+            $args = empty($params) ? '' : implode(', ', array_map(static function (ParameterGenerator $param) {
+                if ($param->getVariadic()) {
+                    return '...$'.$param->getName();
+                }
 
-                        return '$'.$param->getName();
-                    }, $params))),
-                '$this->pool->release();',
-                ($returnType instanceof VoidType ? '' : 'return $ret;'),
+                return '$'.$param->getName();
+            }, $params));
+            $stmts = [
+                $return.'\kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn)'.(empty($useArgs) ? '' : " use ($useArgs)").' {',
+                $return.sprintf('$conn->%s(%s);', $reflectionMethod->getName(), $args),
+                '});',
             ];
             $methodBody = implode("\n", $stmts);
             $methodGenerator = new MethodGenerator(

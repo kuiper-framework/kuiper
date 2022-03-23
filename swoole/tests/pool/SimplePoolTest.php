@@ -46,10 +46,11 @@ class SimplePoolTest extends TestCase
         foreach ($this->connections as $i => $c) {
             $this->connections[$i] = null;
         }
+        $pool->release($connection);
         $connection = $pool->take();
-        $pool->release();
+        $pool->release($connection);
         $events = $eventDispatcher->getEvents();
-        $this->assertCount(2, $events);
+        $this->assertCount(1, $events);
     }
 
     public function testReturnConnection()
@@ -70,7 +71,9 @@ class SimplePoolTest extends TestCase
         foreach ($this->connections as $i => $c) {
             $this->connections[$i] = null;
         }
+        $pool->release($connection);
         $connection = $pool->take();
+        $pool->release($connection);
         $events = $eventDispatcher->getEvents();
         $this->assertCount(1, $events);
     }

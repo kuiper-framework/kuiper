@@ -19,18 +19,18 @@ use kuiper\swoole\exception\PoolTimeoutException;
 interface PoolInterface
 {
     /**
-     * @return ConnectionInterface the connection
+     * @return mixed the connection
      *
      * @throws PoolTimeoutException|PoolClosedException
      */
-    public function take(): ConnectionInterface;
+    public function take();
 
     /**
      * Release the connection.
      *
-     * @param ConnectionInterface $connection
+     * @param mixed $connection
      */
-    public function release(): void;
+    public function release($connection): void;
 
     /**
      * Close the pool.

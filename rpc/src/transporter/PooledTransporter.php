@@ -38,8 +38,9 @@ class PooledTransporter implements TransporterInterface
 
     public function createSession(RequestInterface $request): Session
     {
-        $session = $this->pool->take()->getResource()->createSession($request);
+        $conn = $this->pool->take();
+        $session = $conn->createSession($request);
 
-        return new PooledSession($this->pool, $session);
+        return new PooledSession($this->pool, $conn, $session);
     }
 }

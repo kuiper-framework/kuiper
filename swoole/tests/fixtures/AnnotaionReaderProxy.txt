@@ -12,9 +12,9 @@ class AnnotationReaderInterface1d356f758499c39080313a53a357a2b2 implements Annot
 
     public function __call(string $method, array $args)
     {
-        $ret = $this->pool->take()->getResource()->$method(...$args);
-        $this->pool->release();
-        return $ret;
+        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($method, $args) {
+        return $conn->$method(...$args);
+        });
     }
 
     public function __destruct()
@@ -23,44 +23,44 @@ class AnnotationReaderInterface1d356f758499c39080313a53a357a2b2 implements Annot
 
     public function getClassAnnotations(\ReflectionClass $class)
     {
-        $ret = $this->pool->take()->getResource()->getClassAnnotations($class);
-        $this->pool->release();
-        return $ret;
+        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($class) {
+        return $conn->getClassAnnotations($class);
+        });
     }
 
     public function getClassAnnotation(\ReflectionClass $class, $annotationName)
     {
-        $ret = $this->pool->take()->getResource()->getClassAnnotation($class, $annotationName);
-        $this->pool->release();
-        return $ret;
+        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($class, $annotationName) {
+        return $conn->getClassAnnotation($class, $annotationName);
+        });
     }
 
     public function getMethodAnnotations(\ReflectionMethod $method)
     {
-        $ret = $this->pool->take()->getResource()->getMethodAnnotations($method);
-        $this->pool->release();
-        return $ret;
+        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($method) {
+        return $conn->getMethodAnnotations($method);
+        });
     }
 
     public function getMethodAnnotation(\ReflectionMethod $method, $annotationName)
     {
-        $ret = $this->pool->take()->getResource()->getMethodAnnotation($method, $annotationName);
-        $this->pool->release();
-        return $ret;
+        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($method, $annotationName) {
+        return $conn->getMethodAnnotation($method, $annotationName);
+        });
     }
 
     public function getPropertyAnnotations(\ReflectionProperty $property)
     {
-        $ret = $this->pool->take()->getResource()->getPropertyAnnotations($property);
-        $this->pool->release();
-        return $ret;
+        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($property) {
+        return $conn->getPropertyAnnotations($property);
+        });
     }
 
     public function getPropertyAnnotation(\ReflectionProperty $property, $annotationName)
     {
-        $ret = $this->pool->take()->getResource()->getPropertyAnnotation($property, $annotationName);
-        $this->pool->release();
-        return $ret;
+        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($property, $annotationName) {
+        return $conn->getPropertyAnnotation($property, $annotationName);
+        });
     }
 
 

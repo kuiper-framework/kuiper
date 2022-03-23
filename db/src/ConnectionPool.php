@@ -29,11 +29,11 @@ class ConnectionPool implements ConnectionPoolInterface
 
     public function take(): ConnectionInterface
     {
-        return $this->pool->take()->getResource();
+        return $this->pool->take();
     }
 
-    public function release(): void
+    public function release(ConnectionInterface $connection): void
     {
-        $this->pool->release();
+        $this->pool->release($connection);
     }
 }

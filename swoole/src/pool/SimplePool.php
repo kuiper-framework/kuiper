@@ -37,20 +37,24 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
      * @var callable
      */
     private $connectionFactory;
+
     /**
      * @var PoolConfig
      */
     private $poolConfig;
+
     /**
      * @var ChannelInterface
      */
     private $channel;
+
     /**
      * @var EventDispatcherInterface
      */
     private $eventDispatcher;
+
     /**
-     * @var ConnectionInterface[]
+     * @var ConnectionInterface[][]
      */
     private $connections;
 
@@ -79,21 +83,16 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
 
     public function close(): void
     {
-        unset($this->connectionFactory);
-        foreach (array_keys($this->connections) as $coroutineId) {
-            $this->releaseCoroutineConnection($coroutineId);
-        }
-        unset($this->channel);
+        unset($this->connectionFactory, $this->connections, $this->channel);
     }
 
-    public function take(): ConnectionInterface
+    /**
+     * {@inheritDoc}
+     */
+    public function take()
     {
         if (!isset($this->connectionFactory)) {
             throw new PoolClosedException();
-        }
-        $coroutineId = $this->getCoroutineId();
-        if (isset($this->connections[$coroutineId])) {
-            return $this->connections[$coroutineId];
         }
 
         $num = $this->channel->size();
@@ -101,7 +100,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         if (0 === $num && $this->currentConnections < $this->poolConfig->getMaxConnections()) {
             ++$this->currentConnections;
             try {
-                return $this->deferReleaseConnection($coroutineId, $this->createConnection());
+                return $this->deferReleaseConnection($this->createConnection());
             } catch (\Exception $exception) {
                 --$this->currentConnections;
                 throw $exception;
@@ -119,42 +118,58 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
             $connection = $this->createConnection();
         }
 
-        return $this->deferReleaseConnection($coroutineId, $connection);
+        return $this->deferReleaseConnection($connection);
     }
 
-    public function release(): void
+    /**
+     * {@inheritDoc}
+     */
+    public function release($connection): void
     {
-        $this->releaseCoroutineConnection($this->getCoroutineId());
-    }
+        $coroutineId = $this->getCoroutineId();
+        foreach ($this->connections[$coroutineId] as $i => $conn) {
+            if ($conn->getResource() === $connection) {
+                unset($this->connections[$coroutineId][$i]);
+                $this->channel->push($conn);
 
-    private function releaseCoroutineConnection(int $coroutineId): void
-    {
-        if (!isset($this->connections[$coroutineId])) {
-            return;
+                return;
+            }
         }
-        $connection = $this->connections[$coroutineId];
-        //$this->logger->error(self::TAG."release connection {$this->poolName}#{$connection->getId()}");
-        $this->channel->push($connection);
-        $this->eventDispatcher->dispatch(new ConnectionReleaseEvent($this->poolName, $connection));
-        unset($this->connections[$coroutineId]);
     }
 
     public function getConnections(): array
     {
-        return $this->connections;
+        $list = [];
+        foreach ($this->connections as $coroutineConns) {
+            foreach ($coroutineConns as $conn) {
+                $list[] = $conn->getResource();
+            }
+        }
+
+        return $list;
     }
 
-    private function deferReleaseConnection(int $coroutineId, ConnectionInterface $connection): ConnectionInterface
+    private function deferReleaseConnection(ConnectionInterface $connection)
     {
-        $this->connections[$coroutineId] = $connection;
-        Coroutine::defer(function () use ($coroutineId): void {
-            $this->releaseCoroutineConnection($coroutineId);
-        });
-        //$this->logger->error(self::TAG."obtain connection {$this->poolName}#{$connection->getId()}");
+        $coroutineId = $this->getCoroutineId();
+        if (!isset($this->connections[$coroutineId])) {
+            Coroutine::defer(function () use ($coroutineId): void {
+                if (!empty($this->connections[$coroutineId])) {
+                    foreach ($this->connections[$coroutineId] as $conn) {
+                        $this->channel->push($conn);
+                    }
+                }
+                unset($this->connections[$coroutineId]);
+            });
+        }
+        $this->connections[$coroutineId][] = $connection;
 
-        return $connection;
+        return $connection->getResource();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getName(): string
     {
         return $this->poolName;

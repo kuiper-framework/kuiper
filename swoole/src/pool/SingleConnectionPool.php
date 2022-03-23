@@ -60,7 +60,7 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    public function take(): ConnectionInterface
+    public function take()
     {
         if (!isset($this->connectionFactory)) {
             throw new PoolClosedException();
@@ -82,10 +82,10 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
             $this->connection = new Connection($id, $conn);
         }
 
-        return $this->connection;
+        return $this->connection->getResource();
     }
 
-    public function release(): void
+    public function release($connection): void
     {
     }
 
@@ -96,7 +96,7 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
 
     public function getConnections(): array
     {
-        return [$this->connection];
+        return [$this->connection->getResource()];
     }
 
     public function close(): void

@@ -72,14 +72,7 @@ class RetryFactoryImpl implements RetryFactory
      */
     public function getRetryList(): array
     {
-        $list = [];
-        foreach ($this->retryPoolList as $pool) {
-            foreach ($pool->getConnections() as $conn) {
-                $list[] = $conn->getResource();
-            }
-        }
-
-        return $list;
+        return Arrays::flatten(Arrays::pull($this->retryPoolList, 'connections'));
     }
 
     /**
@@ -98,7 +91,7 @@ class RetryFactoryImpl implements RetryFactory
                 );
             });
         }
-        $retry = $this->retryPoolList[$name]->take()->getResource();
+        $retry = $this->retryPoolList[$name]->take();
         $retry->reset();
 
         return $retry;

@@ -17,5 +17,5 @@ interface ConnectionPoolInterface
 {
     public function take(): ConnectionInterface;
 
-    public function release(): void;
+    public function release(ConnectionInterface $connection): void;
 }

@@ -109,8 +109,8 @@ class Statement implements StatementInterface
             $this->pdoStatement = null;
         }
         if (null !== $this->connection) {
+            $this->pool->release($this->connection);
             $this->connection = null;
-            $this->pool->release();
         }
     }
 
