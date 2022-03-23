@@ -17,11 +17,13 @@ use InvalidArgumentException;
 use kuiper\db\exception\ExecutionFailException;
 use kuiper\db\metadata\MetaModelFactoryInterface;
 use kuiper\db\metadata\MetaModelInterface;
+use kuiper\swoole\coroutine\Coroutine;
 use PDO;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 abstract class AbstractCrudRepository implements CrudRepositoryInterface
 {
+    private const DB_LAST_STATEMENT = '__dbLastStatement';
     /**
      * @var QueryBuilderInterface
      */
@@ -41,11 +43,6 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
      * @var EventDispatcherInterface
      */
     protected $eventDispatcher;
-
-    /**
-     * @var StatementInterface
-     */
-    protected $lastStatement;
 
     public function __construct(QueryBuilderInterface $queryBuilder,
                                 MetaModelFactoryInterface $metaModelFactory,
@@ -71,7 +68,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         if (null !== $autoIncrementColumn) {
             $value = $this->metaModel->getValue($entity, $autoIncrementColumn);
             if (null === $value) {
-                $this->metaModel->setValue($entity, $autoIncrementColumn, $stmt->getConnection()->lastInsertId());
+                $this->metaModel->setValue($entity, $autoIncrementColumn, $stmt->getLastInsertId());
             }
         }
 
@@ -104,7 +101,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $stmt->execute();
         $autoIncrementColumn = $this->metaModel->getAutoIncrement();
         if (null !== $autoIncrementColumn) {
-            $lastInsertId = $stmt->getConnection()->lastInsertId();
+            $lastInsertId = $stmt->getLastInsertId();
             foreach ($entities as $entity) {
                 $value = $this->metaModel->getValue($entity, $autoIncrementColumn);
                 if (null === $value) {
@@ -398,11 +395,6 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         $this->doExecute($stmt);
     }
 
-    public function getLastStatement(): StatementInterface
-    {
-        return $this->lastStatement;
-    }
-
     public function getQueryBuilder(): QueryBuilderInterface
     {
         return $this->queryBuilder;
@@ -513,16 +505,26 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     protected function doExecute(StatementInterface $stmt): void
     {
-        $this->lastStatement = $stmt;
+        $this->setLastStatement($stmt);
         $result = $stmt->execute();
         if (false === $result) {
             throw new ExecutionFailException('execution fail');
         }
     }
 
+    private function setLastStatement(StatementInterface $stmt): void
+    {
+        Coroutine::getContext()[self::DB_LAST_STATEMENT] = $stmt;
+    }
+
+    public function getLastStatement(): ?StatementInterface
+    {
+        return Coroutine::getContext()[self::DB_LAST_STATEMENT] ?? null;
+    }
+
     protected function doQuery(StatementInterface $stmt): StatementInterface
     {
-        $this->lastStatement = $stmt;
+        $this->setLastStatement($stmt);
 
         return $stmt->query();
     }

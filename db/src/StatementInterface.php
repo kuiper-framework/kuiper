@@ -143,7 +143,7 @@ interface StatementInterface
     /**
      * Gets the db connection.
      */
-    public function getConnection(): ConnectionInterface;
+    public function withConnection(callable $call): void;
 
     /**
      * @return string[]|false

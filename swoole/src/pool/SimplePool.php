@@ -127,12 +127,14 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     public function release($connection): void
     {
         $coroutineId = $this->getCoroutineId();
-        foreach ($this->connections[$coroutineId] as $i => $conn) {
-            if ($conn->getResource() === $connection) {
-                unset($this->connections[$coroutineId][$i]);
-                $this->channel->push($conn);
+        if (isset($this->connections[$coroutineId])) {
+            foreach ($this->connections[$coroutineId] as $i => $conn) {
+                if ($conn->getResource() === $connection) {
+                    unset($this->connections[$coroutineId][$i]);
+                    $this->channel->push($conn);
 
-                return;
+                    return;
+                }
             }
         }
     }
