@@ -13,9 +13,9 @@
     "require": {
         "php": ">=7.2.5",
         "php-di/php-di": "^6.0",
-        "kuiper/annotations": "^0.6",
-        "kuiper/helper": "^0.6",
-        "kuiper/reflection": "^0.6"
+        "kuiper/annotations": "^0.7",
+        "kuiper/helper": "^0.7",
+        "kuiper/reflection": "^0.7"
     },
     "autoload": {
         "psr-4": {

@@ -3,7 +3,7 @@
 # set -e
 set -x
 
-CURRENT_BRANCH="v0.6"
+CURRENT_BRANCH="v0.7"
 BASEPATH=$(cd `dirname $0`; cd ..; pwd)
 if uname | grep Darwin >> /dev/null; then
     SPLITSH=bin/splitsh-lite

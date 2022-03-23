@@ -15,7 +15,7 @@
     "require": {
         "php": ">=7.2.5",
         "laminas/laminas-code": "^3.4",
-        "kuiper/rpc": "^0.6"
+        "kuiper/rpc": "^0.7"
     },
     "autoload": {
         "psr-4": {

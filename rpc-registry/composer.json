@@ -14,8 +14,8 @@
     ],
     "require": {
         "php": ">=7.2.5",
-        "kuiper/rpc": "^0.6",
-        "kuiper/http-client": "^0.6"
+        "kuiper/rpc": "^0.7",
+        "kuiper/http-client": "^0.7"
     },
     "autoload": {
         "psr-4": {

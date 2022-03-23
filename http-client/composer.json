@@ -16,7 +16,7 @@
     "require": {
         "php": ">=7.2.5",
         "laminas/laminas-code": "^3.4",
-        "kuiper/serializer": "^0.6",
+        "kuiper/serializer": "^0.7",
         "guzzlehttp/guzzle": "^7.0"
     },
     "autoload": {
