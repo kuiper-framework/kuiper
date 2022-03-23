@@ -57,11 +57,14 @@ class RpcExecutor implements RpcExecutorInterface
      */
     public function execute(): array
     {
-        RpcRequestHolder::setRequest($this->request);
-        $response = $this->buildMiddlewareStack($this->requestHandler)->handle($this->request);
-        RpcRequestHolder::clear();
+        RpcRequestHolder::push($this->request);
+        try {
+            $response = $this->buildMiddlewareStack($this->requestHandler)->handle($this->request);
 
-        return $response->getRequest()->getRpcMethod()->getResult();
+            return $response->getRequest()->getRpcMethod()->getResult();
+        } finally {
+            RpcRequestHolder::pop();
+        }
     }
 
     public static function create(object $client, string $method, array $args): self
