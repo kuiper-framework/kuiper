@@ -21,7 +21,7 @@ class SecurityContextTest extends TestCase
 {
     public function testSetIdentity()
     {
-        $user = new User();
+        $user = new User('john', []);
         SecurityContext::setIdentity($user);
         $this->assertSame($user, SecurityContext::getIdentity());
     }

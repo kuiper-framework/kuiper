@@ -40,7 +40,7 @@ class Boolean extends Enum
         if (is_bool($value)) {
             return $value;
         }
-        $name = strtoupper($value);
+        $name = strtoupper((string) $value);
         if (self::hasName($name)) {
             return parent::valueOf($name);
         }

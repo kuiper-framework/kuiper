@@ -16,6 +16,7 @@ namespace kuiper\resilience\circuitbreaker;
 use kuiper\event\InMemoryEventDispatcher;
 use kuiper\resilience\circuitbreaker\event\CircuitBreakerOnError;
 use kuiper\resilience\circuitbreaker\event\CircuitBreakerOnFailureRateExceeded;
+use kuiper\resilience\circuitbreaker\event\CircuitBreakerOnStateTransition;
 use kuiper\resilience\circuitbreaker\exception\CallNotPermittedException;
 use kuiper\resilience\core\MetricsFactoryImpl;
 use kuiper\resilience\core\MockClock;
@@ -87,6 +88,7 @@ class CircuitBreakerImplTest extends TestCase
             CircuitBreakerOnError::class,
             CircuitBreakerOnError::class,
             CircuitBreakerOnFailureRateExceeded::class,
+            CircuitBreakerOnStateTransition::class,
         ], array_map('get_class', $events));
         $metrics = $this->circuitBreaker->getMetrics();
         // print_r($metrics);
@@ -100,9 +102,10 @@ class CircuitBreakerImplTest extends TestCase
     public function testShouldTransitToHalfOpen()
     {
         $counterFactory = new SimpleCounterFactory();
-        $counterFactory->create('test.state')->set(State::OPEN);
         $metricFactory = new MetricsFactoryImpl($this->clock, $counterFactory);
-        $this->circuitBreaker = new CircuitBreakerImpl('test', $this->config, $this->clock, new SwooleTableStateStore(), $counterFactory, $metricFactory, $this->eventDispatcher);
+        $stateStore = new SwooleTableStateStore();
+        $stateStore->setState('test', State::OPEN());
+        $this->circuitBreaker = new CircuitBreakerImpl('test', $this->config, $this->clock, $stateStore, $counterFactory, $metricFactory, $this->eventDispatcher);
         $this->assertEquals(State::OPEN(), $this->circuitBreaker->getState());
         $this->clock->tick($this->config->getWaitIntervalInOpenState(1) + 10);
         $call = function () {
@@ -114,6 +117,7 @@ class CircuitBreakerImplTest extends TestCase
         $this->assertInstanceOf(\RuntimeException::class, $result->getException());
         $events = $this->eventDispatcher->getEvents();
         $this->assertEquals([
+            CircuitBreakerOnStateTransition::class,
             CircuitBreakerOnError::class,
         ], array_map('get_class', $events));
     }

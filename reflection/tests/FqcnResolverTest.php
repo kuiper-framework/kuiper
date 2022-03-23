@@ -51,7 +51,7 @@ class FqcnResolverTest extends TestCase
     {
         $file = $this->createResolver(__DIR__.'/fixtures/MultipleNamespaces.php');
         $this->assertEquals(
-            'NamespaceA\\ClassA',
+            'NamespaceB\\ClassA',
             $file->resolve('ClassA', 'NamespaceB')
         );
         $this->assertEquals(

@@ -18,6 +18,19 @@ use kuiper\web\view\ViewInterface;
 
 class TwigViewTest extends TestCase
 {
+    protected function getConfig(): array
+    {
+        return [
+            'application' => [
+                'web' => [
+                    'view' => [
+                        'engine' => null,
+                    ],
+                ],
+            ],
+        ];
+    }
+
     public function testTwigView()
     {
         $view = $this->getContainer()->get(ViewInterface::class);

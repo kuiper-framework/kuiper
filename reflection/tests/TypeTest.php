@@ -21,7 +21,7 @@ class TypeTest extends TestCase
     public function testParse()
     {
         $this->assertInstanceOf(IntegerType::class, ReflectionType::parse('int'));
-        $this->assertInstanceOf(CompositeType::class, ReflectionType::parse('int|null'));
+        $this->assertInstanceOf(CompositeType::class, ReflectionType::parse('int|float|null'));
     }
 
     public function testIsArray()

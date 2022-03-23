@@ -61,7 +61,8 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
 
             return $response;
         } catch (\Exception $error) {
-            $this->logger->info(...$this->formatter->format($request, null, $error, $start, microtime(true)));
+            $format = $this->formatter->format($request, null, $error, $start, microtime(true));
+            $this->logger->info(...$format);
             throw $error;
         }
     }

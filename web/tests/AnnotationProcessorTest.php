@@ -18,6 +18,7 @@ use kuiper\annotations\AnnotationReader;
 use kuiper\di\ContainerBuilder;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\swoole\config\DiactorosHttpMessageFactoryConfiguration;
+use kuiper\swoole\config\FoundationConfiguration;
 use kuiper\web\security\Acl;
 use kuiper\web\security\AclInterface;
 
@@ -26,6 +27,7 @@ class AnnotationProcessorTest extends TestCase
     public function testName()
     {
         $containerBuilder = new ContainerBuilder();
+        $containerBuilder->addConfiguration(new FoundationConfiguration());
         $containerBuilder->addConfiguration(new DiactorosHttpMessageFactoryConfiguration());
         /** @var ReflectionNamespaceFactory $reflectionNs */
         $reflectionNs = ReflectionNamespaceFactory::getInstance();

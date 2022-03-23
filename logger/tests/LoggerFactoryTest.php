@@ -100,5 +100,6 @@ class LoggerFactoryTest extends TestCase
 
         $logger = $this->factory->create('bar\\AccessLog');
         $logger->info('test');
+        $this->assertTrue(true);
     }
 }

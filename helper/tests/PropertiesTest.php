@@ -134,16 +134,6 @@ class PropertiesTest extends TestCase
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two'], 'bar' => 'bar_value']);
     }
 
-    public function testMergeIfNotExistsNotExistKey()
-    {
-        $p = Properties::create();
-        $p->mergeIfNotExists([
-            'application' => [
-                'commands' => ['a' => 'c'],
-            ],
-        ]);
-    }
-
     public function testSetExistKey()
     {
         $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
@@ -241,16 +231,11 @@ class PropertiesTest extends TestCase
             ],
         ]);
         $middleware = $properties->get('middleware');
-        var_export($middleware);
+        //var_export($middleware);
         $this->assertEquals([
-            0 => 'd',
-            -1 => 'c',
-            100 => 'b',
-            101 => 'e',
+            1000 => 'a',
+            1 => 'b',
         ], $middleware);
-        $this->assertEquals(['d', 'c', 'b', 'e'], array_values($middleware));
-        ksort($middleware);
-        $this->assertEquals(['c', 'd', 'b', 'e'], array_values($middleware));
     }
 
     public function testReplacePlaceholder()

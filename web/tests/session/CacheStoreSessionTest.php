@@ -27,6 +27,7 @@ class CacheStoreSessionTest extends TestCase
         $session = $factory->create(ServerRequestFactory::fromGlobals());
         $session->start();
         $response = $session->setCookie(new Response());
-        print_r($response->getHeaders());
+        // print_r($response->getHeaders());
+        $this->assertArrayHasKey('set-cookie', $response->getHeaders());
     }
 }
