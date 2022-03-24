@@ -44,6 +44,11 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
      */
     protected $eventDispatcher;
 
+    /**
+     * @var StatementInterface|null
+     */
+    private $lastStatement;
+
     public function __construct(QueryBuilderInterface $queryBuilder,
                                 MetaModelFactoryInterface $metaModelFactory,
                                 DateTimeFactoryInterface $dateTimeFactory,
@@ -514,12 +519,20 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
     private function setLastStatement(StatementInterface $stmt): void
     {
-        Coroutine::getContext()[self::DB_LAST_STATEMENT] = $stmt;
+        if (class_exists(Coroutine::class)) {
+            Coroutine::getContext()[self::DB_LAST_STATEMENT] = $stmt;
+        } else {
+            $this->lastStatement = $stmt;
+        }
     }
 
     public function getLastStatement(): ?StatementInterface
     {
-        return Coroutine::getContext()[self::DB_LAST_STATEMENT] ?? null;
+        if (class_exists(Coroutine::class)) {
+            return Coroutine::getContext()[self::DB_LAST_STATEMENT] ?? null;
+        } else {
+            return $this->lastStatement;
+        }
     }
 
     protected function doQuery(StatementInterface $stmt): StatementInterface

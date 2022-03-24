@@ -30,8 +30,11 @@ class PooledTransactionManager implements TransactionManagerInterface
      */
     public function transaction(callable $callback)
     {
-        $manager = new TransactionManager($this->connectionPool->take());
-
-        return $manager->transaction($callback);
+        $connection = $this->connectionPool->take();
+        try {
+            return (new TransactionManager($connection))->transaction($callback);
+        } finally {
+            $this->connectionPool->release($connection);
+        }
     }
 }
