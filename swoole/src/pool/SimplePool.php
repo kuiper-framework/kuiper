@@ -98,13 +98,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         $num = $this->channel->size();
 
         if (0 === $num && $this->currentConnections < $this->poolConfig->getMaxConnections()) {
-            ++$this->currentConnections;
-            try {
-                return $this->deferReleaseConnection($this->createConnection());
-            } catch (\Exception $exception) {
-                --$this->currentConnections;
-                throw $exception;
-            }
+            return $this->deferReleaseConnection($this->createConnection());
         }
 
         /** @var ConnectionInterface|false $connection */
@@ -114,6 +108,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         }
         if ($this->poolConfig->getAgedTimeout() > 0
             && $connection->getCreatedAt() + $this->poolConfig->getAgedTimeout() < time()) {
+            --$this->currentConnections;
             $connection->close();
             $connection = $this->createConnection();
         }
@@ -181,15 +176,21 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     {
         $id = self::$CONNECTION_ID++;
         $resource = null;
-        $this->logger->debug(self::TAG.sprintf('create connection %s#%d', $this->poolName, $id));
-        $ret = call_user_func_array($this->connectionFactory, [$id, &$resource]);
-        if (!isset($resource)) {
-            $resource = $ret;
-        }
-        $connection = new Connection($id, $resource);
-        $this->eventDispatcher->dispatch(new ConnectionCreateEvent($this->poolName, $connection));
+        // $this->logger->debug(self::TAG . sprintf('create connection %s#%d', $this->poolName, $id));
+        ++$this->currentConnections;
+        try {
+            $ret = call_user_func_array($this->connectionFactory, [$id, &$resource]);
+            if (!isset($resource)) {
+                $resource = $ret;
+            }
+            $connection = new Connection($id, $resource);
+            $this->eventDispatcher->dispatch(new ConnectionCreateEvent($this->poolName, $connection));
 
-        return $connection;
+            return $connection;
+        } catch (\Exception $e) {
+            --$this->currentConnections;
+            throw $e;
+        }
     }
 
     private function getCoroutineId(): int
