@@ -54,19 +54,14 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     private $eventDispatcher;
 
     /**
+     * @var ConnectionInterface[]
+     */
+    private $connections = [];
+
+    /**
      * @var ConnectionInterface[][]
      */
-    private $connections;
-
-    /**
-     * @var int
-     */
-    private $currentConnections = 0;
-
-    /**
-     * @var int
-     */
-    private static $CONNECTION_ID = 1;
+    private $coroutineConnections;
 
     /**
      * Pool constructor.
@@ -97,7 +92,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
 
         $num = $this->channel->size();
 
-        if (0 === $num && $this->currentConnections < $this->poolConfig->getMaxConnections()) {
+        if (0 === $num && count($this->connections) < $this->poolConfig->getMaxConnections()) {
             return $this->deferReleaseConnection($this->createConnection());
         }
 
@@ -108,9 +103,8 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         }
         if ($this->poolConfig->getAgedTimeout() > 0
             && $connection->getCreatedAt() + $this->poolConfig->getAgedTimeout() < time()) {
-            --$this->currentConnections;
             $connection->close();
-            $connection = $this->createConnection();
+            $connection = $this->createConnection($connection->getId());
         }
 
         return $this->deferReleaseConnection($connection);
@@ -122,10 +116,10 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     public function release($connection): void
     {
         $coroutineId = $this->getCoroutineId();
-        if (isset($this->connections[$coroutineId])) {
-            foreach ($this->connections[$coroutineId] as $i => $conn) {
+        if (isset($this->coroutineConnections[$coroutineId])) {
+            foreach ($this->coroutineConnections[$coroutineId] as $i => $conn) {
                 if ($conn->getResource() === $connection) {
-                    unset($this->connections[$coroutineId][$i]);
+                    unset($this->coroutineConnections[$coroutineId][$i]);
                     $this->channel->push($conn);
 
                     return;
@@ -137,10 +131,8 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     public function getConnections(): array
     {
         $list = [];
-        foreach ($this->connections as $coroutineConns) {
-            foreach ($coroutineConns as $conn) {
-                $list[] = $conn->getResource();
-            }
+        foreach ($this->connections as $conn) {
+            $list[] = $conn->getResource();
         }
 
         return $list;
@@ -149,17 +141,17 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     private function deferReleaseConnection(ConnectionInterface $connection)
     {
         $coroutineId = $this->getCoroutineId();
-        if (!isset($this->connections[$coroutineId])) {
+        if (!isset($this->coroutineConnections[$coroutineId])) {
             Coroutine::defer(function () use ($coroutineId): void {
-                if (!empty($this->connections[$coroutineId])) {
-                    foreach ($this->connections[$coroutineId] as $conn) {
+                if (!empty($this->coroutineConnections[$coroutineId])) {
+                    foreach ($this->coroutineConnections[$coroutineId] as $conn) {
                         $this->channel->push($conn);
                     }
                 }
-                unset($this->connections[$coroutineId]);
+                unset($this->coroutineConnections[$coroutineId]);
             });
         }
-        $this->connections[$coroutineId][] = $connection;
+        $this->coroutineConnections[$coroutineId][] = $connection;
 
         return $connection->getResource();
     }
@@ -172,23 +164,24 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         return $this->poolName;
     }
 
-    private function createConnection(): Connection
+    private function createConnection(int $id = null): Connection
     {
-        $id = self::$CONNECTION_ID++;
+        if (!isset($id)) {
+            $id = count($this->connections);
+        }
         $resource = null;
         // $this->logger->debug(self::TAG . sprintf('create connection %s#%d', $this->poolName, $id));
-        ++$this->currentConnections;
         try {
             $ret = call_user_func_array($this->connectionFactory, [$id, &$resource]);
             if (!isset($resource)) {
                 $resource = $ret;
             }
             $connection = new Connection($id, $resource);
+            $this->connections[$id] = $connection;
             $this->eventDispatcher->dispatch(new ConnectionCreateEvent($this->poolName, $connection));
 
             return $connection;
         } catch (\Exception $e) {
-            --$this->currentConnections;
             throw $e;
         }
     }

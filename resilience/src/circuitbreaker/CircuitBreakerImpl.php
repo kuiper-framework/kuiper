@@ -114,6 +114,7 @@ class CircuitBreakerImpl implements CircuitBreaker
     public function decorate(callable $call): callable
     {
         return function () use ($call) {
+            $this->reset();
             $this->state->acquirePermission();
             $start = $this->getCurrentTimestamp();
             try {

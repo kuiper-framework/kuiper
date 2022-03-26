@@ -121,6 +121,7 @@ class RetryImpl implements Retry
     public function decorate(callable $call): callable
     {
         return function () use ($call) {
+            $this->reset();
             while (true) {
                 try {
                     $result = $call(...func_get_args());

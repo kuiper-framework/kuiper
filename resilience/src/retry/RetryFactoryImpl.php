@@ -17,6 +17,7 @@ use kuiper\helper\Arrays;
 use kuiper\resilience\core\Clock;
 use kuiper\resilience\core\CounterFactory;
 use kuiper\resilience\core\SimpleClock;
+use kuiper\swoole\pool\ConnectionProxyGenerator;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\swoole\pool\PoolInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -47,17 +48,20 @@ class RetryFactoryImpl implements RetryFactory
     private $retryPoolList;
 
     /**
+     * @var Retry[]
+     */
+    private $retryList;
+
+    /**
      * @var Clock
      */
     private $clock;
 
     /**
-     * RetryFactoryImpl constructor.
-     *
-     * @param CounterFactory           $counterFactory
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param array                    $options
+     * @var string|null
      */
+    private $proxyClass;
+
     public function __construct(PoolFactoryInterface $poolFactory, CounterFactory $counterFactory, EventDispatcherInterface $eventDispatcher, array $options = null)
     {
         $this->poolFactory = $poolFactory;
@@ -65,6 +69,18 @@ class RetryFactoryImpl implements RetryFactory
         $this->eventDispatcher = $eventDispatcher;
         $this->clock = new SimpleClock();
         $this->options = $options ?? [];
+    }
+
+    private function getProxyClass(): string
+    {
+        if (null === $this->proxyClass) {
+            $generator = new ConnectionProxyGenerator();
+            $result = $generator->generate(Retry::class);
+            $result->eval();
+            $this->proxyClass = $result->getClassName();
+        }
+
+        return $this->proxyClass;
     }
 
     /**
@@ -80,7 +96,7 @@ class RetryFactoryImpl implements RetryFactory
      */
     public function create(string $name): Retry
     {
-        if (!isset($this->retryPoolList[$name])) {
+        if (!isset($this->retryList[$name])) {
             $this->retryPoolList[$name] = $this->poolFactory->create('retry_'.$name, function () use ($name): Retry {
                 return new RetryImpl(
                     $name,
@@ -90,11 +106,11 @@ class RetryFactoryImpl implements RetryFactory
                     $this->eventDispatcher
                 );
             });
+            $class = $this->getProxyClass();
+            $this->retryList[$name] = new $class($this->retryPoolList[$name]);
         }
-        $retry = $this->retryPoolList[$name]->take();
-        $retry->reset();
 
-        return $retry;
+        return $this->retryList[$name];
     }
 
     private function createConfig(string $name): RetryConfig

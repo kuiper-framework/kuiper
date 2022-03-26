@@ -18,6 +18,8 @@ use kuiper\resilience\core\Clock;
 use kuiper\resilience\core\CounterFactory;
 use kuiper\resilience\core\MetricsFactory;
 use kuiper\resilience\core\SimpleClock;
+use kuiper\resilience\retry\Retry;
+use kuiper\swoole\pool\ConnectionProxyGenerator;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\swoole\pool\PoolInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -62,6 +64,16 @@ class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
      */
     private $circuitBreakerPoolList;
 
+    /**
+     * @var CircuitBreaker[]
+     */
+    private $circuitBreakerList;
+
+    /**
+     * @var string|null
+     */
+    private $proxyClass;
+
     public function __construct(PoolFactoryInterface $poolFactory, StateStore $stateStore, CounterFactory $counterFactory, MetricsFactory $metricFactory, EventDispatcherInterface $eventDispatcher, array $options = null)
     {
         $this->poolFactory = $poolFactory;
@@ -73,9 +85,21 @@ class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
         $this->options = $options ?? [];
     }
 
+    private function getProxyClass(): string
+    {
+        if (null === $this->proxyClass) {
+            $generator = new ConnectionProxyGenerator();
+            $result = $generator->generate(Retry::class);
+            $result->eval();
+            $this->proxyClass = $result->getClassName();
+        }
+
+        return $this->proxyClass;
+    }
+
     public function create(string $name): CircuitBreaker
     {
-        if (!isset($this->circuitBreakerPoolList[$name])) {
+        if (!isset($this->circuitBreakerList[$name])) {
             $this->circuitBreakerPoolList[$name] = $this->poolFactory->create('circuitbreaker'.$name, function () use ($name): CircuitBreaker {
                 return new CircuitBreakerImpl(
                     $name,
@@ -87,11 +111,11 @@ class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
                     $this->eventDispatcher
                 );
             });
+            $class = $this->getProxyClass();
+            $this->circuitBreakerList[$name] = new $class($this->circuitBreakerPoolList[$name]);
         }
-        $circuitBreaker = $this->circuitBreakerPoolList[$name]->take();
-        $circuitBreaker->reset();
 
-        return $circuitBreaker;
+        return $this->circuitBreakerList[$name];
     }
 
     /**

@@ -24,7 +24,10 @@ interface Retry
      */
     public function call(callable $call, ...$args);
 
-    public function reset(): void;
-
+    /**
+     * Gets the last call metric.
+     *
+     * @return RetryMetrics
+     */
     public function getMetrics(): RetryMetrics;
 }

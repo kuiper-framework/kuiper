@@ -24,7 +24,5 @@ interface CircuitBreaker
      */
     public function call(callable $call, ...$args);
 
-    public function reset(): void;
-
     public function getMetrics(): CircuitBreakerMetrics;
 }
