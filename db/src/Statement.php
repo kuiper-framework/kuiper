@@ -116,6 +116,7 @@ class Statement implements StatementInterface
             $this->pdoStatement->closeCursor();
             $this->pdoStatement = null;
         }
+        unset($this->lastInsertId);
     }
 
     public function withConnection(callable $call): void
@@ -447,22 +448,27 @@ class Statement implements StatementInterface
     {
         $this->checkPdoStatement();
 
-        return $this->pdoStatement->fetchAll($fetchStyle);
+        if (isset($fetchStyle)) {
+            return $this->pdoStatement->fetchAll($fetchStyle);
+        } else {
+            return $this->pdoStatement->fetchAll();
+        }
     }
 
     protected function doQuery(): bool
     {
+        $conn = $this->pool->take();
         try {
-            $result = $this->doQueryOnce();
+            $result = $this->doQueryOnce($conn);
             $this->eventDispatcher->dispatch(new StatementQueriedEvent($this));
 
             return $result;
         } catch (\PDOException $e) {
             if (Connection::isRetryableError($e)) {
-                $this->connection->disconnect();
-                $this->connection->connect();
+                $conn->disconnect();
+                $conn->connect();
                 try {
-                    $result = $this->doQueryOnce();
+                    $result = $this->doQueryOnce($conn);
                     $this->eventDispatcher->dispatch(new StatementQueriedEvent($this));
 
                     return $result;
@@ -474,21 +480,24 @@ class Statement implements StatementInterface
                 $this->eventDispatcher->dispatch(new StatementQueriedEvent($this, $e));
                 throw $e;
             }
-        }
-    }
-
-    protected function doQueryOnce(): bool
-    {
-        $conn = $this->pool->take();
-        try {
-            $this->pdoStatement = $conn->prepare($this->query->getStatement());
-            $result = @$this->pdoStatement->execute($this->query->getBindValues());
-            $this->lastInsertId = $conn->lastInsertId();
-
-            return $result;
         } finally {
             $this->pool->release($conn);
         }
+    }
+
+    private function doQueryOnce(ConnectionInterface $conn): bool
+    {
+        $this->pdoStatement = $conn->prepare($this->query->getStatement());
+        $result = @$this->pdoStatement->execute($this->query->getBindValues());
+        if ($this->query instanceof InsertInterface) {
+            try {
+                $this->lastInsertId = $conn->lastInsertId();
+            } catch (\PDOException $e) {
+                // noOps
+            }
+        }
+
+        return $result;
     }
 
     protected function addWhere(array $condition, string $op = self::OPERATOR_AND): void

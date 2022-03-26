@@ -116,7 +116,7 @@ class KeepAlive implements EventListenerInterface, LoggerAwareInterface
             $serverInfo->adapter = 'AdminAdapter';
             $this->serverFServant->keepAlive($serverInfo);
         } catch (\Exception $e) {
-            $this->logger->error(static::TAG.'send server info fail', ['error' => $e->getMessage()]);
+            $this->logger->error(static::TAG.'send server info fail', ['error' => $e]);
         }
     }
 

@@ -27,7 +27,7 @@ class PoolTimeoutException extends \Exception
      */
     public function __construct(PoolInterface $pool)
     {
-        parent::__construct('Cannot get connection because pool is exausted');
+        parent::__construct("Cannot get connection because pool {$pool->getName()} is exhausted");
         $this->pool = $pool;
     }
 
