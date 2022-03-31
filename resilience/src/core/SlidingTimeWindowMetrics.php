@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\core;
 
+use kuiper\resilience\circuitbreaker\SlideWindowType;
+
 class SlidingTimeWindowMetrics implements Metrics
 {
     /**
@@ -115,5 +117,15 @@ class SlidingTimeWindowMetrics implements Metrics
     public function getSnapshot(): Snapshot
     {
         return new Snapshot($this->totalAggregation);
+    }
+
+    public function getWindowSize(): int
+    {
+        return $this->timeWindowSizeInSeconds;
+    }
+
+    public function getWindowType(): SlideWindowType
+    {
+        return SlideWindowType::TIME_BASED();
     }
 }

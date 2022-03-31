@@ -85,4 +85,9 @@ interface CircuitBreakerMetrics
      * @return int the current number of successful buffered calls in the ring buffer
      */
     public function getNumberOfSuccessfulCalls(): int;
+
+    /**
+     * reset metric.
+     */
+    public function reset(): void;
 }

@@ -43,6 +43,11 @@ class CircuitBreakerMetricsImpl implements CircuitBreakerMetrics
     private $snapshot;
 
     /**
+     * @var int
+     */
+    private $minimumNumberOfCalls;
+
+    /**
      * CircuitBreakerMetricsImpl constructor.
      */
     public function __construct(Counter $numberOfNotPermittedCalls, Metrics $metrics, CircuitBreakerConfig $config)
@@ -50,6 +55,11 @@ class CircuitBreakerMetricsImpl implements CircuitBreakerMetrics
         $this->numberOfNotPermittedCalls = $numberOfNotPermittedCalls;
         $this->metrics = $metrics;
         $this->config = $config;
+        if (SlideWindowType::COUNT_BASED === $metrics->getWindowType()->value) {
+            $this->minimumNumberOfCalls = min($config->getMinimumNumberOfCalls(), $metrics->getWindowSize());
+        } else {
+            $this->minimumNumberOfCalls = $config->getMinimumNumberOfCalls();
+        }
         $this->snapshot = Snapshot::dummy();
     }
 
@@ -119,7 +129,7 @@ class CircuitBreakerMetricsImpl implements CircuitBreakerMetrics
     public function getFailureRate(): float
     {
         $calls = $this->snapshot->getNumberOfCalls();
-        if (0 === $calls || $calls < $this->config->getMinimumNumberOfCalls()) {
+        if (0 === $calls || $calls < $this->minimumNumberOfCalls) {
             return self::RATE_NA;
         }
 
@@ -132,7 +142,7 @@ class CircuitBreakerMetricsImpl implements CircuitBreakerMetrics
     public function getSlowCallRate(): float
     {
         $calls = $this->snapshot->getNumberOfCalls();
-        if (0 === $calls || $calls < $this->config->getMinimumNumberOfCalls()) {
+        if (0 === $calls || $calls < $this->minimumNumberOfCalls) {
             return self::RATE_NA;
         }
 
@@ -193,5 +203,10 @@ class CircuitBreakerMetricsImpl implements CircuitBreakerMetrics
     public function getNumberOfNotPermittedCalls(): int
     {
         return $this->numberOfNotPermittedCalls->get();
+    }
+
+    public function reset(): void
+    {
+        $this->metrics->reset();
     }
 }
