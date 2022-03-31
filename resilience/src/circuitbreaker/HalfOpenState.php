@@ -47,15 +47,10 @@ class HalfOpenState implements CircuitBreakerState
 
     public function tryAcquirePermission(): bool
     {
-        if ($this->permittedNumberOfCalls->get() > 0) {
-            if ($this->permittedNumberOfCalls->decrement() < 0) {
-                $this->permittedNumberOfCalls->set(0);
-
-                return false;
-            }
-
+        if (($this->permittedNumberOfCalls->get() > 0) && $this->permittedNumberOfCalls->decrement() >= 0) {
             return true;
         }
+        $this->circuitBreaker->transitionToOpenState();
         $this->metrics->onCallNotPermitted();
 
         return false;

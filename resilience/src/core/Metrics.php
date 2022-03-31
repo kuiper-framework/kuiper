@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\core;
 
+use kuiper\resilience\circuitbreaker\SlideWindowType;
+
 interface Metrics
 {
     /**
@@ -34,4 +36,14 @@ interface Metrics
      * @return Snapshot a snapshot
      */
     public function getSnapshot(): Snapshot;
+
+    /**
+     * @return int
+     */
+    public function getWindowSize(): int;
+
+    /**
+     * @return SlideWindowType
+     */
+    public function getWindowType(): SlideWindowType;
 }

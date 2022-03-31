@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\core;
 
+use kuiper\resilience\circuitbreaker\SlideWindowType;
+
 class FixedSizeSlidingWindowMetrics implements Metrics
 {
     /**
@@ -86,5 +88,15 @@ class FixedSizeSlidingWindowMetrics implements Metrics
     public function getSnapshot(): Snapshot
     {
         return new Snapshot($this->totalAggregation);
+    }
+
+    public function getWindowSize(): int
+    {
+        return $this->windowSize;
+    }
+
+    public function getWindowType(): SlideWindowType
+    {
+        return SlideWindowType::COUNT_BASED();
     }
 }

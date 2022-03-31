@@ -51,9 +51,9 @@ class MetricsFactoryImpl implements MetricsFactory
             }
         }
         if (SlideWindowType::COUNT_BASED === $type->value) {
-            $metrics = new SlidingTimeWindowMetrics($name, $windowSize, $this->clock, $this->counterFactory);
-        } else {
             $metrics = new FixedSizeSlidingWindowMetrics($name, $windowSize, $this->counterFactory);
+        } else {
+            $metrics = new SlidingTimeWindowMetrics($name, $windowSize, $this->clock, $this->counterFactory);
         }
         $this->metrics[$name] = [
             'type' => $type,

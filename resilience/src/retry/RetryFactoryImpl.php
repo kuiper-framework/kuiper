@@ -91,10 +91,8 @@ class RetryFactoryImpl implements RetryFactory
                 );
             });
         }
-        $retry = $this->retryPoolList[$name]->take();
-        $retry->reset();
 
-        return $retry;
+        return $this->retryPoolList[$name]->take();
     }
 
     private function createConfig(string $name): RetryConfig
