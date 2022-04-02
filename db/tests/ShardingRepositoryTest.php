@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use Aura\SqlQuery\QueryFactory;
-use Dotenv\Dotenv;
 use kuiper\db\event\listener\AutoCreateShardTable;
 use kuiper\db\event\ShardTableNotExistEvent;
 use kuiper\db\event\StatementQueriedEvent;
@@ -36,13 +35,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ShardingRepositoryTest extends AbstractRepositoryTestCase
 {
-    public static function setupBeforeClass(): void
-    {
-        if (file_exists(__DIR__.'/.env')) {
-            Dotenv::createMutable(__DIR__)->load();
-        }
-    }
-
     private static function employee(int $sharding, string $name): Employee
     {
         $employee = new Employee();

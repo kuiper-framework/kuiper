@@ -42,6 +42,7 @@ class QueryBuilder implements QueryBuilderInterface
         } else {
             $connection = $this->pool->take();
             $this->queryFactory = new QueryFactory($connection->getAttribute(\PDO::ATTR_DRIVER_NAME));
+            $this->pool->release($connection);
         }
     }
 

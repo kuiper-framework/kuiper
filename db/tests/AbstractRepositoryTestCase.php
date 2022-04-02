@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+use Dotenv\Dotenv;
 use kuiper\db\converter\AttributeConverterRegistry;
 use kuiper\db\converter\BoolConverter;
 use kuiper\db\converter\DateConverter;
@@ -23,6 +24,13 @@ use PHPUnit\Framework\TestCase;
 
 abstract class AbstractRepositoryTestCase extends TestCase
 {
+    public static function setupBeforeClass(): void
+    {
+        if (file_exists(__DIR__.'/.env')) {
+            Dotenv::createMutable(__DIR__)->load();
+        }
+    }
+
     public function createAttributeRegistry(): AttributeConverterRegistry
     {
         $registry = new AttributeConverterRegistry();

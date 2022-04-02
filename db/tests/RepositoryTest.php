@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
-use Dotenv\Dotenv;
 use kuiper\db\event\StatementQueriedEvent;
 use kuiper\db\fixtures\Department;
 use kuiper\db\fixtures\DepartmentRepository;
@@ -30,13 +29,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class RepositoryTest extends AbstractRepositoryTestCase
 {
-    public static function setupBeforeClass(): void
-    {
-        if (file_exists(__DIR__.'/.env')) {
-            Dotenv::createMutable(__DIR__)->load();
-        }
-    }
-
     public function createConnection(EventDispatcherInterface $eventDispatcher): Connection
     {
         $config = $this->getConfig();
