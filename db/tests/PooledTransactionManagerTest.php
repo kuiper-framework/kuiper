@@ -44,8 +44,9 @@ class PooledTransactionManagerTest extends AbstractRepositoryTestCase
     public function testTransaction()
     {
         $eventDispatcher = new EventDispatcher();
-        $pool = new SimplePool('db', function () use ($eventDispatcher) {
-            error_log('create connection');
+        $nofConn = 0;
+        $pool = new SimplePool('db', function () use ($eventDispatcher, &$nofConn) {
+            ++$nofConn;
 
             return $this->createConnection($eventDispatcher);
         }, new PoolConfig(), $eventDispatcher, new NullLogger());
@@ -64,5 +65,6 @@ class PooledTransactionManagerTest extends AbstractRepositoryTestCase
             $repository->delete($item);
             $repository->insert($item);
         });
+        $this->assertEquals(1, $nofConn);
     }
 }

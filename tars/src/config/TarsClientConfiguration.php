@@ -34,11 +34,16 @@ use kuiper\rpc\JsonRpcRequestLogFormatter;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\servicediscovery\ChainedServiceResolver;
+use kuiper\rpc\servicediscovery\dns\DnsResolverInterface;
+use kuiper\rpc\servicediscovery\dns\NetDns2Resolver;
+use kuiper\rpc\servicediscovery\DnsServiceResolver;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
 use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
+use kuiper\swoole\pool\ConnectionProxyGenerator;
+use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\tars\annotation\TarsClient;
 use kuiper\tars\client\middleware\AddRequestReferer;
 use kuiper\tars\client\middleware\RequestStat;
@@ -52,6 +57,7 @@ use kuiper\tars\integration\PropertyFServant;
 use kuiper\tars\integration\QueryFServant;
 use kuiper\tars\integration\ServerFServant;
 use kuiper\tars\integration\StatFServant;
+use Net_DNS2_Resolver;
 use Psr\Container\ContainerInterface;
 
 class TarsClientConfiguration implements DefinitionConfiguration
@@ -191,7 +197,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
      * @Bean("tarsServiceDiscovery")
      * @Inject({
      *     "serviceResolver": "tarsServiceResolver",
-     *     "loadBalance": "application.client.service_disovery.load_balance"
+     *     "loadBalance": "application.client.service_discovery.load_balance"
      * })
      */
     public function tarsServiceDiscovery(ServiceResolverInterface $serviceResolver, ?string $loadBalance): ServiceDiscovery
@@ -204,10 +210,33 @@ class TarsClientConfiguration implements DefinitionConfiguration
      */
     public function tarsServiceResolver(ContainerInterface $container): ServiceResolverInterface
     {
-        return new ChainedServiceResolver([
+        $resolvers = [
             $container->get(InMemoryServiceResolver::class),
-            $container->get(TarsRegistryResolver::class),
-        ]);
+        ];
+        if ($container->get('application.tars.client.locator')) {
+            $resolvers[] = $container->get(TarsRegistryResolver::class);
+        }
+        if ($container->get('application.client.service_discovery.enable_dns')) {
+            $resolvers[] = $container->get(DnsServiceResolver::class);
+        }
+
+        return new ChainedServiceResolver($resolvers);
+    }
+
+    /**
+     * @Bean
+     */
+    public function dnsResolver(PoolFactoryInterface $poolFactory): DnsResolverInterface
+    {
+        if (!class_exists(\Net_DNS2::class)) {
+            throw new \RuntimeException('Net_DNS2 is required, please run composer require pear/net_dns2');
+        }
+        /** @var Net_DNS2_Resolver $resolver */
+        $resolver = ConnectionProxyGenerator::create($poolFactory, Net_DNS2_Resolver::class, static function () {
+            return new Net_DNS2_Resolver();
+        });
+
+        return new NetDns2Resolver($resolver);
     }
 
     /**

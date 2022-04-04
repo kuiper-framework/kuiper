@@ -48,6 +48,9 @@ class TarsApplication extends Application
                 'server' => [
                     'enable_php_server' => $config->getBool('application.tars.server.enable_php_server', false),
                 ],
+                'client' => [
+                    'enable_dns' => $config->getBool('application.tars.client.enable_dns'),
+                ],
                 'commands' => [
                     'start' => ServerStartCommand::class,
                     'stop' => ServerStopCommand::class,

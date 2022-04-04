@@ -138,7 +138,7 @@ class RepositoryTest extends AbstractRepositoryTestCase
         $examples[] = $factory('02');
         $ret = $repository->findAllByNaturalId($examples);
         // var_export($ret);
-        $this->assertEmpty($ret);
+        $this->assertIsArray($ret);
     }
 
     public static function department(string $name, ?string $departNo = null): Department
