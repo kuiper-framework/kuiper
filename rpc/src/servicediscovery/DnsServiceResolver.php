@@ -54,7 +54,8 @@ class DnsServiceResolver implements ServiceResolverInterface
 
     protected function getServiceHost(ServiceLocator $serviceLocator): string
     {
-        return preg_replace('/obj$/', '',
-            str_replace('.', '-', strtolower($serviceLocator->getName())));
+        [$app, $server] = explode('.', strtolower($serviceLocator->getName()));
+
+        return "{$app}-{$server}-tarsrpc";
     }
 }
