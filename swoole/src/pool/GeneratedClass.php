@@ -51,7 +51,7 @@ class GeneratedClass
 
     public function eval(): void
     {
-        if (class_exists($this->className)) {
+        if (class_exists($this->className, false)) {
             return;
         }
         eval($this->code);
