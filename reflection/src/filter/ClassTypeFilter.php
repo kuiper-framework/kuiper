@@ -18,39 +18,18 @@ use kuiper\reflection\TypeFilterInterface;
 
 class ClassTypeFilter implements TypeFilterInterface
 {
-    /**
-     * @var ClassType
-     */
-    private $type;
-
-    /**
-     * ClassTypeFilter constructor.
-     */
-    public function __construct(ClassType $type)
+    public function __construct(private ClassType $type)
     {
-        $this->type = $type;
     }
 
-    /**
-     * checks whether the value is valid.
-     *
-     * @param mixed $value
-     */
-    public function isValid($value): bool
+    public function isValid(mixed $value): bool
     {
         $className = $this->type->getName();
 
         return $value instanceof $className;
     }
 
-    /**
-     * Sanitizes input value.
-     *
-     * @param mixed $value
-     *
-     * @return mixed
-     */
-    public function sanitize($value)
+    public function sanitize(mixed $value): mixed
     {
         return $value;
     }

@@ -18,36 +18,17 @@ use kuiper\reflection\exception\ReflectionException;
 class ReflectionNamespace implements ReflectionNamespaceInterface
 {
     /**
-     * @var string
-     */
-    private $namespace;
-
-    /**
-     * @var string[]
-     */
-    private $dirs;
-
-    /**
-     * @var ReflectionFileFactoryInterface
-     */
-    private $reflectionFileFactory;
-
-    /**
-     * @var string[]
-     */
-    private $extensions;
-
-    /**
      * @var string[]|null
      */
-    private $classes;
+    private array $classes;
 
-    public function __construct(string $namespace, array $dirs, array $extensions, ReflectionFileFactoryInterface $reflectionFileFactory)
+    public function __construct(
+        private string $namespace,
+        private array $dirs,
+        private array $extensions,
+        private ReflectionFileFactoryInterface $reflectionFileFactory)
     {
         $this->namespace = trim($namespace, self::NAMESPACE_SEPARATOR);
-        $this->dirs = $dirs;
-        $this->extensions = $extensions;
-        $this->reflectionFileFactory = $reflectionFileFactory;
     }
 
     /**
@@ -89,7 +70,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
                 $reflectionFile = $this->reflectionFileFactory->create($file);
                 try {
                     foreach ($reflectionFile->getClasses() as $class) {
-                        if (0 === strpos($class, $this->namespace)) {
+                        if (str_starts_with($class, $this->namespace)) {
                             $classes[] = $class;
                         }
                     }

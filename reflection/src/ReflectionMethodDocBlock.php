@@ -16,30 +16,15 @@ namespace kuiper\reflection;
 class ReflectionMethodDocBlock implements ReflectionMethodDocBlockInterface
 {
     /**
-     * @var \ReflectionMethod
-     */
-    private $method;
-
-    /**
-     * @var ReflectionTypeInterface[]
-     */
-    private $parameterTypes;
-
-    /**
-     * @var ReflectionTypeInterface
-     */
-    private $returnType;
-
-    /**
      * ReflectionMethodDocBlock constructor.
      *
      * @param ReflectionTypeInterface[] $parameterTypes
      */
-    public function __construct(\ReflectionMethod $method, array $parameterTypes, ReflectionTypeInterface $returnType)
+    public function __construct(
+        private \ReflectionMethod $method,
+        private array $parameterTypes,
+        private ReflectionTypeInterface $returnType)
     {
-        $this->method = $method;
-        $this->parameterTypes = $parameterTypes;
-        $this->returnType = $returnType;
     }
 
     public function getMethod(): \ReflectionMethod

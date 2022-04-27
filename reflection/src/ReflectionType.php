@@ -23,12 +23,12 @@ use kuiper\reflection\type\MixedType;
  */
 abstract class ReflectionType implements ReflectionTypeInterface
 {
-    public const CLASS_NAME_REGEX = '/^\\\\?([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\\\\)*[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/';
+    private const CLASS_NAME_REGEX = '/^\\\\?([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\\\\)*[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/';
 
     /**
      * @var string[]
      */
-    private static $TYPES = [
+    private static array $TYPES = [
         'bool' => type\BooleanType::class,
         'false' => type\BooleanType::class,
         'true' => type\BooleanType::class,
@@ -52,7 +52,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
     /**
      * @var string[]
      */
-    private static $FILTERS = [
+    private static array $FILTERS = [
         type\ArrayType::class => filter\ArrayTypeFilter::class,
         type\BooleanType::class => filter\BooleanTypeFilter::class,
         type\CallableType::class => filter\CallableTypeFilter::class,
@@ -72,19 +72,13 @@ abstract class ReflectionType implements ReflectionTypeInterface
     /**
      * @var ReflectionTypeInterface[]
      */
-    private static $SINGLETONS = [];
-
-    /**
-     * @var bool
-     */
-    private $allowsNull;
+    private static array $SINGLETONS = [];
 
     /**
      * ReflectionType constructor.
      */
-    public function __construct(bool $allowsNull = false)
+    public function __construct(private bool $allowsNull = false)
     {
-        $this->allowsNull = $allowsNull;
     }
 
     public function allowsNull(): bool
@@ -95,14 +89,17 @@ abstract class ReflectionType implements ReflectionTypeInterface
     /**
      * Parses type string to type object.
      *
-     * @param bool $allowsNull
+     * @param string $type
+     * @param bool   $allowsNull
+     *
+     * @return ReflectionTypeInterface
      */
-    public static function forName(string $type, $allowsNull = false): ReflectionTypeInterface
+    public static function forName(string $type, bool $allowsNull = false): ReflectionTypeInterface
     {
         if (empty($type)) {
             throw new \InvalidArgumentException('Expected an type string, got empty string');
         }
-        if (0 === strpos($type, '?')) {
+        if (str_starts_with($type, '?')) {
             $type = substr($type, 1);
             $allowsNull = true;
         }
@@ -113,30 +110,36 @@ abstract class ReflectionType implements ReflectionTypeInterface
             return new ArrayType(self::forName(substr($type, 0, -1 * $suffixLength)), $suffixLength / 2, $allowsNull);
         }
 
-        if (preg_match(self::CLASS_NAME_REGEX, $type)) {
+        if (self::isClassName($type)) {
             return self::getSingletonType($type, $allowsNull);
         }
 
         throw new \InvalidArgumentException("Expected an type string, got '{$type}'");
     }
 
+    public static function isClassName(string $identifier): bool
+    {
+        return (bool) preg_match(self::CLASS_NAME_REGEX, $identifier);
+    }
+
     public static function fromPhpType(\ReflectionType $type): ReflectionTypeInterface
     {
-        return self::parse(self::phpTypeAsString($type));
+        if ($type instanceof \ReflectionNamedType) {
+            return self::forName($type->getName(), $type->allowsNull());
+        }
+
+        if ($type instanceof \ReflectionUnionType) {
+            return new CompositeType(array_map(static function (\ReflectionType $subType) {
+                return self::forName((string) $subType);
+            }, $type->getTypes()));
+        }
+
+        return self::forName((string) $type);
     }
 
     public static function phpTypeAsString(\ReflectionType $type): string
     {
-        if ($type instanceof \ReflectionNamedType) {
-            $typeName = $type->getName();
-            if ('?' === $typeName[0]) {
-                return $typeName;
-            } else {
-                return ($type->allowsNull() ? '?' : '').$typeName;
-            }
-        } else {
-            return (string) $type;
-        }
+        return (string) $type;
     }
 
     /**
@@ -159,12 +162,12 @@ abstract class ReflectionType implements ReflectionTypeInterface
      */
     public static function parse(string $typeString): ReflectionTypeInterface
     {
-        if (false !== strpos($typeString, '|')) {
+        if (str_contains($typeString, '|')) {
             $parts = explode('|', $typeString);
             if (2 === count($parts) && in_array('null', $parts, true)) {
                 $typeString = str_replace(['|null', 'null|'], '', $typeString);
 
-                return static::forName('?'.$typeString);
+                return static::forName($typeString, true);
             }
 
             return new CompositeType(array_map(static function ($typeString): ReflectionTypeInterface {
@@ -179,19 +182,12 @@ abstract class ReflectionType implements ReflectionTypeInterface
      * Describes type of value.
      *
      * @param mixed $value
+     *
+     * @return string
      */
-    public static function describe($value): string
+    public static function describe(mixed $value): string
     {
-        $type = gettype($value);
-        if ('object' === $type) {
-            return get_class($value);
-        }
-
-        if (in_array($type, ['array', 'resource', 'unknown type'], true)) {
-            return $type;
-        }
-
-        return json_encode($value);
+        return get_debug_type($value);
     }
 
     private static function getSingletonType(string $typeName, bool $allowsNull): ReflectionTypeInterface
@@ -216,14 +212,17 @@ abstract class ReflectionType implements ReflectionTypeInterface
      *
      * @param mixed $value
      */
-    public function isValid($value): bool
+    public function isValid(mixed $value): bool
     {
         if (!isset($value) && $this->allowsNull()) {
             return true;
         }
         $filter = self::createFilter($this);
+        if (null !== $filter) {
+            return $filter->isValid($value);
+        }
 
-        return null !== $filter ? $filter->isValid($value) : true;
+        return true;
     }
 
     /**
@@ -233,7 +232,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
      *
      * @return mixed
      */
-    public function sanitize($value)
+    public function sanitize(mixed $value): mixed
     {
         if (!isset($value) && $this->allowsNull()) {
             return null;

@@ -16,22 +16,10 @@ namespace kuiper\reflection;
 class ReflectionPropertyDocBlock implements ReflectionPropertyDocBlockInterface
 {
     /**
-     * @var \ReflectionProperty
-     */
-    private $property;
-
-    /**
-     * @var ReflectionTypeInterface
-     */
-    private $type;
-
-    /**
      * ReflectionPropertyDocBlockImpl constructor.
      */
-    public function __construct(\ReflectionProperty $property, ReflectionTypeInterface $type)
+    public function __construct(private \ReflectionProperty $property, private ReflectionTypeInterface $type)
     {
-        $this->property = $property;
-        $this->type = $type;
     }
 
     public function getProperty(): \ReflectionProperty

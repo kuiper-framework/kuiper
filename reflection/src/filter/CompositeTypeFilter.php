@@ -18,25 +18,11 @@ use kuiper\reflection\TypeFilterInterface;
 
 class CompositeTypeFilter implements TypeFilterInterface
 {
-    /**
-     * @var CompositeType
-     */
-    private $type;
-
-    /**
-     * CompositeTypeFilter constructor.
-     */
-    public function __construct(CompositeType $type)
+    public function __construct(private CompositeType $type)
     {
-        $this->type = $type;
     }
 
-    /**
-     * checks whether the value is valid.
-     *
-     * @param mixed $value
-     */
-    public function isValid($value): bool
+    public function isValid(mixed $value): bool
     {
         foreach ($this->type->getTypes() as $type) {
             if ($type->isValid($value)) {
@@ -47,14 +33,7 @@ class CompositeTypeFilter implements TypeFilterInterface
         return false;
     }
 
-    /**
-     * Sanitizes input value.
-     *
-     * @param mixed $value
-     *
-     * @return mixed
-     */
-    public function sanitize($value)
+    public function sanitize(mixed $value): mixed
     {
         return $value;
     }

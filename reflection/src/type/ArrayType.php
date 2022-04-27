@@ -18,21 +18,9 @@ use kuiper\reflection\ReflectionTypeInterface;
 
 class ArrayType extends ReflectionType
 {
-    /**
-     * @var ReflectionTypeInterface
-     */
-    private $valueType;
-
-    /**
-     * @var int
-     */
-    private $dimension;
-
-    public function __construct(ReflectionTypeInterface $valueType, int $dimension = 1, bool $allowsNull = false)
+    public function __construct(private ReflectionTypeInterface $valueType, private int $dimension = 1, bool $allowsNull = false)
     {
         parent::__construct($allowsNull);
-        $this->valueType = $valueType;
-        $this->dimension = $dimension;
     }
 
     public function getValueType(): ReflectionTypeInterface

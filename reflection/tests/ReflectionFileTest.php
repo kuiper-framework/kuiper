@@ -13,53 +13,59 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
+use kuiper\reflection\fixtures\DummyClass;
+use kuiper\reflection\fixtures\DummyInterface;
+use NamespaceA\ClassA;
+use NamespaceA\InterfaceA;
+use NamespaceB\ClassB;
+use NamespaceB\InterfaceB;
+
 class ReflectionFileTest extends TestCase
 {
-    public function createReflectionFile($file)
+    public function createReflectionFile($file): ReflectionFileInterface
     {
         return ReflectionFileFactory::getInstance()->create($file);
     }
 
-    public function testGetClasses()
+    public function testGetClasses(): void
     {
         $parser = $this->createReflectionFile(__DIR__.'/fixtures/DummyClass.php');
         $this->assertEquals(
-            $parser->getClasses(),
-            ['kuiper\\reflection\\fixtures\\DummyClass']
+            [DummyClass::class],
+            $parser->getClasses()
         );
     }
 
-    public function testGetInterfaces()
+    public function testGetInterfaces(): void
     {
         $parser = $this->createReflectionFile(__DIR__.'/fixtures/DummyInterface.php');
         $this->assertEquals(
-            $parser->getClasses(),
-            ['kuiper\\reflection\\fixtures\\DummyInterface']
+            [DummyInterface::class],
+            $parser->getClasses()
         );
     }
 
-    public function testGetClassesMultiple()
+    public function testGetClassesMultiple(): void
     {
         $parser = $this->createReflectionFile(__DIR__.'/fixtures/MultipleNamespaces.php');
         $this->assertEquals(
-            $parser->getClasses(),
             [
-                0 => 'NamespaceA\\ClassA',
-                1 => 'NamespaceA\\InterfaceA',
-                2 => 'NamespaceB\\ClassB',
-                3 => 'NamespaceB\\InterfaceB',
+                0 => ClassA::class,
+                1 => InterfaceA::class,
+                2 => ClassB::class,
+                3 => InterfaceB::class,
                 4 => 'ClassC',
                 5 => 'InterfaceC',
-            ]
+            ],
+            $parser->getClasses()
         );
     }
 
-    public function testGetImports()
+    public function testGetImports(): void
     {
         $parser = $this->createReflectionFile(__DIR__.'/fixtures/TestUse.php');
         // var_export($parser->getImports());
         $this->assertEquals(
-            $parser->getImportedClasses('foo'),
             [
                 'Another' => 'My\\Full\\Classname',
                 'NSname' => 'My\\Full\\NSname',
@@ -69,65 +75,66 @@ class ReflectionFileTest extends TestCase
                 'ClassA' => 'some\\ns\\ClassA',
                 'ClassB' => 'some\\ns\\ClassB',
                 'C' => 'some\\ns\\ClassC',
-            ]
+            ],
+            $parser->getImportedClasses('foo')
         );
         $this->assertEquals(
-            $parser->getImportedFunctions('foo'),
             [
                 'functionName' => 'My\\Full\\functionName',
                 'func' => 'My\\Full\\functionName',
                 'fn_a' => 'some\\ns\\fn_a',
                 'fn_b' => 'some\\ns\\fn_b',
                 'fn_c' => 'some\\ns\\fn_c',
-            ]
+            ],
+            $parser->getImportedFunctions('foo')
         );
         $this->assertEquals(
-            $parser->getImportedConstants('foo'),
             [
                 'CONSTANT' => 'My\\Full\\CONSTANT',
                 'ConstA' => 'some\\ns\\ConstA',
                 'ConstB' => 'some\\ns\\ConstB',
                 'ConstC' => 'some\\ns\\ConstC',
-            ]
+            ],
+            $parser->getImportedConstants('foo')
         );
     }
 
-    public function testGetImports70()
+    public function testGetImports70(): void
     {
         $parser = $this->createReflectionFile(__DIR__.'/fixtures/TestUse70.php');
         $this->assertEquals(
-            $parser->getImportedClasses(''),
             [
                 'ClassA' => 'some\\ns\\ClassA',
                 'C' => 'some\\ns\\ClassC',
-            ]
+            ],
+            $parser->getImportedClasses('')
         );
     }
 
-    public function testGetImportsMultiple()
+    public function testGetImportsMultiple(): void
     {
         $parser = $this->createReflectionFile(__DIR__.'/fixtures/TestUseMulitipleNamespace.php');
         // var_export($parser->getImports());
         $this->assertEquals(
-            $parser->getImportedClasses('foo'),
             [
                 'Another' => 'My\\Full\\Classname',
-            ]
+            ],
+            $parser->getImportedClasses('foo')
         );
         $this->assertEquals(
-            $parser->getImportedClasses('bar'),
             [
                 'Classname' => 'My\\Full\\Classname',
-            ]
+            ],
+            $parser->getImportedClasses('bar')
         );
     }
 
-    public function testGetTraits()
+    public function testGetTraits(): void
     {
         $parser = $this->createReflectionFile(__DIR__.'/fixtures/DummyTrait.php');
         $this->assertEquals(
-            $parser->getTraits(),
-            ['kuiper\\reflection\\fixtures\\DummyTrait']
+            ['kuiper\\reflection\\fixtures\\DummyTrait'],
+            $parser->getTraits()
         );
     }
 }

@@ -20,44 +20,29 @@ use kuiper\reflection\TypeFilterInterface;
 class ArrayTypeFilter implements TypeFilterInterface
 {
     /**
-     * @var ArrayType
-     */
-    private $type;
-
-    /**
      * ArrayTypeFilter constructor.
      */
-    public function __construct(ArrayType $type)
+    public function __construct(private ArrayType $type)
     {
-        $this->type = $type;
     }
 
     /**
-     * checks whether the value is valid.
-     *
-     * @param mixed $value
+     * {@inheritDoc}
      */
-    public function isValid($value): bool
+    public function isValid(mixed $value): bool
     {
         return $this->validateArray($value, $this->type->getValueType(), $this->type->getDimension());
     }
 
     /**
-     * Sanitizes input value.
-     *
-     * @param mixed $value
-     *
-     * @return mixed
+     * {@inheritDoc}
      */
-    public function sanitize($value)
+    public function sanitize(mixed $value): array
     {
         return $this->sanitizeArray($value, $this->type->getValueType(), $this->type->getDimension());
     }
 
-    /**
-     * @param mixed $value
-     */
-    private function validateArray($value, ReflectionTypeInterface $valueType, int $dimension): bool
+    private function validateArray(mixed $value, ReflectionTypeInterface $valueType, int $dimension): bool
     {
         if (!is_array($value)) {
             return false;
@@ -79,10 +64,7 @@ class ArrayTypeFilter implements TypeFilterInterface
         return true;
     }
 
-    /**
-     * @param mixed $value
-     */
-    private function sanitizeArray($value, ReflectionTypeInterface $valueType, int $dimension): array
+    private function sanitizeArray(mixed $value, ReflectionTypeInterface $valueType, int $dimension): array
     {
         $result = [];
         $value = (array) $value;

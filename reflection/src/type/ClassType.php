@@ -17,17 +17,14 @@ use kuiper\reflection\ReflectionType;
 
 class ClassType extends ReflectionType
 {
-    /**
-     * @var string
-     */
-    private $className;
-
-    public function __construct(string $className, bool $allowsNull = false)
+    public function __construct(private string $className, bool $allowsNull = false)
     {
         parent::__construct($allowsNull);
-        $this->className = $className;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getName(): string
     {
         return $this->className;

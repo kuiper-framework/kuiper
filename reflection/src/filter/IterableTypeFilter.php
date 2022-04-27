@@ -17,24 +17,12 @@ use kuiper\reflection\TypeFilterInterface;
 
 class IterableTypeFilter implements TypeFilterInterface
 {
-    /**
-     * checks whether the value is valid.
-     *
-     * @param mixed $value
-     */
-    public function isValid($value): bool
+    public function isValid(mixed $value): bool
     {
-        return is_array($value) || $value instanceof \Traversable;
+        return is_iterable($value);
     }
 
-    /**
-     * Sanitizes input value.
-     *
-     * @param mixed $value
-     *
-     * @return mixed
-     */
-    public function sanitize($value)
+    public function sanitize(mixed $value): mixed
     {
         return $value;
     }

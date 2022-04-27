@@ -20,7 +20,7 @@ interface TypeFilterInterface
      *
      * @param mixed $value
      */
-    public function isValid($value): bool;
+    public function isValid(mixed $value): bool;
 
     /**
      * Sanitizes input value.
@@ -29,5 +29,5 @@ interface TypeFilterInterface
      *
      * @return mixed
      */
-    public function sanitize($value);
+    public function sanitize(mixed $value): mixed;
 }

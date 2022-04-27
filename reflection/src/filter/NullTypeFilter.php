@@ -17,24 +17,12 @@ use kuiper\reflection\TypeFilterInterface;
 
 class NullTypeFilter implements TypeFilterInterface
 {
-    /**
-     * checks whether the value is valid.
-     *
-     * @param mixed $value
-     */
-    public function isValid($value): bool
+    public function isValid(mixed $value): bool
     {
         return null === $value;
     }
 
-    /**
-     * Sanitizes input value.
-     *
-     * @param mixed $value
-     *
-     * @return mixed
-     */
-    public function sanitize($value)
+    public function sanitize(mixed $value): mixed
     {
         return null;
     }

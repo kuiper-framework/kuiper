@@ -18,14 +18,8 @@ namespace kuiper\reflection;
  */
 class FqcnResolver
 {
-    /**
-     * @var ReflectionFileInterface
-     */
-    private $reflectionFile;
-
-    public function __construct(ReflectionFileInterface $file)
+    public function __construct(private ReflectionFileInterface $reflectionFile)
     {
-        $this->reflectionFile = $file;
     }
 
     /**
@@ -40,7 +34,7 @@ class FqcnResolver
         if ($this->isFqcn($name)) {
             return ltrim($name, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR);
         }
-        if (!preg_match(ReflectionType::CLASS_NAME_REGEX, $name)) {
+        if (!ReflectionType::isClassName($name)) {
             throw new \InvalidArgumentException("Invalid class name '{$name}'");
         }
         $namespaces = $this->reflectionFile->getNamespaces();

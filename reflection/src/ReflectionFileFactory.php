@@ -15,19 +15,16 @@ namespace kuiper\reflection;
 
 class ReflectionFileFactory implements ReflectionFileFactoryInterface
 {
-    /**
-     * @var ReflectionFileFactory|null
-     */
-    private static $INSTANCE;
+    private static ?ReflectionFileFactory $INSTANCE;
 
     /**
      * @var ReflectionFile[]
      */
-    private $files = [];
+    private array $files = [];
 
     public static function getInstance(): ReflectionFileFactoryInterface
     {
-        if (null === self::$INSTANCE) {
+        if (!isset(self::$INSTANCE)) {
             self::$INSTANCE = new self();
         }
 
@@ -43,11 +40,8 @@ class ReflectionFileFactory implements ReflectionFileFactoryInterface
         if (false === $filePath) {
             throw new \InvalidArgumentException("File '$file' does not exist");
         }
-        if (isset($this->files[$filePath])) {
-            return $this->files[$filePath];
-        }
 
-        return $this->files[$filePath] = new ReflectionFile($filePath);
+        return $this->files[$filePath] ?? ($this->files[$filePath] = new ReflectionFile($filePath));
     }
 
     public function clearCache(string $filePath = null): bool

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
+use kuiper\reflection\fixtures\ReflectionTypes;
 use kuiper\reflection\type\ArrayType;
 use kuiper\reflection\type\IntegerType;
 
@@ -78,5 +79,26 @@ class ReflectionTypeTest extends TestCase
         $this->assertEquals(2, $type->getDimension());
         $this->assertInstanceOf(IntegerType::class, $type->getValueType());
         $this->assertTrue($type->allowsNull());
+    }
+
+    public function testPhpArrayType()
+    {
+        $prop = new \ReflectionProperty(ReflectionTypes::class, 'arrayOpt');
+        $type = $prop->getType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $type);
+        $this->assertTrue($type->allowsNull());
+        $this->assertEquals('?array', (string) $type);
+    }
+
+    public function testPhpUnionType()
+    {
+        $prop = new \ReflectionProperty(ReflectionTypes::class, 'union');
+        $type = $prop->getType();
+        $this->assertInstanceOf(\ReflectionUnionType::class, $type);
+        $this->assertTrue($type->allowsNull());
+        $this->assertEquals('string|float|null', (string) $type);
+        $this->assertEquals(['string', 'float', 'null'], array_map(static function (\ReflectionType $t) {
+            return (string) $t;
+        }, $type->getTypes()));
     }
 }

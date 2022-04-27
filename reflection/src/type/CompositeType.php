@@ -19,14 +19,11 @@ use kuiper\reflection\ReflectionTypeInterface;
 class CompositeType extends ReflectionType
 {
     /**
-     * @var ReflectionTypeInterface[]
+     * @param ReflectionTypeInterface[] $types
      */
-    private $types;
-
-    public function __construct(array $types)
+    public function __construct(private array $types)
     {
         parent::__construct(false);
-        $this->types = $types;
     }
 
     /**

@@ -17,30 +17,22 @@ use Composer\Autoload\ClassLoader;
 
 class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 {
-    /**
-     * @var ReflectionNamespaceFactory|null
-     */
-    private static $INSTANCE;
-
-    /**
-     * @var ReflectionFileFactoryInterface
-     */
-    private $reflectionFileFactory;
+    private static ?ReflectionNamespaceFactory $INSTANCE;
 
     /**
      * @var ReflectionNamespace[]
      */
-    private $namespaces = [];
+    private array $namespaces = [];
 
     /**
      * @var array
      */
-    private $namespaceDirs = [];
+    private array $namespaceDirs = [];
 
     /**
      * @var string[]
      */
-    private $extensions = ['php'];
+    private array $extensions = ['php'];
 
     public static function createInstance(ReflectionFileFactoryInterface $reflectionFileFactory): void
     {
@@ -49,22 +41,21 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 
     public static function getInstance(): ReflectionNamespaceFactoryInterface
     {
-        if (null === self::$INSTANCE) {
+        if (!isset(self::$INSTANCE)) {
             self::createInstance(ReflectionFileFactory::getInstance());
         }
 
         return self::$INSTANCE;
     }
 
-    private function __construct(ReflectionFileFactoryInterface $factory = null)
+    private function __construct(private ReflectionFileFactoryInterface $reflectionFileFactory)
     {
-        $this->reflectionFileFactory = $factory ?? ReflectionFileFactory::getInstance();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function create($namespace): ReflectionNamespaceInterface
+    public function create(string $namespace): ReflectionNamespaceInterface
     {
         $namespace = $this->normalizeNamespace($namespace);
         if (isset($this->namespaces[$namespace])) {
@@ -73,7 +64,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 
         $dirs = [];
         foreach ($this->namespaceDirs as $prefix => $prefixDirs) {
-            if (empty($prefix) || 0 === strpos($namespace, $prefix)) {
+            if (empty($prefix) || str_starts_with($namespace, $prefix)) {
                 foreach (array_keys($prefixDirs) as $dir) {
                     $dir .= '/'.str_replace('\\', '/', substr($namespace, strlen($prefix)));
                     $dirs[] = $dir;
@@ -99,8 +90,10 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      *
      * @param string $namespace
      * @param string $dir
+     *
+     * @return ReflectionNamespaceFactoryInterface
      */
-    public function register($namespace, $dir): self
+    public function register(string $namespace, string $dir): self
     {
         $namespace = $this->normalizeNamespace($namespace);
         $this->namespaceDirs[$namespace][$dir] = true;
@@ -149,6 +142,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
 
     private function normalizeNamespace(string $namespace): string
     {
-        return trim($namespace, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR).ReflectionNamespaceInterface::NAMESPACE_SEPARATOR;
+        return trim($namespace, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR)
+            .ReflectionNamespaceInterface::NAMESPACE_SEPARATOR;
     }
 }
