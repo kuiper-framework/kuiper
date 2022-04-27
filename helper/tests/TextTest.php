@@ -18,12 +18,12 @@ class TextTest extends TestCase
     /**
      * @dataProvider camelizeCase
      */
-    public function testCamelize($str, $delimiter, $expect)
+    public function testCamelize($str, $delimiter, $expect): void
     {
         $this->assertEquals($expect, Text::camelCase($str, $delimiter));
     }
 
-    public function camelizeCase()
+    public function camelizeCase(): array
     {
         return [
             ['coco_bongo', null, 'CocoBongo'],
@@ -35,17 +35,12 @@ class TextTest extends TestCase
     /**
      * @dataProvider uncamelizeCase
      */
-    public function testUncamelize($str, $delimiter, $expect)
+    public function testUncamelize($str, $delimiter, $expect): void
     {
         $this->assertEquals($expect, Text::snakeCase($str, $delimiter));
     }
 
-    public function notestUncamelizeSingle()
-    {
-        echo Text::snakeCase('orders_1y');
-    }
-
-    public function uncamelizeCase()
+    public function uncamelizeCase(): array
     {
         return [
             ['CocoBongo', null, 'coco_bongo'],
@@ -59,12 +54,12 @@ class TextTest extends TestCase
     /**
      * @dataProvider startsWithCase
      */
-    public function testStartsWith($str, $needle, $case, $expect)
+    public function testStartsWith($str, $needle, $case, $expect): void
     {
         $this->assertEquals($expect, Text::startsWith($str, $needle, $case));
     }
 
-    public function startsWithCase()
+    public function startsWithCase(): array
     {
         return [
             ['Hello', 'He', true, true],
@@ -76,12 +71,12 @@ class TextTest extends TestCase
     /**
      * @dataProvider endsWithCase
      */
-    public function testEndsWith($str, $needle, $case, $expect)
+    public function testEndsWith($str, $needle, $case, $expect): void
     {
         $this->assertEquals($expect, Text::endsWith($str, $needle, $case));
     }
 
-    public function endsWithCase()
+    public function endsWithCase(): array
     {
         return [
             ['Hello', 'llo', true, true],
@@ -90,24 +85,24 @@ class TextTest extends TestCase
         ];
     }
 
-    public function testLower()
+    public function testLower(): void
     {
         $this->assertEquals('hello', Text::lower('HELLO'));
     }
 
-    public function testUpper()
+    public function testUpper(): void
     {
         $this->assertEquals('HELLO', Text::upper('hello'));
     }
 
-    public function testIsEmpty()
+    public function testIsEmpty(): void
     {
         $this->assertTrue(Text::isEmpty(null));
         $this->assertTrue(Text::isEmpty(''));
         $this->assertFalse(Text::isEmpty('0'));
     }
 
-    public function testIsNotEmpty()
+    public function testIsNotEmpty(): void
     {
         $this->assertFalse(Text::isNotEmpty(null));
         $this->assertFalse(Text::isNotEmpty(''));

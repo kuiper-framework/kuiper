@@ -21,43 +21,31 @@ use kuiper\reflection\exception\TokenStoppedException;
 class ReflectionFile implements ReflectionFileInterface
 {
     /**
-     * @var string
+     * @var string[]
      */
-    private $file;
+    private array $namespaces;
 
     /**
-     * @var string[]|null
+     * @var string[]
      */
-    private $namespaces;
+    private array $classes;
 
     /**
-     * @var string[]|null
+     * @var string[]
      */
-    private $classes;
+    private array $traits;
 
     /**
-     * @var string[]|null
+     * @var array
      */
-    private $traits;
+    private array $imports;
 
-    /**
-     * @var array|null
-     */
-    private $imports;
+    private string $currentNamespace = '';
 
-    /**
-     * @var string
-     */
-    private $currentNamespace = '';
+    private bool $hasMultipleClasses = false;
 
-    /**
-     * @var bool
-     */
-    private $hasMultipleClasses = false;
-
-    public function __construct(string $file)
+    public function __construct(private string $file)
     {
-        $this->file = $file;
     }
 
     /**
@@ -105,7 +93,7 @@ class ReflectionFile implements ReflectionFileInterface
     {
         $this->parse();
 
-        return $this->getImported($namespace, T_STRING);
+        return $this->getImported($namespace, TokenStream::IMPORT_CLASS);
     }
 
     /**
@@ -115,7 +103,7 @@ class ReflectionFile implements ReflectionFileInterface
     {
         $this->parse();
 
-        return $this->getImported($namespace, T_FUNCTION);
+        return $this->getImported($namespace, TokenStream::IMPORT_FUNCTION);
     }
 
     /**
@@ -125,7 +113,7 @@ class ReflectionFile implements ReflectionFileInterface
     {
         $this->parse();
 
-        return $this->getImported($namespace, T_CONST);
+        return $this->getImported($namespace, TokenStream::IMPORT_CONST);
     }
 
     /**
@@ -193,7 +181,7 @@ class ReflectionFile implements ReflectionFileInterface
             }
         } catch (TokenStoppedException $e) {
         } catch (InvalidTokenException $e) {
-            throw new SyntaxErrorException(sprintf('%s, got %s in %s on line %d', $e->getMessage(), $tokens->describe($tokens->current()), $this->file, $tokens->getLine()), 0, $e);
+            throw new SyntaxErrorException(sprintf('%s, got %s in %s on line %d', $e->getMessage(), TokenStream::describe($tokens->current()), $this->file, $tokens->getLine()), 0, $e);
         }
     }
 

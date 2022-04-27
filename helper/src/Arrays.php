@@ -13,20 +13,20 @@ declare(strict_types=1);
 
 namespace kuiper\helper;
 
+use ArrayAccess;
+use InvalidArgumentException;
+use Iterator;
+use ReflectionClass;
+use ReflectionException;
+
 class Arrays
 {
-    /**
-     * @param array|\Countable|null $arr
-     */
-    public static function isEmpty($arr): bool
+    public static function isEmpty(\Countable|array|null $arr): bool
     {
         return !isset($arr) || 0 === count($arr);
     }
 
-    /**
-     * @param array|\Countable|null $arr
-     */
-    public static function isNotEmpty($arr): bool
+    public static function isNotEmpty(\Countable|array|null $arr): bool
     {
         return isset($arr) && count($arr) > 0;
     }
@@ -34,10 +34,12 @@ class Arrays
     /**
      * Collects value from array.
      *
-     * @param array|\Iterator $arr
-     * @param string          $name
+     * @param array|Iterator $arr
+     * @param string|int     $name
+     *
+     * @return array
      */
-    public static function pull($arr, $name): array
+    public static function pull(iterable $arr, string|int $name): array
     {
         $ret = [];
         foreach ($arr as $elem) {
@@ -54,9 +56,9 @@ class Arrays
     }
 
     /**
-     * @param array|\Iterator $arr
+     * @param array|Iterator $arr
      */
-    public static function pullField($arr, string $name): array
+    public static function pullField(iterable $arr, string $name): array
     {
         $ret = [];
         foreach ($arr as $elem) {
@@ -70,10 +72,12 @@ class Arrays
     /**
      * Creates associated array.
      *
-     * @param array|\Iterator $arr
-     * @param string|callable $name
+     * @param array|Iterator  $arr
+     * @param callable|string $name
+     *
+     * @return array
      */
-    public static function assoc($arr, $name): array
+    public static function assoc(iterable $arr, callable|string $name): array
     {
         $ret = [];
 
@@ -93,9 +97,9 @@ class Arrays
     }
 
     /**
-     * @param array|\Iterator $arr
+     * @param array|Iterator $arr
      */
-    public static function assocByField($arr, string $name): array
+    public static function assocByField(iterable $arr, string $name): array
     {
         return self::assoc($arr, static function ($item) use ($name) {
             /* @phpstan-ignore-next-line */
@@ -103,20 +107,12 @@ class Arrays
         });
     }
 
-    /**
-     * @param array|\Iterator $arr
-     * @param string|callable $name
-     */
-    public static function toMap($arr, $name): array
+    public static function toMap(iterable $arr, callable|string $name): array
     {
         return self::assoc($arr, $name);
     }
 
-    /**
-     * @param array|\Iterator $arr
-     * @param string|callable $groupBy
-     */
-    public static function groupBy($arr, $groupBy): array
+    public static function groupBy(iterable $arr, callable|string $groupBy): array
     {
         $ret = [];
         foreach ($arr as $elem) {
@@ -132,7 +128,7 @@ class Arrays
             if (null === $key || is_scalar($key)) {
                 $ret[$key][] = $elem;
             } else {
-                throw new \InvalidArgumentException("Cannot group by key '$groupBy', support only scalar type, got ".(is_object($key) ? get_class($key) : gettype($key)));
+                throw new InvalidArgumentException("Cannot group by key '$groupBy', support only scalar type, got ".get_debug_type($key));
             }
         }
 
@@ -140,9 +136,9 @@ class Arrays
     }
 
     /**
-     * @param array|\Iterator $arr
+     * @param array|Iterator $arr
      */
-    public static function groupByField($arr, string $groupBy): array
+    public static function groupByField(iterable $arr, string $groupBy): array
     {
         $ret = [];
         foreach ($arr as $elem) {
@@ -151,7 +147,7 @@ class Arrays
             if (null === $key || is_scalar($key)) {
                 $ret[$key][] = $elem;
             } else {
-                throw new \InvalidArgumentException("Cannot group by key '$groupBy', support only scalar type, got ".(is_object($key) ? get_class($key) : gettype($key)));
+                throw new InvalidArgumentException("Cannot group by key '$groupBy', support only scalar type, got ".(get_debug_type($key)));
             }
         }
 
@@ -190,7 +186,7 @@ class Arrays
         if (1 === $depth) {
             foreach ($arr as $item) {
                 if (!is_array($item)) {
-                    throw new \InvalidArgumentException('element type is not array');
+                    throw new InvalidArgumentException('element type is not array');
                 }
             }
 
@@ -211,8 +207,11 @@ class Arrays
      * Create array with given keys.
      *
      * @param mixed $arr
+     * @param array $includedKeys
+     *
+     * @return array
      */
-    public static function select($arr, array $includedKeys): array
+    public static function select(mixed $arr, array $includedKeys): array
     {
         $ret = [];
         if (is_object($arr)) {
@@ -223,7 +222,7 @@ class Arrays
                     $ret[$name] = $arr->$method();
                 }
             }
-        } elseif ($arr instanceof \ArrayAccess) {
+        } elseif ($arr instanceof ArrayAccess) {
             foreach ($includedKeys as $key) {
                 if ($arr->offsetExists($key)) {
                     $ret[$key] = $arr[$key];
@@ -243,9 +242,9 @@ class Arrays
     /**
      * Create array with given keys.
      *
-     * @param array|object $arr
+     * @param object|array $arr
      */
-    public static function selectField($arr, array $includedKeys): array
+    public static function selectField(object|array $arr, array $includedKeys): array
     {
         $ret = [];
         foreach ($includedKeys as $name) {
@@ -269,14 +268,9 @@ class Arrays
         });
     }
 
-    /**
-     * @param array|\Iterator $attributes
-     *
-     * @return object
-     */
-    public static function assign(object $bean, $attributes, bool $onlyPublic = true)
+    public static function assign(object $bean, iterable $attributes, bool $onlyPublic = true): object
     {
-        if ($bean instanceof \ArrayAccess) {
+        if ($bean instanceof ArrayAccess) {
             foreach ($attributes as $name => $val) {
                 $bean[$name] = $val;
             }
@@ -296,7 +290,7 @@ class Arrays
             }
             if (!$onlyPublic && !empty($failed)) {
                 try {
-                    $class = new \ReflectionClass($bean);
+                    $class = new ReflectionClass($bean);
                     foreach ($failed as $name => $val) {
                         if (!$class->hasProperty($name)) {
                             continue;
@@ -305,7 +299,7 @@ class Arrays
                         $property->setAccessible(true);
                         $property->setValue($bean, $val);
                     }
-                } catch (\ReflectionException $e) {
+                } catch (ReflectionException $e) {
                     trigger_error('Cannot assign attributes to bean: '.$e->getMessage());
                 }
             }
@@ -319,7 +313,7 @@ class Arrays
         $properties = get_object_vars($bean);
         if ($includeGetters) {
             try {
-                $class = new \ReflectionClass($bean);
+                $class = new ReflectionClass($bean);
                 foreach ($class->getMethods() as $method) {
                     if ($method->isStatic() || !$method->isPublic()) {
                         continue;
@@ -329,7 +323,7 @@ class Arrays
                         $properties[lcfirst($matches[2])] = $method->invoke($bean);
                     }
                 }
-            } catch (\ReflectionException $e) {
+            } catch (ReflectionException $e) {
                 trigger_error('Cannot convert bean to array: '.$e->getMessage());
             }
         }
@@ -405,14 +399,6 @@ class Arrays
         }
 
         return $result;
-    }
-
-    /**
-     * @deprecated {@see snakeCaseKeys}
-     */
-    public static function uncamelizeKeys(array $arr): array
-    {
-        return self::snakeCaseKeys($arr);
     }
 
     public static function snakeCaseKeys(array $arr): array

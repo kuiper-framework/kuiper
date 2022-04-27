@@ -18,25 +18,24 @@ use kuiper\reflection\exception\TokenStoppedException;
 
 class TokenStream
 {
-    /**
-     * @var \Iterator
-     */
-    private $tokens;
+    public const IMPORT_CLASS = 0;
+    public const IMPORT_CONST = 1;
+    public const IMPORT_FUNCTION = 2;
 
-    /**
-     * @var array|string|null
-     */
-    private $current;
+    private const IMPORT_TYPE = [
+        T_STRING => self::IMPORT_CLASS,
+        T_NAME_QUALIFIED => self::IMPORT_CLASS,
+        T_FUNCTION => self::IMPORT_FUNCTION,
+        T_CONST => self::IMPORT_CONST,
+    ];
 
-    /**
-     * @var bool
-     */
-    private $end = false;
+    private \ArrayIterator $tokens;
 
-    /**
-     * @var int
-     */
-    private $line = 0;
+    private string|array|null $current;
+
+    private bool $end = false;
+
+    private int $line = 0;
 
     public function __construct(array $tokens)
     {
@@ -46,11 +45,11 @@ class TokenStream
     /**
      * Gets next token.
      *
-     * @return array|string
+     * @return array|string|null
      *
      * @throws TokenStoppedException
      */
-    public function next()
+    public function next(): array|string|null
     {
         if ($this->end || !$this->tokens->valid()) {
             $this->end = true;
@@ -70,9 +69,9 @@ class TokenStream
     /**
      * Gets current token.
      *
-     * @return array|string
+     * @return array|string|null
      */
-    public function current()
+    public function current(): array|string|null
     {
         if (!isset($this->current)) {
             throw new \BadMethodCallException('call next first');
@@ -162,8 +161,8 @@ class TokenStream
         if (!is_array($this->current) || !in_array($this->current[0], [T_FUNCTION, T_CONST, T_STRING, T_NAME_QUALIFIED], true)) {
             throw new InvalidTokenException("expected class name or the keyword 'function' or 'const'");
         }
-        $importType = $this->current[0];
-        if (in_array($importType, [T_FUNCTION, T_CONST], true)) {
+        $importType = self::IMPORT_TYPE[$this->current[0]];
+        if (in_array($importType, [self::IMPORT_CONST, self::IMPORT_FUNCTION], true)) {
             $this->next();
             $this->skipWhitespaceAndComment();
         }
@@ -173,12 +172,15 @@ class TokenStream
     }
 
     /**
-     * @param bool $hasSubList
+     * @param string $stopToken
+     * @param bool   $hasSubList
+     *
+     * @return array
      *
      * @throws InvalidTokenException
      * @throws TokenStoppedException
      */
-    private function matchImportList(string $stopToken, $hasSubList = true): array
+    private function matchImportList(string $stopToken, bool $hasSubList = true): array
     {
         $imports = [];
         while (true) {
@@ -227,7 +229,7 @@ class TokenStream
                 $this->next();
                 $this->skipWhitespaceAndComment();
                 $alias = $this->matchIdentifier();
-                if (false !== strpos($alias, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR)) {
+                if (str_contains($alias, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR)) {
                     throw new InvalidTokenException("import alias '{$alias}' cannot contain namespace separator");
                 }
             } else {
@@ -277,8 +279,10 @@ class TokenStream
      * describes the token value.
      *
      * @param array|string $token
+     *
+     * @return string
      */
-    public function describe($token): string
+    public static function describe(array|string $token): string
     {
         if (is_array($token)) {
             return '['.implode(', ', [token_name($token[0]), json_encode($token[1]), $token[2]]).']';

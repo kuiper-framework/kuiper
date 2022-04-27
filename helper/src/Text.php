@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\helper;
 
+use JetBrains\PhpStorm\Deprecated;
+
 final class Text
 {
     /**
@@ -24,7 +26,10 @@ final class Text
      *    echo CaseFormat::camelCase('co_co-bon_go', '_-'); // CoCoBonGo
      * </code>
      *
-     * @param string $delimiter
+     * @param string      $str
+     * @param string|null $delimiter
+     *
+     * @return string
      */
     public static function camelCase(string $str, string $delimiter = null): string
     {
@@ -42,7 +47,10 @@ final class Text
      *    echo Text::snakeCase('CocoBongo', '-'); // coco-bongo
      * </code>
      *
-     * @param string $delimiter
+     * @param string      $str
+     * @param string|null $delimiter
+     *
+     * @return string
      */
     public static function snakeCase(string $str, string $delimiter = null): string
     {
@@ -64,8 +72,15 @@ final class Text
      *    echo Text::startsWith("Hello", "he"); // true
      * </code>
      *
-     * @param bool $ignoreCase
+     * @param string $haystack
+     * @param string $needle
+     * @param bool   $ignoreCase
+     *
+     * @return bool
+     *
+     * @deprecated
      */
+    #[Deprecated]
     public static function startsWith(string $haystack, string $needle, bool $ignoreCase = true): bool
     {
         if ('' === $needle) {
@@ -85,8 +100,15 @@ final class Text
      *    echo Text::endsWith("Hello", "LLO"); // true
      * </code>
      *
-     * @param bool $ignoreCase
+     * @param string $haystack
+     * @param string $needle
+     * @param bool   $ignoreCase
+     *
+     * @return bool
+     *
+     * @deprecated
      */
+    #[Deprecated]
     public static function endsWith(string $haystack, string $needle, bool $ignoreCase = true): bool
     {
         if ('' === $needle) {
@@ -127,9 +149,12 @@ final class Text
      *    echo Text::upper("hello"); // HELLO
      * </code>
      *
-     * @return mixed|string
+     * @param string $str
+     * @param string $encoding
+     *
+     * @return string
      */
-    public static function upper(string $str, string $encoding = 'UTF-8')
+    public static function upper(string $str, string $encoding = 'UTF-8'): string
     {
         /*
          * 'upper' checks for the mbstring extension to make a correct lowercase transformation

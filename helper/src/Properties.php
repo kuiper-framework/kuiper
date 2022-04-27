@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\helper;
 
 use function DI\create;
+use JetBrains\PhpStorm\Deprecated;
 
 /**
  * Access array use key separated by dot(.) :.
@@ -34,18 +35,12 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         parent::__construct([]);
     }
 
-    /**
-     * @return mixed|null
-     */
-    public function __get(string $name)
+    public function __get(string $name): mixed
     {
         return $this[$name] ?? null;
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function __set(string $name, $value): void
+    public function __set(string $name, mixed $value): void
     {
         throw new \BadMethodCallException('Cannot modify config');
     }
@@ -66,7 +61,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
     /**
      * {@inheritdoc}
      */
-    public function get(string $key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         $value = $this->getValue($key);
         if ($value instanceof self) {
@@ -76,10 +71,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         return $value ?? $default;
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function set(string $key, $value): void
+    public function set(string $key, mixed $value): void
     {
         $this->setValue($key, $value);
     }
@@ -119,7 +111,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
                 }
                 $current = (int) substr($key, 1, $posRight - 1);
                 $rest = substr($key, $posRight + 1);
-                if ('' !== $rest && 0 === strpos($rest, '.')) {
+                if ('' !== $rest && str_starts_with($rest, '.')) {
                     $rest = substr($rest, 1);
                 }
             } else {
@@ -134,10 +126,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         return [$current, $rest];
     }
 
-    /**
-     * @return mixed|null
-     */
-    private function getValue(string $key)
+    private function getValue(string $key): mixed
     {
         [$current, $rest] = $this->parseKey($key);
         if (!isset($this[$current])) {
@@ -154,10 +143,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         return null;
     }
 
-    /**
-     * @param mixed $value
-     */
-    private function setValue(string $key, $value, ?string $prefix = null): void
+    private function setValue(string $key, mixed $value, ?string $prefix = null): void
     {
         [$current, $rest] = $this->parseKey($key);
         if (empty($rest)) {
@@ -221,7 +207,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         return $result;
     }
 
-    public static function create(array $arr = []): self
+    public static function create(array $arr = []): Properties
     {
         $config = new self();
         foreach ($arr as $key => $value) {
@@ -247,7 +233,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         }, $predicate);
     }
 
-    protected function replacePlaceholderRecursive(Properties $properties, callable $replacer, callable $predicate = null, string $prefix = ''): void
+    private function replacePlaceholderRecursive(Properties $properties, callable $replacer, callable $predicate = null, string $prefix = ''): void
     {
         $re = self::PLACEHOLDER_REGEXP;
         foreach ($properties as $key => $value) {
@@ -273,17 +259,13 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
     /**
      * @deprecated use {@link create()}
      */
+    #[Deprecated]
     public static function fromArray(array $arr): self
     {
         return self::create($arr);
     }
 
-    /**
-     * @param mixed $value
-     *
-     * @return static|array
-     */
-    private function createItem($value)
+    private function createItem(mixed $value): mixed
     {
         return is_array($value) ? self::create($value) : $value;
     }

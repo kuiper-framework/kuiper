@@ -21,9 +21,9 @@ interface PropertyResolverInterface
      * @param string $key     identifier of the entry to look for
      * @param mixed  $default the default value
      *
-     * @return mixed|null
+     * @return mixed
      */
-    public function get(string $key, $default = null);
+    public function get(string $key, mixed $default = null): mixed;
 
     /**
      * Returns true if the entry exists.

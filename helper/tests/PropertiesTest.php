@@ -15,7 +15,7 @@ namespace kuiper\helper;
 
 class PropertiesTest extends TestCase
 {
-    public function createDotArray()
+    public function createDotArray(): Properties
     {
         return Properties::create([
             'int' => 1,
@@ -33,7 +33,7 @@ class PropertiesTest extends TestCase
         ]);
     }
 
-    public function testIterator()
+    public function testIterator(): void
     {
         $array = $this->createDotArray();
         $this->assertEquals([
@@ -52,7 +52,7 @@ class PropertiesTest extends TestCase
         ], $array->toArray());
     }
 
-    public function testArrayAccess()
+    public function testArrayAccess(): void
     {
         $array = $this->createDotArray();
         // echo $array->get("map.k1");
@@ -76,54 +76,54 @@ class PropertiesTest extends TestCase
         ], $array['map']->toArray());
     }
 
-    public function testName()
+    public function testName(): void
     {
         $array = $this->createDotArray();
         $this->assertEquals('v1', $array->get('array2[0].k1'));
     }
 
-    public function testWhenMergeNotArrayKeyThenReplaceOriginal()
+    public function testWhenMergeNotArrayKeyThenReplaceOriginal(): void
     {
         $p = Properties::create(['app' => ['foo' => '']]);
         $p->merge(['app' => ['foo' => ['one' => 1]], 'one' => 1]);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => ['one' => 1]], 'one' => 1]);
     }
 
-    public function testWhenMergeArrayKeyThenReplaceOriginal()
+    public function testWhenMergeArrayKeyThenReplaceOriginal(): void
     {
         $p = Properties::create(['app' => ['foo' => '']]);
         $p->merge(['app' => ['foo' => 'one']]);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => 'one']]);
     }
 
-    public function testWhenMergeIndexBasedArrayAndNotArrayThenReplace()
+    public function testWhenMergeIndexBasedArrayAndNotArrayThenReplace(): void
     {
         $p = Properties::create(['app' => ['foo' => '']]);
         $p->merge(['app' => ['foo' => ['one']]]);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => ['one']]]);
     }
 
-    public function testWhenMergeIndexBasedArrayAndExistThenAppend()
+    public function testWhenMergeIndexBasedArrayAndExistThenAppend(): void
     {
         $p = Properties::create(['app' => ['foo' => ['one']]]);
         $p->merge(['app' => ['foo' => ['two']]]);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => ['one', 'two']]]);
     }
 
-    public function testWhenMergeIndexBasedArrayAndNoAppendThenReplaceExist()
+    public function testWhenMergeIndexBasedArrayAndNoAppendThenReplaceExist(): void
     {
         $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $p->merge(['app' => ['foo' => ['three']]], false);
         $this->assertEquals($p->toArray(), ['app' => ['foo' => ['three']]]);
     }
 
-    public function testWhenGetKeyIsArrayThenReturnArray()
+    public function testWhenGetKeyIsArrayThenReturnArray(): void
     {
         $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two']]);
     }
 
-    public function testMergeIfNotExists()
+    public function testMergeIfNotExists(): void
     {
         $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $p->mergeIfNotExists([
@@ -134,28 +134,28 @@ class PropertiesTest extends TestCase
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two'], 'bar' => 'bar_value']);
     }
 
-    public function testSetExistKey()
+    public function testSetExistKey(): void
     {
         $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $p->set('app.foo', 'foo_value');
         $this->assertEquals($p->get('app'), ['foo' => 'foo_value']);
     }
 
-    public function testSetNotExistKey()
+    public function testSetNotExistKey(): void
     {
         $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $p->set('app.bar', 'bar_value');
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two'], 'bar' => 'bar_value']);
     }
 
-    public function testSetNotArrayKey()
+    public function testSetNotArrayKey(): void
     {
         $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
         $p->set('app.foo[0].bar', 'bar_value');
         $this->assertEquals($p->get('app'), ['foo' => [['bar' => 'bar_value'], 'two']]);
     }
 
-    public function testMergeIndexBasedArray()
+    public function testMergeIndexBasedArray(): void
     {
         $properties = Properties::create([
             'middleware' => [
@@ -170,7 +170,7 @@ class PropertiesTest extends TestCase
         $this->assertEquals(['a', 'b'], $properties->get('middleware'));
     }
 
-    public function testMergeAssocArray()
+    public function testMergeAssocArray(): void
     {
         $properties = Properties::create([
             'middleware' => [
@@ -190,7 +190,7 @@ class PropertiesTest extends TestCase
         $this->assertEquals(['c', 'a', 'b'], array_values($middleware));
     }
 
-    public function testMergeMixedArray()
+    public function testMergeMixedArray(): void
     {
         $properties = Properties::create([
             'middleware' => [
@@ -218,27 +218,31 @@ class PropertiesTest extends TestCase
         $this->assertEquals(['c', 'd', 'b', 'e'], array_values($middleware));
     }
 
-    public function testMergeToAssocArray()
+    public function testMergeToAssocArray(): void
     {
         $properties = Properties::create([
             'middleware' => [
-                1000 => 'a',
+                0 => 'd',
+                -1 => 'c',
+                100 => 'b',
             ],
         ]);
         $properties->merge([
             'middleware' => [
-                1 => 'b',
+                101 => 'e',
             ],
         ]);
         $middleware = $properties->get('middleware');
-        //var_export($middleware);
+        // var_export($middleware);
         $this->assertEquals([
-            1000 => 'a',
-            1 => 'b',
+            0 => 'd',
+            -1 => 'c',
+            100 => 'b',
+            101 => 'e',
         ], $middleware);
     }
 
-    public function testReplacePlaceholder()
+    public function testReplacePlaceholder(): void
     {
         $properties = Properties::create([
             'base_path' => '/path',
@@ -253,7 +257,7 @@ class PropertiesTest extends TestCase
         ], $properties->toArray());
     }
 
-    public function testReplacePlaceholderWithPredicate()
+    public function testReplacePlaceholderWithPredicate(): void
     {
         $properties = Properties::create([
             'application' => [
@@ -270,12 +274,12 @@ class PropertiesTest extends TestCase
         });
         $this->assertEquals([
             'application' => [
-                    'base_path' => '/path',
-                ],
+                'base_path' => '/path',
+            ],
             'ENV' => [
-                    'BASE_MODULE' => 'function () { eval }',
-                    'APP_PATH' => '/path',
-                ],
+                'BASE_MODULE' => 'function () { eval }',
+                'APP_PATH' => '/path',
+            ],
         ], $properties->toArray());
     }
 }
