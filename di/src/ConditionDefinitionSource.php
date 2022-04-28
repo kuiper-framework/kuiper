@@ -13,40 +13,30 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
+use DI\Definition\Definition;
+use DI\Definition\Exception\InvalidDefinition;
 use DI\Definition\Source\Autowiring;
 use DI\Definition\Source\DefinitionArray;
 use DI\Definition\Source\DefinitionSource;
-use DI\DependencyException;
+use InvalidArgumentException;
 
 class ConditionDefinitionSource implements DefinitionSource, ContainerAwareInterface
 {
     use ContainerAwareTrait;
 
-    /**
-     * @var ConditionDefinition[][]|mixed
-     */
-    private $definitions;
+    private DefinitionArray $source;
 
-    /**
-     * @var DefinitionArray
-     */
-    private $source;
+    private array $resolving;
 
-    /**
-     * @var array
-     */
-    private $resolving;
-
-    public function __construct(array $definitions, Autowiring $autowiring = null)
+    public function __construct(private array $definitions, Autowiring $autowiring = null)
     {
         $this->source = new DefinitionArray([], $autowiring);
-        $this->definitions = $definitions;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefinition(string $name)
+    public function getDefinition(string $name): ?Definition
     {
         $definition = $this->source->getDefinition($name);
         if (null !== $definition) {
@@ -56,13 +46,13 @@ class ConditionDefinitionSource implements DefinitionSource, ContainerAwareInter
             return null;
         }
         if (isset($this->resolving[$name])) {
-            throw new DependencyException("Circular dependency detected while trying to resolve entry '$name'");
+            throw new InvalidDefinition("Circular dependency detected while trying to resolve entry '$name'");
         }
         $this->resolving[$name] = true;
         $conditionDefs = $this->definitions[$name];
         foreach (array_reverse($conditionDefs) as $conditionDef) {
             if (!$conditionDef instanceof ConditionDefinition) {
-                throw new \InvalidArgumentException("Definition '$name' is not ConditionalDefinition");
+                throw new InvalidArgumentException("Definition '$name' is not ConditionalDefinition");
             }
             if (!$conditionDef->matches($this->container)) {
                 continue;

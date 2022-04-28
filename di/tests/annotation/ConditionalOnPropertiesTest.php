@@ -22,12 +22,12 @@ use PHPUnit\Framework\TestCase;
 
 class ConditionalOnPropertiesTest extends TestCase
 {
-    public function testMatch()
+    public function testMatch(): void
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new ConditionalOnPropertyConfiguration());
         $builder->addDefinitions([
-            PropertyResolverInterface::class => Properties::fromArray([
+            PropertyResolverInterface::class => Properties::create([
                 'foo' => 1,
             ]),
         ]);

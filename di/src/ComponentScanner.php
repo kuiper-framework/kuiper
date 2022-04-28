@@ -13,10 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\ComponentInterface;
-use kuiper\di\annotation\ComponentScan;
-use kuiper\helper\Text;
+use kuiper\di\attribute\ComponentScan;
 use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 
 class ComponentScanner implements ComponentScannerInterface
@@ -24,32 +21,17 @@ class ComponentScanner implements ComponentScannerInterface
     /**
      * @var array
      */
-    private $scannedNamespaces;
-
-    /**
-     * @var ContainerBuilderInterface
-     */
-    private $containerBuilder;
-
-    /**
-     * @var ReflectionNamespaceFactoryInterface
-     */
-    private $reflectionNamespaceFactory;
-    /**
-     * @var AnnotationReaderInterface
-     */
-    private $annotationReader;
+    private array $scannedNamespaces;
 
     /**
      * @var string[]
      */
-    private $excludeNamespaces = [];
+    private array $excludeNamespaces = [];
 
-    public function __construct(ContainerBuilderInterface $containerBuilder, AnnotationReaderInterface $annotationReader, ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory)
+    public function __construct(
+        private ContainerBuilderInterface $containerBuilder,
+        private ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory)
     {
-        $this->containerBuilder = $containerBuilder;
-        $this->annotationReader = $annotationReader;
-        $this->reflectionNamespaceFactory = $reflectionNamespaceFactory;
     }
 
     public function exclude(string $namespace): void
@@ -70,15 +52,17 @@ class ComponentScanner implements ComponentScannerInterface
                     continue;
                 }
                 $reflectionClass = new \ReflectionClass($className);
-                foreach ($this->annotationReader->getClassAnnotations($reflectionClass) as $annotation) {
-                    if ($annotation instanceof ComponentInterface) {
-                        $annotation->setTarget($reflectionClass);
-                        if ($annotation instanceof ContainerBuilderAwareInterface) {
-                            $annotation->setContainerBuilder($this->containerBuilder);
+                foreach ($reflectionClass->getAttributes() as $reflectionAttribute) {
+                    if (is_a($reflectionAttribute->getName(), Component::class, true)) {
+                        $attribute = $reflectionAttribute->newInstance();
+                        $attribute->setTarget($reflectionClass);
+                        if ($attribute instanceof ContainerBuilderAwareInterface) {
+                            $attribute->setContainerBuilder($this->containerBuilder);
                         }
-                        $annotation->handle();
-                    } elseif ($annotation instanceof ComponentScan) {
-                        foreach ($annotation->basePackages ?? [$reflectionClass->getNamespaceName()] as $ns) {
+                        $attribute->handle();
+                    } elseif (ComponentScan::class === $reflectionAttribute->getName()) {
+                        $attribute = $reflectionAttribute->newInstance();
+                        foreach ($attribute->getBasePackages() ?? [$reflectionClass->getNamespaceName()] as $ns) {
                             $namespaces[] = $ns;
                         }
                     }
@@ -91,7 +75,7 @@ class ComponentScanner implements ComponentScannerInterface
     private function isExcluded(string $className): bool
     {
         foreach ($this->excludeNamespaces as $excludeNamespace) {
-            if (Text::startsWith($className, $excludeNamespace)) {
+            if (str_starts_with($className, $excludeNamespace)) {
                 return true;
             }
         }

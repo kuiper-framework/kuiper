@@ -122,8 +122,11 @@ abstract class ReflectionType implements ReflectionTypeInterface
         return (bool) preg_match(self::CLASS_NAME_REGEX, $identifier);
     }
 
-    public static function fromPhpType(\ReflectionType $type): ReflectionTypeInterface
+    public static function fromPhpType(?\ReflectionType $type): ReflectionTypeInterface
     {
+        if (null === $type) {
+            return ReflectionType::forName('mixed');
+        }
         if ($type instanceof \ReflectionNamedType) {
             return self::forName($type->getName(), $type->allowsNull());
         }

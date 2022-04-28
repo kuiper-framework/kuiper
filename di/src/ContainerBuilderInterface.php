@@ -20,35 +20,23 @@ interface ContainerBuilderInterface
 {
     /**
      * add definitions.
-     *
-     * @param array|string|DefinitionSource $definitions
-     *
-     * @return static
      */
-    public function addDefinitions(...$definitions): ContainerBuilderInterface;
+    public function addDefinitions(array|string|DefinitionSource ...$definitions): ContainerBuilderInterface;
 
     /**
      * Add configuration object.
-     *
-     * @return static
      */
     public function addConfiguration(object $configuration): ContainerBuilderInterface;
 
     /**
      * Remove configuration.
-     *
-     * @param string|object $configuration
-     *
-     * @return static
      */
-    public function removeConfiguration($configuration): ContainerBuilderInterface;
+    public function removeConfiguration(string|object $configuration): ContainerBuilderInterface;
 
     /**
      * Change configuration load order.
      *
      * @param int[] $priorities
-     *
-     * @return static
      */
     public function setConfigurationPriorities(array $priorities): ContainerBuilderInterface;
 
@@ -65,20 +53,16 @@ interface ContainerBuilderInterface
      * Exclude namespace.
      *
      * @param string $namespace
-     *
-     * @return ContainerBuilderInterface
      */
     public function componentScanExclude(string $namespace): ContainerBuilderInterface;
 
     /**
      * Add callback when container is ready.
-     *
-     * @return static
      */
     public function defer(callable $callback, int $priority = null): ContainerBuilderInterface;
 
     /**
-     * @return static
+     * Add aware injection.
      */
     public function addAwareInjection(AwareInjection $awareInjection): ContainerBuilderInterface;
 

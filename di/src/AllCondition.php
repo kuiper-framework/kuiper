@@ -13,22 +13,17 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
-use kuiper\annotations\AnnotationReaderInterface;
 use Psr\Container\ContainerInterface;
+use ReflectionAttribute;
 
 class AllCondition implements Condition
 {
     /**
      * @var Condition[]
      */
-    private $conditions;
+    private array $conditions;
 
-    /**
-     * AllCondition constructor.
-     *
-     * @param Condition ...$conditions
-     */
-    public function __construct(...$conditions)
+    public function __construct(Condition ...$conditions)
     {
         foreach ($conditions as $condition) {
             $this->addCondition($condition);
@@ -51,25 +46,16 @@ class AllCondition implements Condition
         return true;
     }
 
-    /**
-     * @param \ReflectionMethod|\ReflectionClass|mixed $reflector
-     */
-    public static function create(AnnotationReaderInterface $annotationReader, $reflector): ?AllCondition
+    public static function create(\Reflector $reflector): ?AllCondition
     {
-        $conditions = [];
-        if ($reflector instanceof \ReflectionClass) {
-            $annotations = $annotationReader->getClassAnnotations($reflector);
-        } elseif ($reflector instanceof \ReflectionMethod) {
-            $annotations = $annotationReader->getMethodAnnotations($reflector);
+        if ($reflector instanceof \ReflectionClass || $reflector instanceof \ReflectionMethod) {
+            $attributes = $reflector->getAttributes(Condition::class, ReflectionAttribute::IS_INSTANCEOF);
         } else {
             throw new \InvalidArgumentException('invalid reflector '.get_class($reflector));
         }
-        foreach ($annotations as $annotation) {
-            if ($annotation instanceof Condition) {
-                $conditions[] = $annotation;
-            }
-        }
 
-        return empty($conditions) ? null : new AllCondition(...$conditions);
+        return empty($attributes) ? null : new AllCondition(...array_map(static function (ReflectionAttribute $attribute) {
+            return $attribute->newInstance();
+        }, $attributes));
     }
 }

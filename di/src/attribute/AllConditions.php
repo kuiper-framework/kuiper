@@ -11,27 +11,36 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di\attribute;
 
+use Attribute;
 use kuiper\di\Condition;
 use Psr\Container\ContainerInterface;
 
-/**
- * @Annotation
- * @Target({"CLASS", "METHOD", "ANNOTATION"})
- *
- * @property Condition[] $value
- */
+#[Attribute(Attribute::TARGET_CLASS| Attribute::TARGET_METHOD)]
 class AllConditions implements Condition
 {
     /**
-     * @var array
+     * @var Condition[]
      */
-    public $value;
+    private array $conditions;
+
+    public function __construct(Condition ...$conditions)
+    {
+        $this->conditions = $conditions;
+    }
+
+    /**
+     * @return Condition[]
+     */
+    public function getConditions(): array
+    {
+        return $this->conditions;
+    }
 
     public function matches(ContainerInterface $container): bool
     {
-        foreach ($this->value as $condition) {
+        foreach ($this->conditions as $condition) {
             if (!$condition->matches($container)) {
                 return false;
             }

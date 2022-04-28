@@ -11,30 +11,32 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di\attribute;
 
 use kuiper\di\ComponentCollection;
 use ReflectionClass;
 
 trait ComponentTrait
 {
-    /**
-     * @var ReflectionClass
-     */
-    protected $class;
+    protected ReflectionClass $class;
+
+    protected ?string $componentId;
 
     /**
-     * @var string|null
+     * @inheritDoc
      */
-    protected $componentId;
-
-    public function setTarget($class): void
+    public function setTarget(\Reflector $class): void
     {
-        /* @var ReflectionClass $class */
+        if (!$class instanceof \ReflectionClass) {
+            throw new \InvalidArgumentException(sprintf("Attribute %s only target class", get_class($this)));
+        }
         $this->class = $class;
     }
 
-    public function getTarget(): ReflectionClass
+    /**
+     * @return \Reflector
+     */
+    public function getTarget(): \Reflector
     {
         return $this->class;
     }

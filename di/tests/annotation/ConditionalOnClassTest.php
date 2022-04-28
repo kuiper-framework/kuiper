@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
 
 class ConditionalOnClassTest extends TestCase
 {
-    public function testMatch()
+    public function testMatch(): void
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new ConditionalOnClassConfiguration());

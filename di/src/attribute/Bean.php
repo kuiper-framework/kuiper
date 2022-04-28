@@ -11,15 +11,21 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\fixtures;
+namespace kuiper\di\attribute;
 
-class Foo
+use Attribute;
+
+/**
+ * #[Bean]
+ */
+#[Attribute(Attribute::TARGET_METHOD)]
+final class Bean
 {
-    public function __construct(private string $name)
+    public function __construct(private ?string $name = null)
     {
     }
 
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }

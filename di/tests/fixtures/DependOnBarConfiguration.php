@@ -13,17 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\di\fixtures;
 
-use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnClass;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\ConditionalOnClass;
 
-/**
- * @ConditionalOnClass(Bar::class)
- */
+#[ConditionalOnClass(Bar::class)]
 class DependOnBarConfiguration
 {
-    /**
-     * @Bean("foo")
-     */
+    #[Bean('foo')]
     public function foo()
     {
         return ['foo' => 'bar'];

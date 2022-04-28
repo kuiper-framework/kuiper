@@ -13,14 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
-use kuiper\di\annotation\ComponentInterface;
-
-class ComponentCollection
+final class ComponentCollection
 {
     /**
-     * @var array
+     * @var Component[][]
      */
-    private static $COMPONENTS;
+    private static array $COMPONENTS;
 
     public static function clear(string $annotationClass = null): void
     {
@@ -32,18 +30,18 @@ class ComponentCollection
     }
 
     /**
-     * @param ComponentInterface $annotation
+     * @param Component $annotation
      */
-    public static function register(ComponentInterface $annotation): void
+    public static function register(Component $annotation): void
     {
         self::$COMPONENTS[get_class($annotation)][] = $annotation;
     }
 
     /**
-     * @return object[] all annotation objects
+     * @return Component[] all annotation objects
      */
-    public static function getAnnotations(string $annotationClass): array
+    public static function getComponents(string $componentClass): array
     {
-        return array_values(self::$COMPONENTS[$annotationClass] ?? []);
+        return array_values(self::$COMPONENTS[$componentClass] ?? []);
     }
 }

@@ -15,10 +15,7 @@ namespace kuiper\di;
 
 trait ContainerBuilderAwareTrait
 {
-    /**
-     * @var ContainerBuilderInterface
-     */
-    protected $containerBuilder;
+    protected ContainerBuilderInterface $containerBuilder;
 
     public function setContainerBuilder(ContainerBuilderInterface $containerBuilder): void
     {

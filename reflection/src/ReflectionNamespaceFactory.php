@@ -48,7 +48,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
         return self::$INSTANCE;
     }
 
-    private function __construct(private ReflectionFileFactoryInterface $reflectionFileFactory)
+    public function __construct(private ReflectionFileFactoryInterface $reflectionFileFactory)
     {
     }
 

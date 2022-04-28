@@ -24,35 +24,17 @@ class ConditionDefinition implements Definition, Condition
     private $definitionResolver;
 
     /**
-     * @var string|null
-     */
-    private $name;
-
-    /**
      * @var Definition|null
      */
     private $definition;
 
-    /**
-     * @var Condition
-     */
-    private $condition;
-
-    /**
-     * ConditionDefinition constructor.
-     *
-     * @param callable|Definition $definitionResolver
-     * @param Condition           $condition
-     */
-    public function __construct(Condition $condition, $definitionResolver, string $name = null)
+    public function __construct(private Condition $condition, Definition|callable $definitionResolver, private ?string $name = null)
     {
         if ($definitionResolver instanceof Definition) {
             $this->definition = $definitionResolver;
         } else {
             $this->definitionResolver = $definitionResolver;
         }
-        $this->name = $name;
-        $this->condition = $condition;
     }
 
     public function getDefinition(): Definition

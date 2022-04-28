@@ -11,12 +11,14 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di\attribute;
+
+use Attribute;
 
 /**
- * @Annotation
- * @Target({"CLASS"})
+ * #[Service] Attribute
  */
+#[Attribute(Attribute::TARGET_CLASS)]
 class Service extends Component
 {
 }

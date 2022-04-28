@@ -15,5 +15,8 @@ namespace kuiper\di;
 
 interface ContainerBuilderAwareInterface
 {
+    /**
+     * Sets the container builder.
+     */
     public function setContainerBuilder(ContainerBuilderInterface $containerBuilder): void;
 }

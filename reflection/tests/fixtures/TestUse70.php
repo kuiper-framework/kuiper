@@ -1,3 +1,3 @@
 <?php
-
-declare(strict_types=1);
+use some\ns\ClassA;
+use some\ns\ClassC as C;

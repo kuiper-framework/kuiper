@@ -11,24 +11,34 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di\attribute;
 
+use Attribute;
+use kuiper\di\Component;
 use kuiper\di\ContainerBuilderAwareInterface;
 use kuiper\di\ContainerBuilderAwareTrait;
 
-/**
- * @Annotation
- * @Target({"CLASS"})
- */
-class Configuration implements ComponentInterface, ContainerBuilderAwareInterface
+#[Attribute(Attribute::TARGET_CLASS)]
+class Configuration implements Component, ContainerBuilderAwareInterface
 {
     use ComponentTrait;
     use ContainerBuilderAwareTrait;
 
     /**
-     * @var array
+     * Configuration constructor.
+     * @param string[] $dependOn
      */
-    public $dependOn;
+    public function __construct(private array $dependOn = [])
+    {
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getDependOn(): array
+    {
+        return $this->dependOn;
+    }
 
     public function handle(): void
     {

@@ -22,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 
 class AllConditionsTest extends TestCase
 {
-    public function testMatchFoo1()
+    public function testMatchFoo1(): void
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new AllConditionsConfiguration());
@@ -39,7 +39,7 @@ class AllConditionsTest extends TestCase
         $this->assertEquals('foo1', $foo->getName());
     }
 
-    public function testMatchFoo2()
+    public function testMatchFoo2(): void
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new AllConditionsConfiguration());

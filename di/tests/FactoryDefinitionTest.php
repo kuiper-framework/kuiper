@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
 
 class FactoryDefinitionTest extends TestCase
 {
-    public function testFactory()
+    public function testFactory(): void
     {
         $builder = new \DI\ContainerBuilder();
         $builder->addDefinitions([
@@ -31,7 +31,7 @@ class FactoryDefinitionTest extends TestCase
         $this->assertEquals($foo[0], 'foo');
     }
 
-    public function testConstructor()
+    public function testConstructor(): void
     {
         $builder = new \DI\ContainerBuilder();
         $builder->addDefinitions([
@@ -44,7 +44,7 @@ class FactoryDefinitionTest extends TestCase
         $this->assertInstanceOf(Bar::class, $foo);
     }
 
-    public function create($param)
+    public function create($param): array
     {
         return [$param];
     }

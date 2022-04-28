@@ -13,48 +13,41 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
-use DI\Annotation\Inject;
+use Closure;
+use DI\Attribute\Inject;
 use DI\Definition\Definition;
 use DI\Definition\FactoryDefinition;
 use DI\Definition\Helper\DefinitionHelper;
 use DI\Definition\ValueDefinition;
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ComponentInterface;
+use function DI\get;
+use kuiper\di\attribute\Bean;
 use kuiper\helper\Text;
+use kuiper\reflection\ReflectionType;
+use ReflectionClass;
+use ReflectionMethod;
 
 class ConfigurationDefinitionLoader
 {
-    /**
-     * @var ContainerBuilderInterface
-     */
-    private $containerBuilder;
-    /**
-     * @var AnnotationReaderInterface
-     */
-    private $annotationReader;
-
-    public function __construct(ContainerBuilderInterface $containerBuilder, AnnotationReaderInterface $annotationReader)
+    public function __construct(private ContainerBuilderInterface $containerBuilder)
     {
-        $this->containerBuilder = $containerBuilder;
-        $this->annotationReader = $annotationReader;
     }
 
     public function getDefinitions(object $configuration, bool $ignoreCondition = false): array
     {
         $definitions = [];
-        $reflectionClass = new \ReflectionClass($configuration);
-        $configurationCondition = AllCondition::create($this->annotationReader, $reflectionClass);
-        foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            /** @var Bean|null $beanAnnotation */
-            $beanAnnotation = $this->annotationReader->getMethodAnnotation($method, Bean::class);
-            if (null === $beanAnnotation) {
+        $reflectionClass = new ReflectionClass($configuration);
+        $configurationCondition = AllCondition::create($reflectionClass);
+        foreach ($reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+            $reflectionAttributes = $method->getAttributes(Bean::class);
+            if (empty($reflectionAttributes)) {
                 continue;
             }
-            $definition = $this->createDefinition($beanAnnotation, $configuration, $method);
+            /** @var Bean $bean */
+            $bean = $reflectionAttributes[0]->newInstance();
+            $definition = $this->createDefinition($bean, $configuration, $method);
             $condition = null;
             if (!$ignoreCondition) {
-                $condition = AllCondition::create($this->annotationReader, $method);
+                $condition = AllCondition::create($method);
                 if (null !== $configurationCondition) {
                     if (null !== $condition) {
                         $condition->addCondition($configurationCondition);
@@ -79,7 +72,8 @@ class ConfigurationDefinitionLoader
         if ($configuration instanceof DefinitionConfiguration) {
             foreach ($configuration->getDefinitions() as $name => $def) {
                 if (null !== $configurationCondition && !$ignoreCondition) {
-                    $definitions[] = new ConditionDefinition($configurationCondition, $this->createDefinitionResolver($def, (string) $name), $name);
+                    $definitionResolver = $this->createDefinitionResolver($def, (string) $name);
+                    $definitions[] = new ConditionDefinition($configurationCondition, $definitionResolver, $name);
                 } else {
                     $definitions[$name] = $def;
                 }
@@ -89,51 +83,50 @@ class ConfigurationDefinitionLoader
         return $definitions;
     }
 
-    private function getMethodParameterInjections(Inject $annotation): array
+    private function createDefinition(Bean $beanAnnotation, object $configuration, ReflectionMethod $method): FactoryDefinition
     {
-        $parameters = [];
-        foreach ($annotation->getParameters() as $key => $parameter) {
-            $parameters[$key] = \DI\get($parameter);
-        }
-
-        return $parameters;
-    }
-
-    private function createDefinition(Bean $beanAnnotation, object $configuration, \ReflectionMethod $method): FactoryDefinition
-    {
-        $name = $beanAnnotation->name;
+        $name = $beanAnnotation->getName();
         if (Text::isEmpty($name)) {
-            if (null !== $method->getReturnType() && !$method->getReturnType()->isBuiltin()) {
-                /** @phpstan-ignore-next-line */
-                $name = $method->getReturnType()->getName();
+            $returnType = ReflectionType::fromPhpType($method->getReturnType());
+            if ($returnType->isClass()) {
+                $name = $returnType->getName();
             } else {
                 $name = $method->getName();
             }
         }
 
-        /** @var Inject|null $annotation */
-        $annotation = $this->annotationReader->getMethodAnnotation($method, Inject::class);
-        if (null !== $annotation) {
-            return new FactoryDefinition(
-                $name, [$configuration, $method->getName()], $this->getMethodParameterInjections($annotation)
-            );
-        }
-
-        return new FactoryDefinition($name, [$configuration, $method->getName()]);
+        return new FactoryDefinition($name, [$configuration, $method->getName()], $this->resolveMethodParameters($method));
     }
 
-    /**
-     * @param mixed  $definition
-     * @param string $name
-     *
-     * @return callable
-     */
-    private function createDefinitionResolver($definition, string $name): callable
+    private function resolveMethodParameters(ReflectionMethod $method): array
+    {
+        $parameters = [];
+        $attributes = $method->getAttributes(Inject::class);
+        if (!empty($attributes)) {
+            /** @var Inject $inject */
+            $inject = $attributes[0]->newInstance();
+            foreach ($inject->getParameters() as $key => $parameter) {
+                $parameters[$key] = get($parameter);
+            }
+        }
+        foreach ($method->getParameters() as $parameter) {
+            $attributes = $parameter->getAttributes(Inject::class);
+            if (!empty($attributes)) {
+                /** @var Inject $inject */
+                $inject = $attributes[0]->newInstance();
+                $parameters[$parameter->getName()] = get($inject->getName());
+            }
+        }
+
+        return $parameters;
+    }
+
+    private function createDefinitionResolver(mixed $definition, string $name): callable
     {
         return static function () use ($definition, $name): Definition {
             if ($definition instanceof DefinitionHelper) {
                 $definition = $definition->getDefinition($name);
-            } elseif ($definition instanceof \Closure) {
+            } elseif ($definition instanceof Closure) {
                 $definition = new FactoryDefinition($name, $definition);
             } elseif ($definition instanceof Definition) {
                 $definition->setName($name);
@@ -146,25 +139,27 @@ class ConfigurationDefinitionLoader
         };
     }
 
-    private function processComponentAnnotation(string $name, \ReflectionMethod $method): void
+    private function processComponentAnnotation(string $name, ReflectionMethod $method): void
     {
-        $returnType = $method->getReturnType();
-        if (null !== $returnType && !$returnType->isBuiltin()) {
-            /** @phpstan-ignore-next-line */
-            $className = $returnType->getName();
-            if (!class_exists($className)) {
+        $returnType = ReflectionType::fromPhpType($method->getReturnType());
+        if ($returnType->isClass()) {
+            if (!class_exists($returnType->getName())) {
                 return;
             }
-            $reflectionClass = new \ReflectionClass($className);
-            foreach ($this->annotationReader->getClassAnnotations($reflectionClass) as $annotation) {
-                if ($annotation instanceof ComponentInterface) {
-                    $annotation->setTarget($reflectionClass);
-                    $annotation->setComponentId($name);
-                    if ($annotation instanceof ContainerBuilderAwareInterface) {
-                        $annotation->setContainerBuilder($this->containerBuilder);
+            try {
+                $reflectionClass = new ReflectionClass($returnType->getName());
+                foreach ($reflectionClass->getAttributes(Component::class, \ReflectionAttribute::IS_INSTANCEOF) as $reflectionAttribute) {
+                    /** @var Component $attribute */
+                    $attribute = $reflectionAttribute->newInstance();
+                    $attribute->setTarget($reflectionClass);
+                    $attribute->setComponentId($name);
+                    if ($attribute instanceof ContainerBuilderAwareInterface) {
+                        $attribute->setContainerBuilder($this->containerBuilder);
                     }
-                    $annotation->handle();
+                    $attribute->handle();
                 }
+            } catch (\ReflectionException $e) {
+                trigger_error("ReflectionClass on $returnType failed");
             }
         }
     }

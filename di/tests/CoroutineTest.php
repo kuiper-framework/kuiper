@@ -20,7 +20,7 @@ use Swoole\Coroutine;
 
 class CoroutineTest extends TestCase
 {
-    public function testNoLock()
+    public function testNoLock(): void
     {
         $containerBuilder = new \DI\ContainerBuilder();
 
@@ -28,13 +28,13 @@ class CoroutineTest extends TestCase
         $this->assertCount(1, $errors);
     }
 
-    public function testLock()
+    public function testLock(): void
     {
         $errors = $this->check(new ContainerBuilder());
         $this->assertEmpty($errors);
     }
 
-    public function check($containerBuilder)
+    public function check(object $containerBuilder): array
     {
         $container = null;
         $containerBuilder->addDefinitions([

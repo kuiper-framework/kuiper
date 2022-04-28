@@ -22,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 
 class TwoConditionalTest extends TestCase
 {
-    public function testCondtionFoo()
+    public function testConditionFoo(): void
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new TwoConditionConfiguration());
@@ -37,7 +37,7 @@ class TwoConditionalTest extends TestCase
         $this->assertEquals('foo', $foo->getName());
     }
 
-    public function testCondtionBar()
+    public function testConditionBar(): void
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new TwoConditionConfiguration());
@@ -52,7 +52,7 @@ class TwoConditionalTest extends TestCase
         $this->assertEquals('bar', $foo->getName());
     }
 
-    public function testLastConditionWin()
+    public function testLastConditionWin(): void
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new TwoConditionConfiguration());

@@ -15,15 +15,10 @@ namespace kuiper\di\fixtures;
 
 class Bar
 {
-    public $name;
-
     /**
      * Bar constructor.
-     *
-     * @param $name
      */
-    public function __construct($name)
+    public function __construct(public string $name)
     {
-        $this->name = $name;
     }
 }

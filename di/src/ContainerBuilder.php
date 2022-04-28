@@ -13,13 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
+use Closure;
 use Composer\Autoload\ClassLoader;
 use DI\Definition\Definition;
 use DI\Definition\ExtendsPreviousDefinition;
 use DI\Definition\FactoryDefinition;
 use DI\Definition\Helper\DefinitionHelper;
 use DI\Definition\Helper\FactoryDefinitionHelper;
-use DI\Definition\Source\AnnotationBasedAutowiring;
+use DI\Definition\Source\AttributeBasedAutowiring;
 use DI\Definition\Source\Autowiring;
 use DI\Definition\Source\DefinitionArray;
 use DI\Definition\Source\DefinitionFile;
@@ -32,148 +33,109 @@ use DI\Definition\Source\SourceChain;
 use DI\Definition\ValueDefinition;
 use DI\Proxy\ProxyFactory;
 use InvalidArgumentException;
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\Configuration;
+use kuiper\di\attribute\Configuration;
+use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\reflection\ReflectionNamespaceFactoryInterface;
+use LogicException;
 use Psr\Container\ContainerInterface;
+use ReflectionClass;
+use RuntimeException;
 
 class ContainerBuilder implements ContainerBuilderInterface
 {
-    /**
-     * Name of the container class, used to create the container.
-     *
-     * @var string
-     */
-    private $containerClass;
+    private bool $useAutowiring = true;
+
+    private bool $useAttribute = true;
+
+    private bool $sourceCache = false;
+
+    protected ?string $sourceCacheNamespace = null;
 
     /**
      * If PHP-DI is wrapped in another container, this references the wrapper.
-     *
-     * @var ContainerInterface
      */
-    private $wrapperContainer;
-
-    /**
-     * @var bool
-     */
-    private $useAutowiring = true;
-
-    /**
-     * @var bool
-     */
-    private $useAnnotations = true;
-
-    /**
-     * @var bool
-     */
-    private $sourceCache = false;
-
-    /**
-     * @var string
-     */
-    protected $sourceCacheNamespace;
-
-    /**
-     * @var bool
-     */
-    private $ignorePhpDocErrors = false;
-
-    /**
-     * If true, write the proxies to disk to improve performances.
-     *
-     * @var bool
-     */
-    private $writeProxiesToFile = false;
+    private ?ContainerInterface $wrapperContainer = null;
 
     /**
      * Directory where to write the proxies (if $writeProxiesToFile is enabled).
-     *
-     * @var string|null
      */
-    private $proxyDirectory;
+    private ?string $proxyDirectory = null;
 
     /**
      * @var array
      */
-    private $definitions;
+    private array $definitions = [];
 
     /**
      * @var DefinitionSource[]|string[]|array[]
      */
-    private $definitionSources = [];
+    private array $definitionSources = [];
 
     /**
      * @var AwareAutowiring|null
      */
-    private $awareAutowiring;
+    private ?AwareAutowiring $awareAutowiring;
+
     /**
      * Whether the container has already been built.
-     *
-     * @var bool
      */
-    private $locked = false;
+    private bool $locked = false;
 
     /**
      * @var ComponentScannerInterface|null
      */
-    private $componentScanner;
+    private ?ComponentScannerInterface $componentScanner = null;
 
     /**
      * @var ClassLoader|null
      */
-    private $classLoader;
+    private ?ClassLoader $classLoader = null;
 
     /**
      * @var ReflectionNamespaceFactoryInterface|null
      */
-    private $reflectionNamespaceFactory;
+    private ?ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory = null;
 
     /**
      * @var ConfigurationDefinitionLoader|null
      */
-    private $configurationDefinitionLoader;
+    private ?ConfigurationDefinitionLoader $configurationDefinitionLoader = null;
 
     /**
      * @var ConditionDefinitionSource|null
      */
-    private $conditionalDefinitionSource;
-
-    /**
-     * @var AnnotationReaderInterface|null
-     */
-    private $annotationReader;
+    private ?ConditionDefinitionSource $conditionalDefinitionSource = null;
 
     /**
      * @var object[]
      */
-    private $configurations = [];
+    private array $configurations = [];
 
     /**
      * @var int[]
      */
-    private $configurationPriorities = [];
+    private array $configurationPriorities = [];
 
     /**
      * @var array
      */
-    private $scanNamespaces = [];
+    private array $scanNamespaces = [];
 
     /**
      * @var callable[][]
      */
-    private $deferCallbacks = [];
+    private array $deferCallbacks = [];
 
     /**
      * @var ConditionDefinition[][]
      */
-    private $conditionDefinitions = [];
+    private array $conditionDefinitions = [];
 
     /**
      * @var DefinitionArray|null
      */
-    private $mutableDefinitionSource;
+    private ?DefinitionArray $mutableDefinitionSource = null;
 
     /**
      * Build a container configured for the dev environment.
@@ -183,18 +145,22 @@ class ContainerBuilder implements ContainerBuilderInterface
         return new Container();
     }
 
+    /**
+     * @throws \JsonException
+     */
     public static function create(string $projectPath): self
     {
         if (!file_exists($projectPath.'/vendor/autoload.php')
             || !file_exists($projectPath.'/composer.json')) {
-            throw new \InvalidArgumentException("Cannot detect project path, expected composer.json in $projectPath");
+            throw new InvalidArgumentException("Cannot detect project path, expected composer.json in $projectPath");
         }
         $builder = new self();
         $builder->setClassLoader(require $projectPath.'/vendor/autoload.php');
 
-        $composerJson = json_decode(file_get_contents($projectPath.'/composer.json'), true);
+        $composerJson = json_decode(file_get_contents($projectPath.'/composer.json'), true, 512, JSON_THROW_ON_ERROR);
         $configFile = $projectPath.'/'.($composerJson['extra']['kuiper']['config-file'] ?? 'config/container.php');
         if (file_exists($configFile)) {
+            /** @noinspection PhpIncludeInspection */
             $config = require $configFile;
 
             if (!empty($config['configuration'])) {
@@ -213,12 +179,8 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $builder;
     }
 
-    /**
-     * @param string $containerClass name of the container class, used to create the container
-     */
-    public function __construct(string $containerClass = Container::class)
+    public function __construct(private string $containerClass = Container::class)
     {
-        $this->containerClass = $containerClass;
     }
 
     /**
@@ -228,7 +190,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     {
         $this->registerConfigurations();
         $source = $this->createDefinitionSource();
-        $proxyFactory = new ProxyFactory($this->writeProxiesToFile, $this->proxyDirectory);
+        $proxyFactory = new ProxyFactory($this->proxyDirectory);
         $this->locked = true;
         $containerClass = $this->containerClass;
         $container = new $containerClass($source, $proxyFactory, $this->wrapperContainer);
@@ -237,7 +199,7 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
         if (!empty($this->deferCallbacks)) {
             ksort($this->deferCallbacks);
-            foreach ($this->deferCallbacks as $priority => $callbacks) {
+            foreach ($this->deferCallbacks as $callbacks) {
                 foreach ($callbacks as $callback) {
                     $callback($container);
                 }
@@ -245,7 +207,7 @@ class ContainerBuilder implements ContainerBuilderInterface
         }
         foreach ($this->configurations as $configuration) {
             if ($configuration instanceof Bootstrap) {
-                $condition = AllCondition::create($this->getAnnotationReader(), new \ReflectionClass($configuration));
+                $condition = AllCondition::create(new ReflectionClass($configuration));
                 if (null !== $condition && !$condition->matches($container)) {
                     continue;
                 }
@@ -268,7 +230,7 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getAwareAutowiring(): AwareAutowiring
     {
-        if (null === $this->awareAutowiring) {
+        if (!isset($this->awareAutowiring)) {
             $this->awareAutowiring = new AwareAutowiring();
         }
 
@@ -302,31 +264,17 @@ class ContainerBuilder implements ContainerBuilderInterface
     }
 
     /**
-     * Enable or disable the use of annotations to guess injections.
+     * Enable or disable the use of attribute to guess injections.
      *
-     * Disabled by default.
+     * Enabled by default
      *
      * @return static
      */
-    public function useAnnotations(bool $bool): self
+    public function useAttribute(bool $useAttribute): self
     {
         $this->ensureNotLocked();
 
-        $this->useAnnotations = $bool;
-
-        return $this;
-    }
-
-    /**
-     * Enable or disable ignoring phpdoc errors (non-existent classes in `@param` or `@var`).
-     *
-     * @return $this
-     */
-    public function ignorePhpDocErrors(bool $bool): self
-    {
-        $this->ensureNotLocked();
-
-        $this->ignorePhpDocErrors = $bool;
+        $this->useAttribute = $useAttribute;
 
         return $this;
     }
@@ -350,8 +298,6 @@ class ContainerBuilder implements ContainerBuilderInterface
     {
         $this->ensureNotLocked();
 
-        $this->writeProxiesToFile = $writeToFile;
-
         if ($writeToFile && null === $proxyDirectory) {
             throw new InvalidArgumentException('The proxy directory must be specified if you want to write proxies on disk');
         }
@@ -364,7 +310,7 @@ class ContainerBuilder implements ContainerBuilderInterface
      * If PHP-DI's container is wrapped by another container, we can
      * set this so that PHP-DI will use the wrapper rather than itself for building objects.
      *
-     * @return $this
+     * @return static
      */
     public function wrapContainer(ContainerInterface $otherContainer): self
     {
@@ -389,7 +335,7 @@ class ContainerBuilder implements ContainerBuilderInterface
         if ($this->locked) {
             foreach ($definitions as $definition) {
                 if (!is_array($definition)) {
-                    throw new \InvalidArgumentException('Definitions must be an array, got '.gettype($definition));
+                    throw new InvalidArgumentException('Definitions must be an array, got '.gettype($definition));
                 }
                 foreach ($definition as $name => $value) {
                     $this->addDefinition($name, $value);
@@ -401,13 +347,13 @@ class ContainerBuilder implements ContainerBuilderInterface
 
         foreach ($definitions as $definition) {
             if (!is_string($definition) && !is_array($definition) && !($definition instanceof DefinitionSource)) {
-                throw new InvalidArgumentException(sprintf('%s parameter must be a string, an array or a DefinitionSource object, %s given', 'ContainerBuilder::addDefinitions()', is_object($definition) ? get_class($definition) : gettype($definition)));
+                throw new InvalidArgumentException(sprintf('%s parameter must be a string, an array or a DefinitionSource object, %s given', 'ContainerBuilder::addDefinitions()', get_debug_type($definition)));
             }
             if (is_array($definition)) {
                 $simpleDefinition = [];
                 foreach ($definition as $key => $def) {
                     if ($def instanceof ComponentDefinition) {
-                        $condition = AllCondition::create($this->getAnnotationReader(), $def->getComponent()->getTarget());
+                        $condition = AllCondition::create($def->getComponent()->getTarget());
                         if (null !== $condition) {
                             $def = new ConditionDefinition($condition, $def->getDefinition());
                         } else {
@@ -469,7 +415,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     private function ensureNotLocked(): void
     {
         if ($this->locked) {
-            throw new \LogicException('The ContainerBuilder cannot be modified after the container has been built');
+            throw new LogicException('The ContainerBuilder cannot be modified after the container has been built');
         }
     }
 
@@ -481,11 +427,17 @@ class ContainerBuilder implements ContainerBuilderInterface
         if ($configuration instanceof ContainerBuilderAwareInterface) {
             $configuration->setContainerBuilder($this);
         }
-        $annotation = $this->getAnnotationReader()->getClassAnnotation(new \ReflectionClass($configuration), Configuration::class);
-        /** @var Configuration|null $annotation */
-        if (null !== $annotation && !empty($annotation->dependOn)) {
-            foreach ($annotation->dependOn as $dep) {
-                $this->addConfiguration(new $dep());
+        $configurationClass = new ReflectionClass($configuration);
+        $configurationAttributes = $configurationClass->getAttributes(Configuration::class);
+        if (!empty($configurationAttributes)) {
+            foreach ($configurationAttributes as $reflectionAttribute) {
+                /** @var Configuration $attribute */
+                $attribute = $reflectionAttribute->newInstance();
+                if (count($attribute->getDependOn()) > 0) {
+                    foreach ($attribute->getDependOn() as $dependConfigurationClass) {
+                        $this->addConfiguration(new $dependConfigurationClass());
+                    }
+                }
             }
         }
         $this->configurations[get_class($configuration)] = $configuration;
@@ -493,13 +445,19 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $this;
     }
 
-    public function removeConfiguration($configuration): ContainerBuilderInterface
+    /**
+     * {@inheritDoc}
+     */
+    public function removeConfiguration(string|object $configuration): ContainerBuilderInterface
     {
         unset($this->configurations[is_string($configuration) ? $configuration : get_class($configuration)]);
 
         return $this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function setConfigurationPriorities(array $priorities): ContainerBuilderInterface
     {
         $this->configurationPriorities = array_merge($this->configurationPriorities, $priorities);
@@ -507,26 +465,10 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $this;
     }
 
-    public function getAnnotationReader(): AnnotationReaderInterface
-    {
-        if (null === $this->annotationReader) {
-            $this->annotationReader = AnnotationReader::getInstance();
-        }
-
-        return $this->annotationReader;
-    }
-
-    public function setAnnotationReader(AnnotationReaderInterface $annotationReader): self
-    {
-        $this->annotationReader = $annotationReader;
-
-        return $this;
-    }
-
     public function getConfigurationDefinitionLoader(): ConfigurationDefinitionLoader
     {
-        if (null === $this->configurationDefinitionLoader) {
-            $this->configurationDefinitionLoader = new ConfigurationDefinitionLoader($this, $this->getAnnotationReader());
+        if (!isset($this->configurationDefinitionLoader)) {
+            $this->configurationDefinitionLoader = new ConfigurationDefinitionLoader($this);
         }
 
         return $this->configurationDefinitionLoader;
@@ -541,8 +483,8 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getClassLoader(): ClassLoader
     {
-        if (null === $this->classLoader) {
-            throw new \InvalidArgumentException('class loader is not set yet');
+        if (!isset($this->classLoader)) {
+            throw new InvalidArgumentException('class loader is not set yet');
         }
 
         return $this->classLoader;
@@ -557,9 +499,8 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getReflectionNamespaceFactory(): ReflectionNamespaceFactoryInterface
     {
-        if (null === $this->reflectionNamespaceFactory) {
-            /** @var ReflectionNamespaceFactory $reflectionNamespaceFactory */
-            $reflectionNamespaceFactory = ReflectionNamespaceFactory::getInstance();
+        if (!isset($this->reflectionNamespaceFactory)) {
+            $reflectionNamespaceFactory = new ReflectionNamespaceFactory(ReflectionFileFactory::getInstance());
             $reflectionNamespaceFactory->registerLoader($this->getClassLoader());
             $this->reflectionNamespaceFactory = $reflectionNamespaceFactory;
         }
@@ -567,9 +508,6 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $this->reflectionNamespaceFactory;
     }
 
-    /**
-     * @return static
-     */
     public function setReflectionNamespaceFactory(ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory): self
     {
         $this->reflectionNamespaceFactory = $reflectionNamespaceFactory;
@@ -579,8 +517,8 @@ class ContainerBuilder implements ContainerBuilderInterface
 
     public function getComponentScanner(): ComponentScannerInterface
     {
-        if (null === $this->componentScanner) {
-            $this->componentScanner = new ComponentScanner($this, $this->getAnnotationReader(), $this->getReflectionNamespaceFactory());
+        if (!isset($this->componentScanner)) {
+            $this->componentScanner = new ComponentScanner($this, $this->getReflectionNamespaceFactory());
         }
 
         return $this->componentScanner;
@@ -609,10 +547,10 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $this;
     }
 
-    private function getAutowiring(): Autowiring
+    private function createAutowiring(): Autowiring
     {
-        if ($this->useAnnotations) {
-            $autowiring = new AnnotationBasedAutowiring($this->ignorePhpDocErrors);
+        if ($this->useAttribute) {
+            $autowiring = new AttributeBasedAutowiring();
         } elseif ($this->useAutowiring) {
             $autowiring = new ReflectionBasedAutowiring();
         } else {
@@ -640,7 +578,7 @@ class ContainerBuilder implements ContainerBuilderInterface
                     $priorities[get_class($configuration)] = $i;
                 }
             }
-            usort($configurations, static function ($conf1, $conf2) use ($priorities): int {
+            usort($configurations, static function (object $conf1, object $conf2) use ($priorities): int {
                 return $priorities[get_class($conf1)] - $priorities[get_class($conf2)];
             });
             $this->configurations = $configurations;
@@ -657,9 +595,10 @@ class ContainerBuilder implements ContainerBuilderInterface
             $sources[] = $this->definitions;
         }
 
-        $autowiring = $this->getAutowiring();
+        $autowiring = $this->createAutowiring();
         if (!empty($this->conditionDefinitions)) {
-            $sources[] = $this->conditionalDefinitionSource = new ConditionDefinitionSource($this->conditionDefinitions, $autowiring);
+            $this->conditionalDefinitionSource = new ConditionDefinitionSource($this->conditionDefinitions, $autowiring);
+            $sources[] = $this->conditionalDefinitionSource;
         }
         $sources = array_map(static function ($definitions) use ($autowiring): DefinitionSource {
             if (is_array($definitions)) {
@@ -686,7 +625,7 @@ class ContainerBuilder implements ContainerBuilderInterface
 
         if ($this->sourceCache) {
             if (!SourceCache::isSupported()) {
-                throw new \Exception('APCu is not enabled, PHP-DI cannot use it as a cache');
+                throw new RuntimeException('APCu is not enabled, PHP-DI cannot use it as a cache');
             }
             // Wrap the source with the cache decorator
             $source = new SourceCache($source, $this->sourceCacheNamespace);
@@ -695,14 +634,11 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $source;
     }
 
-    /**
-     * @param mixed $value
-     */
-    private function addDefinition(string $name, $value): void
+    private function addDefinition(string $name, mixed $value): void
     {
         if ($value instanceof DefinitionHelper) {
             $value = $value->getDefinition($name);
-        } elseif ($value instanceof \Closure) {
+        } elseif ($value instanceof Closure) {
             $value = new FactoryDefinition($name, $value);
         }
         if (!$value instanceof Definition) {

@@ -14,28 +14,52 @@ declare(strict_types=1);
 namespace kuiper\di;
 
 use DI\Definition\Definition;
-use kuiper\di\annotation\ComponentInterface;
 
 class ComponentDefinition implements Definition
 {
-    use DelegateDefinitionTrait;
-
-    /**
-     * @var ComponentInterface
-     */
-    private $component;
-
-    /**
-     * ComponentDefintion constructor.
-     */
-    public function __construct(Definition $definition, ComponentInterface $component)
+    public function __construct(private Definition $definition, private Component $component)
     {
-        $this->definition = $definition;
-        $this->component = $component;
     }
 
-    public function getComponent(): ComponentInterface
+    public function getComponent(): Component
     {
         return $this->component;
+    }
+
+    public function getDefinition(): Definition
+    {
+        return $this->definition;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getName(): string
+    {
+        return $this->definition->getName();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setName(string $name): void
+    {
+        $this->definition->setName($name);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function replaceNestedDefinitions(callable $replacer): void
+    {
+        $this->definition->replaceNestedDefinitions($replacer);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function __toString(): string
+    {
+        return (string) $this->definition;
     }
 }

@@ -11,21 +11,14 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di\attribute;
 
-use Doctrine\Common\Annotations\Annotation\Required;
+use Attribute;
 
 /**
- * @Annotation
- * @Target({"CLASS"})
+ * #[Controller] Attribute
  */
-class Command implements ComponentInterface
+#[Attribute(Attribute::TARGET_CLASS)]
+class Controller extends Component
 {
-    use ComponentTrait;
-
-    /**
-     * @var string
-     * @Required
-     */
-    public $name;
 }

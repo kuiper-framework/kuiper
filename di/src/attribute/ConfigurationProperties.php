@@ -11,33 +11,39 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di\attribute;
 
-use function DI\factory;
+use Attribute;
+use kuiper\di\Component;
 use kuiper\di\ContainerBuilderAwareInterface;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Container\ContainerInterface;
+use function DI\factory;
 
-/**
- * @Annotation
- * @Target({"CLASS"})
- */
-class ConfigurationProperties implements ComponentInterface, ContainerBuilderAwareInterface
+#[Attribute(Attribute::TARGET_CLASS)]
+class ConfigurationProperties implements Component, ContainerBuilderAwareInterface
 {
     use ComponentTrait;
     use ContainerBuilderAwareTrait;
 
+    public function __construct(private string $prefix)
+    {
+    }
+
     /**
-     * @var string
+     * @return string
      */
-    public $prefix;
+    public function getPrefix(): string
+    {
+        return $this->prefix;
+    }
 
     public function handle(): void
     {
         $this->containerBuilder->addDefinitions([
-            $this->getTargetClass() => factory(function (ContainerInterface $container, NormalizerInterface $serializer) {
+            $this->getComponentId() => factory(function (ContainerInterface $container, NormalizerInterface $serializer) {
                 if (!$container->has(PropertyResolverInterface::class)) {
                     throw new \InvalidArgumentException(PropertyResolverInterface::class.' should be registered in container');
                 }

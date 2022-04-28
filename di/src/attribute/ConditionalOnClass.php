@@ -11,24 +11,21 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di\attribute;
 
+use Attribute;
 use kuiper\di\Condition;
 use Psr\Container\ContainerInterface;
 
-/**
- * @Annotation
- * @Target({"CLASS", "METHOD", "ANNOTATION"})
- */
-class ConditionalOnMissingClass implements Condition
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
+class ConditionalOnClass implements Condition
 {
-    /**
-     * @var string
-     */
-    public $value;
+    public function __construct(private string $className)
+    {
+    }
 
     public function matches(ContainerInterface $container): bool
     {
-        return !class_exists($this->value) && !interface_exists($this->value);
+        return class_exists($this->className) || interface_exists($this->className);
     }
 }

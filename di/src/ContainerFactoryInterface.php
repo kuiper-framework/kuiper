@@ -17,5 +17,8 @@ use Psr\Container\ContainerInterface;
 
 interface ContainerFactoryInterface
 {
+    /**
+     * Creates the container.
+     */
     public function create(): ContainerInterface;
 }

@@ -17,10 +17,7 @@ use Psr\Container\ContainerInterface;
 
 trait ContainerAwareTrait
 {
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
+    protected ContainerInterface $container;
 
     public function setContainer(ContainerInterface $container): void
     {

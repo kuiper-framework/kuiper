@@ -16,31 +16,20 @@ namespace kuiper\di;
 use DI\Definition\ObjectDefinition;
 use DI\Definition\ObjectDefinition\MethodInjection;
 use DI\Definition\Reference;
+use kuiper\reflection\ReflectionType;
 
 class AwareInjection
 {
-    /**
-     * @var string
-     */
-    private $awareInterfaceName;
-
-    /**
-     * @var string
-     */
-    private $setter;
-
     /**
      * @var callable
      */
     private $methodInjectionFactory;
 
-    /**
-     * AwareInterface constructor.
-     */
-    public function __construct(string $awareInterfaceName, string $setter, callable $methodInjectionFactory)
+    public function __construct(
+        private string $awareInterfaceName,
+        private string $setter,
+        callable $methodInjectionFactory)
     {
-        $this->awareInterfaceName = $awareInterfaceName;
-        $this->setter = $setter;
         $this->methodInjectionFactory = $methodInjectionFactory;
     }
 
@@ -77,12 +66,13 @@ class AwareInjection
             throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} has more than one parameter");
         }
         $parameter = $parameters[0];
-        if ($parameter->getType()->isBuiltin()) {
-            throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} parameter {$parameter->getName()} should has class type");
+        $parameterType = ReflectionType::fromPhpType($parameter->getType());
+        if (!$parameterType->isClass()) {
+            throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} parameter {$parameter->getName()} not a class");
         }
         $setter = $method->getName();
         /** @phpstan-ignore-next-line */
-        $beanName = $parameter->getType()->getName();
+        $beanName = $parameterType->getName();
 
         return new self($awareInterfaceName, $setter, function () use ($beanName): array {
             return [new Reference($beanName)];

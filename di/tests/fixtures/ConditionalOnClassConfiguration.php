@@ -13,24 +13,20 @@ declare(strict_types=1);
 
 namespace kuiper\di\fixtures;
 
-use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnClass;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\ConditionalOnClass;
 
 class ConditionalOnClassConfiguration
 {
-    /**
-     * @ConditionalOnClass("kuiper\di\fixtures\Foo")
-     * @Bean()
-     */
+    #[ConditionalOnClass(Foo::class)]
+    #[Bean]
     public function foo(): Foo
     {
         return new Foo('foo');
     }
 
-    /**
-     * @ConditionalOnClass(\Bar::class)
-     * @Bean("bar")
-     */
+    #[ConditionalOnClass(\Bar::class)]
+    #[Bean]
     public function bar()
     {
         return new Foo('bar');

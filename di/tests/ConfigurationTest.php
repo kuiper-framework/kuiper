@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 
 class ConfigurationTest extends TestCase
 {
-    public function testBeanConfiguration()
+    public function testBeanConfiguration(): void
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new BeanConfiguration());
@@ -30,10 +30,10 @@ class ConfigurationTest extends TestCase
         $this->assertEquals('bar', $bar->name);
     }
 
-    public function testInject()
+    public function testInject(): void
     {
         $builder = new ContainerBuilder();
-        $builder->useAnnotations(true);
+        $builder->useAttribute(true);
         $builder->addConfiguration(new BeanConfiguration());
         $container = $builder->build();
         $bar = $container->get('foo');

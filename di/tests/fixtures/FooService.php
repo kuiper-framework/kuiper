@@ -13,11 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\di\fixtures;
 
-use kuiper\di\annotation\Service;
+use kuiper\di\attribute\Service;
 
-/**
- * @Service()
- */
+#[Service]
 class FooService implements FooServiceInterface
 {
 }

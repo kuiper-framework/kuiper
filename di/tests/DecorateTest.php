@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 
 class DecorateTest extends TestCase
 {
-    public function testKuiperDecorate()
+    public function testKuiperDecorate(): void
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->addDefinitions([
@@ -27,13 +27,13 @@ class DecorateTest extends TestCase
         ]);
         $containerBuilder->addDefinitions([
             'foo' => decorate(function ($value) {
-                //error_log("call double");
+                // error_log("call double");
                 return $value * 2;
             }),
         ]);
         $containerBuilder->addDefinitions([
             'foo' => decorate(function ($value) {
-                //error_log("call pow");
+                // error_log("call pow");
                 return $value ** 2;
             }),
         ]);
@@ -42,7 +42,7 @@ class DecorateTest extends TestCase
         $this->assertEquals(7056, $container->get('foo'));
     }
 
-    public function testDIDecorate()
+    public function testDIDecorate(): void
     {
         $containerBuilder = new \DI\ContainerBuilder();
         $containerBuilder->addDefinitions([
@@ -50,7 +50,7 @@ class DecorateTest extends TestCase
         ]);
         $containerBuilder->addDefinitions([
             'foo' => decorate(function ($value) {
-                //error_log("call double");
+                // error_log("call double");
                 return $value * 2;
             }),
         ]);

@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
 
 class ConditionalConfigurationTest extends TestCase
 {
-    public function testBeanConfiguration()
+    public function testBeanConfiguration(): void
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new DependOnNonExistClassConfiguration());
@@ -31,7 +31,7 @@ class ConditionalConfigurationTest extends TestCase
         $this->assertEquals(['foo' => 'bar'], $foo);
     }
 
-    public function testConditionalIsAlwaysOveride()
+    public function testConditionalIsAlwaysOveride(): void
     {
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new DependOnBarConfiguration());
@@ -43,7 +43,7 @@ class ConditionalConfigurationTest extends TestCase
         $this->assertEquals('foo_value', $foo);
     }
 
-    public function testIgnoreCondition()
+    public function testIgnoreCondition(): void
     {
         $builder = new ContainerBuilder();
         $builder->addDefinitions($builder->getConfigurationDefinitionLoader()

@@ -11,14 +11,22 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\fixtures;
+namespace kuiper\di\attribute;
 
-class Foo
+use kuiper\di\Component;
+
+#[\Attribute(\Attribute::TARGET_CLASS)]
+final class Command implements Component
 {
+    use ComponentTrait;
+
     public function __construct(private string $name)
     {
     }
 
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return $this->name;

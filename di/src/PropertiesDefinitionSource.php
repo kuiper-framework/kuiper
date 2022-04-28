@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
+use DI\Definition\Definition;
 use DI\Definition\Source\DefinitionSource;
 use DI\Definition\ValueDefinition;
 use kuiper\helper\PropertyResolverInterface;
@@ -20,31 +21,19 @@ use kuiper\helper\PropertyResolverInterface;
 class PropertiesDefinitionSource implements DefinitionSource
 {
     /**
-     * @var PropertyResolverInterface
-     */
-    private $properties;
-
-    /**
-     * @var string
-     */
-    private $prefix;
-
-    /**
      * PropertiesDefinitionSource constructor.
      */
-    public function __construct(PropertyResolverInterface $properties, string $prefix = 'application.')
+    public function __construct(private PropertyResolverInterface $properties, private string $prefix = 'application.')
     {
-        $this->properties = $properties;
-        $this->prefix = $prefix;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefinition(string $name)
+    public function getDefinition(string $name): ?Definition
     {
         $value = $this->properties->get($name);
-        if (null !== $value || 0 === strpos($name, $this->prefix)) {
+        if (null !== $value || str_starts_with($name, $this->prefix)) {
             return new ValueDefinition($value);
         }
 

@@ -30,7 +30,7 @@ class AwareAutowiringTest extends TestCase
         \Mockery::close();
     }
 
-    public function testAware()
+    public function testAware(): void
     {
         $builder = new ContainerBuilder();
         $builder->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class));
@@ -48,7 +48,7 @@ class AwareAutowiringTest extends TestCase
         $this->assertNotSame($logger, $fooWithLogger->getLogger());
     }
 
-    public function testFactory()
+    public function testFactory(): void
     {
         $builder = new ContainerBuilder();
         $mock = \Mockery::mock(LoggerFactoryInterface::class);

@@ -11,8 +11,9 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di\attribute;
 
+use Attribute;
 use DI\Definition\AutowireDefinition;
 use DI\Definition\Reference;
 use kuiper\di\ComponentCollection;
@@ -20,25 +21,20 @@ use kuiper\di\ComponentDefinition;
 use kuiper\di\ContainerBuilderAwareInterface;
 use kuiper\di\ContainerBuilderAwareTrait;
 
-/**
- * @Annotation
- * @Target({"CLASS"})
- */
-class Component implements ComponentInterface, ContainerBuilderAwareInterface
+#[Attribute(Attribute::TARGET_CLASS)]
+class Component implements \kuiper\di\Component, ContainerBuilderAwareInterface
 {
     use ComponentTrait;
     use ContainerBuilderAwareTrait;
 
-    /**
-     * @var string
-     */
-    public $value = '';
+    public function __construct(private ?string $value = null)
+    {
+    }
 
     public function handle(): void
     {
         ComponentCollection::register($this);
         $className = $this->class->getName();
-        $this->setComponentId($className);
         if (!empty($this->value)) {
             $names = [$this->value];
         } else {
@@ -47,6 +43,7 @@ class Component implements ComponentInterface, ContainerBuilderAwareInterface
                 $names = [$className];
             }
         }
+        $this->setComponentId($names[0]);
         $definitions = [];
         foreach ($names as $name) {
             if ($name === $className) {

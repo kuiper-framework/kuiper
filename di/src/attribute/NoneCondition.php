@@ -11,27 +11,26 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di\attribute;
 
+use Attribute;
 use kuiper\di\Condition;
 use Psr\Container\ContainerInterface;
 
-/**
- * @Annotation
- * @Target({"CLASS", "METHOD", "ANNOTATION"})
- *
- * @property Condition[] $value
- */
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class NoneCondition implements Condition
 {
     /**
-     * @var array
+     * NoneCondition constructor.
+     * @param Condition[] $conditions
      */
-    public $value;
+    public function __construct(private array $conditions)
+    {
+    }
 
     public function matches(ContainerInterface $container): bool
     {
-        foreach ($this->value as $condition) {
+        foreach ($this->conditions as $condition) {
             if ($condition->matches($container)) {
                 return false;
             }

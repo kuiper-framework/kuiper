@@ -13,32 +13,25 @@ declare(strict_types=1);
 
 namespace kuiper\di\fixtures;
 
-use DI\Annotation\Inject;
-use kuiper\di\annotation\Bean;
+use DI\Attribute\Inject;
+use kuiper\di\attribute\Bean;
 
 class BeanConfiguration
 {
-    /**
-     * @Bean()
-     */
+    #[Bean]
     public function bar(): Bar
     {
         return new Bar('bar');
     }
 
-    /**
-     * @Bean(name="otherBar")
-     */
+    #[Bean('otherBar')]
     public function otherBar(): Bar
     {
         return new Bar('other');
     }
 
-    /**
-     * @Bean("foo")
-     * @Inject({"bar"="otherBar"})
-     */
-    public function foo(Bar $bar): Bar
+    #[Bean('foo')]
+    public function foo(#[Inject('otherBar')] Bar $bar): Bar
     {
         return $bar;
     }

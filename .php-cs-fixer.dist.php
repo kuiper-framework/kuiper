@@ -5,8 +5,8 @@ declare(strict_types=1);
 $config = new PhpCsFixer\Config();
 
 $finder = PhpCsFixer\Finder::create()
-        ->in('.')
-        ->notName('config.php');
+    ->in('.')
+    ->notPath(['config.php', 'fixtures']);
 
 return $config
     ->setFinder($finder)

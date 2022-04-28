@@ -11,39 +11,26 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di\attribute;
 
+use Attribute;
 use kuiper\di\Condition;
 use kuiper\helper\PropertyResolverInterface;
 use Psr\Container\ContainerInterface;
 
-/**
- * @Annotation
- * @Target({"CLASS", "METHOD", "ANNOTATION"})
- */
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class ConditionalOnProperty implements Condition
 {
-    /**
-     * @var string
-     */
-    public $value;
-
-    /**
-     * @var mixed
-     */
-    public $hasValue;
-
-    /**
-     * @var bool
-     */
-    public $matchIfMissing = false;
+    public function __construct(private string $name, private mixed $hasValue = null, private bool $matchIfMissing = false)
+    {
+    }
 
     public function matches(ContainerInterface $container): bool
     {
         if (!$container->has(PropertyResolverInterface::class)) {
             throw new \InvalidArgumentException(PropertyResolverInterface::class.' should be registered in container');
         }
-        $value = $container->get(PropertyResolverInterface::class)->get($this->value);
+        $value = $container->get(PropertyResolverInterface::class)->get($this->name);
         if (isset($value)) {
             if (isset($this->hasValue)) {
                 return $this->equals($value, $this->hasValue);
@@ -55,11 +42,7 @@ class ConditionalOnProperty implements Condition
         return $this->matchIfMissing;
     }
 
-    /**
-     * @param mixed             $value
-     * @param bool|string|mixed $hasValue
-     */
-    private function equals($value, $hasValue): bool
+    private function equals(mixed $value, mixed $hasValue): bool
     {
         if (is_bool($hasValue)) {
             return ((bool) $value) === $hasValue;

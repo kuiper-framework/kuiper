@@ -24,23 +24,17 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
     private const METHOD_PARAM_REGEX = '/@param\s+(\S+)\s+\$([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)/';
 
     /**
-     * @var ReflectionFileFactoryInterface
-     */
-    private $reflectionFileFactory;
-
-    /**
      * @var array
      */
-    private static $CACHE;
+    private static array $CACHE;
 
     /**
      * @var ReflectionDocBlockFactoryInterface
      */
-    private static $INSTANCE;
+    private static ReflectionDocBlockFactoryInterface $INSTANCE;
 
-    private function __construct(?ReflectionFileFactoryInterface $reflectionFileFactory)
+    private function __construct(private ReflectionFileFactoryInterface $reflectionFileFactory)
     {
-        $this->reflectionFileFactory = $reflectionFileFactory;
     }
 
     public static function createInstance(ReflectionFileFactoryInterface $reflectionFileFactory): ReflectionDocBlockFactoryInterface

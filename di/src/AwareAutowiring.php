@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
+use DI\Definition\Definition;
 use DI\Definition\ObjectDefinition;
 use DI\Definition\Source\Autowiring;
 use DI\Definition\Source\DefinitionSource;
@@ -20,19 +21,13 @@ use DI\Definition\Source\DefinitionSource;
 class AwareAutowiring implements DefinitionSource, Autowiring
 {
     /**
-     * @var Autowiring
+     * AwareAutowiring constructor.
+     *
+     * @param AwareInjection[] $awareInjections
+     * @param Autowiring|null  $autowiring
      */
-    private $autowiring;
-
-    /**
-     * @var AwareInjection[]
-     */
-    private $awareInjections;
-
-    public function __construct(array $awareInjections = [], Autowiring $autowiring = null)
+    public function __construct(private array $awareInjections = [], private ?Autowiring $autowiring = null)
     {
-        $this->awareInjections = $awareInjections;
-        $this->autowiring = $autowiring;
     }
 
     public function add(AwareInjection $awareInjection, bool $ignoreExist = false): void
@@ -51,7 +46,7 @@ class AwareAutowiring implements DefinitionSource, Autowiring
     /**
      * @param Autowiring $autowiring
      */
-    public function setAutowiring($autowiring): void
+    public function setAutowiring(Autowiring $autowiring): void
     {
         $this->autowiring = $autowiring;
     }
@@ -59,7 +54,7 @@ class AwareAutowiring implements DefinitionSource, Autowiring
     /**
      * {@inheritdoc}
      */
-    public function autowire(string $name, ?ObjectDefinition $definition = null)
+    public function autowire(string $name, ?ObjectDefinition $definition = null): ?ObjectDefinition
     {
         $autowired = $this->autowiring->autowire($name, $definition);
         if ($autowired instanceof ObjectDefinition) {
@@ -77,7 +72,7 @@ class AwareAutowiring implements DefinitionSource, Autowiring
     /**
      * {@inheritdoc}
      */
-    public function getDefinition(string $name)
+    public function getDefinition(string $name): ?Definition
     {
         return $this->autowire($name);
     }

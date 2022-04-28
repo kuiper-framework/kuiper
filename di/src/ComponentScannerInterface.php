@@ -15,7 +15,17 @@ namespace kuiper\di;
 
 interface ComponentScannerInterface
 {
+    /**
+     * Scan components.
+     *
+     * @param string[] $namespaces
+     */
     public function scan(array $namespaces): void;
 
+    /**
+     * Exclude namespace for scan.
+     *
+     * @param string $namespace
+     */
     public function exclude(string $namespace): void;
 }

@@ -11,11 +11,10 @@
 
 declare(strict_types=1);
 
-namespace kuiper\di\annotation;
+namespace kuiper\di;
 
-use kuiper\annotations\AnnotationHandlerInterface;
 
-interface ComponentInterface extends AnnotationHandlerInterface
+interface Component
 {
     /**
      * Sets the components bean name.
@@ -26,4 +25,16 @@ interface ComponentInterface extends AnnotationHandlerInterface
      * @return string
      */
     public function getComponentId(): string;
+
+    /**
+     * @return \Reflector
+     */
+    public function getTarget(): \Reflector;
+
+    /**
+     * @param \Reflector $target
+     */
+    public function setTarget(\Reflector $target): void;
+
+    public function handle(): void;
 }
