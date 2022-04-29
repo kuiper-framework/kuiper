@@ -65,7 +65,7 @@ class AnnotationProcessor implements AnnotationProcessorInterface
     public function process(): void
     {
         $seen = [];
-        foreach (ComponentCollection::getAnnotations(Controller::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(Controller::class) as $annotation) {
             /** @var Controller $annotation */
             $controllerClass = $annotation->getTarget();
             if (null !== $this->namespace && !Text::startsWith($controllerClass->getNamespaceName(), $this->namespace)) {

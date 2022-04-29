@@ -14,34 +14,28 @@ declare(strict_types=1);
 namespace kuiper\cache;
 
 use Psr\SimpleCache\CacheInterface;
+use function serialize;
 use Swoole\Table;
+use function unserialize;
 
 class SwooleTableCache implements CacheInterface
 {
     public const KEY_DATA = 'data';
     public const KEY_EXPIRES = 'expires';
-    /**
-     * @var Table
-     */
-    private $table;
 
-    /**
-     * @var int
-     */
-    private $ttl;
+    private Table $table;
 
     /**
      * @param int $ttl
      * @param int $capacity number of entries to save
      * @param int $size     size for the data
      */
-    public function __construct(int $ttl = 60, int $capacity = 1024, int $size = 512)
+    public function __construct(private int $ttl = 60, int $capacity = 1024, int $size = 512)
     {
         $this->table = new Table($capacity);
         $this->table->column(self::KEY_DATA, Table::TYPE_STRING, $size);
         $this->table->column(self::KEY_EXPIRES, Table::TYPE_INT, 4);
         $this->table->create();
-        $this->ttl = $ttl;
     }
 
     /**
@@ -63,7 +57,7 @@ class SwooleTableCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         $result = $this->table->get($key);
         if ($result && time() < $result[self::KEY_EXPIRES]) {
@@ -76,7 +70,7 @@ class SwooleTableCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
     {
         $this->table->set($key, [
             self::KEY_DATA => $this->serialize($value),
@@ -86,30 +80,20 @@ class SwooleTableCache implements CacheInterface
         return true;
     }
 
-    /**
-     * @param mixed $value
-     *
-     * @return string
-     */
-    protected function serialize($value): string
+    protected function serialize(mixed $value): string
     {
-        return \serialize($value);
+        return serialize($value);
     }
 
-    /**
-     * @param string $data
-     *
-     * @return mixed
-     */
-    protected function unserialize(string $data)
+    protected function unserialize(string $data): mixed
     {
-        return \unserialize($data, ['allowed_classes' => true]);
+        return unserialize($data, ['allowed_classes' => true]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function delete($key)
+    public function delete(string $key): bool
     {
         $this->table->del($key);
 
@@ -119,7 +103,7 @@ class SwooleTableCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function clear()
+    public function clear(): bool
     {
         $keys = [];
         foreach ($this->table as $key => $row) {
@@ -133,7 +117,7 @@ class SwooleTableCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
         $result = [];
         foreach ($keys as $key) {
@@ -146,7 +130,7 @@ class SwooleTableCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);
@@ -158,7 +142,7 @@ class SwooleTableCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys): bool
     {
         foreach ($keys as $key) {
             $this->table->del($key);
@@ -170,7 +154,7 @@ class SwooleTableCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function has($key)
+    public function has(string $key): bool
     {
         $expire = $this->table->get($key, self::KEY_EXPIRES);
 

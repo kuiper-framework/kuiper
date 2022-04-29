@@ -304,7 +304,7 @@ class Application
             }
         }
         /** @var Command $annotation */
-        foreach (ComponentCollection::getAnnotations(Command::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(Command::class) as $annotation) {
             $commandMap[$annotation->name] = static function () use ($container, $annotation): ConsoleCommand {
                 /** @var ConsoleCommand $command */
                 $command = $container->get($annotation->getComponentId());

@@ -199,7 +199,7 @@ class WebConfiguration implements DefinitionConfiguration
         foreach ($errorHandlers as $type => $errorHandler) {
             $errorMiddleware->setErrorHandler($type, $container->get($errorHandler));
         }
-        foreach (ComponentCollection::getAnnotations(annotation\ErrorHandler::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(annotation\ErrorHandler::class) as $annotation) {
             /** @var annotation\ErrorHandler $annotation */
             $errorHandler = $container->get($annotation->getComponentId());
             foreach ((array) $annotation->value as $type) {

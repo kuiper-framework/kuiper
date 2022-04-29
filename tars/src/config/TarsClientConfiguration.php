@@ -142,7 +142,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
         $definitions = [];
         $config = Application::getInstance()->getConfig();
         /** @var TarsClient $annotation */
-        foreach (ComponentCollection::getAnnotations(TarsClient::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(TarsClient::class) as $annotation) {
             $name = $annotation->getComponentId();
             $definitions[$name] = factory(function (TarsProxyFactory $factory) use ($annotation) {
                 $options = Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']);

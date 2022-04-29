@@ -19,32 +19,19 @@ class ArrayCache implements CacheInterface
 {
     public const KEY_DATA = 0;
     public const KEY_EXPIRE = 1;
-    /**
-     * @var array
-     */
-    private $values;
 
-    /**
-     * @var int
-     */
-    private $ttl;
+    private array $values = [];
 
-    /**
-     * @var int
-     */
-    private $capacity;
-
-    public function __construct(int $ttl = 60, int $capacity = 256)
+    public function __construct(
+        private int $ttl = 60,
+        private int $capacity = 256)
     {
-        $this->values = [];
-        $this->capacity = $capacity;
-        $this->ttl = $ttl;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         $result = $this->values[$key] ?? null;
         if (isset($result) && time() < $result[self::KEY_EXPIRE]) {
@@ -57,7 +44,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
     {
         $this->values[$key] = [
             self::KEY_DATA => $value,
@@ -73,7 +60,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function delete($key)
+    public function delete(string $key): bool
     {
         unset($this->values[$key]);
 
@@ -83,7 +70,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function clear()
+    public function clear(): bool
     {
         $this->values = [];
 
@@ -93,7 +80,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
         $values = [];
         foreach ($keys as $key) {
@@ -106,7 +93,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);
@@ -118,7 +105,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys): bool
     {
         foreach ($keys as $key) {
             $this->delete($key);
@@ -130,7 +117,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function has($key)
+    public function has(string $key): bool
     {
         $result = $this->values[$key] ?? null;
 

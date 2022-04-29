@@ -123,7 +123,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         };
         $jsonrpcServices = $this->getServices();
         /** @var JsonRpcClient $annotation */
-        foreach (ComponentCollection::getAnnotations(JsonRpcClient::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(JsonRpcClient::class) as $annotation) {
             if (isset($jsonrpcServices[$annotation->getTargetClass()])) {
                 continue;
             }
@@ -154,7 +154,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
     {
         $services = [];
         /** @var JsonRpcService $annotation */
-        foreach (ComponentCollection::getAnnotations(JsonRpcService::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(JsonRpcService::class) as $annotation) {
             $serviceClass = JsonRpcServerConfiguration::getServiceClass($annotation->getTarget());
             $services[$serviceClass] = true;
         }

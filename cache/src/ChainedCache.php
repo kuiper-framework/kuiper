@@ -18,16 +18,18 @@ use Psr\SimpleCache\CacheInterface;
 class ChainedCache implements CacheInterface
 {
     /**
-     * @var CacheInterface[]
+     * ChainedCache constructor.
+     *
+     * @param CacheInterface[] $cacheList
      */
-    private $cacheList;
-
-    public function __construct(array $cacheList)
+    public function __construct(private iterable $cacheList)
     {
-        $this->cacheList = $cacheList;
     }
 
-    public function get($key, $default = null)
+    /**
+     * {@inheritDoc}
+     */
+    public function get(string $key, mixed $default = null): mixed
     {
         foreach ($this->cacheList as $cache) {
             $value = $cache->get($key);
@@ -39,7 +41,10 @@ class ChainedCache implements CacheInterface
         return $default;
     }
 
-    public function set($key, $value, $ttl = null): bool
+    /**
+     * {@inheritDoc}
+     */
+    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
     {
         foreach ($this->cacheList as $cache) {
             $cache->set($key, $value, $ttl);
@@ -48,7 +53,10 @@ class ChainedCache implements CacheInterface
         return true;
     }
 
-    public function delete($key): bool
+    /**
+     * {@inheritDoc}
+     */
+    public function delete(string $key): bool
     {
         foreach ($this->cacheList as $cache) {
             $cache->delete($key);
@@ -57,6 +65,9 @@ class ChainedCache implements CacheInterface
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function clear(): bool
     {
         foreach ($this->cacheList as $cache) {
@@ -66,7 +77,10 @@ class ChainedCache implements CacheInterface
         return true;
     }
 
-    public function getMultiple($keys, $default = null): iterable
+    /**
+     * {@inheritDoc}
+     */
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
         $values = [];
         foreach ($keys as $key) {
@@ -76,7 +90,10 @@ class ChainedCache implements CacheInterface
         return $values;
     }
 
-    public function setMultiple($values, $ttl = null): bool
+    /**
+     * {@inheritDoc}
+     */
+    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);
@@ -85,7 +102,10 @@ class ChainedCache implements CacheInterface
         return true;
     }
 
-    public function deleteMultiple($keys): bool
+    /**
+     * {@inheritDoc}
+     */
+    public function deleteMultiple(iterable $keys): bool
     {
         foreach ($keys as $key) {
             $this->delete($key);
@@ -94,7 +114,10 @@ class ChainedCache implements CacheInterface
         return true;
     }
 
-    public function has($key): bool
+    /**
+     * {@inheritDoc}
+     */
+    public function has(string $key): bool
     {
         foreach ($this->cacheList as $cache) {
             if ($cache->has($key)) {

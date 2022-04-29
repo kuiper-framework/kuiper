@@ -66,7 +66,7 @@ class HttpClientConfiguration implements DefinitionConfiguration
     {
         $self = $this;
         $definitions = [];
-        foreach (ComponentCollection::getAnnotations(HttpClient::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(HttpClient::class) as $annotation) {
             /** @var HttpClient $annotation */
             $definitions[$annotation->getComponentId()] = factory(function (ContainerInterface $container) use ($self, $annotation) {
                 $options = $container->get('application.http_client');

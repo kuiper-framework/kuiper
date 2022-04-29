@@ -142,7 +142,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
 
         $this->registerAdminServant();
         /** @var TarsServant $annotation */
-        foreach (ComponentCollection::getAnnotations(TarsServant::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(TarsServant::class) as $annotation) {
             $serviceImpl = $container->get($annotation->getComponentId());
             if (false !== strpos($annotation->service, '.')) {
                 $servantName = $annotation->service;
@@ -173,7 +173,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
 
     private function registerAdminServant(): void
     {
-        foreach (ComponentCollection::getAnnotations(TarsServant::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(TarsServant::class) as $annotation) {
             if ('AdminObj' === $annotation->service) {
                 return;
             }

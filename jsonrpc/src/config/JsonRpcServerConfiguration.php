@@ -154,7 +154,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         $annotationReader = $container->get(AnnotationReaderInterface::class);
         $services = [];
         /** @var JsonRpcService $annotation */
-        foreach (ComponentCollection::getAnnotations(JsonRpcService::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(JsonRpcService::class) as $annotation) {
             $serviceName = $annotation->service ?? $this->getServiceName($annotation->getTarget());
             $logger->info(static::TAG."register jsonrpc service $serviceName which served by ".$annotation->getTargetClass());
             $services[$serviceName] = new Service(

@@ -85,7 +85,7 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
                 $events[$eventName] = true;
             }
         };
-        foreach (ComponentCollection::getAnnotations(EventListener::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(EventListener::class) as $annotation) {
             /** @var EventListener $annotation */
             $addListener($annotation->value, $annotation->getComponentId());
         }

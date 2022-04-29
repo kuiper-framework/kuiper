@@ -48,7 +48,7 @@ class RegisterEventListener implements EventListenerInterface
     public function __invoke($event): void
     {
         /** @var EventListener $annotation */
-        foreach (ComponentCollection::getAnnotations(EventListener::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(EventListener::class) as $annotation) {
             $eventListener = $this->container->get($annotation->getComponentId());
             $event = $annotation->value;
             if (Text::isNotEmpty($event)) {

@@ -13,116 +13,101 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
-use DI\Annotation\Inject;
-use kuiper\di\annotation\AllConditions;
-use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnClass;
-use kuiper\di\annotation\ConditionalOnProperty;
+use DI\Attribute\Inject;
+use kuiper\di\attribute\AllConditions;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\ConditionalOnClass;
+use kuiper\di\attribute\ConditionalOnProperty;
+use kuiper\di\ContainerBuilderAwareTrait;
+use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\pool\ConnectionProxyGenerator;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Container\ContainerInterface;
 use Psr\SimpleCache\CacheInterface;
-use Stash\Driver\Composite;
-use Stash\Driver\Ephemeral;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\ChainAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\Cache\Adapter\RedisTagAwareAdapter;
+use function DI\factory;
 
-class CacheConfiguration
+class CacheConfiguration implements DefinitionConfiguration
 {
-    /**
-     * @Bean
-     * @Inject({"redisConfig": "application.redis"})
-     */
-    public function redis(PoolFactoryInterface $poolFactory, ?array $redisConfig): \Redis
+    use ContainerBuilderAwareTrait;
+
+    public function getDefinitions(): array
+    {
+        return [
+            \Symfony\Contracts\Cache\CacheInterface::class => factory([$this, 'symfonyCacheItemPool'])
+        ];
+    }
+
+    public static function buildDsn(array $options): string
+    {
+        $dsn = sprintf('redis://%s%s:%d',
+            isset($options['password']) ? $options['password'] . '@' : '',
+            $options['host'] ?? 'localhost',
+            $options['port'] ?? 6379);
+        $database = (int)($options['database'] ?? 0);
+        if (0 !== $database) {
+            $dsn .= '/' . $database;
+        }
+
+        return $dsn;
+    }
+
+    #[Bean]
+    public function redis(PoolFactoryInterface $poolFactory, #[Inject('application.redis')] ?array $redisConfig): \Redis
     {
         if (!isset($redisConfig)) {
             $redisConfig = [];
         }
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return ConnectionProxyGenerator::create($poolFactory, \Redis::class, static function () use ($redisConfig) {
-            return RedisFactory::createConnection(RedisFactory::buildDsn($redisConfig), $redisConfig);
+            return RedisAdapter::createConnection(self::buildDsn($redisConfig), $redisConfig);
         });
     }
 
-    /**
-     * @Bean()
-     * @Inject({"config": "application.cache.memory"})
-     */
-    public function arrayCache(?array $config): ArrayAdapter
+    #[Bean]
+    public function arrayCache(#[Inject('application.cache.memory')] ?array $config): ArrayAdapter
     {
         $defaultLifetime = $config['lifetime'] ?? 2;
 
         return new ArrayAdapter(
             $defaultLifetime,
             $config['serialize'] ?? true,
-            (int) ($config['max_lifetime'] ?? 2 * $defaultLifetime),
-            (int) ($config['max_items'] ?? 618)
+            (int)($config['max_lifetime'] ?? 2 * $defaultLifetime),
+            (int)($config['max_items'] ?? 618)
         );
     }
 
-    /**
-     * @Bean()
-     * @Inject({"cacheConfig": "application.cache"})
-     * @AllConditions(
-     *     @ConditionalOnClass(ChainAdapter::class),
-     *     @ConditionalOnProperty("application.cache.implementation", hasValue="symfony", matchIfMissing=true)
-     * )
-     */
-    public function symfonyCacheItemPool(LoggerFactoryInterface $loggerFactory, ArrayAdapter $arrayAdapter, \Redis $redis, ?array $cacheConfig): CacheItemPoolInterface
+    #[Bean("symfonyRedisCache")]
+    public function symfonyRedisCache(ContainerInterface $container): \Symfony\Contracts\Cache\CacheInterface
     {
-        $namespace = $cacheConfig['namespace'] ?? '';
-        $defaultLifeTime = (int) ($cacheConfig['lifetime'] ?? 0);
+        $config = $container->get("application.cache");
+        $namespace = $config['namespace'] ?? '';
+        $defaultLifeTime = (int)($config['lifetime'] ?? 0);
 
-        $redisAdapter = new RedisAdapter($redis, $namespace, $defaultLifeTime);
-        $redisAdapter->setLogger($loggerFactory->create(__CLASS__));
-        if (isset($cacheConfig['memory'])) {
-            return new ChainAdapter([$arrayAdapter, $redisAdapter]);
-        }
+        $redisAdapter = new RedisTagAwareAdapter($container->get(\Redis::class), $namespace, $defaultLifeTime);
+        $redisAdapter->setLogger($container->get(LoggerFactoryInterface::class)->create(__CLASS__));
 
         return $redisAdapter;
     }
 
-    /**
-     * @Bean
-     * @Inject({"config": "application.cache.memory"})
-     */
-    public function stashEphemeral(?array $config): Ephemeral
+    #[Bean]
+    #[AllConditions(
+        new ConditionalOnClass(ChainAdapter::class),
+        new ConditionalOnProperty("application.cache.implementation", "symfony", true)
+    )]
+    public function symfonyCacheItemPool(ContainerInterface $container): CacheItemPoolInterface
     {
-        return new Ephemeral(['maxItems' => $config['max_items'] ?? 618]);
-    }
-
-    /**
-     * @Bean()
-     * @Inject({"cacheConfig": "application.cache"})
-     * @AllConditions(
-     *     @ConditionalOnClass(\Stash\Pool::class),
-     *     @ConditionalOnProperty("application.cache.implementation", hasValue="stash", matchIfMissing=true)
-     * )
-     */
-    public function stashCacheItemPool(\Redis $redis, Ephemeral $ephemeral, ?array $cacheConfig): CacheItemPoolInterface
-    {
-        $driver = new RedisDriver([
-            'redis' => $redis,
-            'prefix' => $cacheConfig['namespace'] ?? '',
+        return new ChainAdapter([
+            $container->get(ArrayAdapter::class),
+            $container->get('symfonyRedisCache')
         ]);
-        if (isset($cacheConfig['memory'])) {
-            $driver = new Composite(['drivers' => [$ephemeral, $driver]]);
-        }
-
-        $pool = new CacheItemPool($driver);
-        $lifetime = (int) ($cacheConfig['lifetime'] ?? 0);
-        if ($lifetime > 0) {
-            $pool->setDefaultTtl($lifetime);
-        }
-
-        return $pool;
     }
 
-    /**
-     * @Bean()
-     */
+    #[Bean]
     public function simpleCache(CacheItemPoolInterface $cacheItemPool): CacheInterface
     {
         return new SimpleCache($cacheItemPool);

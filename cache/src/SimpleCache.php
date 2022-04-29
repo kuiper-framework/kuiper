@@ -18,20 +18,14 @@ use Psr\SimpleCache\CacheInterface;
 
 class SimpleCache implements CacheInterface
 {
-    /**
-     * @var CacheItemPoolInterface
-     */
-    private $pool;
-
-    public function __construct(CacheItemPoolInterface $pool)
+    public function __construct(private CacheItemPoolInterface $pool)
     {
-        $this->pool = $pool;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         $cacheItem = $this->pool->getItem($key);
 
@@ -41,7 +35,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
     {
         $cacheItem = $this->pool->getItem($key);
         $cacheItem->set($value);
@@ -55,7 +49,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function delete($key)
+    public function delete(string $key): bool
     {
         return $this->pool->deleteItem($key);
     }
@@ -63,7 +57,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function clear()
+    public function clear(): bool
     {
         return $this->pool->clear();
     }
@@ -71,7 +65,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
         if ($keys instanceof \Traversable) {
             $keys = iterator_to_array($keys, false);
@@ -93,7 +87,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
     {
         $valuesIsArray = \is_array($values);
         if (!$valuesIsArray && !$values instanceof \Traversable) {
@@ -115,7 +109,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys): bool
     {
         if ($keys instanceof \Traversable) {
             $keys = iterator_to_array($keys, false);
@@ -129,7 +123,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function has($key)
+    public function has(string $key): bool
     {
         return $this->pool->hasItem($key);
     }
