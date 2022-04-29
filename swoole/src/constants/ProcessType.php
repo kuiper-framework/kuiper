@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\constants;
 
-use kuiper\helper\Enum;
-
-class ProcessType extends Enum
+enum ProcessType: string
 {
     public const MASTER = 'master';
     public const MANAGER = 'manager';

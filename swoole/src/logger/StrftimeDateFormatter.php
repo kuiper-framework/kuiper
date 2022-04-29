@@ -16,18 +16,12 @@ namespace kuiper\swoole\logger;
 class StrftimeDateFormatter implements DateFormatterInterface
 {
     /**
-     * @var string
-     */
-    private $format;
-
-    /**
      * StrftimeDateFormatter constructor.
      *
      * @param string $format
      */
-    public function __construct(string $format)
+    public function __construct(private readonly string $format)
     {
-        $this->format = $format;
     }
 
     /**

@@ -17,10 +17,7 @@ use kuiper\swoole\pool\PoolInterface;
 
 class PoolTimeoutException extends \Exception
 {
-    /**
-     * @var PoolInterface
-     */
-    private $pool;
+    private PoolInterface $pool;
 
     /**
      * PoolTimeoutException constructor.

@@ -23,14 +23,14 @@ interface PoolInterface
      *
      * @throws PoolTimeoutException|PoolClosedException
      */
-    public function take();
+    public function take(): mixed;
 
     /**
      * Release the connection.
      *
      * @param mixed $connection
      */
-    public function release($connection): void;
+    public function release(mixed $connection): void;
 
     /**
      * Close the pool.

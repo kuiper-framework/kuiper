@@ -24,14 +24,14 @@ class PoolConfig
      *
      * @var int
      */
-    private $minConnections = 1;
+    private int $minConnections = 1;
 
     /**
      * Max connections of pool.
      *
      * @var int
      */
-    private $maxConnections = 10;
+    private int $maxConnections = 10;
 
     /**
      * The timeout of connect the connection.
@@ -39,7 +39,7 @@ class PoolConfig
      *
      * @var float
      */
-    private $connectTimeout = 10.0;
+    private float $connectTimeout = 10.0;
 
     /**
      * The timeout of pop a connection.
@@ -47,7 +47,7 @@ class PoolConfig
      *
      * @var float
      */
-    private $waitTimeout = 3.0;
+    private float $waitTimeout = 3.0;
 
     /**
      * Heartbeat of connection.
@@ -57,21 +57,21 @@ class PoolConfig
      *
      * @var float
      */
-    private $heartbeat = -1;
+    private float $heartbeat = -1;
 
     /**
      * The max idle time for connection.
      *
      * @var float
      */
-    private $maxIdleTime = -1;
+    private float $maxIdleTime = -1;
 
     /**
      * Specifies the interval in seconds before a physical connection is discarded.
      *
      * @var float
      */
-    private $agedTimeout = -1;
+    private float $agedTimeout = -1;
 
     /**
      * PoolConfig constructor.

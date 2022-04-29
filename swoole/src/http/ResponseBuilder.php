@@ -33,15 +33,9 @@ class ResponseBuilder implements LoggerAwareInterface
 
     private const END_OF_LINE = "\r\n";
 
-    /**
-     * @var Properties
-     */
-    private $options;
-
-    public function __construct(Properties $options, ?LoggerInterface $logger)
+    public function __construct(private readonly Properties $options)
     {
-        $this->options = $options;
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setLogger(\kuiper\logger\Logger::nullLogger());
     }
 
     public function build(ServerRequestInterface $request, ResponseInterface $response): string
@@ -55,10 +49,10 @@ class ResponseBuilder implements LoggerAwareInterface
             $encoding = $request->getHeaderLine(HttpHeaderName::ACCEPT_ENCODING);
             if (!empty($encoding)) {
                 $gzipLevel = $this->options->getInt(HttpServerSetting::GZIP_LEVEL, -1);
-                if (false !== strpos($encoding, 'gzip')) {
+                if (str_contains($encoding, 'gzip')) {
                     $body = \gzencode($body, $gzipLevel);
                     $response = $response->withHeader(HttpHeaderName::CONTENT_ENCODING, 'gzip');
-                } elseif (false !== strpos($encoding, 'deflate')) {
+                } elseif (str_contains($encoding, 'deflate')) {
                     $body = \gzdeflate($body, $gzipLevel);
                     $response = $response->withHeader(HttpHeaderName::CONTENT_ENCODING, 'deflate');
                 } else {

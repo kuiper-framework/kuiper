@@ -49,7 +49,7 @@ class PooledTransactionManagerTest extends AbstractRepositoryTestCase
             ++$nofConn;
 
             return $this->createConnection($eventDispatcher);
-        }, new PoolConfig(), $eventDispatcher, new NullLogger());
+        }, new PoolConfig(), $eventDispatcher, \kuiper\logger\Logger::nullLogger());
         $connectionPool = new ConnectionPool($pool);
         $tm = new PooledTransactionManager($connectionPool);
         $repository = new ItemRepository(

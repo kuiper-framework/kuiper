@@ -28,7 +28,7 @@ class ConditionDefinitionSource implements DefinitionSource, ContainerAwareInter
 
     private array $resolving;
 
-    public function __construct(private array $definitions, Autowiring $autowiring = null)
+    public function __construct(private readonly array $definitions, Autowiring $autowiring = null)
     {
         $this->source = new DefinitionArray([], $autowiring);
     }

@@ -18,7 +18,7 @@ use Swoole\Coroutine as SwooleCoroutine;
 
 class CoroutineTest extends TestCase
 {
-    public function testGetContext()
+    public function testGetContext(): void
     {
         SwooleCoroutine::create(function () {
             $context = SwooleCoroutine::getContext();

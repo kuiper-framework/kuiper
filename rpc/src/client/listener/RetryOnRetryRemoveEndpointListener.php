@@ -29,7 +29,7 @@ class RetryOnRetryRemoveEndpointListener implements EventListenerInterface
         $this->serviceDiscovery = $serviceDiscovery;
     }
 
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         if (!$event instanceof RetryOnRetry) {
             return;

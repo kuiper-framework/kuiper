@@ -13,72 +13,41 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\constants;
 
-use kuiper\helper\Enum;
-
-/**
- * Class Event.
- *
- * @property bool $non_swoole
- */
-class Event extends Enum
+enum Event: string
 {
-    public const BOOTSTRAP = 'bootstrap';
-
-    public const START = 'start';
-
-    public const WORKER_START = 'workerStart';
-
-    public const WORKER_STOP = 'workerStop';
-
-    public const WORKER_EXIT = 'workerExit';
-
-    public const WORKER_ERROR = 'workerError';
-
-    public const PIPE_MESSAGE = 'pipeMessage';
-
-    public const REQUEST = 'request';
-
-    public const RECEIVE = 'receive';
-
-    public const CONNECT = 'connect';
-
-    public const HAND_SHAKE = 'handshake';
-
-    public const OPEN = 'open';
-
-    public const MESSAGE = 'message';
-
-    public const CLOSE = 'close';
-
-    public const TASK = 'task';
-
-    public const FINISH = 'finish';
-
-    public const SHUTDOWN = 'shutdown';
-
-    public const PACKET = 'packet';
-
-    public const MANAGER_START = 'managerStart';
-
-    public const MANAGER_STOP = 'managerStop';
-
-    public const BEFORE_RELOAD = 'beforeReload';
-
-    public const AFTER_RELOAD = 'afterReload';
-
-    /**
-     * @var array
-     */
-    protected static $PROPERTIES = [
-        'non_swoole' => [
-            self::BOOTSTRAP => true,
-            self::BEFORE_RELOAD => true,
-            self::AFTER_RELOAD => true,
-        ],
-    ];
+    case BOOTSTRAP = 'bootstrap';
+    case START = 'start';
+    case WORKER_START = 'workerStart';
+    case WORKER_STOP = 'workerStop';
+    case WORKER_EXIT = 'workerExit';
+    case WORKER_ERROR = 'workerError';
+    case PIPE_MESSAGE = 'pipeMessage';
+    case REQUEST = 'request';
+    case RECEIVE = 'receive';
+    case CONNECT = 'connect';
+    case HAND_SHAKE = 'handshake';
+    case OPEN = 'open';
+    case MESSAGE = 'message';
+    case CLOSE = 'close';
+    case TASK = 'task';
+    case FINISH = 'finish';
+    case SHUTDOWN = 'shutdown';
+    case PACKET = 'packet';
+    case MANAGER_START = 'managerStart';
+    case MANAGER_STOP = 'managerStop';
+    case BEFORE_RELOAD = 'beforeReload';
+    case AFTER_RELOAD = 'afterReload';
 
     public static function requestEvents(): array
     {
         return [self::REQUEST, self::MESSAGE, self::RECEIVE];
+    }
+
+    public function isSwooleEvent(): bool
+    {
+        return match ($this) {
+            self::BOOTSTRAP, self::BEFORE_RELOAD, self::AFTER_RELOAD => false,
+            default => true,
+        };
     }
 }

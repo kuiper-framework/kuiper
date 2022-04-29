@@ -54,7 +54,7 @@ class Stat implements StatInterface, LoggerAwareInterface
         $this->store = $store;
         $this->reportInterval = $clientProperties->getReportInterval();
         $this->serverProperties = $serverProperties;
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setLogger($logger ?? \kuiper\logger\Logger::nullLogger());
     }
 
     public function success(RpcResponseInterface $response, int $responseTime): void

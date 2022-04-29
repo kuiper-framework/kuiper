@@ -70,7 +70,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         if (!isset($errorRenderers[$this->defaultContentType])) {
             throw new \InvalidArgumentException("error renderer for {$this->defaultContentType} not found");
         }
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setLogger($logger ?? \kuiper\logger\Logger::nullLogger());
     }
 
     /**

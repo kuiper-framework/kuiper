@@ -160,7 +160,6 @@ class ContainerBuilder implements ContainerBuilderInterface
         $composerJson = json_decode(file_get_contents($projectPath.'/composer.json'), true, 512, JSON_THROW_ON_ERROR);
         $configFile = $projectPath.'/'.($composerJson['extra']['kuiper']['config-file'] ?? 'config/container.php');
         if (file_exists($configFile)) {
-            /** @noinspection PhpIncludeInspection */
             $config = require $configFile;
 
             if (!empty($config['configuration'])) {
@@ -179,7 +178,7 @@ class ContainerBuilder implements ContainerBuilderInterface
         return $builder;
     }
 
-    public function __construct(private string $containerClass = Container::class)
+    public function __construct(private readonly string $containerClass = Container::class)
     {
     }
 

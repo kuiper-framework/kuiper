@@ -22,6 +22,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class SimplePool implements PoolInterface, LoggerAwareInterface
 {
@@ -30,50 +31,34 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @var string
-     */
-    private $poolName;
-    /**
      * @var callable
      */
     private $connectionFactory;
 
-    /**
-     * @var PoolConfig
-     */
-    private $poolConfig;
-
-    /**
-     * @var ChannelInterface
-     */
-    private $channel;
-
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
+    private readonly ChannelInterface $channel;
 
     /**
      * @var ConnectionInterface[]
      */
-    private $connections = [];
+    private array $connections = [];
 
     /**
      * @var ConnectionInterface[][]
      */
-    private $coroutineConnections;
+    private array $coroutineConnections;
 
     /**
      * Pool constructor.
      */
-    public function __construct(string $poolName, callable $connectionFactory, PoolConfig $config, EventDispatcherInterface $eventDispatcher, LoggerInterface $logger)
+    public function __construct(
+        private readonly string $poolName,
+        callable $connectionFactory,
+        private readonly PoolConfig $poolConfig,
+        private readonly EventDispatcherInterface $eventDispatcher)
     {
-        $this->poolName = $poolName;
         $this->connectionFactory = $connectionFactory;
-        $this->poolConfig = $config;
         $this->channel = new Channel($this->poolConfig->getMaxConnections());
-        $this->eventDispatcher = $eventDispatcher;
-        $this->setLogger($logger);
+        $this->setLogger(\kuiper\logger\Logger::nullLogger());
     }
 
     public function close(): void
@@ -84,7 +69,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     /**
      * {@inheritDoc}
      */
-    public function take()
+    public function take(): mixed
     {
         if (!isset($this->connectionFactory)) {
             throw new PoolClosedException();
@@ -113,7 +98,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     /**
      * {@inheritDoc}
      */
-    public function release($connection): void
+    public function release(mixed $connection): void
     {
         $coroutineId = $this->getCoroutineId();
         if (isset($this->coroutineConnections[$coroutineId])) {
@@ -138,7 +123,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
         return $list;
     }
 
-    private function deferReleaseConnection(ConnectionInterface $connection)
+    private function deferReleaseConnection(ConnectionInterface $connection): mixed
     {
         $coroutineId = $this->getCoroutineId();
         if (!isset($this->coroutineConnections[$coroutineId])) {

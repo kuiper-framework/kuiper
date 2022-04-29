@@ -18,7 +18,9 @@ class ReflectionPropertyDocBlock implements ReflectionPropertyDocBlockInterface
     /**
      * ReflectionPropertyDocBlockImpl constructor.
      */
-    public function __construct(private \ReflectionProperty $property, private ReflectionTypeInterface $type)
+    public function __construct(
+        private readonly \ReflectionProperty $property,
+        private readonly ReflectionTypeInterface $type)
     {
     }
 

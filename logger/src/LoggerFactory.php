@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\logger;
 
+use InvalidArgumentException;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\FormattableHandlerInterface;
 use Monolog\Handler\HandlerInterface;
@@ -20,6 +21,7 @@ use Monolog\Handler\RotatingFileHandler;
 use Monolog\Handler\StreamHandler;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use ReflectionClass;
 
 class LoggerFactory implements LoggerFactoryInterface
 {
@@ -28,29 +30,23 @@ class LoggerFactory implements LoggerFactoryInterface
     private const ROOT_LOGGER = 'root';
 
     /**
-     * @var ContainerInterface
-     */
-    private $container;
-
-    /**
      * @var LoggerInterface[]
      */
-    private $loggers;
+    private array $loggers;
 
     /**
      * @var array
      */
-    private $logLevels;
+    private array $logLevels;
     /**
      * @var array
      */
-    private $logNames;
+    private array $logNames;
 
-    public function __construct(ContainerInterface $container, array $loggingConfig)
+    public function __construct(private readonly ContainerInterface $container, array $loggingConfig)
     {
-        $this->container = $container;
         if (!isset($loggingConfig['loggers'][self::ROOT_LOGGER])) {
-            throw new \InvalidArgumentException('loggers.root is required');
+            throw new InvalidArgumentException('loggers.root is required');
         }
         $this->createLoggers($loggingConfig['loggers']);
         $this->logLevels = self::createLogConfig($loggingConfig['level'] ?? [], [$this, 'validateLogLevels']);
@@ -89,7 +85,7 @@ class LoggerFactory implements LoggerFactoryInterface
         }
         $logName = $this->getLogConfig($className, $this->logNames);
 
-        return isset($this->loggers[$logName]) ? $this->loggers[$logName] : $this->loggers[self::ROOT_LOGGER];
+        return $this->loggers[$logName] ?? $this->loggers[self::ROOT_LOGGER];
     }
 
     private function getLogConfig(string $className, array $logConfig): ?string
@@ -97,17 +93,13 @@ class LoggerFactory implements LoggerFactoryInterface
         $parts = explode('\\', trim($className, '\\'));
 
         $i = 0;
-        while (isset($parts[$i], $logConfig[$parts[$i]])
-            && is_array($logConfig[$parts[$i]])) {
+        while (isset($parts[$i], $logConfig[$parts[$i]]) && is_array($logConfig[$parts[$i]])) {
             $logConfig = $logConfig[$parts[$i]];
             ++$i;
         }
-        /** @var mixed|null $logConfig */
-        if (is_array($logConfig)) {
-            $logConfig = $logConfig[self::ROOT] ?? null;
-        }
+        $config = is_array($logConfig) ? $logConfig[self::ROOT] ?? null : $logConfig;
 
-        return is_string($logConfig) ? $logConfig : null;
+        return is_string($config) ? $config : null;
     }
 
     public static function createLogConfig(array $config, callable $checker): array
@@ -115,7 +107,7 @@ class LoggerFactory implements LoggerFactoryInterface
         $logConfig = [];
         foreach ($config as $name => $value) {
             if (!is_string($name)) {
-                throw new \InvalidArgumentException('Log config value should only contain string key');
+                throw new InvalidArgumentException('Log config value should only contain string key');
             }
             if (is_array($value)) {
                 $checker($value, $name);
@@ -127,7 +119,7 @@ class LoggerFactory implements LoggerFactoryInterface
                 while ($parts) {
                     $first = array_shift($parts);
                     if (self::ROOT === $first) {
-                        throw new \InvalidArgumentException("The namespace '$name' is invalid");
+                        throw new InvalidArgumentException("The namespace '$name' is invalid");
                     }
                     if (!isset($subConfig[$first])) {
                         $subConfig[$first] = [];
@@ -145,16 +137,16 @@ class LoggerFactory implements LoggerFactoryInterface
     {
         foreach ($logLevels as $item => $level) {
             if (!is_string($item)) {
-                throw new \InvalidArgumentException('Log level should only contain string key');
+                throw new InvalidArgumentException('Log level should only contain string key');
             }
             if (self::ROOT === $item) {
                 if (null === Logger::getLevel($level)) {
-                    throw new \InvalidArgumentException("Invalid log level '$level' for '$prefix.$item'");
+                    throw new InvalidArgumentException("Invalid log level '$level' for '$prefix.$item'");
                 }
             } elseif (is_array($level)) {
                 self::validateLogLevels($level, $prefix.'.'.$item);
             } else {
-                throw new \InvalidArgumentException('Invalid log level config');
+                throw new InvalidArgumentException('Invalid log level config');
             }
         }
     }
@@ -163,16 +155,16 @@ class LoggerFactory implements LoggerFactoryInterface
     {
         foreach ($logNames as $item => $name) {
             if (!is_string($item)) {
-                throw new \InvalidArgumentException('Log name should only contain string key');
+                throw new InvalidArgumentException('Log name should only contain string key');
             }
             if (self::ROOT === $item) {
                 if (!isset($this->loggers[$name])) {
-                    throw new \InvalidArgumentException("Invalid log name '$name' for '$prefix.$item'");
+                    throw new InvalidArgumentException("Invalid log name '$name' for '$prefix.$item'");
                 }
             } elseif (is_array($name)) {
                 self::validateLogNames($name, $prefix.'.'.$item);
             } else {
-                throw new \InvalidArgumentException('Invalid log name config');
+                throw new InvalidArgumentException('Invalid log name config');
             }
         }
     }
@@ -182,8 +174,8 @@ class LoggerFactory implements LoggerFactoryInterface
         foreach ($loggers as $name => $logConfig) {
             try {
                 $this->loggers[$name] = $this->createLogger($logConfig);
-            } catch (\InvalidArgumentException $e) {
-                throw new \InvalidArgumentException("invalid logger config for '$name'", 0, $e);
+            } catch (InvalidArgumentException $e) {
+                throw new InvalidArgumentException("invalid logger config for '$name'", 0, $e);
             }
         }
     }
@@ -204,7 +196,7 @@ class LoggerFactory implements LoggerFactoryInterface
                 if ($handlerSetting['handler']) {
                     $logger->pushHandler($this->createHandler($handlerSetting));
                 } else {
-                    throw new \InvalidArgumentException('handler is required');
+                    throw new InvalidArgumentException('handler is required');
                 }
             }
         }
@@ -217,20 +209,13 @@ class LoggerFactory implements LoggerFactoryInterface
         return $logger;
     }
 
-    /**
-     * @param int $rotate max Rotate
-     *
-     * @return RotatingFileHandler|StreamHandler
-     */
-    private function createFileHandler(string $logFile, int $logLevel, int $rotate = null)
+    private function createFileHandler(string $logFile, int $logLevel, ?int $rotate = null): StreamHandler
     {
         if (null !== $rotate) {
-            $logHandler = new RotatingFileHandler($logFile, $rotate, $logLevel);
-        } else {
-            $logHandler = new StreamHandler($logFile, $logLevel);
+            return new RotatingFileHandler($logFile, $rotate, $logLevel);
         }
 
-        return $logHandler;
+        return new StreamHandler($logFile, $logLevel);
     }
 
     private function createHandler(array $handlerSetting): HandlerInterface
@@ -246,12 +231,7 @@ class LoggerFactory implements LoggerFactoryInterface
         return $handler;
     }
 
-    /**
-     * @param string|array $definition
-     *
-     * @return object
-     */
-    private function createObject($definition)
+    private function createObject(string|array $definition): mixed
     {
         if (is_string($definition)) {
             return $this->container->get($definition);
@@ -265,20 +245,23 @@ class LoggerFactory implements LoggerFactoryInterface
 
             return new $class(...$args);
         }
-        throw new \InvalidArgumentException('Invalid config');
+        throw new InvalidArgumentException('Invalid config');
     }
 
     private function resolveConstructorParameters(string $class, array $args): array
     {
-        $reflectionClass = new \ReflectionClass($class);
+        $reflectionClass = new ReflectionClass($class);
         $parameters = [];
-        foreach ($reflectionClass->getConstructor()->getParameters() as $parameter) {
-            if (array_key_exists($parameter->getName(), $args)) {
-                $parameters[] = $args[$parameter->getName()];
-            } elseif ($parameter->isOptional()) {
-                $parameters[] = $parameter->getDefaultValue();
-            } else {
-                throw new \InvalidArgumentException("parameter {$parameter->getName()} of $class constructor is required");
+        $constructor = $reflectionClass->getConstructor();
+        if (isset($constructor)) {
+            foreach ($constructor->getParameters() as $parameter) {
+                if (array_key_exists($parameter->getName(), $args)) {
+                    $parameters[] = $args[$parameter->getName()];
+                } elseif ($parameter->isOptional()) {
+                    $parameters[] = $parameter->getDefaultValue();
+                } else {
+                    throw new InvalidArgumentException("parameter {$parameter->getName()} of $class constructor is required");
+                }
             }
         }
 

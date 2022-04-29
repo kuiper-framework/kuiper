@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
+use kuiper\reflection\exception\FileNotFoundException;
 use kuiper\reflection\exception\InvalidTokenException;
 use kuiper\reflection\exception\TokenStoppedException;
 
-class TokenStream
+final class TokenStream
 {
     public const IMPORT_CLASS = 0;
     public const IMPORT_CONST = 1;
@@ -29,17 +30,33 @@ class TokenStream
         T_CONST => self::IMPORT_CONST,
     ];
 
-    private \ArrayIterator $tokens;
-
     private string|array|null $current;
 
     private bool $end = false;
 
     private int $line = 0;
 
-    public function __construct(array $tokens)
+    private function __construct(private readonly \ArrayIterator $tokens)
     {
-        $this->tokens = new \ArrayIterator($tokens);
+    }
+
+    public static function createFromFile(string $file): self
+    {
+        $code = file_get_contents($file);
+        if (false === $code) {
+            throw new FileNotFoundException("Cannot read file '{$file}'");
+        }
+        return self::createFromCode($code);
+    }
+
+    public static function createFromCode(string $code): self
+    {
+        return self::create(token_get_all($code));
+    }
+
+    public static function create(array $tokens): self
+    {
+        return new self(new \ArrayIterator($tokens));
     }
 
     /**

@@ -16,13 +16,14 @@ namespace kuiper\logger;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 
 class Logger extends AbstractLogger
 {
     /**
      * @var int[]
      */
-    private static $LEVELS = [
+    private static array $LEVELS = [
         LogLevel::EMERGENCY => 1,
         LogLevel::ALERT => 2,
         LogLevel::CRITICAL => 3,
@@ -34,28 +35,24 @@ class Logger extends AbstractLogger
     ];
 
     /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @var int
      */
-    private $logLevel;
+    private int $logLevel;
 
-    public function __construct(LoggerInterface $logger, string $logLevel)
+    private static ?NullLogger $NULL_LOGGER = null;
+
+    public function __construct(private readonly LoggerInterface $logger, string $logLevel)
     {
         if (!isset(self::$LEVELS[$logLevel])) {
             throw new \InvalidArgumentException("Unknown log level '$logLevel'");
         }
-        $this->logger = $logger;
         $this->logLevel = self::$LEVELS[$logLevel];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function log($level, $message, array $context = [])
+    public function log($level, string|\Stringable $message, array $context = []): void
     {
         if (self::$LEVELS[$level] <= $this->logLevel) {
             $this->logger->log($level, $message, $context);
@@ -65,5 +62,13 @@ class Logger extends AbstractLogger
     public static function getLevel(string $level): ?int
     {
         return self::$LEVELS[$level] ?? null;
+    }
+
+    public static function nullLogger(): LoggerInterface
+    {
+        if (!isset(self::$NULL_LOGGER)) {
+            self::$NULL_LOGGER = new NullLogger();
+        }
+        return self::$NULL_LOGGER;
     }
 }

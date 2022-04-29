@@ -15,15 +15,9 @@ namespace kuiper\swoole\event;
 
 class ConnectEvent extends AbstractServerEvent
 {
-    /**
-     * @var int
-     */
-    private $clientId;
+    private int $clientId;
 
-    /**
-     * @var int
-     */
-    private $reactorId;
+    private int $reactorId;
 
     public function getClientId(): int
     {

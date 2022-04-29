@@ -15,15 +15,9 @@ namespace kuiper\swoole\event;
 
 class FinishEvent extends AbstractServerEvent
 {
-    /**
-     * @var int
-     */
-    private $taskId;
+    private int $taskId;
 
-    /**
-     * @var ?string
-     */
-    private $result;
+    private ?string $result = null;
 
     public function getTaskId(): int
     {

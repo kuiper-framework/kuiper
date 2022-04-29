@@ -19,11 +19,6 @@ use kuiper\swoole\server\ServerInterface;
 interface TaskInterface
 {
     /**
-     * @param TaskEvent $event
-     */
-    public function setTaskEvent(TaskEvent $event): void;
-
-    /**
      * @return ServerInterface
      */
     public function getServer(): ServerInterface;

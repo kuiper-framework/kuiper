@@ -27,7 +27,7 @@ class Component implements \kuiper\di\Component, ContainerBuilderAwareInterface
     use ComponentTrait;
     use ContainerBuilderAwareTrait;
 
-    public function __construct(private ?string $value = null)
+    public function __construct(private readonly ?string $value = null)
     {
     }
 

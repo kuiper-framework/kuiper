@@ -25,7 +25,7 @@ class AsyncEventDispatcher implements AsyncEventDispatcherInterface
 
     private ?QueueInterface $taskQueue = null;
 
-    public function __construct(private  EventDispatcherInterface $delegateEventDispatcher)
+    public function __construct(private readonly EventDispatcherInterface $delegateEventDispatcher)
     {
     }
 

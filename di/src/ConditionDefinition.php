@@ -28,7 +28,10 @@ class ConditionDefinition implements Definition, Condition
      */
     private $definition;
 
-    public function __construct(private Condition $condition, Definition|callable $definitionResolver, private ?string $name = null)
+    public function __construct(
+        private readonly Condition $condition,
+        Definition|callable $definitionResolver,
+        private ?string $name = null)
     {
         if ($definitionResolver instanceof Definition) {
             $this->definition = $definitionResolver;

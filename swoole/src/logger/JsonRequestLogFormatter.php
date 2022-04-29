@@ -31,7 +31,7 @@ class JsonRequestLogFormatter extends LineRequestLogFormatter
         array $fields = self::MAIN,
         array $extra = ['query', 'body', 'pid'],
         int $bodyMaxSize = 4096,
-        $dateFormat = 'Y-m-d\TH:i:s.v')
+        string|callable $dateFormat = 'Y-m-d\TH:i:s.v')
     {
         parent::__construct('', $extra, $bodyMaxSize, $dateFormat);
         $this->fields = $fields;

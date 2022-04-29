@@ -15,22 +15,13 @@ namespace kuiper\swoole\event;
 
 class WorkerErrorEvent extends AbstractServerEvent
 {
-    /**
-     * @var int
-     */
-    private $workerId;
-    /**
-     * @var int
-     */
-    private $workerPid;
-    /**
-     * @var int
-     */
-    private $exitCode;
-    /**
-     * @var int
-     */
-    private $signal;
+    private int $workerId;
+
+    private int $workerPid;
+
+    private int $exitCode;
+
+    private int $signal;
 
     public function getWorkerId(): int
     {

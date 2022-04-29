@@ -19,20 +19,11 @@ use Psr\EventDispatcher\StoppableEventInterface;
 class ConnectionCreateEvent implements StoppableEventInterface
 {
     use StoppableEventTrait;
-    /**
-     * @var string
-     */
-    private $poolName;
 
-    /**
-     * @var ConnectionInterface
-     */
-    private $connection;
-
-    public function __construct(string $poolName, ConnectionInterface $connection)
+    public function __construct(
+        private readonly string $poolName,
+        private readonly ConnectionInterface $connection)
     {
-        $this->connection = $connection;
-        $this->poolName = $poolName;
     }
 
     public function getPoolName(): string

@@ -18,15 +18,9 @@ use Swoole\Http\Response;
 
 class HandShakeEvent extends AbstractServerEvent
 {
-    /**
-     * @var Request
-     */
-    private $request;
+    private Request $request;
 
-    /**
-     * @var Response
-     */
-    private $response;
+    private Response $response;
 
     public function getRequest(): Request
     {

@@ -13,78 +13,71 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\constants;
 
-use kuiper\helper\Enum;
-
-/**
- * @property string $type
- */
-class ServerSetting extends Enum
+enum ServerSetting : string
 {
-    public const REACTOR_NUM = 'reactor_num';
-    public const WORKER_NUM = 'worker_num';
-    public const MAX_REQUEST = 'max_request';
-    public const MAX_CONN = 'max_conn';
-    public const MAX_CONNECTION = 'max_connection';
-    public const TASK_WORKER_NUM = 'task_worker_num';
-    public const TASK_IPC_MODE = 'task_ipc_mode';
-    public const TASK_MAX_REQUEST = 'task_max_request';
-    public const TASK_TMPDIR = 'task_tmpdir';
-    public const TASK_ENABLE_COROUTINE = 'task_enable_coroutine';
-    public const TASK_USE_OBJECT = 'task_use_object';
-    public const DISPATCH_MODE = 'dispatch_mode';
-    public const DISPATCH_FUNC = 'dispatch_func';
-    public const MESSAGE_QUEUE_KEY = 'message_queue_key';
-    public const DAEMONIZE = 'daemonize';
-    public const BACKLOG = 'backlog';
-    public const LOG_FILE = 'log_file';
-    public const LOG_LEVEL = 'log_level';
-    public const HEARTBEAT_CHECK_INTERVAL = 'heartbeat_check_interval';
-    public const HEARTBEAT_IDLE_TIME = 'heartbeat_idle_time';
-    public const OPEN_EOF_CHECK = 'open_eof_check';
-    public const OPEN_EOF_SPLIT = 'open_eof_split';
-    public const PACKAGE_EOF = 'package_eof';
-    public const OPEN_LENGTH_CHECK = 'open_length_check';
-    public const PACKAGE_LENGTH_TYPE = 'package_length_type';
-    public const PACKAGE_LENGTH_FUNC = 'package_length_func';
-    public const PACKAGE_MAX_LENGTH = 'package_max_length';
-    public const OPEN_CPU_AFFINITY = 'open_cpu_affinity';
-    public const CPU_AFFINITY_IGNORE = 'cpu_affinity_ignore';
-    public const OPEN_TCP_NODELAY = 'open_tcp_nodelay';
-    public const TCP_DEFER_ACCEPT = 'tcp_defer_accept';
-    public const SSL_CERT_FILE = 'ssl_cert_file';
-    public const SSL_METHOD = 'ssl_method';
-    public const SSL_CIPHERS = 'ssl_ciphers';
-    public const USER = 'user';
-    public const GROUP = 'group';
-    public const CHROOT = 'chroot';
-    public const PID_FILE = 'pid_file';
-    public const PIPE_BUFFER_SIZE = 'pipe_buffer_size';
-    public const BUFFER_OUTPUT_SIZE = 'buffer_output_size';
-    public const SOCKET_BUFFER_SIZE = 'socket_buffer_size';
-    public const ENABLE_UNSAFE_EVENT = 'enable_unsafe_event';
-    public const DISCARD_TIMEOUT_REQUEST = 'discard_timeout_request';
-    public const ENABLE_REUSE_PORT = 'enable_reuse_port';
-    public const ENABLE_DELAY_RECEIVE = 'enable_delay_receive';
-    public const OPEN_HTTP_PROTOCOL = 'open_http_protocol';
-    public const OPEN_HTTP2_PROTOCOL = 'open_http2_protocol';
-    public const OPEN_WEBSOCKET_PROTOCOL = 'open_websocket_protocol';
-    public const OPEN_MQTT_PROTOCOL = 'open_mqtt_protocol';
-    public const OPEN_WEBSOCKET_CLOSE_FRAME = 'open_websocket_close_frame';
-    public const RELOAD_ASYNC = 'reload_async';
-    public const TCP_FASTOPEN = 'tcp_fastopen';
-    public const REQUEST_SLOWLOG_FILE = 'request_slowlog_file';
-    public const ENABLE_COROUTINE = 'enable_coroutine';
-    public const MAX_COROUTINE = 'max_coroutine';
-    public const SSL_VERIFY_PEER = 'ssl_verify_peer';
-    public const MAX_WAIT_TIME = 'max_wait_time';
-    public const PACKAGE_LENGTH_OFFSET = 'package_length_offset';
-    public const PACKAGE_BODY_OFFSET = 'package_body_offset';
+    case REACTOR_NUM = 'reactor_num';
+    case WORKER_NUM = 'worker_num';
+    case MAX_REQUEST = 'max_request';
+    case MAX_CONN = 'max_conn';
+    case MAX_CONNECTION = 'max_connection';
+    case TASK_WORKER_NUM = 'task_worker_num';
+    case TASK_IPC_MODE = 'task_ipc_mode';
+    case TASK_MAX_REQUEST = 'task_max_request';
+    case TASK_TMPDIR = 'task_tmpdir';
+    case TASK_ENABLE_COROUTINE = 'task_enable_coroutine';
+    case TASK_USE_OBJECT = 'task_use_object';
+    case DISPATCH_MODE = 'dispatch_mode';
+    case DISPATCH_FUNC = 'dispatch_func';
+    case MESSAGE_QUEUE_KEY = 'message_queue_key';
+    case DAEMONIZE = 'daemonize';
+    case BACKLOG = 'backlog';
+    case LOG_FILE = 'log_file';
+    case LOG_LEVEL = 'log_level';
+    case HEARTBEAT_CHECK_INTERVAL = 'heartbeat_check_interval';
+    case HEARTBEAT_IDLE_TIME = 'heartbeat_idle_time';
+    case OPEN_EOF_CHECK = 'open_eof_check';
+    case OPEN_EOF_SPLIT = 'open_eof_split';
+    case PACKAGE_EOF = 'package_eof';
+    case OPEN_LENGTH_CHECK = 'open_length_check';
+    case PACKAGE_LENGTH_TYPE = 'package_length_type';
+    case PACKAGE_LENGTH_FUNC = 'package_length_func';
+    case PACKAGE_MAX_LENGTH = 'package_max_length';
+    case OPEN_CPU_AFFINITY = 'open_cpu_affinity';
+    case CPU_AFFINITY_IGNORE = 'cpu_affinity_ignore';
+    case OPEN_TCP_NODELAY = 'open_tcp_nodelay';
+    case TCP_DEFER_ACCEPT = 'tcp_defer_accept';
+    case SSL_CERT_FILE = 'ssl_cert_file';
+    case SSL_METHOD = 'ssl_method';
+    case SSL_CIPHERS = 'ssl_ciphers';
+    case USER = 'user';
+    case GROUP = 'group';
+    case CHROOT = 'chroot';
+    case PID_FILE = 'pid_file';
+    case PIPE_BUFFER_SIZE = 'pipe_buffer_size';
+    case BUFFER_OUTPUT_SIZE = 'buffer_output_size';
+    case SOCKET_BUFFER_SIZE = 'socket_buffer_size';
+    case ENABLE_UNSAFE_EVENT = 'enable_unsafe_event';
+    case DISCARD_TIMEOUT_REQUEST = 'discard_timeout_request';
+    case ENABLE_REUSE_PORT = 'enable_reuse_port';
+    case ENABLE_DELAY_RECEIVE = 'enable_delay_receive';
+    case OPEN_HTTP_PROTOCOL = 'open_http_protocol';
+    case OPEN_HTTP2_PROTOCOL = 'open_http2_protocol';
+    case OPEN_WEBSOCKET_PROTOCOL = 'open_websocket_protocol';
+    case OPEN_MQTT_PROTOCOL = 'open_mqtt_protocol';
+    case OPEN_WEBSOCKET_CLOSE_FRAME = 'open_websocket_close_frame';
+    case RELOAD_ASYNC = 'reload_async';
+    case TCP_FASTOPEN = 'tcp_fastopen';
+    case REQUEST_SLOWLOG_FILE = 'request_slowlog_file';
+    case ENABLE_COROUTINE = 'enable_coroutine';
+    case MAX_COROUTINE = 'max_coroutine';
+    case SSL_VERIFY_PEER = 'ssl_verify_peer';
+    case MAX_WAIT_TIME = 'max_wait_time';
+    case PACKAGE_LENGTH_OFFSET = 'package_length_offset';
+    case PACKAGE_BODY_OFFSET = 'package_body_offset';
 
-    /**
-     * @var array
-     */
-    protected static $PROPERTIES = [
-        'type' => [
+    public function type(): string
+    {
+        return match ($this) {
             self::REACTOR_NUM => 'int',
             self::WORKER_NUM => 'int',
             self::MAX_REQUEST => 'int',
@@ -144,6 +137,7 @@ class ServerSetting extends Enum
             self::MAX_WAIT_TIME => 'int',
             self::PACKAGE_BODY_OFFSET => 'int',
             self::PACKAGE_LENGTH_OFFSET => 'int',
-        ],
-    ];
+            default => 'string',
+        };
+    }
 }

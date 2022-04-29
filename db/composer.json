@@ -19,11 +19,11 @@
         "ext-pdo": "*",
         "aura/sqlquery": "^2.7",
         "webmozart/assert": "^1.0",
-        "kuiper/annotations": "^0.7",
-        "kuiper/event": "^0.7",
-        "kuiper/helper": "^0.7",
-        "kuiper/logger": "^0.7",
-        "kuiper/reflection": "^0.7"
+        "kuiper/annotations": "^0.8",
+        "kuiper/event": "^0.8",
+        "kuiper/helper": "^0.8",
+        "kuiper/logger": "^0.8",
+        "kuiper/reflection": "^0.8"
     },
     "autoload": {
         "psr-4": {

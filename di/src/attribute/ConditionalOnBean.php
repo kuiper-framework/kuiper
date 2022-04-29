@@ -20,7 +20,7 @@ use Psr\Container\ContainerInterface;
 #[Attribute(Attribute::TARGET_CLASS| Attribute::TARGET_METHOD)]
 class ConditionalOnBean implements Condition
 {
-    public function __construct(private string $bean)
+    public function __construct(private readonly string $bean)
     {
     }
 

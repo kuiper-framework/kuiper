@@ -21,9 +21,9 @@ class ReflectionMethodDocBlock implements ReflectionMethodDocBlockInterface
      * @param ReflectionTypeInterface[] $parameterTypes
      */
     public function __construct(
-        private \ReflectionMethod $method,
-        private array $parameterTypes,
-        private ReflectionTypeInterface $returnType)
+        private readonly \ReflectionMethod $method,
+        private readonly array $parameterTypes,
+        private readonly ReflectionTypeInterface $returnType)
     {
     }
 

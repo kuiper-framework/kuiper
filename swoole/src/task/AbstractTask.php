@@ -16,12 +16,9 @@ namespace kuiper\swoole\task;
 use kuiper\swoole\event\TaskEvent;
 use kuiper\swoole\server\ServerInterface;
 
-abstract class AbstractTask implements TaskInterface
+abstract class AbstractTask implements TaskInterface, TaskEventAwareInterface
 {
-    /**
-     * @var TaskEvent|null
-     */
-    private $event;
+    private ?TaskEvent $event = null;
 
     public function setTaskEvent(TaskEvent $event): void
     {

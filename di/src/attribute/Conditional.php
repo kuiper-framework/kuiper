@@ -20,7 +20,7 @@ use Psr\Container\ContainerInterface;
 #[Attribute(Attribute::TARGET_CLASS)]
 class Conditional implements Condition
 {
-    public function __construct(private string $condition)
+    public function __construct(private readonly string $condition)
     {
     }
 

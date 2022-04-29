@@ -15,14 +15,9 @@ namespace kuiper\swoole\event;
 
 class PacketEvent extends AbstractServerEvent
 {
-    /**
-     * @var string
-     */
-    private $data;
-    /**
-     * @var array
-     */
-    private $clientInfo;
+    private string $data;
+
+    private array $clientInfo;
 
     public function getData(): string
     {

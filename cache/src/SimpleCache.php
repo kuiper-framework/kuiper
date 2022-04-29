@@ -18,7 +18,7 @@ use Psr\SimpleCache\CacheInterface;
 
 class SimpleCache implements CacheInterface
 {
-    public function __construct(private CacheItemPoolInterface $pool)
+    public function __construct(private readonly CacheItemPoolInterface $pool)
     {
     }
 

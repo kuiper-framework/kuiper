@@ -24,23 +24,18 @@ class TaskEventListener implements EventListenerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
     protected const TAG = '['.__CLASS__.'] ';
-    /**
-     * @var DispatcherInterface
-     */
-    private $taskDispatcher;
 
     /**
      * TaskEventListener constructor.
      */
-    public function __construct(DispatcherInterface $taskProcessor)
+    public function __construct(private readonly DispatcherInterface $taskDispatcher)
     {
-        $this->taskDispatcher = $taskProcessor;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         Assert::isInstanceOf($event, TaskEvent::class);
         /* @var TaskEvent $event */

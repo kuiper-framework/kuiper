@@ -19,7 +19,7 @@ use Swoole\Timer;
 
 class WorkerExitEventListener implements EventListenerInterface
 {
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         Timer::clearAll();
     }

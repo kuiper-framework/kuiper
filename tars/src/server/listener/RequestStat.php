@@ -44,7 +44,7 @@ class RequestStat implements EventListenerInterface
         $this->statFServant = $statFServant;
     }
 
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         $config = Application::getInstance()->getConfig();
         if (!$config->getBool('application.tars.client.enable_stat')) {

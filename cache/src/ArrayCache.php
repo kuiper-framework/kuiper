@@ -23,8 +23,8 @@ class ArrayCache implements CacheInterface
     private array $values = [];
 
     public function __construct(
-        private int $ttl = 60,
-        private int $capacity = 256)
+        private readonly int $ttl = 60,
+        private readonly int $capacity = 256)
     {
     }
 

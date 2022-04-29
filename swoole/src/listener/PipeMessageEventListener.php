@@ -19,22 +19,11 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 class PipeMessageEventListener implements EventListenerInterface
 {
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
-
-    /**
-     * PipeMessageEventListener constructor.
-     *
-     * @param EventDispatcherInterface $eventDispatcher
-     */
-    public function __construct(EventDispatcherInterface $eventDispatcher)
+    public function __construct(private readonly EventDispatcherInterface $eventDispatcher)
     {
-        $this->eventDispatcher = $eventDispatcher;
     }
 
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         /** @var PipeMessageEvent $event */
         $this->eventDispatcher->dispatch($event->getMessage());

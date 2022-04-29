@@ -27,39 +27,16 @@ class RequestParser
     public const END_OF_HEAD = self::END_OF_LINE.self::END_OF_LINE;
     public const HEAD_MAX_LEN = 8192;
 
-    /**
-     * @var HttpServer
-     */
-    private $httpServer;
-    /**
-     * @var int
-     */
-    private $clientId;
+    private ?ServerRequestInterface $request = null;
 
-    /**
-     * @var ServerRequestInterface|null
-     */
-    private $request;
+    private bool $completed = false;
 
-    /**
-     * @var bool
-     */
-    private $completed;
+    private ?string $head = null;
 
-    /**
-     * @var string
-     */
-    private $head;
+    private ?string $body = null;
 
-    /**
-     * @var string
-     */
-    private $body;
-
-    public function __construct(HttpServer $httpServer, int $clientId)
+    public function __construct(private readonly HttpServer $httpServer, private readonly int $clientId)
     {
-        $this->httpServer = $httpServer;
-        $this->clientId = $clientId;
     }
 
     /**
@@ -68,7 +45,7 @@ class RequestParser
     public function receive(string $data): void
     {
         $this->completed = false;
-        if (null === $this->body) {
+        if (!isset($this->body)) {
             $this->addHead($data);
         } else {
             $this->body .= $data;
@@ -81,9 +58,6 @@ class RequestParser
         return $this->completed;
     }
 
-    /**
-     * @return ServerRequestInterface
-     */
     public function getRequest(): ?ServerRequestInterface
     {
         return $this->request;

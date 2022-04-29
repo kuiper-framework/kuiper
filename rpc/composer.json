@@ -16,9 +16,9 @@
         "php": ">=7.2.5",
         "laminas/laminas-code": "^3.4",
         "guzzlehttp/psr7": "^2.0",
-        "kuiper/cache": "^0.7",
-        "kuiper/resilience": "^0.7",
-        "kuiper/swoole": "^0.7"
+        "kuiper/cache": "^0.8",
+        "kuiper/resilience": "^0.8",
+        "kuiper/swoole": "^0.8"
     },
     "autoload": {
         "psr-4": {

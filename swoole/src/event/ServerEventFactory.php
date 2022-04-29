@@ -153,10 +153,7 @@ class ServerEventFactory
         return $event;
     }
 
-    /**
-     * @param mixed $data
-     */
-    public function createTaskEvent(int $taskId, int $fromWorkerId, $data): TaskEvent
+    public function createTaskEvent(int $taskId, int $fromWorkerId, mixed $data): TaskEvent
     {
         $event = new TaskEvent();
         $event->setTaskId($taskId);
@@ -184,10 +181,7 @@ class ServerEventFactory
         return $event;
     }
 
-    /**
-     * @param Request $request
-     */
-    public function createOpenEvent($request): OpenEvent
+    public function createOpenEvent(Request $request): OpenEvent
     {
         $event = new OpenEvent();
         $event->setRequest($request);
@@ -195,11 +189,7 @@ class ServerEventFactory
         return $event;
     }
 
-    /**
-     * @param Request  $request
-     * @param Response $response
-     */
-    public function createHandShakeEvent($request, $response): HandShakeEvent
+    public function createHandShakeEvent(Request $request, Response $response): HandShakeEvent
     {
         $event = new HandShakeEvent();
         $event->setRequest($request);

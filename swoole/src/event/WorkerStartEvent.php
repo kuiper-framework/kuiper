@@ -15,10 +15,7 @@ namespace kuiper\swoole\event;
 
 class WorkerStartEvent extends AbstractServerEvent
 {
-    /**
-     * @var int
-     */
-    private $workerId;
+    private int $workerId;
 
     public function getWorkerId(): int
     {

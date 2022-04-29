@@ -17,19 +17,10 @@ use Laminas\Diactoros\Stream;
 
 class FileStream implements FileStreamInterface
 {
-    /**
-     * @var string
-     */
-    private $fileName;
+    private readonly Stream $stream;
 
-    /**
-     * @var Stream
-     */
-    private $stream;
-
-    public function __construct(string $fileName)
+    public function __construct(private readonly string $fileName)
     {
-        $this->fileName = $fileName;
         $this->stream = new Stream($fileName);
     }
 

@@ -33,24 +33,16 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
     use ContainerAwareTrait;
 
     protected const TAG = '['.__CLASS__.'] ';
-    /**
-     * @var ServerInterface
-     */
-    private $server;
 
-    /**
-     * WorkerStartEventListener constructor.
-     */
-    public function __construct(?LoggerInterface $logger, ServerInterface $server)
+    public function __construct(private readonly ServerInterface $server)
     {
-        $this->setLogger($logger ?? new NullLogger());
-        $this->server = $server;
+        $this->setLogger(\kuiper\logger\Logger::nullLogger());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         Assert::isInstanceOf($event, WorkerStartEvent::class);
         /* @var WorkerStartEvent $event */

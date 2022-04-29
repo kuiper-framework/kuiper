@@ -6,7 +6,7 @@ namespace kuiper\swoole\pool;
 
 class PoolHelper
 {
-    public static function call(PoolInterface $pool, callable $call)
+    public static function call(PoolInterface $pool, callable $call): mixed
     {
         $conn = $pool->take();
         try {

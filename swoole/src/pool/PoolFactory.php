@@ -13,31 +13,22 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use kuiper\event\EventDispatcherAwareInterface;
+use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\event\NullEventDispatcher;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface
+class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface, EventDispatcherAwareInterface
 {
     use LoggerAwareTrait;
+    use EventDispatcherAwareTrait;
 
     /**
      * @var PoolConfig[]
      */
-    private $poolConfigMap;
-
-    /**
-     * @var bool
-     */
-    private $coroutineEnabled;
-
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
+    private array $poolConfigMap;
 
     /**
      * PoolFactory constructor.
@@ -45,30 +36,20 @@ class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface
      * @param PoolConfig[] $poolConfigMap
      */
     public function __construct(
-        bool $coroutineEnabled = true,
-        array $poolConfigMap = [],
-        ?LoggerInterface $logger = null,
-        ?EventDispatcherInterface $eventDispatcher = null)
+        private readonly bool $coroutineEnabled = true,
+        array $poolConfigMap = [])
     {
-        $this->coroutineEnabled = $coroutineEnabled;
-        $this->eventDispatcher = $eventDispatcher;
         foreach ($poolConfigMap as $poolName => $config) {
             $this->setPoolConfig($poolName, $config);
         }
-        $this->eventDispatcher = $eventDispatcher ?? new NullEventDispatcher();
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setEventDispatcher(new NullEventDispatcher());
+        $this->setLogger(\kuiper\logger\Logger::nullLogger());
     }
 
-    /**
-     * @param array|PoolConfig|mixed $poolConfig
-     */
-    public function setPoolConfig(string $poolName, $poolConfig): void
+    public function setPoolConfig(string $poolName, array|PoolConfig $poolConfig): void
     {
         if (is_array($poolConfig)) {
             $poolConfig = new PoolConfig($poolConfig);
-        }
-        if (!$poolConfig instanceof PoolConfig) {
-            throw new \InvalidArgumentException('invalid pool config '.gettype($poolConfig));
         }
         $this->poolConfigMap[$poolName] = $poolConfig;
     }
@@ -77,10 +58,11 @@ class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface
     {
         $poolConfig = $this->poolConfigMap[$poolName] ?? new PoolConfig();
         if ($this->coroutineEnabled) {
-            $pool = new SimplePool($poolName, $connectionFactory, $poolConfig, $this->eventDispatcher, $this->logger);
+            $pool = new SimplePool($poolName, $connectionFactory, $poolConfig, $this->eventDispatcher);
         } else {
-            $pool = new SingleConnectionPool($poolName, $connectionFactory, $poolConfig, $this->logger);
+            $pool = new SingleConnectionPool($poolName, $connectionFactory, $poolConfig);
         }
+        $pool->setLogger($this->logger);
 
         return $pool;
     }

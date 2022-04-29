@@ -33,7 +33,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
      */
     private static ReflectionDocBlockFactoryInterface $INSTANCE;
 
-    private function __construct(private ReflectionFileFactoryInterface $reflectionFileFactory)
+    private function __construct(private readonly ReflectionFileFactoryInterface $reflectionFileFactory)
     {
     }
 

@@ -35,7 +35,7 @@ class LogStatementQuery implements EventListenerInterface, LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         Assert::isInstanceOf($event, StatementQueriedEvent::class);
         /** @var StatementQueriedEvent $event */

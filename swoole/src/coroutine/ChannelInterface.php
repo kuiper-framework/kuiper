@@ -17,16 +17,21 @@ interface ChannelInterface
 {
     /**
      * @param mixed $data
-     * @param float $timeout
+     * @param float|null $timeout
+     * @return bool
      */
-    public function push($data, float $timeout = null): bool;
+    public function push(mixed $data, float $timeout = null): bool;
 
     /**
-     * @param float $timeout
+     * @param float|null $timeout
      *
-     * @return mixed|false return false if not available
+     * @return mixed return false if not available
      */
-    public function pop(float $timeout = null);
+    public function pop(float $timeout = null): mixed;
 
+    /**
+     * Gets the number of elements in the channel
+     * @return int
+     */
     public function size(): int;
 }

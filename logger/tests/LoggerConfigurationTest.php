@@ -23,7 +23,7 @@ use Psr\Log\LoggerInterface;
 
 class LoggerConfigurationTest extends TestCase
 {
-    public function testLogger()
+    public function testLogger(): void
     {
         $container = $this->createContainer([]);
         $logger = $container->get(LoggerInterface::class);
@@ -31,9 +31,6 @@ class LoggerConfigurationTest extends TestCase
         $this->assertInstanceOf(\Monolog\Logger::class, $logger);
     }
 
-    /**
-     * @return ContainerInterface
-     */
     protected function createContainer(array $config): ContainerInterface
     {
         $builder = new ContainerBuilder();

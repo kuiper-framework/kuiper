@@ -28,7 +28,7 @@ use ReflectionMethod;
 
 class ConfigurationDefinitionLoader
 {
-    public function __construct(private ContainerBuilderInterface $containerBuilder)
+    public function __construct(private readonly ContainerBuilderInterface $containerBuilder)
     {
     }
 

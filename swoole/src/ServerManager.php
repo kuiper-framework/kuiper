@@ -13,12 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use kuiper\logger\Logger;
 use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\exception\ServerStateException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 class ServerManager implements LoggerAwareInterface
 {
@@ -26,18 +25,9 @@ class ServerManager implements LoggerAwareInterface
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @var ServerConfig
-     */
-    private $serverConfig;
-
-    /**
-     * ServerManager constructor.
-     */
-    public function __construct(ServerConfig $serverConfig, ?LoggerInterface $logger)
+    public function __construct(private readonly ServerConfig $serverConfig)
     {
-        $this->serverConfig = $serverConfig;
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setLogger(Logger::nullLogger());
     }
 
     /**

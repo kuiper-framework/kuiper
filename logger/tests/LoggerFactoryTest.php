@@ -17,14 +17,12 @@ use kuiper\swoole\logger\CoroutineIdProcessor;
 use Monolog\Handler\TestHandler;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
 class LoggerFactoryTest extends TestCase
 {
-    /**
-     * @var LoggerFactory
-     */
-    private $factory;
+    private LoggerFactory $factory;
 
     protected function setUp(): void
     {
@@ -63,7 +61,7 @@ class LoggerFactoryTest extends TestCase
         ]);
     }
 
-    public function dataProvider()
+    public function dataProvider(): array
     {
         return [
             // ['Foo', LogLevel::DEBUG],
@@ -77,7 +75,7 @@ class LoggerFactoryTest extends TestCase
     /**
      * @dataProvider dataProvider
      */
-    public function testCreate($class, $loggerClass, $level)
+    public function testCreate($class, $loggerClass, $level): void
     {
         $logger = $this->factory->create($class);
         $this->assertInstanceOf($loggerClass, $logger);
@@ -86,14 +84,14 @@ class LoggerFactoryTest extends TestCase
         }
     }
 
-    private function assertLogLevel(string $level, \Psr\Log\LoggerInterface $logger)
+    private function assertLogLevel(string $level, LoggerInterface $logger): void
     {
         $property = new \ReflectionProperty($logger, 'logLevel');
         $property->setAccessible(true);
         $this->assertEquals(Logger::getLevel($level), $property->getValue($logger));
     }
 
-    public function testGetFoo()
+    public function testGetFoo(): void
     {
         $logger = $this->factory->create('foo\\AccessLog');
         $logger->info('test');

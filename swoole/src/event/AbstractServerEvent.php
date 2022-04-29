@@ -21,10 +21,7 @@ abstract class AbstractServerEvent implements StoppableEventInterface
 {
     use StoppableEventTrait;
 
-    /**
-     * @var ServerInterface
-     */
-    private $server;
+    private ?ServerInterface $server = null;
 
     public function getServer(): ServerInterface
     {

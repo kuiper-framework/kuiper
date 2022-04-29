@@ -20,17 +20,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ServerStopCommand extends Command
 {
     /**
-     * @var ServerManager
-     */
-    private $serverManager;
-
-    /**
      * ServerCommand constructor.
      */
-    public function __construct(ServerManager $serverManager)
+    public function __construct(private readonly ServerManager $serverManager)
     {
         parent::__construct();
-        $this->serverManager = $serverManager;
     }
 
     protected function configure(): void

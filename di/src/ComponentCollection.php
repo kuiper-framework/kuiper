@@ -38,7 +38,9 @@ final class ComponentCollection
     }
 
     /**
-     * @return Component[] all annotation objects
+     * @template T
+     * @param class-string<T> $componentClass
+     * @return T[] all annotation objects
      */
     public static function getComponents(string $componentClass): array
     {

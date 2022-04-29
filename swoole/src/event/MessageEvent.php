@@ -17,10 +17,7 @@ use Swoole\WebSocket\Frame;
 
 class MessageEvent extends AbstractServerEvent
 {
-    /**
-     * @var Frame
-     */
-    private $frame;
+    private Frame $frame;
 
     public function getFrame(): Frame
     {

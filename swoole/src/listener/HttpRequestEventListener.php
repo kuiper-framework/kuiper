@@ -28,21 +28,15 @@ class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInt
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @var RequestHandlerInterface
-     */
-    private $requestHandler;
-
-    public function __construct(RequestHandlerInterface $handler, ?LoggerInterface $logger)
+    public function __construct(private readonly RequestHandlerInterface $requestHandler)
     {
-        $this->requestHandler = $handler;
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setLogger(\kuiper\logger\Logger::nullLogger());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         Assert::isInstanceOf($event, RequestEvent::class);
         try {

@@ -16,8 +16,8 @@ namespace kuiper\swoole\task;
 interface ProcessorInterface
 {
     /**
-     * Processes task.
-     *
+     * Processes the task
+     * @param TaskInterface $task
      * @return mixed|void
      */
     public function process(TaskInterface $task);

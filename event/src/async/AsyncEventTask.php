@@ -17,7 +17,7 @@ use kuiper\swoole\task\AbstractTask;
 
 class AsyncEventTask extends AbstractTask
 {
-    public function __construct(private object $event)
+    public function __construct(private readonly object $event)
     {
     }
 

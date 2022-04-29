@@ -35,7 +35,7 @@ class ServiceMonitor implements EventListenerInterface
         $this->monitor = $monitor;
     }
 
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         $config = Application::getInstance()->getConfig();
         if (!$config->getBool('application.tars.server.enable_monitor')) {

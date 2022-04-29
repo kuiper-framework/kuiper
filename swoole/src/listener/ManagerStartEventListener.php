@@ -23,7 +23,7 @@ class ManagerStartEventListener implements EventListenerInterface
     /**
      * {@inheritdoc}
      */
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         Assert::isInstanceOf($event, ManagerStartEvent::class);
         if (function_exists('pcntl_signal')) {

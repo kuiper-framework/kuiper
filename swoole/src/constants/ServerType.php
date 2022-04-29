@@ -24,58 +24,56 @@ use Swoole\Server;
  * @property array  $settings
  * @property array  $events
  */
-class ServerType extends Enum
+enum ServerType: string
 {
-    public const HTTP = 'http';
-    public const HTTP2 = 'http2';
-    public const WEBSOCKET = 'websocket';
-    public const TCP = 'tcp';
-    public const UDP = 'udp';
-
-    /**
-     * @var array
-     */
-    protected static $PROPERTIES = [
-        'server' => [
-            self::HTTP => HttpServer::class,
-            self::HTTP2 => HttpServer::class,
-            self::WEBSOCKET => HttpServer::class,
-            self::TCP => Server::class,
-            self::UDP => Server::class,
-        ],
-        'settings' => [
-            self::HTTP => [
-                ServerSetting::OPEN_HTTP_PROTOCOL => true,
-                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
-            ],
-            self::HTTP2 => [
-                ServerSetting::OPEN_HTTP_PROTOCOL => false,
-                ServerSetting::OPEN_HTTP2_PROTOCOL => true,
-            ],
-            self::WEBSOCKET => [
-                ServerSetting::OPEN_WEBSOCKET_PROTOCOL => true,
-                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
-            ],
-            self::TCP => [
-                ServerSetting::OPEN_HTTP_PROTOCOL => false,
-                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
-            ],
-            self::UDP => [
-                ServerSetting::OPEN_HTTP_PROTOCOL => false,
-                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
-            ],
-        ],
-        'events' => [
-            self::HTTP => [Event::REQUEST],
-            self::HTTP2 => [Event::REQUEST],
-            self::WEBSOCKET => [Event::REQUEST, Event::MESSAGE, Event::OPEN, Event::HAND_SHAKE],
-            self::TCP => [Event::RECEIVE],
-            self::UDP => [Event::PACKET],
-        ],
-    ];
+    case HTTP = 'http';
+    case HTTP2 = 'http2';
+    case WEBSOCKET = 'websocket';
+    case TCP = 'tcp';
+    case UDP = 'udp';
 
     public function isHttpProtocol(): bool
     {
-        return in_array(Event::REQUEST, $this->events, true);
+        return in_array(Event::REQUEST, $this->handledEvents(), true);
+    }
+
+    public function serverClass(): string
+    {
+        return match ($this) {
+            self::HTTP, self::HTTP2, self::WEBSOCKET => HttpServer::class,
+            self::TCP, self::UDP => Server::class,
+        };
+    }
+
+    public function settings(): array
+    {
+        return match ($this) {
+            self::HTTP => [
+                ServerSetting::OPEN_HTTP_PROTOCOL->value => true,
+                ServerSetting::OPEN_HTTP2_PROTOCOL->value => false,
+            ],
+            self::HTTP2 => [
+                ServerSetting::OPEN_HTTP_PROTOCOL->value => false,
+                ServerSetting::OPEN_HTTP2_PROTOCOL->value => true,
+            ],
+            self::WEBSOCKET => [
+                ServerSetting::OPEN_WEBSOCKET_PROTOCOL->value => true,
+                ServerSetting::OPEN_HTTP2_PROTOCOL->value => false,
+            ],
+            self::TCP, self::UDP => [
+                ServerSetting::OPEN_HTTP_PROTOCOL->value => false,
+                ServerSetting::OPEN_HTTP2_PROTOCOL->value => false,
+            ],
+        };
+    }
+
+    public function handledEvents(): array
+    {
+        return match ($this) {
+            self::HTTP, self::HTTP2 => [Event::REQUEST],
+            self::WEBSOCKET => [Event::REQUEST, Event::MESSAGE, Event::OPEN, Event::HAND_SHAKE],
+            self::TCP => [Event::RECEIVE],
+            self::UDP => [Event::PACKET],
+        };
     }
 }

@@ -63,14 +63,14 @@ class Container implements ContainerInterface, FactoryInterface, InvokerInterfac
      */
     private array $fetchedDefinitions = [];
 
-    private ?InvokerInterface $invoker;
+    private ?InvokerInterface $invoker = null;
 
     /**
      * Container that wraps this container. If none, points to $this.
      */
-    protected ContainerInterface $delegateContainer;
+    protected readonly ContainerInterface $delegateContainer;
 
-    protected ProxyFactory $proxyFactory;
+    protected readonly ProxyFactory $proxyFactory;
 
     /**
      * Use `$container = new Container()` if you want a container with the default configuration.
@@ -225,6 +225,7 @@ class Container implements ContainerInterface, FactoryInterface, InvokerInterfac
      *                             The array can also contain DI definitions, e.g. DI\get().
      *
      * @return mixed result of the function
+     * @throws \Exception
      */
     public function call($callable, array $parameters = []): mixed
     {

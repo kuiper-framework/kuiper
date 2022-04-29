@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server;
 
+use kuiper\event\EventDispatcherAwareInterface;
+use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\helper\Properties;
 use kuiper\swoole\event\AbstractServerEvent;
 use kuiper\swoole\event\MessageInterface;
@@ -24,32 +26,17 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-abstract class AbstractServer implements ServerInterface, LoggerAwareInterface
+abstract class AbstractServer implements ServerInterface, LoggerAwareInterface, EventDispatcherAwareInterface
 {
     use LoggerAwareTrait;
+    use EventDispatcherAwareTrait;
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @var ServerConfig
-     */
-    private $serverConfig;
+    private readonly ServerEventFactory $serverEventFactory;
 
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
-
-    /**
-     * @var ServerEventFactory
-     */
-    private $serverEventFactory;
-
-    public function __construct(ServerConfig $serverConfig, EventDispatcherInterface $eventDispatcher, ?LoggerInterface $logger)
+    public function __construct(private readonly ServerConfig $serverConfig)
     {
-        $this->serverConfig = $serverConfig;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->setLogger($logger ?? new NullLogger());
         $this->serverEventFactory = new ServerEventFactory();
     }
 

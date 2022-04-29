@@ -15,27 +15,12 @@ namespace kuiper\swoole\pool;
 
 class Connection implements ConnectionInterface
 {
-    /**
-     * @var int
-     */
-    private $id;
+    private readonly float $createdAt;
 
-    /**
-     * @var mixed
-     */
-    private $resource;
-
-    /**
-     * @var float
-     */
-    private $createdAt;
-
-    private $coroutineId;
-
-    public function __construct(int $id, $resource)
+    public function __construct(
+        private readonly int $id,
+        private readonly mixed $resource)
     {
-        $this->id = $id;
-        $this->resource = $resource;
         $this->createdAt = microtime(true);
     }
 

@@ -21,11 +21,13 @@ use Psr\Container\ContainerInterface;
 class AnyCondition implements Condition
 {
     /**
-     * AllConditions constructor.
-     * @param Condition[] $conditions
+     * @var Condition[]
      */
-    public function __construct(private array $conditions)
+    private array $conditions;
+
+    public function __construct(Condition ...$conditions)
     {
+        $this->conditions = $conditions;
     }
 
     /**

@@ -15,20 +15,11 @@ namespace kuiper\swoole\event;
 
 class TaskEvent extends AbstractServerEvent
 {
-    /**
-     * @var int
-     */
-    private $taskId;
+    private int $taskId;
 
-    /**
-     * @var int
-     */
-    private $fromWorkerId;
+    private int $fromWorkerId;
 
-    /**
-     * @var mixed
-     */
-    private $data;
+    private mixed $data;
 
     public function getTaskId(): int
     {
@@ -50,18 +41,12 @@ class TaskEvent extends AbstractServerEvent
         $this->fromWorkerId = $fromWorkerId;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getData()
+    public function getData(): mixed
     {
         return $this->data;
     }
 
-    /**
-     * @param mixed $data
-     */
-    public function setData($data): void
+    public function setData(mixed $data): void
     {
         $this->data = $data;
     }

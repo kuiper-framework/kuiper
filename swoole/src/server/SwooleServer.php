@@ -29,25 +29,13 @@ class SwooleServer extends AbstractServer
 {
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @var HttpMessageFactoryHolder
-     */
-    private $httpMessageFactoryHolder;
+    private ?HttpMessageFactoryHolder $httpMessageFactoryHolder = null;
 
-    /**
-     * @var SwooleRequestBridgeInterface
-     */
-    private $swooleRequestBridge;
+    private ?SwooleRequestBridgeInterface $swooleRequestBridge = null;
 
-    /**
-     * @var SwooleResponseBridgeInterface
-     */
-    private $swooleResponseBridge;
+    private ?SwooleResponseBridgeInterface $swooleResponseBridge = null;
 
-    /**
-     * @var Server
-     */
-    private $resource;
+    private ?Server $resource = null;
 
     public function getHttpMessageFactoryHolder(): HttpMessageFactoryHolder
     {

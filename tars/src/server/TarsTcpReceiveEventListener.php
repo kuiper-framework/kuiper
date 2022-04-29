@@ -56,7 +56,7 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
     /**
      * {@inheritdoc}
      */
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         Assert::isInstanceOf($event, ReceiveEvent::class);
         /** @var ReceiveEvent $event */

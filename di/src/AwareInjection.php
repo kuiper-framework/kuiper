@@ -26,8 +26,8 @@ class AwareInjection
     private $methodInjectionFactory;
 
     public function __construct(
-        private string $awareInterfaceName,
-        private string $setter,
+        private  readonly string $awareInterfaceName,
+        private  readonly string $setter,
         callable $methodInjectionFactory)
     {
         $this->methodInjectionFactory = $methodInjectionFactory;

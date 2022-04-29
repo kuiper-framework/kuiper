@@ -21,7 +21,10 @@ use Psr\Container\ContainerInterface;
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class ConditionalOnProperty implements Condition
 {
-    public function __construct(private string $name, private mixed $hasValue = null, private bool $matchIfMissing = false)
+    public function __construct(
+        private readonly string $name,
+        private readonly mixed $hasValue = null,
+        private readonly bool $matchIfMissing = false)
     {
     }
 

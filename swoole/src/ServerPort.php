@@ -19,43 +19,21 @@ use kuiper\swoole\constants\ServerType;
 class ServerPort
 {
     /**
-     * @var string
-     */
-    private $host;
-
-    /**
-     * @var int
-     */
-    private $port;
-
-    /**
-     * @var string
-     *
-     * @see ServerType
-     */
-    private $serverType;
-
-    /**
-     * @var int|null
-     */
-    private $socketType;
-
-    /**
      * @var array
      */
-    private $settings;
+    private array $settings;
 
-    public function __construct(string $host, int $port, string $serverType, array $settings = [])
+    private ?int $socketType = null;
+
+    public function __construct(
+        private readonly string $host,
+        private readonly int $port,
+        private readonly ServerType $serverType,
+        array $settings = [])
     {
-        $this->host = $host;
-        $this->port = $port;
-        if (!ServerType::hasValue($serverType)) {
-            throw new \InvalidArgumentException("Unknown server type $serverType");
-        }
-        $this->serverType = $serverType;
         $this->settings = [];
         foreach ($settings as $name => $value) {
-            if (ServerSetting::hasValue($name)) {
+            if (ServerSetting::tryFrom($name) !== null) {
                 $this->settings[$name] = $value;
             }
         }
@@ -71,7 +49,7 @@ class ServerPort
         return $this->port;
     }
 
-    public function getServerType(): string
+    public function getServerType(): ServerType
     {
         return $this->serverType;
     }
@@ -89,7 +67,7 @@ class ServerPort
 
     public function isHttpProtocol(): bool
     {
-        return ServerType::fromValue($this->serverType)->isHttpProtocol();
+        return $this->serverType->isHttpProtocol();
     }
 
     /**
@@ -97,11 +75,11 @@ class ServerPort
      */
     public function getSettings(): array
     {
-        return array_merge($this->settings, ServerType::fromValue($this->serverType)->settings);
+        return array_merge($this->settings, $this->serverType->settings());
     }
 
     public function __toString(): string
     {
-        return sprintf('%s://%s:%s', $this->serverType, $this->host, $this->port);
+        return sprintf('%s://%s:%s', $this->serverType->value, $this->host, $this->port);
     }
 }

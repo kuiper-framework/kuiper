@@ -21,17 +21,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ServerStartCommand extends Command
 {
     /**
-     * @var ServerInterface
-     */
-    private $server;
-
-    /**
      * ServerCommand constructor.
      */
-    public function __construct(ServerInterface $server)
+    public function __construct(private readonly ServerInterface $server)
     {
         parent::__construct();
-        $this->server = $server;
     }
 
     protected function configure(): void

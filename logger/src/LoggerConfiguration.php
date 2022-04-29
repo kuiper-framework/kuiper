@@ -15,8 +15,8 @@ namespace kuiper\logger;
 
 use DI\Definition\FactoryDefinition;
 use DI\Definition\ObjectDefinition;
+use kuiper\di\attribute\Bean;
 use function DI\factory;
-use kuiper\di\annotation\Bean;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -56,9 +56,7 @@ class LoggerConfiguration implements DefinitionConfiguration
         ];
     }
 
-    /**
-     * @Bean
-     */
+    #[Bean]
     public function loggerFactory(ContainerInterface $container): LoggerFactoryInterface
     {
         $config = $container->get(PropertyResolverInterface::class);
@@ -83,12 +81,6 @@ class LoggerConfiguration implements DefinitionConfiguration
         return new LoggerFactory($container, $loggingConfig);
     }
 
-    /**
-     * @param string $name
-     * @param array  $config
-     *
-     * @return array
-     */
     protected function createRootLogger(string $name, array $config): array
     {
         $rootLoggerConfig = $config['loggers']['root'] ?? [];

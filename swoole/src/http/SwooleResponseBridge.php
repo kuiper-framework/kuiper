@@ -21,23 +21,11 @@ use Swoole\Timer;
 class SwooleResponseBridge implements SwooleResponseBridgeInterface
 {
     /**
-     * swoole default buffer_output_size.
-     *
-     * @var int
+     * @param int $bufferOutputSize swoole default buffer_output_size.
+     * @param int $tempFileDelay Delay milliseconds to delete template response body file.
      */
-    private $bufferOutputSize;
-
-    /**
-     * Delay milliseconds to delete template response body file.
-     *
-     * @var int
-     */
-    private $tempFileDelay;
-
-    public function __construct(int $bufferOutputSize = 2097152, int $tempFileDelay = 5000)
+    public function __construct(private readonly int $bufferOutputSize = 2097152, private readonly int $tempFileDelay = 5000)
     {
-        $this->bufferOutputSize = $bufferOutputSize;
-        $this->tempFileDelay = $tempFileDelay;
     }
 
     /**

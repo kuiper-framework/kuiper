@@ -30,7 +30,7 @@ class SwooleTableCache implements CacheInterface
      * @param int $capacity number of entries to save
      * @param int $size     size for the data
      */
-    public function __construct(private int $ttl = 60, int $capacity = 1024, int $size = 512)
+    public function __construct(private readonly int $ttl = 60, int $capacity = 1024, int $size = 512)
     {
         $this->table = new Table($capacity);
         $this->table->column(self::KEY_DATA, Table::TYPE_STRING, $size);

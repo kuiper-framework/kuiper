@@ -14,17 +14,17 @@ declare(strict_types=1);
 namespace kuiper\swoole;
 
 use Dotenv\Dotenv;
-use kuiper\di\annotation\Command;
+use kuiper\di\attribute\Command;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\ContainerFactoryInterface;
-use function kuiper\helper\env;
 use kuiper\helper\Properties;
 use kuiper\helper\Text;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Command\Command as ConsoleCommand;
 use Symfony\Component\Console\CommandLoader\FactoryCommandLoader;
+use function kuiper\helper\env;
 
 class Application
 {
@@ -33,40 +33,24 @@ class Application
      */
     private $containerFactory;
 
-    /**
-     * @var ContainerInterface
-     */
-    private $container;
+    private ?ContainerInterface $container = null;
 
-    /**
-     * @var string
-     */
-    private $basePath;
+    private ?string $configFile = null;
 
-    /**
-     * @var string|null
-     */
-    private $configFile;
+    private ?Properties $config = null;
 
-    /**
-     * @var Properties
-     */
-    private $config;
-
-    /**
-     * @var self
-     */
-    private static $INSTANCE;
+    private static ?Application $INSTANCE = null;
 
     /**
      * Application constructor.
      *
      * @param ContainerFactoryInterface|callable|null $containerFactory
      */
-    final private function __construct(string $basePath, $containerFactory = null)
+    final private function __construct(
+        private readonly string $basePath,
+        ContainerFactoryInterface|callable $containerFactory = null)
     {
         $this->containerFactory = $containerFactory;
-        $this->basePath = $basePath;
         $this->loadConfig();
     }
 
@@ -84,25 +68,17 @@ class Application
         self::$INSTANCE = $application;
     }
 
-    /**
-     * @param ContainerFactoryInterface|callable|null $containerFactory
-     */
-    public static function create($containerFactory = null): self
+    public static function create(ContainerFactoryInterface|callable $containerFactory = null): self
     {
-        $serverApplication = new static(defined('APP_PATH') ? APP_PATH : self::detectBasePath(), $containerFactory);
+        $app = new static(defined('APP_PATH') ? APP_PATH : self::detectBasePath(), $containerFactory);
         if (null === self::$INSTANCE) {
-            self::setInstance($serverApplication);
+            self::setInstance($app);
         }
 
-        return $serverApplication;
+        return $app;
     }
 
-    /**
-     * @param ContainerFactoryInterface|callable|null $containerFactory
-     *
-     * @throws \Exception
-     */
-    public static function run($containerFactory = null): int
+    public static function run(ContainerFactoryInterface|callable $containerFactory = null): int
     {
         $self = static::create($containerFactory);
 
@@ -127,11 +103,10 @@ class Application
         $this->loadEnv();
         $configFile = $this->config->getString('application.php_config_file', $this->getBasePath().'/src/config.php');
         if (file_exists($configFile)) {
-            /* @noinspection PhpIncludeInspection */
             $this->config->merge(require $configFile);
         }
         $this->config->replacePlaceholder(static function (string $key) {
-            return !Text::startsWith($key, 'ENV.');
+            return !str_starts_with($key, 'ENV.');
         });
     }
 
@@ -160,7 +135,7 @@ class Application
     protected function addCommandLineOptions(array $properties): void
     {
         foreach ($properties as $i => $value) {
-            if (!Text::startsWith($value, 'application.')) {
+            if (!str_starts_with($value, 'application.')) {
                 $value = 'application.'.$value;
                 $properties[$i] = $value;
             }
@@ -303,13 +278,13 @@ class Application
                 $commandMap[$name] = $factory($id);
             }
         }
-        /** @var Command $annotation */
         foreach (ComponentCollection::getComponents(Command::class) as $annotation) {
-            $commandMap[$annotation->name] = static function () use ($container, $annotation): ConsoleCommand {
+            /** @var Command $annotation */
+            $commandMap[$annotation->getName()] = static function () use ($container, $annotation): ConsoleCommand {
                 /** @var ConsoleCommand $command */
                 $command = $container->get($annotation->getComponentId());
                 if (Text::isEmpty($command->getName())) {
-                    $command->setName($annotation->name);
+                    $command->setName($annotation->getName());
                 }
 
                 return $command;
@@ -330,7 +305,7 @@ class Application
                 $rest[] = $token;
                 break;
             }
-            if (Text::startsWith($token, '--')) {
+            if (str_starts_with($token, '--')) {
                 $name = substr($token, 2);
                 $pos = strpos($name, '=');
                 if (false !== $pos) {

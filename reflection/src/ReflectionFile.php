@@ -131,18 +131,14 @@ class ReflectionFile implements ReflectionFileInterface
         if (!defined('T_NAME_FULLY_QUALIFIED')) {
             define('T_NAME_FULLY_QUALIFIED', 24002);
         }
-        $code = file_get_contents($this->file);
-        if (false === $code) {
-            throw new FileNotFoundException("Cannot read file '{$this->file}'");
-        }
-        $tokens = new TokenStream(token_get_all($code));
+        $tokens = TokenStream::createFromFile($this->file);
 
         $this->namespaces = [];
         $this->classes = [];
         $this->traits = [];
         $this->imports = [];
         $this->currentNamespace = '';
-        $this->hasMultipleClasses = $this->detectMultipleClasses($code);
+        $this->hasMultipleClasses = $this->detectMultipleClasses(file_get_contents($this->file));
 
         try {
             while (true) {
@@ -255,10 +251,7 @@ class ReflectionFile implements ReflectionFileInterface
         return [];
     }
 
-    /**
-     * @param string $code
-     */
-    private function detectMultipleClasses($code): bool
+    private function detectMultipleClasses(string $code): bool
     {
         return preg_match_all('/^\s*((abstract|final)+ )?(class|interface|trait)\s+/sm', $code) > 1;
     }

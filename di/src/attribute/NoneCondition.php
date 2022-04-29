@@ -21,11 +21,13 @@ use Psr\Container\ContainerInterface;
 class NoneCondition implements Condition
 {
     /**
-     * NoneCondition constructor.
-     * @param Condition[] $conditions
+     * @var Condition[]
      */
-    public function __construct(private array $conditions)
+    private array $conditions;
+
+    public function __construct(Condition ...$conditions)
     {
+        $this->conditions = $conditions;
     }
 
     public function matches(ContainerInterface $container): bool

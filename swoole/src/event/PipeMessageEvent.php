@@ -15,15 +15,9 @@ namespace kuiper\swoole\event;
 
 class PipeMessageEvent extends AbstractServerEvent
 {
-    /**
-     * @var int
-     */
-    private $fromWorkerId;
+    private int $fromWorkerId;
 
-    /**
-     * @var MessageInterface
-     */
-    private $message;
+    private MessageInterface $message;
 
     public function getFromWorkerId(): int
     {

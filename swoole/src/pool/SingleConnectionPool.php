@@ -26,41 +26,30 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @var string
-     */
-    private $poolName;
-    /**
      * @var callable
      */
     private $connectionFactory;
-    /**
-     * @var ConnectionInterface|null
-     */
-    private $connection;
-    /**
-     * @var PoolConfig
-     */
-    private $poolConfig;
-    /**
-     * @var int
-     */
-    private static $CONNECTION_ID = 1;
+
+    private ?ConnectionInterface $connection = null;
+
+    private static int $CONNECTION_ID = 1;
 
     /**
      * SingleConnectionPool constructor.
      */
-    public function __construct(string $poolName, callable $connectionFactory, PoolConfig $poolConfig, LoggerInterface $logger = null)
+    public function __construct(
+        private readonly string $poolName,
+        callable $connectionFactory,
+        private readonly PoolConfig $poolConfig)
     {
-        $this->poolName = $poolName;
         $this->connectionFactory = $connectionFactory;
-        $this->poolConfig = $poolConfig;
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setLogger(\kuiper\logger\Logger::nullLogger());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function take()
+    public function take(): mixed
     {
         if (!isset($this->connectionFactory)) {
             throw new PoolClosedException();
@@ -85,7 +74,7 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
         return $this->connection->getResource();
     }
 
-    public function release($connection): void
+    public function release(mixed $connection): void
     {
     }
 

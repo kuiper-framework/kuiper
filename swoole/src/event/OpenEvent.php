@@ -17,10 +17,7 @@ use Swoole\Http\Request;
 
 class OpenEvent extends AbstractServerEvent
 {
-    /**
-     * @var Request
-     */
-    private $request;
+    private Request $request;
 
     public function getRequest(): Request
     {

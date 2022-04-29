@@ -26,7 +26,7 @@ class AwareAutowiring implements DefinitionSource, Autowiring
      * @param AwareInjection[] $awareInjections
      * @param Autowiring|null  $autowiring
      */
-    public function __construct(private array $awareInjections = [], private ?Autowiring $autowiring = null)
+    public function __construct(private readonly array $awareInjections = [], private ?Autowiring $autowiring = null)
     {
     }
 

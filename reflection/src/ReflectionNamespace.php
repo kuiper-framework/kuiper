@@ -23,12 +23,11 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
     private array $classes;
 
     public function __construct(
-        private string $namespace,
-        private array $dirs,
-        private array $extensions,
-        private ReflectionFileFactoryInterface $reflectionFileFactory)
+        private readonly string $namespace,
+        private readonly array $dirs,
+        private readonly array $extensions,
+        private readonly ReflectionFileFactoryInterface $reflectionFileFactory)
     {
-        $this->namespace = trim($namespace, self::NAMESPACE_SEPARATOR);
     }
 
     /**
@@ -75,7 +74,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
                         }
                     }
                 } catch (ReflectionException $e) {
-                    throw new ReflectionException("fail to parse file '$file'".$e->getMessage(), 0, $e);
+                    throw new ReflectionException("fail to parse file '$file'" . $e->getMessage(), 0, $e);
                 }
             }
         }

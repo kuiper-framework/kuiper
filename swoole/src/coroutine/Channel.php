@@ -17,67 +17,56 @@ use Swoole\Coroutine\Channel as SwooleChannel;
 
 class Channel implements ChannelInterface
 {
-    /**
-     * @var SwooleChannel
-     */
-    private $channel;
+    private readonly SwooleChannel $channel;
 
-    /**
-     * @var \SplQueue
-     */
-    private $queue;
-
-    /**
-     * @var float
-     */
-    private $timeout;
+    private readonly \SplQueue $queue;
 
     /**
      * Channel constructor.
      */
-    public function __construct(int $size, float $timeout = 0)
+    public function __construct(
+        int $size,
+        private readonly float $timeout = 0)
     {
         $this->channel = new SwooleChannel($size);
         $this->queue = new \SplQueue();
-        $this->timeout = $timeout;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function push($data, float $timeout = null): bool
+    public function push(mixed $data, float $timeout = null): bool
     {
         if (Coroutine::isEnabled()) {
             return $this->channel->push($data, $timeout ?? $this->timeout);
-        } else {
-            $this->queue->push($data);
-
-            return true;
         }
+
+        $this->queue->push($data);
+        return true;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function pop(float $timeout = null)
+    public function pop(float $timeout = null): mixed
     {
         if (Coroutine::isEnabled()) {
             return $this->channel->pop($timeout ?? $this->timeout);
-        } else {
-            if (0 === $this->queue->count()) {
-                return false;
-            }
-
-            return $this->queue->shift();
         }
+
+        if (0 === $this->queue->count()) {
+            return false;
+        }
+
+        return $this->queue->shift();
     }
 
     public function size(): int
     {
         if (Coroutine::isEnabled()) {
             return $this->channel->length();
-        } else {
-            return $this->queue->count();
         }
+
+        return $this->queue->count();
     }
 }

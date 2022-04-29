@@ -16,22 +16,12 @@ namespace kuiper\swoole\pool;
 class GeneratedClass
 {
     /**
-     * @var string
-     */
-    private $className;
-
-    /**
-     * @var string
-     */
-    private $code;
-
-    /**
      * GeneratedClass constructor.
      */
-    public function __construct(string $className, string $code)
+    public function __construct(
+        private readonly string $className,
+        private readonly string $code)
     {
-        $this->className = $className;
-        $this->code = $code;
     }
 
     public function getClassName(): string

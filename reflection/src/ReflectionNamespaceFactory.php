@@ -48,7 +48,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
         return self::$INSTANCE;
     }
 
-    public function __construct(private ReflectionFileFactoryInterface $reflectionFileFactory)
+    public function __construct(private readonly ReflectionFileFactoryInterface $reflectionFileFactory)
     {
     }
 
@@ -72,8 +72,9 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
             }
         }
 
+        $namespaceTrimmed = trim($namespace, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR);
         return $this->namespaces[$namespace]
-            = new ReflectionNamespace($namespace, $dirs, $this->extensions, $this->reflectionFileFactory);
+            = new ReflectionNamespace($namespaceTrimmed, $dirs, $this->extensions, $this->reflectionFileFactory);
     }
 
     public function clearCache(string $namespace = null): void

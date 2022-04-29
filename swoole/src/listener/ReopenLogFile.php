@@ -24,23 +24,12 @@ use Monolog\Logger;
 class ReopenLogFile implements EventSubscriberInterface
 {
     /**
-     * @var LoggerFactoryInterface
-     */
-    private $loggerFactory;
-
-    /**
      * @var int[]
      */
-    private $fileInodes;
+    private array $fileInodes;
 
-    /**
-     * WorkerStartEventListener constructor.
-     *
-     * @param LoggerFactoryInterface $loggerFactory
-     */
-    public function __construct(LoggerFactoryInterface $loggerFactory)
+    public function __construct(private readonly LoggerFactoryInterface $loggerFactory)
     {
-        $this->loggerFactory = $loggerFactory;
     }
 
     /**

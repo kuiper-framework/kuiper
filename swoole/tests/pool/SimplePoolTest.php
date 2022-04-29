@@ -40,7 +40,7 @@ class SimplePoolTest extends TestCase
             },
             new PoolConfig(),
             $eventDispatcher,
-            new NullLogger()
+            \kuiper\logger\Logger::nullLogger()
         );
         $connection = $pool->take();
         foreach ($this->connections as $i => $c) {
@@ -65,7 +65,7 @@ class SimplePoolTest extends TestCase
             },
             new PoolConfig(),
             $eventDispatcher,
-            new NullLogger()
+            \kuiper\logger\Logger::nullLogger()
         );
         $connection = $pool->take();
         foreach ($this->connections as $i => $c) {

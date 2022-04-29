@@ -232,7 +232,7 @@ class TarsProxyFactory implements ContainerAwareInterface
             }
             $logger = null !== $this->loggerFactory
                 ? $this->loggerFactory->create($className)
-                : new NullLogger();
+                : \kuiper\logger\Logger::nullLogger();
             $transporter->setLogger($logger);
 
             return $transporter;

@@ -25,12 +25,11 @@ final class Coroutine
      *
      * @var int
      */
-    private static $HOOK_FLAGS = SWOOLE_HOOK_TCP | SWOOLE_HOOK_UDP | SWOOLE_HOOK_UNIX | SWOOLE_HOOK_UDG | SWOOLE_HOOK_SSL | SWOOLE_HOOK_TLS | SWOOLE_HOOK_SLEEP | SWOOLE_HOOK_FILE | SWOOLE_HOOK_STREAM_SELECT | SWOOLE_HOOK_BLOCKING_FUNCTION;
+    private static int $HOOK_FLAGS = SWOOLE_HOOK_TCP | SWOOLE_HOOK_UDP | SWOOLE_HOOK_UNIX | SWOOLE_HOOK_UDG
+    | SWOOLE_HOOK_SSL | SWOOLE_HOOK_TLS | SWOOLE_HOOK_SLEEP | SWOOLE_HOOK_FILE | SWOOLE_HOOK_STREAM_SELECT
+    | SWOOLE_HOOK_BLOCKING_FUNCTION;
 
-    /**
-     * @var \ArrayObject|null
-     */
-    private static $CONTEXT;
+    private static ?\ArrayObject $CONTEXT;
 
     public static function isEnabled(): bool
     {
@@ -67,7 +66,7 @@ final class Coroutine
             return isset($coroutineId) ? SwooleCoroutine::getContext($coroutineId) : SwooleCoroutine::getContext();
         }
 
-        if (null === self::$CONTEXT) {
+        if (!isset(self::$CONTEXT)) {
             self::$CONTEXT = new \ArrayObject();
         }
 

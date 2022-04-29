@@ -18,14 +18,9 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class RequestEvent extends AbstractServerEvent
 {
-    /**
-     * @var ServerRequestInterface
-     */
-    private $request;
-    /**
-     * @var ResponseInterface
-     */
-    private $response;
+    private ServerRequestInterface $request;
+
+    private ResponseInterface $response;
 
     public function getRequest(): ServerRequestInterface
     {

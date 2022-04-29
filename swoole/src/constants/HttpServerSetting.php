@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\constants;
 
-use kuiper\helper\Enum;
-
-class HttpServerSetting extends Enum
+enum HttpServerSetting: string
 {
     public const GZIP = 'gzip';
     public const KEEPALIVE = 'keepalive';

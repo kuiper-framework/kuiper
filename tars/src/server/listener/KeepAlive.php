@@ -73,7 +73,7 @@ class KeepAlive implements EventListenerInterface, LoggerAwareInterface
         $this->lock->set($this->keepAliveTime);
     }
 
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         /** @var WorkerStartEvent $event */
         $server = $event->getServer();

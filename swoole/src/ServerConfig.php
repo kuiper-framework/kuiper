@@ -20,38 +20,26 @@ use Webmozart\Assert\Assert;
 class ServerConfig
 {
     /**
-     * @var string
-     */
-    private $serverName;
-
-    /**
      * @var ServerPort[]
      */
-    private $ports;
+    private readonly array $ports;
 
     /**
      * @var Properties
      */
-    private $settings;
+    private readonly Properties $settings;
 
-    /**
-     * @var string
-     */
-    private $masterPidFile;
+    private ?string $masterPidFile = null;
 
-    /**
-     * @var string
-     */
-    private $managerPidFile;
+    private ?string $managerPidFile = null;
 
     /**
      * ServerConfig constructor.
      *
      * @param ServerPort[] $ports
      */
-    public function __construct(string $serverName, array $ports)
+    public function __construct(private readonly string $serverName, array $ports)
     {
-        $this->serverName = $serverName;
         Assert::notEmpty($ports, 'at least one server port should be set');
         usort($ports, static function (ServerPort $a, ServerPort $b) {
             if ($a->isHttpProtocol()) {

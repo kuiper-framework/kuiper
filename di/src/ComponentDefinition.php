@@ -17,7 +17,7 @@ use DI\Definition\Definition;
 
 class ComponentDefinition implements Definition
 {
-    public function __construct(private Definition $definition, private Component $component)
+    public function __construct(private readonly Definition $definition, private readonly Component $component)
     {
     }
 

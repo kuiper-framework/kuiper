@@ -18,7 +18,7 @@ namespace kuiper\reflection;
  */
 class FqcnResolver
 {
-    public function __construct(private ReflectionFileInterface $reflectionFile)
+    public function __construct(private readonly ReflectionFileInterface $reflectionFile)
     {
     }
 

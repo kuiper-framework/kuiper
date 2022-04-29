@@ -28,7 +28,7 @@ class ConfigurationProperties implements Component, ContainerBuilderAwareInterfa
     use ComponentTrait;
     use ContainerBuilderAwareTrait;
 
-    public function __construct(private string $prefix)
+    public function __construct(private readonly string $prefix)
     {
     }
 

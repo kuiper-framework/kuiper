@@ -15,14 +15,10 @@ namespace kuiper\swoole\event;
 
 class CloseEvent extends AbstractServerEvent
 {
-    /**
-     * @var int
-     */
-    private $clientId;
-    /**
-     * @var int
-     */
-    private $reactorId;
+
+    private int $clientId;
+
+    private int $reactorId;
 
     public function getClientId(): int
     {

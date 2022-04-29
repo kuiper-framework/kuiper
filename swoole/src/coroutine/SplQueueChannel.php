@@ -15,23 +15,14 @@ namespace kuiper\swoole\coroutine;
 
 class SplQueueChannel implements ChannelInterface
 {
-    /**
-     * @var \SplQueue
-     */
-    private $queue;
-
-    /**
-     * SplQueueChannel constructor.
-     */
-    public function __construct()
+    public function __construct(private readonly \SplQueue $queue = new \SplQueue())
     {
-        $this->queue = new \SplQueue();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function push($data, float $timeout = null): bool
+    public function push(mixed $data, float $timeout = null): bool
     {
         $this->queue->push($data);
 
@@ -41,7 +32,7 @@ class SplQueueChannel implements ChannelInterface
     /**
      * {@inheritdoc}
      */
-    public function pop(float $timeout = null)
+    public function pop(float $timeout = null): mixed
     {
         if (0 === $this->queue->count()) {
             return false;

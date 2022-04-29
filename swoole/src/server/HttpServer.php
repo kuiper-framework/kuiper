@@ -89,7 +89,8 @@ class HttpServer extends SelectTcpServer
     public function getResponseBuilder(): ResponseBuilder
     {
         if (null === $this->responseBuilder) {
-            $this->responseBuilder = new ResponseBuilder($this->getSettings(), $this->logger);
+            $this->responseBuilder = new ResponseBuilder($this->getSettings());
+            $this->responseBuilder->setLogger($this->logger);
         }
 
         return $this->responseBuilder;

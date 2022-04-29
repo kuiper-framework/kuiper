@@ -64,20 +64,20 @@ interface ServerInterface
     /**
      * Send task.
      *
-     * @param mixed    $data
-     * @param int      $taskWorkerId
-     * @param callable $onFinish
+     * @param mixed $data
+     * @param int $taskWorkerId
+     * @param callable|null $onFinish
      *
      * @return mixed
      */
-    public function task($data, $taskWorkerId = -1, $onFinish = null);
+    public function task(mixed $data, int $taskWorkerId = -1, callable $onFinish = null);
 
     /**
      * Finish task and return data.
      *
      * @param mixed $data
      */
-    public function finish($data): void;
+    public function finish(mixed $data): void;
 
     /**
      * @param int      $millisecond
@@ -96,7 +96,8 @@ interface ServerInterface
     public function after(int $millisecond, callable $callback): int;
 
     /**
-     * @return ConnectionInfo
+     * @param int $clientId
+     * @return ConnectionInfo|null
      */
     public function getConnectionInfo(int $clientId): ?ConnectionInfo;
 
@@ -111,5 +112,9 @@ interface ServerInterface
      */
     public function sendMessageToAll(MessageInterface $message): void;
 
+    /**
+     * Gets the server stats
+     * @return array
+     */
     public function stats(): array;
 }

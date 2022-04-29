@@ -11,7 +11,7 @@ interface ConnectionInterface
      *
      * @return mixed
      */
-    public function getResource();
+    public function getResource(): mixed;
 
     /**
      * Gets the connection id.

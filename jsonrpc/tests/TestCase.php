@@ -83,7 +83,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         $builder->setReflectionNamespaceFactory($reflectionNs);
         $builder->componentScan([__NAMESPACE__.'\\fixtures']);
         $builder->addDefinitions([
-            LoggerInterface::class => new NullLogger(),
+            LoggerInterface::class => \kuiper\logger\Logger::nullLogger(),
             LoggerFactoryInterface::class => factory(function (ContainerInterface $container) {
                 return new LoggerFactory($container, [
                     'loggers' => [

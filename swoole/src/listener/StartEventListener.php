@@ -30,18 +30,15 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * StartEventListener constructor.
-     */
-    public function __construct(?LoggerInterface $logger)
+    public function __construct()
     {
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setLogger(\kuiper\logger\Logger::nullLogger());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
         Assert::isInstanceOf($event, StartEvent::class);
         /** @var StartEvent $event */

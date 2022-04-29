@@ -29,8 +29,8 @@ class ComponentScanner implements ComponentScannerInterface
     private array $excludeNamespaces = [];
 
     public function __construct(
-        private ContainerBuilderInterface $containerBuilder,
-        private ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory)
+        private readonly ContainerBuilderInterface $containerBuilder,
+        private readonly ReflectionNamespaceFactoryInterface $reflectionNamespaceFactory)
     {
     }
 

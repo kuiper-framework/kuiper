@@ -91,7 +91,7 @@ class HttpClientConfigurationTest extends TestCase
         $builder->componentScan([__NAMESPACE__.'\\fixtures']);
         $builder->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class));
         $builder->addDefinitions([
-            LoggerInterface::class => new NullLogger(),
+            LoggerInterface::class => \kuiper\logger\Logger::nullLogger(),
             PoolFactoryInterface::class => new PoolFactory(false),
             PropertyResolverInterface::class => $config,
             AnnotationReaderInterface::class => AnnotationReader::getInstance(),

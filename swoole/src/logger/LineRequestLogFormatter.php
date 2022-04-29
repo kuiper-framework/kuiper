@@ -24,7 +24,7 @@ use Psr\Http\Message\ServerRequestInterface;
 class LineRequestLogFormatter implements RequestLogFormatterInterface
 {
     public const MAIN = '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" '
-    .'"$http_user_agent" "$http_x_forwarded_for" rt=$request_time';
+    . '"$http_user_agent" "$http_x_forwarded_for" rt=$request_time';
 
     /**
      * @var string|callable
@@ -32,69 +32,47 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
     private $template;
 
     /**
-     * 放到 extra 中变量，可选值 query, body, jwt, cookies, headers, header.{name}.
-     *
-     * @var string[]
-     */
-    private $extra;
-
-    /**
-     * @var int
-     */
-    private $bodyMaxSize;
-
-    /**
      * @var DateFormatterInterface
      */
-    private $dateFormatter;
+    private readonly DateFormatterInterface $dateFormatter;
 
     /**
      * @var CoroutineIdProcessor
      */
-    private $pidProcessor;
+    private readonly CoroutineIdProcessor $pidProcessor;
 
     /**
      * AccessLog constructor.
      *
      * @param string|callable $template
-     * @param string[]        $extra
-     * @param mixed           $dateFormat
+     * @param string[] $extra 放到 extra 中变量，可选值 query, body, jwt, cookies, headers, header.{name}.
+     * @param mixed $dateFormat
      */
     public function __construct(
-        $template = self::MAIN,
-        array $extra = ['query', 'body'],
-        int $bodyMaxSize = 4096,
-        $dateFormat = '%d/%b/%Y:%H:%M:%S %z')
+        string|callable               $template = self::MAIN,
+        private                       readonly array $extra = ['query', 'body'],
+        private                       readonly int $bodyMaxSize = 4096,
+        string|DateFormatterInterface $dateFormat = '%d/%b/%Y:%H:%M:%S %z')
     {
         if (is_string($template) || is_callable($template)) {
             $this->template = $template;
         } else {
             throw new \InvalidArgumentException('format is invalid');
         }
-        $this->extra = $extra;
-        $this->bodyMaxSize = $bodyMaxSize;
         $this->pidProcessor = new CoroutineIdProcessor();
         $this->dateFormatter = self::createDateFormatter($dateFormat);
     }
 
-    /**
-     * @param mixed $dateFormatter
-     *
-     * @return DateFormatterInterface
-     */
-    public static function createDateFormatter($dateFormatter): DateFormatterInterface
+    public static function createDateFormatter(string|DateFormatterInterface $dateFormatter): DateFormatterInterface
     {
         if ($dateFormatter instanceof DateFormatterInterface) {
             return $dateFormatter;
         }
-        if (is_string($dateFormatter)) {
-            if (substr_count($dateFormatter, '%') >= 2) {
-                return new StrftimeDateFormatter($dateFormatter);
-            }
-
-            return new DateFormatter($dateFormatter);
+        if (substr_count($dateFormatter, '%') >= 2) {
+            return new StrftimeDateFormatter($dateFormatter);
         }
-        throw new \InvalidArgumentException('Unknown date formatter, must by string or DateFormatterInterface, got '.ReflectionType::describe($dateFormatter));
+
+        return new DateFormatter($dateFormatter);
     }
 
     /**
@@ -105,16 +83,16 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         $messageContext = $this->prepareMessageContext($request, $response, $error, $startTime, $endTime);
         if (is_string($this->template)) {
             return [\strtr($this->template, Arrays::mapKeys($messageContext, function ($key) {
-                return '$'.$key;
+                return '$' . $key;
             })), $messageContext['extra'] ?? []];
         }
 
-        return (array) call_user_func($this->template, $messageContext);
+        return (array)call_user_func($this->template, $messageContext);
     }
 
     protected function getJwtPayload(?string $tokenHeader): ?array
     {
-        if (Text::isNotEmpty($tokenHeader) && 0 === strpos($tokenHeader, 'Bearer ')) {
+        if (Text::isNotEmpty($tokenHeader) && str_starts_with($tokenHeader, 'Bearer ')) {
             $parts = explode('.', substr($tokenHeader, 7));
             if (isset($parts[1])) {
                 return json_decode(base64_decode($parts[1], true), true);
@@ -127,11 +105,11 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
     /**
      * Extract message context.
      *
-     * @param RequestInterface       $request
+     * @param RequestInterface $request
      * @param ResponseInterface|null $response
-     * @param \Throwable|null        $error
-     * @param float                  $startTime
-     * @param float                  $endTime
+     * @param \Throwable|null $error
+     * @param float $startTime
+     * @param float $endTime
      *
      * @return array
      */
@@ -154,11 +132,11 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
             'remote_user' => $request->getUri()->getUserInfo(),
             'time_local' => $this->dateFormatter->format($startTime),
             'request_method' => $request->getMethod(),
-            'request_uri' => (string) $request->getUri(),
-            'request' => strtoupper($request->getMethod()).' '
-                .$request->getUri()->getHost().($request->getUri()->getPort() > 0 ? ':'.$request->getUri()->getPort() : '')
-                .$request->getUri()->getPath().' '
-                .strtoupper('' !== $request->getUri()->getScheme() ? $request->getUri()->getScheme() : 'tcp').'/'.$request->getProtocolVersion(),
+            'request_uri' => (string)$request->getUri(),
+            'request' => strtoupper($request->getMethod()) . ' '
+                . $request->getUri()->getHost() . ($request->getUri()->getPort() > 0 ? ':' . $request->getUri()->getPort() : '')
+                . $request->getUri()->getPath() . ' '
+                . strtoupper('' !== $request->getUri()->getScheme() ? $request->getUri()->getScheme() : 'tcp') . '/' . $request->getProtocolVersion(),
             'status' => $statusCode,
             'body_bytes_sent' => $responseBodySize,
             'body_bytes_recv' => $requestBodySize,
@@ -174,13 +152,13 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
             } elseif ('body' === $name) {
                 $bodySize = $request->getBody()->getSize();
                 if ($bodySize > $this->bodyMaxSize) {
-                    $extra['body'] = 'body with '.$bodySize.' bytes';
+                    $extra['body'] = 'body with ' . $bodySize . ' bytes';
                 } else {
-                    $body = (string) $request->getBody();
+                    $body = (string)$request->getBody();
                     if (\mb_check_encoding($body, 'utf-8')) {
                         $extra['body'] = $body;
                     } else {
-                        $extra['body'] = 'binary data with '.$bodySize.'bytes';
+                        $extra['body'] = 'binary data with ' . $bodySize . 'bytes';
                     }
                 }
             } elseif ('headers' === $name) {

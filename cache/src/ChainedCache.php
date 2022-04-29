@@ -22,7 +22,7 @@ class ChainedCache implements CacheInterface
      *
      * @param CacheInterface[] $cacheList
      */
-    public function __construct(private iterable $cacheList)
+    public function __construct(private readonly iterable $cacheList)
     {
     }
 

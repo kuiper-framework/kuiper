@@ -21,7 +21,7 @@ final class ComponentScan
     /**
      * @param string[] $basePackages
      */
-    public function __construct(private array $basePackages = [])
+    public function __construct(private readonly array $basePackages = [])
     {
     }
 

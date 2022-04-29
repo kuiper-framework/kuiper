@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
-use kuiper\event\EventListenerInterface;
+use kuiper\event\EventDispatcherAwareInterface;
+use kuiper\event\EventDispatcherAwareTrait;
+use kuiper\logger\Logger;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\http\DiactorosSwooleRequestBridge;
 use kuiper\swoole\http\HttpMessageFactoryHolder;
@@ -33,45 +35,24 @@ use Laminas\Diactoros\UriFactory;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-class ServerFactory implements LoggerAwareInterface
+class ServerFactory implements LoggerAwareInterface, EventDispatcherAwareInterface
 {
     use LoggerAwareTrait;
+    use EventDispatcherAwareTrait;
 
-    /**
-     * @var bool
-     */
-    private $phpServerEnabled = false;
+    private bool $phpServerEnabled = false;
 
-    /**
-     * @var EventDispatcherInterface|null
-     */
-    private $eventDispatcher;
+    private ?HttpMessageFactoryHolder $httpMessageFactoryHolder = null;
 
-    /**
-     * @var HttpMessageFactoryHolder|null
-     */
-    private $httpMessageFactoryHolder;
+    private ?SwooleRequestBridgeInterface $swooleRequestBridge = null;
 
-    /**
-     * @var SwooleRequestBridgeInterface|null
-     */
-    private $swooleRequestBridge;
+    private ?SwooleResponseBridgeInterface $swooleResponseBridge = null;
 
-    /**
-     * @var SwooleResponseBridgeInterface|null
-     */
-    private $swooleResponseBridge;
-
-    /**
-     * ServerFactory constructor.
-     */
-    public function __construct(?LoggerInterface $logger = null)
+    public function __construct()
     {
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setLogger(Logger::nullLogger());
     }
 
     public function isPhpServerEnabled(): bool
@@ -96,36 +77,10 @@ class ServerFactory implements LoggerAwareInterface
         return $this->eventDispatcher;
     }
 
-    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): self
-    {
-        $this->eventDispatcher = $eventDispatcher;
-
-        return $this;
-    }
-
-    /**
-     * @param EventListenerInterface|string        $event
-     * @param EventListenerInterface|callable|null $listener
-     *
-     * @return $this
-     */
-    public function addEventListener($event, $listener = null): self
-    {
-        /** @var EventDispatcher $eventDispatcher */
-        $eventDispatcher = $this->getEventDispatcher();
-        if ($event instanceof EventListenerInterface) {
-            $eventDispatcher->addListener($event->getSubscribedEvent(), $event);
-        } else {
-            $eventDispatcher->addListener($event, $listener);
-        }
-
-        return $this;
-    }
-
     public function getHttpMessageFactoryHolder(): HttpMessageFactoryHolder
     {
         if (null === $this->httpMessageFactoryHolder) {
-            $this->checkLaminasDiactoros();
+            $this->checkDiactoros();
             $this->httpMessageFactoryHolder = new HttpMessageFactoryHolder(
                 new ServerRequestFactory(),
                 new ResponseFactory(),
@@ -148,7 +103,7 @@ class ServerFactory implements LoggerAwareInterface
     public function getSwooleRequestBridge(): SwooleRequestBridgeInterface
     {
         if (null === $this->swooleRequestBridge) {
-            $this->checkLaminasDiactoros();
+            $this->checkDiactoros();
             $this->swooleRequestBridge = new DiactorosSwooleRequestBridge();
         }
 
@@ -180,17 +135,14 @@ class ServerFactory implements LoggerAwareInterface
 
     public function create(ServerConfig $serverConfig): ServerInterface
     {
-        if (!$this->phpServerEnabled) {
+        if (!$this->isPhpServerEnabled()) {
             return $this->createSwooleServer($serverConfig);
         }
-        switch ($serverConfig->getPort()->getServerType()) {
-            case ServerType::TCP:
-                return $this->createTcpServer($serverConfig);
-            case ServerType::HTTP:
-                return $this->createHttpServer($serverConfig);
-            default:
-                return $this->createSwooleServer($serverConfig);
-        }
+        return match ($serverConfig->getPort()->getServerType()) {
+            ServerType::TCP => $this->createTcpServer($serverConfig),
+            ServerType::HTTP => $this->createHttpServer($serverConfig),
+            default => $this->createSwooleServer($serverConfig),
+        };
     }
 
     private function createTcpServer(ServerConfig $serverConfig): SelectTcpServer
@@ -218,7 +170,7 @@ class ServerFactory implements LoggerAwareInterface
         return $swooleServer;
     }
 
-    private function checkLaminasDiactoros(): void
+    private function checkDiactoros(): void
     {
         $this->checkClassExists(RequestFactory::class, 'laminas/laminas-diactoros');
     }

@@ -68,7 +68,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     {
         $this->responseFactory = $responseFactory;
         $this->setOptions($options);
-        $this->setLogger($logger ?? new NullLogger());
+        $this->setLogger($logger ?? \kuiper\logger\Logger::nullLogger());
     }
 
     public function getEndpoint(): Endpoint

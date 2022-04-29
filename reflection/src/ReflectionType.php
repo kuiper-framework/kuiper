@@ -77,7 +77,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
     /**
      * ReflectionType constructor.
      */
-    public function __construct(private bool $allowsNull = false)
+    public function __construct(private readonly bool $allowsNull = false)
     {
     }
 

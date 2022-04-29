@@ -20,7 +20,7 @@ final class Command implements Component
 {
     use ComponentTrait;
 
-    public function __construct(private string $name)
+    public function __construct(private readonly string $name)
     {
     }
 

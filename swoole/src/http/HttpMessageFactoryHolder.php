@@ -22,31 +22,6 @@ use Psr\Http\Message\UriFactoryInterface;
 class HttpMessageFactoryHolder
 {
     /**
-     * @var ServerRequestFactoryInterface
-     */
-    private $serverRequestFactory;
-
-    /**
-     * @var ResponseFactoryInterface
-     */
-    private $responseFactory;
-
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
-
-    /**
-     * @var UriFactoryInterface
-     */
-    private $uriFactory;
-
-    /**
-     * @var UploadedFileFactoryInterface
-     */
-    private $uploadFileFactory;
-
-    /**
      * HttpMessageFactoryHolder constructor.
      *
      * @param ServerRequestFactoryInterface $serverRequestFactory
@@ -55,13 +30,13 @@ class HttpMessageFactoryHolder
      * @param UriFactoryInterface           $uriFactory
      * @param UploadedFileFactoryInterface  $uploadFileFactory
      */
-    public function __construct(ServerRequestFactoryInterface $serverRequestFactory, ResponseFactoryInterface $responseFactory, StreamFactoryInterface $streamFactory, UriFactoryInterface $uriFactory, UploadedFileFactoryInterface $uploadFileFactory)
+    public function __construct(
+        private readonly ServerRequestFactoryInterface $serverRequestFactory,
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly UriFactoryInterface $uriFactory,
+        private readonly UploadedFileFactoryInterface $uploadFileFactory)
     {
-        $this->serverRequestFactory = $serverRequestFactory;
-        $this->responseFactory = $responseFactory;
-        $this->streamFactory = $streamFactory;
-        $this->uriFactory = $uriFactory;
-        $this->uploadFileFactory = $uploadFileFactory;
     }
 
     /**
