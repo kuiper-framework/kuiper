@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\event;
 
+use kuiper\event\attribute\EventListener;
 use function DI\autowire;
 use function DI\get;
 use kuiper\di\AwareInjection;
@@ -20,7 +21,6 @@ use kuiper\di\Bootstrap;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
-use kuiper\event\annotation\EventListener;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\server\ServerInterface;
@@ -53,7 +53,7 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
 
         return [
             PsrEventDispatcher::class => autowire(AsyncEventDispatcher::class)
-                ->constructorParameter('eventDispatcher', get(EventDispatcherInterface::class)),
+                ->constructorParameter(0, get(EventDispatcherInterface::class)),
             AsyncEventDispatcherInterface::class => get(PsrEventDispatcher::class),
             EventDispatcherInterface::class => autowire(EventDispatcher::class),
         ];
@@ -67,7 +67,7 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
         $dispatcher = $container->get(EventDispatcherInterface::class);
         $config = $container->get(PropertyResolverInterface::class);
         $events = [];
-        $addListener = static function ($eventName, $listener) use ($container, $logger, $dispatcher, &$events): void {
+        $addListener = static function (?string $eventName, string|object $listener) use ($container, $logger, $dispatcher, &$events): void {
             $eventListener = is_string($listener) ? $container->get($listener) : $listener;
             if ($eventListener instanceof EventListenerInterface) {
                 $event = $eventListener->getSubscribedEvent();
@@ -85,12 +85,12 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
                 $events[$eventName] = true;
             }
         };
-        foreach (ComponentCollection::getComponents(EventListener::class) as $annotation) {
-            /** @var EventListener $annotation */
-            $addListener($annotation->value, $annotation->getComponentId());
+        foreach (ComponentCollection::getComponents(EventListener::class) as $attribute) {
+            /** @var EventListener $attribute */
+            $addListener($attribute->getEventName(), $attribute->getComponentId());
         }
         foreach ($config->get('application.listeners', []) as $key => $listener) {
-            $addListener($key, $listener);
+            $addListener(is_string($key) ? $key : null, $listener);
         }
     }
 }

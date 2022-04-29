@@ -19,19 +19,8 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 class AsyncEventTaskProcessor implements ProcessorInterface
 {
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
-
-    /**
-     * AsyncEventTaskProcessor constructor.
-     *
-     * @param EventDispatcherInterface $eventDispatcher
-     */
-    public function __construct(EventDispatcherInterface $eventDispatcher)
+    public function __construct(private EventDispatcherInterface $eventDispatcher)
     {
-        $this->eventDispatcher = $eventDispatcher;
     }
 
     public function process(TaskInterface $task): void

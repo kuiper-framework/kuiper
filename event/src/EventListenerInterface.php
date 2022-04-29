@@ -18,7 +18,7 @@ interface EventListenerInterface
     /**
      * @param object $event
      */
-    public function __invoke($event): void;
+    public function __invoke(object $event): void;
 
     /**
      * Returns the event name this event listener wants to listen to.

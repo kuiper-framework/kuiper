@@ -17,10 +17,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 trait EventDispatcherAwareTrait
 {
-    /**
-     * @var EventDispatcherInterface
-     */
-    protected $eventDispatcher;
+    protected EventDispatcherInterface $eventDispatcher;
 
     public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void
     {

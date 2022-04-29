@@ -20,19 +20,16 @@ class InMemoryEventDispatcher implements EventDispatcherInterface
     /**
      * @var object[]
      */
-    private $events = [];
+    private array $events = [];
 
     /**
      * {@inheritdoc}
      */
-    public function dispatch(object $event)
+    public function dispatch(object $event): object
     {
         return $this->events[] = $event;
     }
 
-    /**
-     * @return object[]
-     */
     public function getEvents(): array
     {
         return $this->events;

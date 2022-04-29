@@ -17,19 +17,8 @@ use kuiper\swoole\task\AbstractTask;
 
 class AsyncEventTask extends AbstractTask
 {
-    /**
-     * @var object
-     */
-    private $event;
-
-    /**
-     * AsyncEventTask constructor.
-     *
-     * @param object $event
-     */
-    public function __construct(object $event)
+    public function __construct(private object $event)
     {
-        $this->event = $event;
     }
 
     /**

@@ -20,7 +20,7 @@ class NullEventDispatcher implements EventDispatcherInterface
     /**
      * {@inheritdoc}
      */
-    public function dispatch(object $event)
+    public function dispatch(object $event): object
     {
         return $event;
     }

@@ -11,12 +11,11 @@
 
 declare(strict_types=1);
 
-namespace kuiper\event\annotation;
+namespace kuiper\event\attribute;
 
-/**
- * @Annotation
- * @Target({"CLASS"})
- */
-class Async
+use Attribute;
+
+#[Attribute(Attribute::TARGET_CLASS)]
+final class Async
 {
 }

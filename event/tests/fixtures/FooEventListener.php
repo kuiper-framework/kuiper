@@ -17,7 +17,7 @@ use kuiper\event\EventListenerInterface;
 
 class FooEventListener implements EventListenerInterface
 {
-    public function __invoke($event): void
+    public function __invoke(object $event): void
     {
     }
 
