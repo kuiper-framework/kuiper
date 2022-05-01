@@ -16,48 +16,22 @@ namespace kuiper\resilience\core;
 abstract class AbstractAggregation
 {
     /**
-     * @var Counter
-     */
-    protected $totalDuration;
-    /**
-     * @var Counter
-     */
-    protected $totalNumberOfSlowCalls;
-    /**
-     * @var Counter
-     */
-    protected $totalNumberOfSlowFailedCalls;
-    /**
-     * @var Counter
-     */
-    protected $totalNumberOfFailedCalls;
-    /**
-     * @var Counter
-     */
-    protected $totalNumberOfCalls;
-
-    /**
      * TotalAggregation constructor.
      */
     public function __construct(
-        Counter $totalDuration,
-        Counter $totalNumberOfSlowCalls,
-        Counter $totalNumberOfSlowFailedCalls,
-        Counter $totalNumberOfFailedCalls,
-        Counter $totalNumberOfCalls)
+        protected readonly Counter $totalDuration,
+        protected readonly Counter $totalNumberOfSlowCalls,
+        protected readonly Counter $totalNumberOfSlowFailedCalls,
+        protected readonly Counter $totalNumberOfFailedCalls,
+        protected readonly Counter $totalNumberOfCalls)
     {
-        $this->totalDuration = $totalDuration;
-        $this->totalNumberOfSlowCalls = $totalNumberOfSlowCalls;
-        $this->totalNumberOfSlowFailedCalls = $totalNumberOfSlowFailedCalls;
-        $this->totalNumberOfFailedCalls = $totalNumberOfFailedCalls;
-        $this->totalNumberOfCalls = $totalNumberOfCalls;
     }
 
     public function record(int $duration, Outcome $outcome): void
     {
         $this->totalNumberOfCalls->increment();
         $this->totalDuration->increment($duration);
-        switch ($outcome->value) {
+        switch ($outcome) {
             case Outcome::SLOW_SUCCESS:
                 $this->totalNumberOfSlowCalls->increment();
                 break;
@@ -71,6 +45,9 @@ abstract class AbstractAggregation
             case Outcome::ERROR:
                 $this->totalNumberOfFailedCalls->increment();
                 break;
+
+            default:
+                // pass
         }
     }
 

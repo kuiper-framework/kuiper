@@ -20,15 +20,15 @@ class StateStoreTest extends TestCase
     /**
      * @dataProvider stores
      */
-    public function testName(StateStore $store)
+    public function testSetState(StateStore $store): void
     {
         $name = 'foo.h.h::foo';
         $store->clear($name);
         $state = $store->getState($name);
-        $this->assertEquals(State::CLOSED, $state->value);
+        $this->assertEquals(State::CLOSED, $state);
         $this->assertEquals(0, $store->getOpenAt($name));
-        $store->setState($name, State::OPEN());
-        $this->assertEquals(State::OPEN, $store->getState($name)->value);
+        $store->setState($name, State::OPEN);
+        $this->assertEquals(State::OPEN, $store->getState($name));
         $this->assertTrue($store->getOpenAt($name) > 0);
     }
 

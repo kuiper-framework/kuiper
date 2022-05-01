@@ -26,24 +26,14 @@ use PHPUnit\Framework\TestCase;
 
 class CircuitBreakerImplTest extends TestCase
 {
-    /**
-     * @var InMemoryEventDispatcher
-     */
-    private $eventDispatcher;
-    /**
-     * @var CircuitBreakerImpl
-     */
-    private $circuitBreaker;
 
-    /**
-     * @var CircuitBreakerConfig
-     */
-    private $config;
+    private InMemoryEventDispatcher $eventDispatcher;
 
-    /**
-     * @var MockClock
-     */
-    private $clock;
+    private CircuitBreaker $circuitBreaker;
+
+    private CircuitBreakerConfig $config;
+
+    private MockClock $clock;
 
     protected function setUp(): void
     {
@@ -56,12 +46,13 @@ class CircuitBreakerImplTest extends TestCase
             ->build();
         $counterFactory = new SimpleCounterFactory();
         $metricFactory = new MetricsFactoryImpl($this->clock, $counterFactory);
-        $this->circuitBreaker = new CircuitBreakerImpl('test', $this->config, $this->clock, new SwooleTableStateStore(), $counterFactory, $metricFactory, $this->eventDispatcher);
+        $this->circuitBreaker = new CircuitBreakerImpl('test', $this->config, $this->clock, new SwooleTableStateStore(), $counterFactory, $metricFactory);
+        $this->circuitBreaker->setEventDispatcher($this->eventDispatcher);
     }
 
-    public function testSuccess()
+    public function testSuccess(): void
     {
-        $call = function () {
+        $call = static function () {
         };
         $this->circuitBreaker->call($call);
         $metrics = $this->circuitBreaker->getMetrics();
@@ -70,16 +61,16 @@ class CircuitBreakerImplTest extends TestCase
         $this->assertEquals(-1, $metrics->getFailureRate());
     }
 
-    public function testShouldTransitToOpenState()
+    public function testShouldTransitToOpenState(): void
     {
-        $call = function () {
+        $call = static function () {
             throw new \RuntimeException('error');
         };
         $result = [];
         foreach (range(1, 3) as $i) {
             $result[] = TryCall::call([$this->circuitBreaker, 'call'], $call);
         }
-        $this->assertCount(3, array_filter($result, function (TryCall $call) {
+        $this->assertCount(3, array_filter($result, static function (TryCall $call) {
             return $call->isFailure();
         }));
         $this->assertInstanceOf(CallNotPermittedException::class, $result[2]->getException());
@@ -96,23 +87,24 @@ class CircuitBreakerImplTest extends TestCase
         $this->assertEquals(2, $metrics->getNumberOfFailedCalls());
         $this->assertEquals(1, $metrics->getNumberOfNotPermittedCalls());
         $this->assertEquals(100, $metrics->getFailureRate());
-        $this->assertEquals(State::OPEN(), $this->circuitBreaker->getState());
+        $this->assertEquals(State::OPEN, $this->circuitBreaker->getState());
     }
 
-    public function testShouldTransitToHalfOpen()
+    public function testShouldTransitToHalfOpen(): void
     {
         $counterFactory = new SimpleCounterFactory();
         $metricFactory = new MetricsFactoryImpl($this->clock, $counterFactory);
         $stateStore = new SwooleTableStateStore();
-        $stateStore->setState('test', State::OPEN());
-        $this->circuitBreaker = new CircuitBreakerImpl('test', $this->config, $this->clock, $stateStore, $counterFactory, $metricFactory, $this->eventDispatcher);
-        $this->assertEquals(State::OPEN(), $this->circuitBreaker->getState());
+        $stateStore->setState('test', State::OPEN);
+        $this->circuitBreaker = new CircuitBreakerImpl('test', $this->config, $this->clock, $stateStore, $counterFactory, $metricFactory);
+        $this->circuitBreaker->setEventDispatcher($this->eventDispatcher);
+        $this->assertEquals(State::OPEN, $this->circuitBreaker->getState());
         $this->clock->tick($this->config->getWaitIntervalInOpenState(1) + 10);
-        $call = function () {
+        $call = static function () {
             throw new \RuntimeException('error');
         };
         $result = TryCall::call([$this->circuitBreaker, 'call'], $call);
-        $this->assertEquals(State::HALF_OPEN(), $this->circuitBreaker->getState());
+        $this->assertEquals(State::HALF_OPEN, $this->circuitBreaker->getState());
         $this->assertTrue($result->isFailure());
         $this->assertInstanceOf(\RuntimeException::class, $result->getException());
         $events = $this->eventDispatcher->getEvents();

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use kuiper\event\EventDispatcherAwareInterface;
+use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\resilience\circuitbreaker\event\CircuitBreakerOnError;
 use kuiper\resilience\circuitbreaker\event\CircuitBreakerOnIgnoredError;
 use kuiper\resilience\circuitbreaker\event\CircuitBreakerOnStateTransition;
@@ -25,89 +27,42 @@ use kuiper\resilience\core\CounterFactory;
 use kuiper\resilience\core\MetricsFactory;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
-class CircuitBreakerImpl implements CircuitBreaker
+class CircuitBreakerImpl implements CircuitBreaker, EventDispatcherAwareInterface
 {
+    use EventDispatcherAwareTrait;
+
     private const NOT_PERMITTED_CALLS = '.not_permitted_calls';
     private const CALLS_HALF_OPEN = '.calls_half_open';
 
-    /**
-     * @var string
-     */
-    private $name;
+    private readonly CircuitBreakerMetrics $metrics;
 
-    /**
-     * @var CircuitBreakerConfig
-     */
-    private $config;
+    private readonly CircuitBreakerMetrics $halfStateMetrics;
 
-    /**
-     * @var CounterFactory
-     */
-    private $counterFactory;
+    private readonly Counter $permittedNumberOfCallsInHalfOpenState;
 
-    /**
-     * @var CircuitBreakerMetrics
-     */
-    private $halfStateMetrics;
-
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
-    /**
-     * @var Clock
-     */
-    private $clock;
-
-    /**
-     * @var CircuitBreakerMetrics
-     */
-    private $metrics;
-
-    /**
-     * @var Counter
-     */
-    private $permittedNumberOfCallsInHalfOpenState;
-
-    /**
-     * @var CircuitBreakerState
-     */
-    private $state;
-
-    /**
-     * @var StateStore
-     */
-    private $stateStore;
+    private CircuitBreakerState $state;
 
     public function __construct(
-        string $name,
-        CircuitBreakerConfig $config,
-        Clock $clock,
-        StateStore $stateStore,
-        CounterFactory $counterFactory,
-        MetricsFactory $metricsFactory,
-        EventDispatcherInterface $eventDispatcher)
+        private readonly string $name,
+        private readonly CircuitBreakerConfig $config,
+        private readonly Clock $clock,
+        private readonly StateStore $stateStore,
+        private readonly CounterFactory $counterFactory,
+        MetricsFactory $metricsFactory)
     {
-        $this->name = $name;
-        $this->config = $config;
-        $this->clock = $clock;
-        $this->counterFactory = $counterFactory;
-
         $metrics = $metricsFactory->create($name, $config->getSlidingWindowType(), $config->getSlidingWindowSize());
         $this->metrics = new CircuitBreakerMetricsImpl(
             $counterFactory->create($name.self::NOT_PERMITTED_CALLS),
             $metrics,
             $config
         );
-        $halfStateMetrics = $metricsFactory->create($name.'.half_state', SlideWindowType::COUNT_BASED(), $config->getPermittedNumberOfCallsInHalfOpenState());
+        $halfStateMetrics = $metricsFactory->create($name.'.half_state', SlideWindowType::COUNT_BASED, $config->getPermittedNumberOfCallsInHalfOpenState());
         $this->halfStateMetrics = new CircuitBreakerMetricsImpl(
             $this->counterFactory->create($this->name.self::NOT_PERMITTED_CALLS),
             $halfStateMetrics,
             $config
         );
         $this->permittedNumberOfCallsInHalfOpenState = $counterFactory->create($name.self::CALLS_HALF_OPEN);
-        $this->eventDispatcher = $eventDispatcher;
-        $this->stateStore = $stateStore;
         $this->state = new ClosedState($this);
         $this->reset();
     }
@@ -151,10 +106,7 @@ class CircuitBreakerImpl implements CircuitBreaker
         }
     }
 
-    /**
-     * @param mixed $result
-     */
-    public function onResult(int $duration, $result): void
+    public function onResult(int $duration, mixed $result): void
     {
         if ($this->config->isFailureResult($result)) {
             $this->onError($duration, new ResultWasFailureException($this, $result), true);
@@ -166,7 +118,7 @@ class CircuitBreakerImpl implements CircuitBreaker
     public function reset(): void
     {
         $state = $this->stateStore->getState($this->name);
-        switch ($state->value) {
+        switch ($state) {
             case State::OPEN:
                 $openAt = $this->stateStore->getOpenAt($this->name);
                 if (0 === $openAt) {
@@ -179,7 +131,7 @@ class CircuitBreakerImpl implements CircuitBreaker
                 $this->state = new OpenState($this, 1, $openAt);
                 break;
             case State::HALF_OPEN:
-                if (State::HALF_OPEN !== $this->state->getState()->value) {
+                if (State::HALF_OPEN !== $this->state->getState()) {
                     $this->resetPermittedNumberOfCallsInHalfOpenState();
                 }
                 $this->state = $this->createHalfOpenState();
@@ -214,7 +166,7 @@ class CircuitBreakerImpl implements CircuitBreaker
     /**
      * {@inheritDoc}
      */
-    public function call(callable $call, ...$args)
+    public function call(callable $call, ...$args): mixed
     {
         return $this->decorate($call)(...$args);
     }
@@ -256,7 +208,7 @@ class CircuitBreakerImpl implements CircuitBreaker
     {
         $currentState = $this->state->getState();
         if (!$currentState->canTransitionTo($newState)) {
-            throw new IllegalStateTransitionException("Cannot transit state from {$currentState} to {$newState}");
+            throw new IllegalStateTransitionException("Cannot transit state from {$currentState->name} to {$newState->name}");
         }
         $this->state = $newStateGenerator($this->state);
         $this->stateStore->setState($this->name, $this->state->getState());
@@ -265,7 +217,7 @@ class CircuitBreakerImpl implements CircuitBreaker
 
     public function transitionToOpenState(): void
     {
-        $this->stateTransition(State::OPEN(), function (CircuitBreakerState $currentState): OpenState {
+        $this->stateTransition(State::OPEN, function (CircuitBreakerState $currentState): OpenState {
             $currentTimestamp = $this->getCurrentTimestamp();
             $this->counterFactory->create($this->name.'.open_at')->set($currentTimestamp);
 
@@ -275,7 +227,7 @@ class CircuitBreakerImpl implements CircuitBreaker
 
     public function transitionToHalfOpen(): void
     {
-        $this->stateTransition(State::HALF_OPEN(), function (CircuitBreakerState $currentState): HalfOpenState {
+        $this->stateTransition(State::HALF_OPEN, function (CircuitBreakerState $currentState): HalfOpenState {
             $this->halfStateMetrics->reset();
             $this->resetPermittedNumberOfCallsInHalfOpenState();
 
@@ -285,7 +237,7 @@ class CircuitBreakerImpl implements CircuitBreaker
 
     public function transitionToCloseState(): void
     {
-        $this->stateTransition(State::CLOSED(), function (CircuitBreakerState $currentState): ClosedState {
+        $this->stateTransition(State::CLOSED, function (CircuitBreakerState $currentState): ClosedState {
             $this->metrics->reset();
 
             return new ClosedState($this);
@@ -294,14 +246,14 @@ class CircuitBreakerImpl implements CircuitBreaker
 
     public function transitionToForcedOpenState(): void
     {
-        $this->stateTransition(State::FORCED_OPEN(), function (CircuitBreakerState $currentState): ForcedOpenState {
+        $this->stateTransition(State::FORCED_OPEN, function (CircuitBreakerState $currentState): ForcedOpenState {
             return new ForcedOpenState($this, $currentState->attempts() + 1);
         });
     }
 
     public function transitionToDisabledState(): void
     {
-        $this->stateTransition(State::DISABLED(), function (CircuitBreakerState $currentState): DisabledState {
+        $this->stateTransition(State::DISABLED, function (CircuitBreakerState $currentState): DisabledState {
             return new DisabledState();
         });
     }

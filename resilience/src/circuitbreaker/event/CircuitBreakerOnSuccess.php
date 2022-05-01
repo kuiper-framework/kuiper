@@ -21,23 +21,10 @@ use kuiper\resilience\circuitbreaker\CircuitBreaker;
  */
 class CircuitBreakerOnSuccess
 {
-    /**
-     * @var CircuitBreaker
-     */
-    private $circuitBreaker;
-
-    /**
-     * @var int
-     */
-    private $duration;
-
-    /**
-     * CircuitBreakerOnSuccess constructor.
-     */
-    public function __construct(CircuitBreaker $circuitBreaker, int $duration)
+    public function __construct(
+        private readonly CircuitBreaker $circuitBreaker,
+        private readonly int $duration)
     {
-        $this->circuitBreaker = $circuitBreaker;
-        $this->duration = $duration;
     }
 
     public function getCircuitBreaker(): CircuitBreaker

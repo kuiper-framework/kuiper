@@ -6,7 +6,6 @@ namespace kuiper\resilience;
 
 use function DI\autowire;
 use function DI\value;
-use kuiper\annotations\AnnotationConfiguration;
 use kuiper\di\ContainerBuilder;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\resilience\circuitbreaker\CircuitBreakerFactory;
@@ -22,21 +21,21 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ResilienceConfigurationTest extends TestCase
 {
-    private $events;
+    private array $events  = [];
 
-    public function testRetry()
+    public function testRetry(): void
     {
         $container = $this->createContainer();
         $retry = $container->get(RetryFactory::class)->create('test');
-        $callGenerator = function (int $times) {
+        $callGenerator = static function (int $times) {
             if ($times > 0) {
-                return function () {
-                };
-            } else {
-                return function () {
-                    throw new RuntimeException();
+                return static function () {
                 };
             }
+
+            return static function () {
+                throw new RuntimeException();
+            };
         };
         $result = TryCall::call([$retry, 'call'], $callGenerator(0));
         $this->assertTrue($result->isFailure());
@@ -48,7 +47,7 @@ class ResilienceConfigurationTest extends TestCase
         $this->assertCount(0, $this->events);
     }
 
-    public function testCircuitBreaker()
+    public function testCircuitBreaker(): void
     {
         $container = $this->createContainer();
         Application::getInstance()->getConfig()->set('application.client.circuitbreaker.default', [
@@ -57,15 +56,15 @@ class ResilienceConfigurationTest extends TestCase
             'waitIntervalInOpenState' => 50,
         ]);
         $breaker = $container->get(CircuitBreakerFactory::class)->create('test');
-        $callGenerator = function (int $times) {
+        $callGenerator = static function (int $times) {
             if ($times > 2) {
-                return function () {
-                };
-            } else {
-                return function () {
-                    throw new RuntimeException();
+                return static function () {
                 };
             }
+
+            return static function () {
+                throw new RuntimeException();
+            };
         };
 
         $resultList = [];
@@ -96,7 +95,6 @@ class ResilienceConfigurationTest extends TestCase
             EventDispatcherInterface::class => value($eventDispatcher),
             \Symfony\Component\EventDispatcher\EventDispatcherInterface::class => autowire(EventDispatcher::class),
         ]);
-        $builder->addConfiguration(new AnnotationConfiguration());
         $builder->addConfiguration(new LoggerConfiguration());
         $builder->addConfiguration(new FoundationConfiguration());
         $builder->addConfiguration(new ResilienceConfiguration());
@@ -108,7 +106,7 @@ class ResilienceConfigurationTest extends TestCase
                 return true;
             }));
 
-        $app = Application::create(function () use ($builder) {
+        $app = Application::create(static function () use ($builder) {
             return $builder->build();
         });
 

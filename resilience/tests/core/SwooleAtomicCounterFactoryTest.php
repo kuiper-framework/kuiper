@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 class SwooleAtomicCounterFactoryTest extends TestCase
 {
-    public function testName()
+    public function testCreateCounter(): void
     {
         $counterFactory = new SwooleAtomicCounterFactory();
         $counter = $counterFactory->create('a');

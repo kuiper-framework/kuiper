@@ -15,19 +15,8 @@ namespace kuiper\resilience\core;
 
 class RedisCounterFactory extends AbstractCounterFactory
 {
-    /**
-     * @var \Redis
-     */
-    private $redis;
-
-    /**
-     * RedisCounterFactory constructor.
-     *
-     * @param \Redis $redis
-     */
-    public function __construct($redis)
+    public function __construct(private readonly \Redis $redis)
     {
-        $this->redis = $redis;
     }
 
     protected function createInternal(string $name): Counter

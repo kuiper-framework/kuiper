@@ -19,23 +19,8 @@ class SwooleTableCounter implements Counter
 {
     public const COLUMN = 'value';
 
-    /**
-     * @var Table
-     */
-    private $table;
-
-    /**
-     * @var string
-     */
-    private $key;
-
-    /**
-     * SwooleTableCounter constructor.
-     */
-    public function __construct(Table $table, string $key)
+    public function __construct(private readonly Table $table, private readonly string $key)
     {
-        $this->table = $table;
-        $this->key = $key;
     }
 
     public function increment(int $value = 1): int

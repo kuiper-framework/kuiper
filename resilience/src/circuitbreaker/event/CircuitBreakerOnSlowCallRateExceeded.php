@@ -17,23 +17,10 @@ use kuiper\resilience\circuitbreaker\CircuitBreaker;
 
 class CircuitBreakerOnSlowCallRateExceeded
 {
-    /**
-     * @var CircuitBreaker
-     */
-    private $circuitBreaker;
-
-    /**
-     * @var float
-     */
-    private $slowCallRate;
-
-    /**
-     * CircuitBreakerOnSlowCallRateExceeded constructor.
-     */
-    public function __construct(CircuitBreaker $circuitBreaker, float $slowCallRate)
+    public function __construct(
+        private readonly CircuitBreaker $circuitBreaker,
+        private readonly float $slowCallRate)
     {
-        $this->circuitBreaker = $circuitBreaker;
-        $this->slowCallRate = $slowCallRate;
     }
 
     public function getCircuitBreaker(): CircuitBreaker

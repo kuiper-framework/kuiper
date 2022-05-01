@@ -17,33 +17,23 @@ use kuiper\resilience\circuitbreaker\SlideWindowType;
 
 class FixedSizeSlidingWindowMetrics implements Metrics
 {
-    /**
-     * @var int
-     */
-    private $windowSize;
+    private int $headIndex = 0;
+
+    private readonly TotalAggregation $totalAggregation;
 
     /**
      * @var Measurement[]
      */
-    private $measurements;
-
-    /**
-     * @var TotalAggregation
-     */
-    private $totalAggregation;
-
-    /**
-     * @var int
-     */
-    private $headIndex;
+    private array $measurements = [];
 
     /**
      * FixedSizeSlidingWindowMetrics constructor.
      */
-    public function __construct(string $name, int $windowSize, CounterFactory $counterFactory)
+    public function __construct(
+        string $name,
+        private readonly int $windowSize,
+        CounterFactory $counterFactory)
     {
-        $this->windowSize = $windowSize;
-        $this->headIndex = 0;
         foreach (range(0, $this->windowSize - 1) as $i) {
             $prefix = $name.'_'.$i;
             $this->measurements[] = new Measurement(
@@ -74,7 +64,7 @@ class FixedSizeSlidingWindowMetrics implements Metrics
         $lastMeasurement->record($duration, $outcome);
         $this->totalAggregation->aggregate($bucket);
 
-        return new Snapshot($this->totalAggregation);
+        return Snapshot::fromAggregation($this->totalAggregation);
     }
 
     public function reset(): void
@@ -87,7 +77,7 @@ class FixedSizeSlidingWindowMetrics implements Metrics
 
     public function getSnapshot(): Snapshot
     {
-        return new Snapshot($this->totalAggregation);
+        return Snapshot::fromAggregation($this->totalAggregation);
     }
 
     public function getWindowSize(): int
@@ -97,6 +87,6 @@ class FixedSizeSlidingWindowMetrics implements Metrics
 
     public function getWindowType(): SlideWindowType
     {
-        return SlideWindowType::COUNT_BASED();
+        return SlideWindowType::COUNT_BASED;
     }
 }

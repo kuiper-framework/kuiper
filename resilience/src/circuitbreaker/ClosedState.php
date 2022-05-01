@@ -17,25 +17,16 @@ use kuiper\resilience\circuitbreaker\event\CircuitBreakerOnFailureRateExceeded;
 
 class ClosedState implements CircuitBreakerState
 {
-    /**
-     * @var CircuitBreakerImpl
-     */
-    private $circuitBreaker;
-
-    /**
-     * @var CircuitBreakerMetricsImpl
-     */
-    private $metrics;
+    private readonly CircuitBreakerMetrics $metrics;
 
     /**
      * ClosedState constructor.
      *
      * @param CircuitBreakerImpl $circuitBreaker
      */
-    public function __construct(CircuitBreaker $circuitBreaker)
+    public function __construct(
+        private readonly CircuitBreaker $circuitBreaker)
     {
-        $this->circuitBreaker = $circuitBreaker;
-        /* @phpstan-ignore-next-line */
         $this->metrics = $circuitBreaker->getMetrics();
     }
 
@@ -71,15 +62,15 @@ class ClosedState implements CircuitBreakerState
 
     public function getState(): State
     {
-        return State::CLOSED();
+        return State::CLOSED;
     }
 
     private function checkIfThresholdsExceeded(Result $result): void
     {
         if (Result::hasExceededThresholds($result)) {
             if (Result::hasFailureRateExceededThreshold($result)) {
-                $this->circuitBreaker->getEventDispatcher()->dispatch(new CircuitBreakerOnFailureRateExceeded(
-                        $this->circuitBreaker, $this->metrics->getFailureRate()));
+                $this->circuitBreaker->getEventDispatcher()->dispatch(
+                    new CircuitBreakerOnFailureRateExceeded($this->circuitBreaker, $this->metrics->getFailureRate()));
             }
             $this->circuitBreaker->transitionToOpenState();
         }

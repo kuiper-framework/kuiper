@@ -23,46 +23,36 @@ use PHPUnit\Framework\TestCase;
 
 class RetryImplTest extends TestCase
 {
-    /**
-     * @var InMemoryEventDispatcher
-     */
-    private $eventDispatcher;
-    /**
-     * @var Retry
-     */
-    private $retry;
+    private InMemoryEventDispatcher $eventDispatcher;
 
-    /**
-     * @var RetryConfig
-     */
-    private $config;
+    private Retry $retry;
 
-    /**
-     * @var MockClock
-     */
-    private $clock;
+    private RetryConfig $config;
+
+    private MockClock $clock;
 
     protected function setUp(): void
     {
         $this->eventDispatcher = new InMemoryEventDispatcher();
         $this->clock = new MockClock();
         $this->config = RetryConfig::ofDefaults();
-        $this->retry = new RetryImpl('test', $this->config, $this->clock, new SimpleCounterFactory(), $this->eventDispatcher);
+        $this->retry = new RetryImpl('test', $this->config, $this->clock, new SimpleCounterFactory());
+        $this->retry->setEventDispatcher($this->eventDispatcher);
     }
 
-    public function testNotRetry()
+    public function testNotRetry(): void
     {
-        $call = function () {
+        $call = static function () {
         };
         $this->retry->call($call);
         $this->assertEquals(1, $this->retry->getMetrics()->getNumberOfSuccessfulCallsWithoutRetryAttempt());
     }
 
-    public function testShouldReturnAfterThreeAttempts()
+    public function testShouldReturnAfterThreeAttempts(): void
     {
         $time = $this->clock->getTimeInMillis();
         $calls = 0;
-        $call = function () use (&$calls) {
+        $call = static function () use (&$calls) {
             ++$calls;
             throw new \RuntimeException('error');
         };

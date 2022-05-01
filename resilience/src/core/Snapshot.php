@@ -15,42 +15,24 @@ namespace kuiper\resilience\core;
 
 class Snapshot
 {
-    /**
-     * @var int
-     */
-    private $duration;
-    /**
-     * @var int
-     */
-    private $numberOfSlowCalls;
-    /**
-     * @var int
-     */
-    private $numberOfSlowFailedCalls;
-    /**
-     * @var int
-     */
-    private $numberOfFailedCalls;
-    /**
-     * @var int
-     */
-    private $numberOfCalls;
-
-    public function __construct(TotalAggregation $aggregation = null)
+    public function __construct(
+        private readonly int $duration,
+        private readonly int $numberOfCalls,
+        private readonly int $numberOfSlowCalls,
+        private readonly int $numberOfFailedCalls,
+        private readonly int $numberOfSlowFailedCalls)
     {
-        if (null !== $aggregation) {
-            $this->duration = $aggregation->getTotalDuration();
-            $this->numberOfSlowCalls = $aggregation->getTotalNumberOfSlowCalls();
-            $this->numberOfFailedCalls = $aggregation->getTotalNumberOfFailedCalls();
-            $this->numberOfSlowFailedCalls = $aggregation->getTotalNumberOfSlowFailedCalls();
-            $this->numberOfCalls = $aggregation->getTotalNumberOfCalls();
-        } else {
-            $this->duration = 0;
-            $this->numberOfSlowCalls = 0;
-            $this->numberOfFailedCalls = 0;
-            $this->numberOfSlowFailedCalls = 0;
-            $this->numberOfCalls = 0;
-        }
+    }
+
+    public static function fromAggregation(TotalAggregation $aggregation): self
+    {
+        return new self(
+            $aggregation->getTotalDuration(),
+            $aggregation->getTotalNumberOfCalls(),
+            $aggregation->getTotalNumberOfSlowCalls(),
+            $aggregation->getTotalNumberOfFailedCalls(),
+            $aggregation->getTotalNumberOfSlowFailedCalls()
+        );
     }
 
     public function getDuration(): int
@@ -92,7 +74,7 @@ class Snapshot
     {
         static $dummy;
         if (null === $dummy) {
-            $dummy = new self();
+            $dummy = new self(0,0,0,0,0);
         }
 
         return $dummy;

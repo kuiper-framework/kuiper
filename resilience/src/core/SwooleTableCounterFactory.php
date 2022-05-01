@@ -20,7 +20,7 @@ class SwooleTableCounterFactory extends AbstractCounterFactory
     /**
      * @var Table
      */
-    private $table;
+    private readonly Table $table;
 
     public function __construct(int $size = 1024)
     {

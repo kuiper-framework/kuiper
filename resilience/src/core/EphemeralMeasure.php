@@ -15,32 +15,21 @@ namespace kuiper\resilience\core;
 
 class EphemeralMeasure
 {
-    /**
-     * @var int
-     */
-    protected $totalDuration = 0;
-    /**
-     * @var int
-     */
-    protected $totalNumberOfSlowCalls = 0;
-    /**
-     * @var int
-     */
-    protected $totalNumberOfSlowFailedCalls = 0;
-    /**
-     * @var int
-     */
-    protected $totalNumberOfFailedCalls = 0;
-    /**
-     * @var int
-     */
-    protected $totalNumberOfCalls = 0;
+    protected int $totalDuration = 0;
+
+    protected int $totalNumberOfSlowCalls = 0;
+
+    protected int $totalNumberOfSlowFailedCalls = 0;
+
+    protected int $totalNumberOfFailedCalls = 0;
+
+    protected int $totalNumberOfCalls = 0;
 
     public function record(int $duration, Outcome $outcome): void
     {
         ++$this->totalNumberOfCalls;
         $this->totalDuration += $duration;
-        switch ($outcome->value) {
+        switch ($outcome) {
             case Outcome::SLOW_SUCCESS:
                 $this->totalNumberOfSlowCalls++;
                 break;
@@ -54,6 +43,8 @@ class EphemeralMeasure
             case Outcome::ERROR:
                 $this->totalNumberOfFailedCalls++;
                 break;
+            default:
+                // pass
         }
     }
 

@@ -21,29 +21,11 @@ use kuiper\resilience\circuitbreaker\CircuitBreaker;
  */
 class CircuitBreakerOnError
 {
-    /**
-     * @var CircuitBreaker
-     */
-    private $circuitBreaker;
-
-    /**
-     * @var int
-     */
-    private $duration;
-
-    /**
-     * @var \Exception
-     */
-    private $exception;
-
-    /**
-     * CircuitBreakerOnError constructor.
-     */
-    public function __construct(CircuitBreaker $circuitBreaker, int $duration, \Exception $exception)
+    public function __construct(
+        private readonly CircuitBreaker $circuitBreaker,
+        private readonly int $duration,
+        private readonly \Exception $exception)
     {
-        $this->circuitBreaker = $circuitBreaker;
-        $this->duration = $duration;
-        $this->exception = $exception;
     }
 
     public function getCircuitBreaker(): CircuitBreaker

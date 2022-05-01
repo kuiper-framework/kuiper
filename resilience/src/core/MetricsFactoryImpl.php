@@ -17,40 +17,27 @@ use kuiper\resilience\circuitbreaker\SlideWindowType;
 
 class MetricsFactoryImpl implements MetricsFactory
 {
-    /**
-     * @var Clock
-     */
-    private $clock;
-
-    /**
-     * @var CounterFactory
-     */
-    private $counterFactory;
-
-    /**
-     * @var array
-     */
-    private $metrics;
+    private array $metrics = [];
 
     /**
      * MetricsFactoryImpl constructor.
      */
-    public function __construct(Clock $clock, CounterFactory $counterFactory)
+    public function __construct(
+        private readonly Clock $clock,
+        private readonly CounterFactory $counterFactory)
     {
-        $this->clock = $clock;
-        $this->counterFactory = $counterFactory;
     }
 
     public function create(string $name, SlideWindowType $type, int $windowSize): Metrics
     {
         if (isset($this->metrics[$name])) {
-            if ($this->metrics[$name]['type'] !== $type->value || $this->metrics[$name]['size'] !== $windowSize) {
+            if ($this->metrics[$name]['type'] !== $type || $this->metrics[$name]['size'] !== $windowSize) {
                 unset($this->metrics[$name]);
             } else {
                 return $this->metrics[$name]['metrics'];
             }
         }
-        if (SlideWindowType::COUNT_BASED === $type->value) {
+        if (SlideWindowType::COUNT_BASED === $type) {
             $metrics = new FixedSizeSlidingWindowMetrics($name, $windowSize, $this->counterFactory);
         } else {
             $metrics = new SlidingTimeWindowMetrics($name, $windowSize, $this->clock, $this->counterFactory);

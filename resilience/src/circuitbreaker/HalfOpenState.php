@@ -18,31 +18,12 @@ use kuiper\resilience\core\Counter;
 
 class HalfOpenState implements CircuitBreakerState
 {
-    /**
-     * @var CircuitBreakerImpl
-     */
-    private $circuitBreaker;
-    /**
-     * @var int
-     */
-    private $attempts;
-    /**
-     * @var CircuitBreakerMetricsImpl
-     */
-    private $metrics;
-    /**
-     * @var Counter
-     */
-    private $permittedNumberOfCalls;
-
-    public function __construct(CircuitBreaker $circuitBreaker, int $attempts, CircuitBreakerMetrics $metrics, Counter $permittedNumberOfCalls)
+    public function __construct(
+        private readonly CircuitBreaker $circuitBreaker,
+        private readonly int $attempts,
+        private readonly CircuitBreakerMetrics $metrics,
+        private readonly Counter $permittedNumberOfCalls)
     {
-        /* @phpstan-ignore-next-line */
-        $this->circuitBreaker = $circuitBreaker;
-        $this->attempts = $attempts;
-        $this->permittedNumberOfCalls = $permittedNumberOfCalls;
-        /* @phpstan-ignore-next-line */
-        $this->metrics = $metrics;
     }
 
     public function tryAcquirePermission(): bool
@@ -85,7 +66,7 @@ class HalfOpenState implements CircuitBreakerState
 
     public function getState(): State
     {
-        return State::HALF_OPEN();
+        return State::HALF_OPEN;
     }
 
     private function checkIfThresholdsExceeded(Result $result): void
@@ -93,7 +74,7 @@ class HalfOpenState implements CircuitBreakerState
         if (Result::hasExceededThresholds($result)) {
             $this->circuitBreaker->transitionToOpenState();
         }
-        if (Result::BELOW_THRESHOLDS === $result->value) {
+        if (Result::BELOW_THRESHOLDS === $result) {
             $this->circuitBreaker->transitionToCloseState();
         }
     }

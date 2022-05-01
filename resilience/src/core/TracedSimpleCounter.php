@@ -16,22 +16,10 @@ namespace kuiper\resilience\core;
 class TracedSimpleCounter extends SimpleCounter
 {
     /**
-     * @var TracedSimpleCounterFactory
-     */
-    private $factory;
-
-    /**
-     * @var string
-     */
-    private $name;
-
-    /**
      * TracedSimpleCounter constructor.
      */
-    public function __construct(TracedSimpleCounterFactory $factory, string $name)
+    public function __construct(private readonly TracedSimpleCounterFactory $factory, private readonly string $name)
     {
-        $this->factory = $factory;
-        $this->name = $name;
     }
 
     public function increment(int $value = 1): int

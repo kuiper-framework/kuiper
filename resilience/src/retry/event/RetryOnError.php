@@ -22,28 +22,13 @@ use kuiper\resilience\retry\Retry;
 class RetryOnError
 {
     /**
-     * @var Retry
-     */
-    private $retry;
-
-    /**
-     * @var int
-     */
-    private $numOfAttempts;
-
-    /**
-     * @var \Exception
-     */
-    private $lastException;
-
-    /**
      * RetryOnError constructor.
      */
-    public function __construct(Retry $retry, int $numOfAttempts, \Exception $lastException)
+    public function __construct(
+        private readonly Retry $retry,
+        private readonly int $numOfAttempts,
+        private readonly \Throwable $lastException)
     {
-        $this->retry = $retry;
-        $this->numOfAttempts = $numOfAttempts;
-        $this->lastException = $lastException;
     }
 
     public function getRetry(): Retry
@@ -56,7 +41,7 @@ class RetryOnError
         return $this->numOfAttempts;
     }
 
-    public function getLastException(): \Exception
+    public function getLastException(): \Throwable
     {
         return $this->lastException;
     }

@@ -47,6 +47,6 @@ class DisabledState implements CircuitBreakerState
 
     public function getState(): State
     {
-        return State::DISABLED();
+        return State::DISABLED;
     }
 }

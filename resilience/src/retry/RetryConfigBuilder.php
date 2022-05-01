@@ -20,14 +20,14 @@ class RetryConfigBuilder
      *
      * @var int
      */
-    private $maxAttempts;
+    private int $maxAttempts;
 
     /**
      * A fixed wait duration between retry attempts.
      *
      * @var int
      */
-    private $waitDuration;
+    private int $waitDuration;
 
     /**
      * A function to modify the waiting interval after a failure. By default the wait duration remains constant.
@@ -58,7 +58,7 @@ class RetryConfigBuilder
      *
      * @var string[]
      */
-    private $retryExceptions = [];
+    private array $retryExceptions = [];
 
     /**
      * Configures a list of Throwable classes that are ignored and thus are not retried.
@@ -66,7 +66,7 @@ class RetryConfigBuilder
      *
      * @var string[]
      */
-    private $ignoreExceptions = [];
+    private array $ignoreExceptions = [];
 
     /**
      * A boolean to enable or disable throwing of MaxRetriesExceededException when the Retry has reached
@@ -74,7 +74,7 @@ class RetryConfigBuilder
      *
      * @var bool
      */
-    private $failAfterMaxAttempts = false;
+    private bool $failAfterMaxAttempts = false;
 
     public function __construct(?RetryConfig $config = null)
     {

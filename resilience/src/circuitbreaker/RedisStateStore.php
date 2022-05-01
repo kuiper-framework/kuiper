@@ -15,34 +15,14 @@ namespace kuiper\resilience\circuitbreaker;
 
 class RedisStateStore implements StateStore
 {
-    /**
-     * @var \Redis
-     */
-    private $redis;
-    /**
-     * @var string
-     */
-    private $keyPrefix;
-
-    /**
-     * RedisStateStore constructor.
-     *
-     * @param \Redis $redis
-     */
-    public function __construct(\Redis $redis, string $keyPrefix = 'circuitbreaker')
+    public function __construct(private readonly \Redis $redis, private readonly string $keyPrefix = 'circuitbreaker')
     {
-        $this->redis = $redis;
-        $this->keyPrefix = $keyPrefix;
     }
 
     public function getState(string $name): State
     {
         $value = (int) $this->redis->get($this->keyPrefix.$name);
-        if (State::hasValue($value)) {
-            return State::fromValue($value);
-        }
-
-        return State::CLOSED();
+        return State::tryFrom($value) ?? State::CLOSED;
     }
 
     public function setState(string $name, State $state): void
@@ -50,7 +30,7 @@ class RedisStateStore implements StateStore
         $value = [
             $this->keyPrefix.$name => $state->value,
         ];
-        if (State::OPEN === $state->value) {
+        if (State::OPEN === $state) {
             $value[$this->keyPrefix.'open'.$name] = (int) (microtime(true) * 1000);
         }
         $this->redis->mset($value);
@@ -62,7 +42,7 @@ class RedisStateStore implements StateStore
             $this->keyPrefix.$name,
             $this->keyPrefix.'open'.$name,
         ]);
-        if (State::OPEN === ((int) $values[0])) {
+        if (State::OPEN->value === ((int) $values[0])) {
             return (int) $values[1];
         }
 

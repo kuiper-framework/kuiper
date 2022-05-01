@@ -18,25 +18,10 @@ use kuiper\resilience\core\ResilienceException;
 
 class ResultWasFailureException extends \Exception implements ResilienceException
 {
-    /**
-     * @var CircuitBreaker
-     */
-    private $circuitBreaker;
-
-    /**
-     * @var mixed
-     */
-    private $result;
-
-    /**
-     * ResultWasFailureException constructor.
-     *
-     * @param mixed $result
-     */
-    public function __construct(CircuitBreaker $circuitBreaker, $result)
+    public function __construct(
+        private readonly CircuitBreaker $circuitBreaker,
+        private readonly mixed $result)
     {
-        $this->circuitBreaker = $circuitBreaker;
-        $this->result = $result;
         parent::__construct('result is failure');
     }
 
@@ -45,10 +30,7 @@ class ResultWasFailureException extends \Exception implements ResilienceExceptio
         return $this->circuitBreaker;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getResult()
+    public function getResult(): mixed
     {
         return $this->result;
     }

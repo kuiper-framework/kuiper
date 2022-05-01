@@ -17,14 +17,8 @@ use Swoole\Atomic;
 
 class SwooleAtomicCounter implements Counter
 {
-    /**
-     * @var Atomic
-     */
-    private $atomic;
+    private readonly Atomic $atomic;
 
-    /**
-     * SwooleAtomicCounter constructor.
-     */
     public function __construct()
     {
         $this->atomic = new Atomic();

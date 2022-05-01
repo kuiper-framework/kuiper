@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\retry;
 
+use Exception;
+use kuiper\event\EventDispatcherAwareInterface;
+use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\resilience\core\Clock;
 use kuiper\resilience\core\Counter;
 use kuiper\resilience\core\CounterFactory;
@@ -21,69 +24,34 @@ use kuiper\resilience\retry\event\RetryOnIgnoredError;
 use kuiper\resilience\retry\event\RetryOnRetry;
 use kuiper\resilience\retry\event\RetryOnSuccess;
 use kuiper\resilience\retry\exception\MaxRetriesExceededException;
-use Psr\EventDispatcher\EventDispatcherInterface;
+use Throwable;
 
-class RetryImpl implements Retry
+class RetryImpl implements Retry, EventDispatcherAwareInterface
 {
-    /**
-     * @var string
-     */
-    private $name;
+    use EventDispatcherAwareTrait;
 
-    /**
-     * @var RetryConfig
-     */
-    private $config;
+    private int $numOfAttempts = 0;
 
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
+    private readonly Counter $succeededAfterRetryCounter;
 
-    /**
-     * @var int
-     */
-    private $numOfAttempts;
+    private readonly Counter $succeededWithoutRetryCounter;
 
-    /**
-     * @var Counter
-     */
-    private $succeededAfterRetryCounter;
-    /**
-     * @var Counter
-     */
-    private $succeededWithoutRetryCounter;
+    private readonly Counter $failedAfterRetryCounter;
 
-    /**
-     * @var Counter
-     */
-    private $failedAfterRetryCounter;
+    private readonly Counter $failedWithoutRetryCounter;
 
-    /**
-     * @var Counter
-     */
-    private $failedWithoutRetryCounter;
+    private ?Throwable $lastException = null;
 
-    /**
-     * @var \Exception|null
-     */
-    private $lastException;
-    /**
-     * @var Clock
-     */
-    private $clock;
-
-    public function __construct(string $name, RetryConfig $config, Clock $clock, CounterFactory $counterFactory, EventDispatcherInterface $eventDispatcher)
+    public function __construct(
+        private readonly string $name,
+        private readonly RetryConfig $config,
+        private readonly Clock $clock,
+        CounterFactory $counterFactory)
     {
-        $this->name = $name;
-        $this->config = $config;
-        $this->numOfAttempts = 0;
-        $this->clock = $clock;
         $this->succeededAfterRetryCounter = $counterFactory->create($this->name.'.succeeded_retry');
         $this->succeededWithoutRetryCounter = $counterFactory->create($this->name.'.succeeded');
         $this->failedAfterRetryCounter = $counterFactory->create($this->name.'.failed_retry');
         $this->failedWithoutRetryCounter = $counterFactory->create($this->name.'.failed');
-        $this->eventDispatcher = $eventDispatcher;
     }
 
     public function getName(): string
@@ -107,10 +75,7 @@ class RetryImpl implements Retry
         return $this->numOfAttempts;
     }
 
-    /**
-     * @return \Exception|null
-     */
-    public function getLastException(): ?\Exception
+    public function getLastException(): ?Throwable
     {
         return $this->lastException;
     }
@@ -131,7 +96,7 @@ class RetryImpl implements Retry
 
                         return $result;
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->onError($e);
                 }
             }
@@ -141,7 +106,7 @@ class RetryImpl implements Retry
     /**
      * {@inheritDoc}
      */
-    public function call(callable $call, ...$args)
+    public function call(callable $call, ...$args): mixed
     {
         return $this->decorate($call)(...$args);
     }
@@ -187,10 +152,7 @@ class RetryImpl implements Retry
         }
     }
 
-    /**
-     * @param mixed $result
-     */
-    protected function onResult($result): bool
+    protected function onResult(mixed $result): bool
     {
         if (null === $this->config->getRetryOnResult()) {
             return false;
@@ -211,7 +173,7 @@ class RetryImpl implements Retry
         return false;
     }
 
-    protected function onError(\Exception $exception): void
+    protected function onError(Throwable $exception): void
     {
         if ($this->config->shouldRetryOnException($exception)) {
             $this->lastException = $exception;
@@ -230,15 +192,12 @@ class RetryImpl implements Retry
             $this->failedAfterRetryCounter->increment();
             $this->eventDispatcher->dispatch(new RetryOnError($this, $currentNumOfAttempts, $this->lastException));
             throw $this->lastException;
-        } else {
-            $this->waitIntervalAfterFailure($currentNumOfAttempts, $this->lastException, null);
         }
+
+        $this->waitIntervalAfterFailure($currentNumOfAttempts, $this->lastException, null);
     }
 
-    /**
-     * @param mixed $result
-     */
-    private function waitIntervalAfterFailure(int $numOfAttempts, ?\Exception $exception, $result): void
+    private function waitIntervalAfterFailure(int $numOfAttempts, ?Throwable $exception, mixed $result): void
     {
         $interval = $this->config->getRetryInterval($numOfAttempts, $exception, $result);
         $this->eventDispatcher->dispatch(new RetryOnRetry($this, $numOfAttempts, $interval, $exception, $result));

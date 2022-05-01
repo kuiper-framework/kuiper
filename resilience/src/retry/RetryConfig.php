@@ -13,90 +13,40 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\retry;
 
+/**
+ * @see RetryConfigBuilder
+ */
 class RetryConfig
 {
     /**
-     * The maximum number of attempts (including the initial call as the first attempt).
-     *
-     * @var int
-     */
-    private $maxAttempts;
-
-    /**
-     * A fixed wait duration between retry attempts.
-     *
-     * @var int
-     */
-    private $waitDuration;
-
-    /**
-     * A function to modify the waiting interval after a failure. By default the wait duration remains constant.
-     *
      * @var callable|null
      */
     private $intervalFunction;
-
     /**
-     * Configures a Predicate which evaluates if a result should be retried.
-     * The callable must return true, if the result should be retried, otherwise it must return false.
-     *
      * @var callable|null
      */
     private $retryOnResult;
-
     /**
-     * Configures a Predicate which evaluates if an exception should be retried.
-     * The callable must return true, if the exception should be retried, otherwise it must return false.
-     *
      * @var callable|null
      */
     private $retryOnException;
 
-    /**
-     * Configures a list of Throwable classes that are recorded as a failure and thus are retried.
-     * This parameter supports subtyping.
-     *
-     * @var string[]
-     */
-    private $retryExceptions;
-
-    /**
-     * Configures a list of Throwable classes that are ignored and thus are not retried.
-     * This parameter supports subtyping.
-     *
-     * @var string[]
-     */
-    private $ignoreExceptions;
-
-    /**
-     * A boolean to enable or disable throwing of MaxRetriesExceededException when the Retry has reached
-     * the configured maxAttempts, and the result is still not passing the retryOnResultPredicate.
-     *
-     * @var bool
-     */
-    private $failAfterMaxAttempts;
-
     public function __construct(
-        int $maxAttempts = 3,
-        int $waitDuration = 500,
+        private readonly int $maxAttempts = 3,
+        private readonly int $waitDuration = 500,
         ?callable $intervalFunction = null,
         ?callable $retryOnResult = null,
         ?callable $retryOnException = null,
-        array $retryExceptions = [],
-        array $ignoreExceptions = [],
-        bool $failAfterMaxAttempts = false)
+        private readonly array $retryExceptions = [],
+        private readonly array $ignoreExceptions = [],
+        private readonly bool $failAfterMaxAttempts = false)
     {
-        $this->maxAttempts = $maxAttempts;
-        $this->waitDuration = $waitDuration;
         $this->intervalFunction = $intervalFunction;
         $this->retryOnResult = $retryOnResult;
         $this->retryOnException = $retryOnException;
-        $this->retryExceptions = $retryExceptions;
-        $this->ignoreExceptions = $ignoreExceptions;
-        $this->failAfterMaxAttempts = $failAfterMaxAttempts;
     }
 
-    public function shouldRetryOnException(\Exception $exception): bool
+    public function shouldRetryOnException(\Throwable $exception): bool
     {
         if (null !== $this->retryOnException) {
             return call_user_func($this->retryOnException, $exception);
@@ -119,10 +69,7 @@ class RetryConfig
         return true;
     }
 
-    /**
-     * @param mixed $result
-     */
-    public function getRetryInterval(int $retryAttempts, ?\Exception $lastException, $result): int
+    public function getRetryInterval(int $retryAttempts, ?\Throwable $lastException, mixed $result): int
     {
         if (null !== $this->intervalFunction) {
             return call_user_func($this->intervalFunction, $retryAttempts, $this->waitDuration, $lastException, $result);

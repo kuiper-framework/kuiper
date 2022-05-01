@@ -20,42 +20,21 @@ use kuiper\resilience\core\Snapshot;
 
 class CircuitBreakerMetricsImpl implements CircuitBreakerMetrics
 {
-    private const RATE_NA = -1;
+    private const RATE_NA = -1.0;
 
-    /**
-     * @var Counter
-     */
-    private $numberOfNotPermittedCalls;
+    private Snapshot $snapshot;
 
-    /**
-     * @var Metrics
-     */
-    private $metrics;
-
-    /**
-     * @var CircuitBreakerConfig
-     */
-    private $config;
-
-    /**
-     * @var Snapshot
-     */
-    private $snapshot;
-
-    /**
-     * @var int
-     */
-    private $minimumNumberOfCalls;
+    private readonly int $minimumNumberOfCalls;
 
     /**
      * CircuitBreakerMetricsImpl constructor.
      */
-    public function __construct(Counter $numberOfNotPermittedCalls, Metrics $metrics, CircuitBreakerConfig $config)
+    public function __construct(
+        private readonly Counter $numberOfNotPermittedCalls,
+        private readonly Metrics $metrics,
+        private readonly CircuitBreakerConfig $config)
     {
-        $this->numberOfNotPermittedCalls = $numberOfNotPermittedCalls;
-        $this->metrics = $metrics;
-        $this->config = $config;
-        if (SlideWindowType::COUNT_BASED === $metrics->getWindowType()->value) {
+        if (SlideWindowType::COUNT_BASED === $metrics->getWindowType()) {
             $this->minimumNumberOfCalls = min($config->getMinimumNumberOfCalls(), $metrics->getWindowSize());
         } else {
             $this->minimumNumberOfCalls = $config->getMinimumNumberOfCalls();
@@ -76,9 +55,9 @@ class CircuitBreakerMetricsImpl implements CircuitBreakerMetrics
     public function onSuccess(int $duration): Result
     {
         if ($duration > $this->config->getSlowCallDurationThreshold()) {
-            $this->snapshot = $this->metrics->record($duration, Outcome::SLOW_SUCCESS());
+            $this->snapshot = $this->metrics->record($duration, Outcome::SLOW_SUCCESS);
         } else {
-            $this->snapshot = $this->metrics->record($duration, Outcome::SUCCESS());
+            $this->snapshot = $this->metrics->record($duration, Outcome::SUCCESS);
         }
 
         return $this->checkIfThresholdsExceeded();
@@ -92,9 +71,9 @@ class CircuitBreakerMetricsImpl implements CircuitBreakerMetrics
     public function onError(int $duration): Result
     {
         if ($duration > $this->config->getSlowCallDurationThreshold()) {
-            $this->snapshot = $this->metrics->record($duration, Outcome::SLOW_ERROR());
+            $this->snapshot = $this->metrics->record($duration, Outcome::SLOW_ERROR);
         } else {
-            $this->snapshot = $this->metrics->record($duration, Outcome::ERROR());
+            $this->snapshot = $this->metrics->record($duration, Outcome::ERROR);
         }
 
         return $this->checkIfThresholdsExceeded();
@@ -105,22 +84,22 @@ class CircuitBreakerMetricsImpl implements CircuitBreakerMetrics
         $failureRateInPercentage = $this->getFailureRate();
         $slowCallsInPercentage = $this->getSlowCallRate();
 
-        if (self::RATE_NA == $failureRateInPercentage || self::RATE_NA == $slowCallsInPercentage) {
-            return Result::BELOW_MINIMUM_CALLS_THRESHOLD();
+        if (self::RATE_NA === $failureRateInPercentage || self::RATE_NA === $slowCallsInPercentage) {
+            return Result::BELOW_MINIMUM_CALLS_THRESHOLD;
         }
         if ($failureRateInPercentage >= $this->config->getFailureRateThreshold()
             && $slowCallsInPercentage >= $this->config->getSlowCallRateThreshold()) {
-            return Result::ABOVE_THRESHOLDS();
+            return Result::ABOVE_THRESHOLDS;
         }
         if ($failureRateInPercentage >= $this->config->getFailureRateThreshold()) {
-            return Result::FAILURE_RATE_ABOVE_THRESHOLDS();
+            return Result::FAILURE_RATE_ABOVE_THRESHOLDS;
         }
 
         if ($slowCallsInPercentage >= $this->config->getSlowCallRateThreshold()) {
-            return Result::SLOW_CALL_RATE_ABOVE_THRESHOLDS();
+            return Result::SLOW_CALL_RATE_ABOVE_THRESHOLDS;
         }
 
-        return Result::BELOW_THRESHOLDS();
+        return Result::BELOW_THRESHOLDS;
     }
 
     /**

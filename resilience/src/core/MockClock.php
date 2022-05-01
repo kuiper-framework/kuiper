@@ -15,10 +15,7 @@ namespace kuiper\resilience\core;
 
 class MockClock implements Clock
 {
-    /**
-     * @var int
-     */
-    private $time;
+    private int $time;
 
     public function __construct()
     {

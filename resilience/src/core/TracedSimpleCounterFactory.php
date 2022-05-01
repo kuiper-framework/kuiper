@@ -18,7 +18,7 @@ class TracedSimpleCounterFactory extends AbstractCounterFactory
     /**
      * @var string[]
      */
-    private $actions;
+    private array $actions = [];
 
     protected function createInternal(string $name): Counter
     {

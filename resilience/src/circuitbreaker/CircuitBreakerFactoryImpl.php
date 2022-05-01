@@ -26,62 +26,31 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
 {
     /**
-     * @var PoolFactoryInterface
-     */
-    private $poolFactory;
-    /**
-     * @var StateStore
-     */
-    private $stateStore;
-
-    /**
-     * @var CounterFactory
-     */
-    private $counterFactory;
-    /**
-     * @var MetricsFactory
-     */
-    private $metricFactory;
-
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
-
-    /**
-     * @var array
-     */
-    private $options;
-
-    /**
      * @var Clock
      */
-    private $clock;
+    private readonly Clock $clock;
 
     /**
      * @var PoolInterface[]
      */
-    private $circuitBreakerPoolList;
+    private array $circuitBreakerPoolList = [];
 
     /**
      * @var CircuitBreaker[]
      */
-    private $circuitBreakerList;
+    private array $circuitBreakerList = [];
 
-    /**
-     * @var string|null
-     */
-    private $proxyClass;
+    private ?string $proxyClass = null;
 
-    public function __construct(PoolFactoryInterface $poolFactory, StateStore $stateStore, CounterFactory $counterFactory, MetricsFactory $metricFactory, EventDispatcherInterface $eventDispatcher, array $options = null)
+    public function __construct(
+        private readonly PoolFactoryInterface $poolFactory,
+        private readonly StateStore $stateStore,
+        private readonly CounterFactory $counterFactory,
+        private readonly MetricsFactory $metricFactory,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly array $options = [])
     {
-        $this->poolFactory = $poolFactory;
-        $this->stateStore = $stateStore;
-        $this->counterFactory = $counterFactory;
-        $this->metricFactory = $metricFactory;
-        $this->eventDispatcher = $eventDispatcher;
         $this->clock = new SimpleClock();
-        $this->options = $options ?? [];
     }
 
     private function getProxyClass(): string
@@ -136,14 +105,15 @@ class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
      */
     public function newInstance(string $name): CircuitBreaker
     {
-        return new CircuitBreakerImpl(
+        $circuitBreaker = new CircuitBreakerImpl(
             $name,
             $this->createConfig($name),
             $this->clock,
             $this->stateStore,
             $this->counterFactory,
-            $this->metricFactory,
-            $this->eventDispatcher
+            $this->metricFactory
         );
+        $circuitBreaker->setEventDispatcher($this->eventDispatcher);
+        return $circuitBreaker;
     }
 }

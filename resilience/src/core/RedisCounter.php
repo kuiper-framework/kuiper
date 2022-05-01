@@ -15,25 +15,10 @@ namespace kuiper\resilience\core;
 
 class RedisCounter implements Counter
 {
-    /**
-     * @var \Redis
-     */
-    private $redis;
-
-    /**
-     * @var string
-     */
-    private $key;
-
-    /**
-     * RedisCounter constructor.
-     *
-     * @param \Redis $redis
-     */
-    public function __construct($redis, string $key)
+    public function __construct(
+        private readonly \Redis $redis,
+        private readonly string $key)
     {
-        $this->redis = $redis;
-        $this->key = $key;
     }
 
     public function increment(int $value = 1): int

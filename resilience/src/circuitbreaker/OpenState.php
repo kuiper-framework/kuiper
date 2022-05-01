@@ -17,29 +17,16 @@ use kuiper\resilience\circuitbreaker\exception\CallNotPermittedException;
 
 class OpenState implements CircuitBreakerState
 {
-    /**
-     * @var int
-     */
-    private $attempts;
-    /**
-     * @var CircuitBreakerImpl
-     */
-    private $circuitBreaker;
-    /**
-     * @var CircuitBreakerMetricsImpl
-     */
-    private $metrics;
-    /**
-     * @var int
-     */
-    private $retryAfterWaitDuration;
+    private readonly CircuitBreakerMetrics $metrics;
 
-    public function __construct(CircuitBreakerImpl $circuitBreaker, int $attempts, int $stateChangeTime)
+    private readonly int $retryAfterWaitDuration;
+
+    public function __construct(
+        private readonly CircuitBreakerImpl $circuitBreaker,
+        private readonly int $attempts,
+        int $stateChangeTime)
     {
-        $this->circuitBreaker = $circuitBreaker;
-        /* @phpstan-ignore-next-line */
         $this->metrics = $circuitBreaker->getMetrics();
-        $this->attempts = $attempts;
         $this->retryAfterWaitDuration = $stateChangeTime + $circuitBreaker->getConfig()->getWaitIntervalInOpenState($this->attempts);
     }
 
@@ -84,6 +71,6 @@ class OpenState implements CircuitBreakerState
 
     public function getState(): State
     {
-        return State::OPEN();
+        return State::OPEN;
     }
 }

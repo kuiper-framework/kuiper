@@ -20,10 +20,7 @@ class SwooleTableStateStore implements StateStore
     private const STATE = 'state';
     private const OPEN_AT = 'open';
 
-    /**
-     * @var Table
-     */
-    private $table;
+    private readonly Table $table;
 
     public function __construct(int $size = 1024)
     {
@@ -36,11 +33,7 @@ class SwooleTableStateStore implements StateStore
     public function getState(string $name): State
     {
         $value = (int) $this->table->get($name, self::STATE);
-        if (State::hasValue($value)) {
-            return State::fromValue($value);
-        }
-
-        return State::CLOSED();
+        return State::tryFrom($value) ?? State::CLOSED;
     }
 
     public function setState(string $name, State $state): void
@@ -48,7 +41,7 @@ class SwooleTableStateStore implements StateStore
         $value = [
             self::STATE => $state->value,
         ];
-        if (State::OPEN === $state->value) {
+        if (State::OPEN === $state) {
             $value[self::OPEN_AT] = (int) (microtime(true) * 1000);
         }
         $this->table->set($name, $value);
@@ -57,7 +50,7 @@ class SwooleTableStateStore implements StateStore
     public function getOpenAt(string $name): int
     {
         $value = $this->table->get($name);
-        if (is_array($value) && State::OPEN === $value[self::STATE]) {
+        if (is_array($value) && State::OPEN->value === $value[self::STATE]) {
             return $value[self::OPEN_AT];
         }
 

@@ -13,30 +13,23 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\core;
 
-class TryCall
+final class TryCall
 {
-    /**
-     * @var mixed
-     */
-    private $result;
-    /**
-     * @var \Exception|null
-     */
-    private $exception;
+    private function __construct(private readonly mixed $result, private readonly ?\Exception $exception)
+    {
+    }
 
-    /**
-     * @param mixed ...$args
-     */
     public static function call(callable $call, ...$args): TryCall
     {
-        $result = new self();
+        $result = null;
+        $exception = null;
         try {
-            $result->result = call_user_func_array($call, $args);
+            $result = call_user_func_array($call, $args);
         } catch (\Exception $e) {
-            $result->exception = $e;
+            $exception = $e;
         }
 
-        return $result;
+        return new self($result, $exception);
     }
 
     public function isFailure(): bool
@@ -44,10 +37,7 @@ class TryCall
         return isset($this->exception);
     }
 
-    /**
-     * @return mixed
-     */
-    public function getResult()
+    public function getResult(): mixed
     {
         return $this->result;
     }

@@ -18,29 +18,11 @@ use kuiper\resilience\circuitbreaker\State;
 
 class CircuitBreakerOnStateTransition
 {
-    /**
-     * @var CircuitBreaker
-     */
-    private $circuitBreaker;
-
-    /**
-     * @var State
-     */
-    private $fromState;
-
-    /**
-     * @var State
-     */
-    private $toState;
-
-    /**
-     * CircuitBreakerOnStateTransition constructor.
-     */
-    public function __construct(CircuitBreaker $circuitBreaker, State $fromState, State $toState)
+    public function __construct(
+        private readonly CircuitBreaker $circuitBreaker,
+        private readonly State $fromState,
+        private readonly State $toState)
     {
-        $this->circuitBreaker = $circuitBreaker;
-        $this->fromState = $fromState;
-        $this->toState = $toState;
     }
 
     public function getCircuitBreaker(): CircuitBreaker

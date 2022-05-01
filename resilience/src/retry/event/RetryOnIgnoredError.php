@@ -21,23 +21,14 @@ use kuiper\resilience\retry\Retry;
  */
 class RetryOnIgnoredError
 {
-    /**
-     * @var Retry
-     */
-    private $retry;
-
-    /**
-     * @var \Exception
-     */
-    private $exception;
 
     /**
      * RetryOnIgnoredError constructor.
      */
-    public function __construct(Retry $retry, \Exception $exception)
+    public function __construct(
+        private readonly Retry $retry,
+        private readonly \Throwable $exception)
     {
-        $this->retry = $retry;
-        $this->exception = $exception;
     }
 
     public function getRetry(): Retry
@@ -45,7 +36,7 @@ class RetryOnIgnoredError
         return $this->retry;
     }
 
-    public function getException(): \Exception
+    public function getException(): \Throwable
     {
         return $this->exception;
     }

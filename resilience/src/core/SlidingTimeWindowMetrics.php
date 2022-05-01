@@ -17,59 +17,51 @@ use kuiper\resilience\circuitbreaker\SlideWindowType;
 
 class SlidingTimeWindowMetrics implements Metrics
 {
+
     /**
      * @var int
      */
-    private $timeWindowSizeInSeconds;
-
-    /**
-     * @var Clock
-     */
-    private $clock;
+    private int $headIndex = 0;
 
     /**
      * @var PartialAggregation[]
      */
-    private $measurements;
+    private array $measurements;
 
     /**
      * @var TotalAggregation
      */
-    private $totalAggregation;
-
-    /**
-     * @var int
-     */
-    private $headIndex;
+    private readonly TotalAggregation $totalAggregation;
 
     /**
      * FixedSizeSlidingWindowMetrics constructor.
      */
-    public function __construct(string $name, int $timeWindowSizeInSeconds, Clock $clock, CounterFactory $counterFactory)
+    public function __construct(
+        string  $name,
+        private readonly int $timeWindowSizeInSeconds,
+        private readonly Clock $clock,
+        CounterFactory $counterFactory)
     {
-        $this->timeWindowSizeInSeconds = $timeWindowSizeInSeconds;
-        $this->headIndex = 0;
-        $this->clock = $clock;
         $epochSecond = $clock->getEpochSecond();
         foreach (range(0, $this->timeWindowSizeInSeconds - 1) as $i) {
-            $prefix = $name.'_'.$i;
-            $epochSecondCounter = $counterFactory->create($prefix.'.time');
+            $prefix = $name . '_' . $i;
+            $epochSecondCounter = $counterFactory->create($prefix . '.time');
             $epochSecondCounter->set($epochSecond);
             $this->measurements[] = new PartialAggregation(
-                $counterFactory->create($prefix.'.duration'),
-                $counterFactory->create($prefix.'.slow_calls'),
-                $counterFactory->create($prefix.'.slow_failed_calls'),
-                $counterFactory->create($prefix.'.failed_calls'),
-                $counterFactory->create($prefix.'.calls'),
+                $counterFactory->create($prefix . '.duration'),
+                $counterFactory->create($prefix . '.slow_calls'),
+                $counterFactory->create($prefix . '.slow_failed_calls'),
+                $counterFactory->create($prefix . '.failed_calls'),
+                $counterFactory->create($prefix . '.calls'),
                 $epochSecondCounter
             );
         }
         $this->totalAggregation = new TotalAggregation(
-            $counterFactory->create($name.'.duration'),
-            $counterFactory->create($name.'.slow_calls'),
-            $counterFactory->create($name.'.slow_failed_calls'),
-            $counterFactory->create($name.'.failed_calls'),
-            $counterFactory->create($name.'.calls')
+            $counterFactory->create($name . '.duration'),
+            $counterFactory->create($name . '.slow_calls'),
+            $counterFactory->create($name . '.slow_failed_calls'),
+            $counterFactory->create($name . '.failed_calls'),
+            $counterFactory->create($name . '.calls')
         );
     }
 
@@ -97,7 +89,7 @@ class SlidingTimeWindowMetrics implements Metrics
         $lastMeasurement->record($duration, $outcome);
         $this->totalAggregation->aggregate($bucket);
 
-        return new Snapshot($this->totalAggregation);
+        return Snapshot::fromAggregation($this->totalAggregation);
     }
 
     /**
@@ -116,7 +108,7 @@ class SlidingTimeWindowMetrics implements Metrics
 
     public function getSnapshot(): Snapshot
     {
-        return new Snapshot($this->totalAggregation);
+        return Snapshot::fromAggregation($this->totalAggregation);
     }
 
     public function getWindowSize(): int

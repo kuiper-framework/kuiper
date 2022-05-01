@@ -29,6 +29,7 @@ interface StateStore
     public function setState(string $name, State $state): void;
 
     /**
+     * @param string $name
      * @return int
      */
     public function getOpenAt(string $name): int;

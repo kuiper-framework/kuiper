@@ -15,14 +15,22 @@ namespace kuiper\resilience\circuitbreaker;
 
 interface CircuitBreaker
 {
+    /**
+     * @param callable $call
+     * @return callable
+     */
     public function decorate(callable $call): callable;
 
     /**
+     * @param callable $call
      * @param mixed ...$args
      *
      * @return mixed
      */
-    public function call(callable $call, ...$args);
+    public function call(callable $call, ...$args): mixed;
 
+    /**
+     * @return CircuitBreakerMetrics
+     */
     public function getMetrics(): CircuitBreakerMetrics;
 }

@@ -24,7 +24,7 @@ class CircuitBreakerConfigBuilder
      *
      * @var float
      */
-    private $failureRateThreshold = 50;
+    private float $failureRateThreshold = 50.0;
     /**
      * Configures a threshold in percentage.
      * The CircuitBreaker considers a call as slow when the call duration is greater than slowCallDurationThreshold.
@@ -33,19 +33,19 @@ class CircuitBreakerConfigBuilder
      *
      * @var float
      */
-    private $slowCallRateThreshold = 100;
+    private float $slowCallRateThreshold = 100.0;
     /**
      * Configures the duration threshold above which calls are considered as slow and increase the rate of slow calls.
      *
      * @var int
      */
-    private $slowCallDurationThreshold = 10000;
+    private int $slowCallDurationThreshold = 10000;
     /**
      * Configures the number of permitted calls when the CircuitBreaker is half open.
      *
      * @var int
      */
-    private $permittedNumberOfCallsInHalfOpenState = 10;
+    private int $permittedNumberOfCallsInHalfOpenState = 10;
     /**
      * Configures a maximum wait duration which controls the longest amount of time a CircuitBreaker
      * could stay in Half Open state, before it switches to open.
@@ -53,23 +53,23 @@ class CircuitBreakerConfigBuilder
      *
      * @var int
      */
-    private $maxWaitDurationInHalfOpenState = 0;
+    private int $maxWaitDurationInHalfOpenState = 0;
 
     /**
      * Configures the type of the sliding window which is used to record the outcome of calls when the CircuitBreaker is closed.
      * If the sliding window is COUNT_BASED, the last slidingWindowSize calls are recorded and aggregated.
      * If the sliding window is TIME_BASED, the calls of the last slidingWindowSize seconds recorded and aggregated.
      *
-     * @var SlideWindowType
+     * @var SlideWindowType|null
      */
-    private $slidingWindowType;
+    private ?SlideWindowType $slidingWindowType = null;
 
     /**
      * Configures the size of the sliding window which is used to record the outcome of calls when the CircuitBreaker is closed.
      *
      * @var int
      */
-    private $slidingWindowSize = 100;
+    private int $slidingWindowSize = 100;
     /**
      * Configures the minimum number of calls which are required (per sliding window period) before the CircuitBreaker
      * can calculate the error rate or slow call rate.
@@ -79,7 +79,7 @@ class CircuitBreakerConfigBuilder
      *
      * @var int
      */
-    private $minimumNumberOfCalls = 100;
+    private int $minimumNumberOfCalls = 100;
 
     /**
      * Configures an interval function which controls how long the CircuitBreaker should stay
@@ -108,7 +108,7 @@ class CircuitBreakerConfigBuilder
      *
      * @var string[]
      */
-    private $ignoreExceptions = [];
+    private array $ignoreExceptions = [];
 
     /**
      * Configures a Predicate which evaluates if an exception should be ignored and neither
@@ -126,7 +126,7 @@ class CircuitBreakerConfigBuilder
      *
      * @var string[]
      */
-    private $recordExceptions = [];
+    private array $recordExceptions = [];
 
     /**
      * Configures a list of error classes that are recorded as a failure and thus increase the
@@ -158,7 +158,7 @@ class CircuitBreakerConfigBuilder
             $this->recordExceptions = $config->getRecordExceptions();
             $this->recordExceptionPredicate = $config->getRecordExceptionPredicate();
         } else {
-            $this->slidingWindowType = SlideWindowType::COUNT_BASED();
+            $this->slidingWindowType = SlideWindowType::COUNT_BASED;
             $this->setWaitIntervalInOpenState(self::DEFAULT_WAIT_INTERVAL_IN_OPEN_STATE);
         }
     }
@@ -166,7 +166,7 @@ class CircuitBreakerConfigBuilder
     /**
      * @return float
      */
-    public function getFailureRateThreshold()
+    public function getFailureRateThreshold(): float
     {
         return $this->failureRateThreshold;
     }
@@ -184,12 +184,13 @@ class CircuitBreakerConfigBuilder
     /**
      * @return float
      */
-    public function getSlowCallRateThreshold()
+    public function getSlowCallRateThreshold(): float
     {
         return $this->slowCallRateThreshold;
     }
 
     /**
+     * @param float $slowCallRateThreshold
      * @return CircuitBreakerConfigBuilder
      */
     public function setSlowCallRateThreshold(float $slowCallRateThreshold): self

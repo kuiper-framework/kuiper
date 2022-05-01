@@ -16,11 +16,6 @@ namespace kuiper\resilience\core;
 class PartialAggregation extends AbstractAggregation
 {
     /**
-     * @var Counter
-     */
-    private $epochSecond;
-
-    /**
      * PartialAggregation constructor.
      */
     public function __construct(
@@ -29,10 +24,9 @@ class PartialAggregation extends AbstractAggregation
         Counter $totalNumberOfSlowFailedCalls,
         Counter $totalNumberOfFailedCalls,
         Counter $totalNumberOfCalls,
-        Counter $epochSecond)
+        private readonly Counter $epochSecond)
     {
         parent::__construct($totalDuration, $totalNumberOfSlowCalls, $totalNumberOfSlowFailedCalls, $totalNumberOfFailedCalls, $totalNumberOfCalls);
-        $this->epochSecond = $epochSecond;
     }
 
     public function getEpochSecond(): int

@@ -18,7 +18,7 @@ abstract class AbstractCounterFactory implements CounterFactory
     /**
      * @var Counter[]
      */
-    private $counters;
+    private array $counters = [];
 
     /**
      * {@inheritDoc}
