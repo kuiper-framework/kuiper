@@ -13,44 +13,26 @@ declare(strict_types=1);
 
 namespace kuiper\db\fixtures;
 
-use kuiper\db\annotation\CreationTimestamp;
-use kuiper\db\annotation\GeneratedValue;
-use kuiper\db\annotation\Id;
-use kuiper\db\annotation\UpdateTimestamp;
+use kuiper\db\attribute\CreationTimestamp;
+use kuiper\db\attribute\GeneratedValue;
+use kuiper\db\attribute\Id;
+use kuiper\db\attribute\UpdateTimestamp;
 
 class Department
 {
-    /**
-     * @Id()
-     * @GeneratedValue()
-     *
-     * @var int
-     */
-    private $id;
+    #[Id]
+    #[GeneratedValue]
+    private ?int $id = null;
 
-    /**
-     * @CreationTimestamp()
-     *
-     * @var \DateTimeInterface
-     */
-    private $createTime;
+    #[CreationTimestamp]
+    private ?\DateTimeInterface $createTime = null;
 
-    /**
-     * @UpdateTimestamp()
-     *
-     * @var \DateTimeInterface
-     */
-    private $updateTime;
+    #[UpdateTimestamp]
+    private ?\DateTimeInterface $updateTime = null;
 
-    /**
-     * @var string
-     */
-    private $name;
+    private ?string $name = null;
 
-    /**
-     * @var string
-     */
-    private $departNo;
+    private ?string $departNo = null;
 
     public function getId(): int
     {
@@ -64,10 +46,7 @@ class Department
         return $this;
     }
 
-    /**
-     * @return \DateTimeInterface
-     */
-    public function getCreateTime()
+    public function getCreateTime(): ?\DateTimeInterface
     {
         return $this->createTime;
     }
@@ -79,10 +58,7 @@ class Department
         return $this;
     }
 
-    /**
-     * @return \DateTimeInterface
-     */
-    public function getUpdateTime()
+    public function getUpdateTime(): ?\DateTimeInterface
     {
         return $this->updateTime;
     }

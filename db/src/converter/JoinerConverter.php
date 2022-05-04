@@ -17,27 +17,11 @@ use kuiper\db\metadata\Column;
 
 class JoinerConverter implements AttributeConverterInterface
 {
-    /**
-     * @var string
-     */
-    private $delimiter;
-    /**
-     * @var bool
-     */
-    private $around;
-
-    /**
-     * ArraySerializer constructor.
-     *
-     * @param string $delimiter
-     */
-    public function __construct($delimiter = '|', bool $around = false)
+    public function __construct(private readonly string $delimiter = '|', private readonly bool $around = false)
     {
-        $this->delimiter = $delimiter;
-        $this->around = $around;
     }
 
-    public function convertToDatabaseColumn($attribute, Column $column)
+    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed
     {
         if (!is_array($attribute)) {
             throw new \InvalidArgumentException('attribute should be array');
@@ -47,7 +31,7 @@ class JoinerConverter implements AttributeConverterInterface
         return $this->around ? $this->delimiter.$value.$this->delimiter : $value;
     }
 
-    public function convertToEntityAttribute($dbData, Column $column)
+    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed
     {
         $trim = trim($dbData, $this->delimiter);
         if (empty($trim)) {

@@ -14,19 +14,18 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use Aura\SqlQuery\QueryFactory;
+use kuiper\event\NullEventDispatcher;
 use PHPUnit\Framework\TestCase;
 
 class CriteriaTest extends TestCase
 {
-    /**
-     * @var StatementInterface
-     */
-    private $statement;
+    private ?StatementInterface $statement = null;
 
     public function setUp(): void
     {
         $pool = new SingleConnectionPool(new Connection('', '', ''));
-        $queryBuilder = new QueryBuilder($pool, new QueryFactory('mysql'), null);
+        $queryBuilder = new QueryBuilder($pool, new QueryFactory('mysql'));
+        $queryBuilder->setEventDispatcher(new NullEventDispatcher());
         $this->statement = $queryBuilder->from('article')
             ->select('*');
     }

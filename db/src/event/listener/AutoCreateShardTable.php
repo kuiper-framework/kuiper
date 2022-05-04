@@ -14,13 +14,11 @@ declare(strict_types=1);
 namespace kuiper\db\event\listener;
 
 use kuiper\db\event\ShardTableNotExistEvent;
-use kuiper\event\annotation\EventListener;
+use kuiper\event\attribute\EventListener;
 use kuiper\event\EventListenerInterface;
 use Webmozart\Assert\Assert;
 
-/**
- * @EventListener()
- */
+#[EventListener]
 class AutoCreateShardTable implements EventListenerInterface
 {
     /**

@@ -15,20 +15,14 @@ namespace kuiper\db;
 
 class PooledTransactionManager implements TransactionManagerInterface
 {
-    /**
-     * @var ConnectionPoolInterface
-     */
-    private $connectionPool;
-
-    public function __construct(ConnectionPoolInterface $connectionPool)
+    public function __construct(private readonly ConnectionPoolInterface $connectionPool)
     {
-        $this->connectionPool = $connectionPool;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function transaction(callable $callback)
+    public function transaction(callable $callback): mixed
     {
         $connection = $this->connectionPool->take();
         try {

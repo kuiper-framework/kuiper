@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use Aura\SqlQuery\QueryFactory;
+use kuiper\event\NullEventDispatcher;
 use PHPUnit\Framework\TestCase;
 
 class StatementTest extends TestCase
@@ -28,8 +29,8 @@ class StatementTest extends TestCase
         $connection = new QueryBuilder(
             new SingleConnectionPool(new Connection('', '', '')),
             new QueryFactory('mysql'),
-            null
         );
+        $connection->setEventDispatcher(new NullEventDispatcher());
         $this->connection = $connection;
     }
 

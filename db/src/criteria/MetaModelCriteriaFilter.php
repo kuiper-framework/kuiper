@@ -20,14 +20,8 @@ use kuiper\db\metadata\MetaModelProperty;
 
 class MetaModelCriteriaFilter implements CriteriaFilterInterface
 {
-    /**
-     * @var MetaModelInterface
-     */
-    private $metaModel;
-
-    public function __construct(MetaModelInterface $metaModel)
+    public function __construct(private readonly MetaModelInterface $metaModel)
     {
-        $this->metaModel = $metaModel;
     }
 
     /**

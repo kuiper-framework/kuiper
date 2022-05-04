@@ -21,23 +21,24 @@ use kuiper\db\fixtures\Door;
 use kuiper\db\fixtures\DoorId;
 use kuiper\db\QueryBuilder;
 use kuiper\db\SingleConnectionPool;
+use kuiper\db\StatementInterface;
+use kuiper\event\NullEventDispatcher;
+use kuiper\reflection\ReflectionDocBlockFactory;
+use kuiper\tars\server\stat\StatInterface;
 
 class MetaModelCriteriaFilterTest extends AbstractRepositoryTestCase
 {
-    /**
-     * @var MetaModelInterface
-     */
-    private $metaModel;
-    /**
-     * @var \kuiper\db\StatementInterface
-     */
-    private $statement;
+
+    private ?MetaModelInterface $metaModel = null;
+
+    private ?StatementInterface $statement = null;
 
     public function setUp(): void
     {
         $pool = new SingleConnectionPool(new Connection('', '', ''));
-        $queryBuilder = new QueryBuilder($pool, new QueryFactory('mysql'), null);
-        $metaModelFactory = new MetaModelFactory($this->createAttributeRegistry(), null, null, null);
+        $queryBuilder = new QueryBuilder($pool, new QueryFactory('mysql'));
+        $queryBuilder->setEventDispatcher(new NullEventDispatcher());
+        $metaModelFactory = new MetaModelFactory($this->createAttributeRegistry(), new NamingStrategy(), ReflectionDocBlockFactory::getInstance());
 
         $this->metaModel = $metaModelFactory->create(Door::class);
         $this->statement = $queryBuilder->from('door')

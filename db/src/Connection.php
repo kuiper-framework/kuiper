@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 /*
  * This file is part of the Kuiper package.
@@ -25,108 +25,63 @@ use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\event\NullEventDispatcher;
 use PDO;
 use PDOStatement;
+use Stringable;
 
-class Connection extends PDO implements ConnectionInterface, EventDispatcherAwareInterface
+class Connection extends PDO implements ConnectionInterface, EventDispatcherAwareInterface, Stringable
 {
     use EventDispatcherAwareTrait;
 
     /**
      * @var int
      */
-    private static $GID = 1;
+    private static int $GID = 1;
 
     /**
      * The attributes for a lazy connection.
      *
      * @var array
      */
-    protected $attributes = [
+    protected array $attributes = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ];
 
     /**
-     * The DSN for a lazy connection.
-     *
-     * @var string
-     */
-    protected $dsn;
-
-    /**
-     * The username for a lazy connection.
-     *
-     * @var string|null
-     */
-    protected $username;
-
-    /**
-     * The password for a lazy connection.
-     *
-     * @var string|null
-     */
-    protected $password;
-
-    /**
-     * PDO options for a lazy connection.
-     *
-     * @var array
-     */
-    protected $options = [];
-
-    /**
      * The PDO connection itself.
-     *
-     * @var \PDO|null
      */
-    protected $pdo;
+    protected ?PDO $pdo = null;
 
-    /**
-     * @var bool whether
-     */
-    protected $longRunning = true;
+    protected bool $longRunning = true;
 
-    /**
-     * @var int
-     */
-    protected $timeout = 300;
+    protected int $timeout = 300;
 
-    /**
-     * @var int
-     */
-    protected $connectedAt = -1;
+    protected int $connectedAt = -1;
 
-    /**
-     * @var bool
-     */
-    protected $inTransaction = false;
+    protected bool $inTransaction = false;
 
-    /**
-     * @var float|null
-     */
-    protected $lastQueryStart;
+    protected float $lastQueryStart = -1.0;
 
-    /**
-     * @var int|null
-     */
-    private $uniqueId;
+    private int $uniqueId = 0;
 
     /**
      * Constructor connection.
      *
      * @param string $dsn        The data source name for a lazy PDO connection,
-     * @param string $username   the username for a lazy connection
-     * @param string $password   the password for a lazy connection
+     * @param string|null $username   the username for a lazy connection
+     * @param string|null $password   the password for a lazy connection
      * @param array  $options    driver-specific options for a lazy connection
      * @param array  $attributes attributes to set after a lazy connection
      *
      * @see http://php.net/manual/en/pdo.construct.php
      * @noinspection MagicMethodsValidityInspection
+     * @noinspection PhpMissingParentConstructorInspection
      */
-    public function __construct($dsn, $username = null, $password = null, array $options = [], array $attributes = [])
+    public function __construct(
+        private readonly string $dsn,
+        private readonly ?string $username = null,
+        private readonly ?string $password = null,
+        private readonly array $options = [],
+        array $attributes = [])
     {
-        $this->dsn = $dsn;
-        $this->username = $username;
-        $this->password = $password;
-        $this->options = $options;
         $this->attributes = array_replace($this->attributes, $attributes);
         $this->setEventDispatcher(new NullEventDispatcher());
     }
@@ -161,7 +116,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     /**
      * @return string
      */
-    public function getDsn()
+    public function getDsn(): string
     {
         return $this->dsn;
     }
@@ -208,7 +163,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     /**
      * {@inheritdoc}
      */
-    public function getAttribute($attribute)
+    public function getAttribute(int $attribute): mixed
     {
         $this->connect();
 
@@ -275,7 +230,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         try {
             $affectedRows = @$this->pdo->exec($statement);
         } catch (\PDOException $e) {
-            if (self::isRetryableError($e)) {
+            if (ErrorCode::isRetryable($e)) {
                 $this->reconnect();
                 $affectedRows = $this->pdo->exec($statement);
             } else {
@@ -290,7 +245,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     /**
      * {@inheritdoc}
      */
-    public function query($statement, $fetch_mode = \PDO::ATTR_DEFAULT_FETCH_MODE, $fetch_arg1 = null, array $fetch_arg2 = []): PDOStatement
+    public function query($statement, $mode = PDO::ATTR_DEFAULT_FETCH_MODE, ...$fetch_mode_args): PDOStatement|false
     {
         $this->connect();
 
@@ -304,7 +259,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         try {
             $sth = @call_user_func_array([$this->pdo, 'query'], $args);
         } catch (\PDOException $e) {
-            if (self::isRetryableError($e)) {
+            if (ErrorCode::isRetryable($e)) {
                 $this->reconnect();
                 $sth = call_user_func_array([$this->pdo, 'query'], $args);
             } else {
@@ -319,12 +274,12 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     /**
      * {@inheritdoc}
      */
-    public function prepare($statement, $options = [])
+    public function prepare(string $query, array $options = []): PDOStatement|false
     {
         $this->connect();
         $this->beforeQuery();
-        $sth = $this->pdo->prepare($statement, $options);
-        $this->dispatch(new SqlPreparedEvent($this, $statement));
+        $sth = $this->pdo->prepare($query, $options);
+        $this->dispatch(new SqlPreparedEvent($this, $query));
 
         return $sth;
     }
@@ -332,7 +287,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     /**
      * {@inheritdoc}
      */
-    public function lastInsertId($name = null)
+    public function lastInsertId(?string $name = null): string|false
     {
         if (null === $this->pdo) {
             throw new \BadMethodCallException('Cannot call lastInsertId without insert');
@@ -420,7 +375,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
 
     public function getLastQueryElapsed(): float
     {
-        return null !== $this->lastQueryStart ? microtime(true) - $this->lastQueryStart : 0;
+        return $this->lastQueryStart > 0 ? microtime(true) - $this->lastQueryStart : 0;
     }
 
     protected function isTimeout(): bool
@@ -455,6 +410,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
 
     public static function isRetryableError(\PDOException $e): bool
     {
-        return isset($e->errorInfo[1]) && in_array($e->errorInfo[1], [ErrorCode::CR_SERVER_LOST, ErrorCode::CR_SERVER_GONE_ERROR], true);
+        return isset($e->errorInfo[1])
+            && in_array($e->errorInfo[1], [ErrorCode::CR_SERVER_LOST, ErrorCode::CR_SERVER_GONE_ERROR], true);
     }
 }

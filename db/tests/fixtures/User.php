@@ -13,25 +13,19 @@ declare(strict_types=1);
 
 namespace kuiper\db\fixtures;
 
-use kuiper\db\annotation\Convert;
-use kuiper\db\annotation\GeneratedValue;
-use kuiper\db\annotation\Id;
+use kuiper\db\attribute\Convert;
+use kuiper\db\attribute\GeneratedValue;
+use kuiper\db\attribute\Id;
 use kuiper\db\converter\DateConverter;
 
 class User
 {
-    /**
-     * @var int
-     * @Id()
-     * @GeneratedValue()
-     */
-    private $userId;
+    #[Id]
+    #[GeneratedValue]
+    private ?int $userId = null;
 
-    /**
-     * @var \DateTime
-     * @Convert(DateConverter::class)
-     */
-    private $dob;
+    #[Convert(DateConverter::class)]
+    private ?\DateTimeInterface $dob = null;
 
     public function getUserId(): int
     {
@@ -43,12 +37,12 @@ class User
         $this->userId = $userId;
     }
 
-    public function getDob(): \DateTime
+    public function getDob(): \DateTimeInterface
     {
         return $this->dob;
     }
 
-    public function setDob(\DateTime $dob): void
+    public function setDob(\DateTimeInterface $dob): void
     {
         $this->dob = $dob;
     }

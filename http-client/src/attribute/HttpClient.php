@@ -11,16 +11,28 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\annotation;
+namespace kuiper\http\client\annotation;
+
+use kuiper\rpc\annotation\RpcClient;
 
 /**
  * @Annotation
- * @Target("CLASS")
+ * @Target({"CLASS"})
  */
-final class Table implements Annotation
+class HttpClient extends RpcClient
 {
     /**
      * @var string
      */
-    public $name;
+    public $url;
+
+    /**
+     * @var string
+     */
+    public $path;
+
+    /**
+     * @var string
+     */
+    public $responseParser;
 }

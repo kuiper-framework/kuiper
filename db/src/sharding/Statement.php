@@ -21,31 +21,24 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 class Statement extends \kuiper\db\Statement implements StatementInterface
 {
     /**
-     * @var StrategyInterface
-     */
-    private $strategy;
-
-    /**
      * @var array
      */
-    private $shardBy = [];
+    private array $shardBy = [];
 
     /**
      * @var ClusterConnectionPool
      */
-    private $cluster;
+    private ClusterConnectionPool $cluster;
 
-    /**
-     * @var string
-     */
-    private $baseTable;
-
-    public function __construct(ClusterConnectionPool $cluster, QueryInterface $query, string $table, StrategyInterface $strategy, EventDispatcherInterface $eventDispatcher)
+    public function __construct(
+        ClusterConnectionPool $cluster,
+        QueryInterface $query,
+        private readonly string $baseTable,
+        private readonly StrategyInterface $strategy,
+        EventDispatcherInterface $eventDispatcher)
     {
         parent::__construct($cluster, $query, $eventDispatcher);
         $this->cluster = $cluster;
-        $this->baseTable = $table;
-        $this->strategy = $strategy;
     }
 
     public function getBaseTable(): string
@@ -77,15 +70,15 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
             throw new \InvalidArgumentException('connection not consist with previous');
         }
         $this->cluster->setConnectionId($connectionId);
-        if (method_exists($this->query, 'resetTables')) {
-            $this->query->resetTables();
+        if (method_exists($this->getQuery(), 'resetTables')) {
+            $this->getQuery()->resetTables();
         }
         $this->table($this->getTableName());
     }
 
-    public function tableAlias(string $alias): \kuiper\db\StatementInterface
+    public function tableAlias(string $alias): static
     {
-        $this->tableAlias = $alias;
+        $this->setTableAlias($alias);
 
         return $this;
     }
@@ -98,7 +91,7 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
     /**
      * {@inheritDoc}
      */
-    public function cols(array $values): \kuiper\db\StatementInterface
+    public function cols(array $values): static
     {
         $this->shardBy = array_merge($this->shardBy, $values);
 
@@ -108,7 +101,7 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
     /**
      * {@inheritDoc}
      */
-    public function addRow(array $values = []): \kuiper\db\StatementInterface
+    public function addRow(array $values = []): static
     {
         if (!empty($values)) {
             $this->shardBy = array_merge($this->shardBy, $values);
@@ -120,7 +113,7 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
     /**
      * {@inheritdoc}
      */
-    public function where($condition, ...$args): \kuiper\db\StatementInterface
+    public function where($condition, ...$args): static
     {
         if (is_array($condition)) {
             $cols = [];
@@ -152,7 +145,7 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
         } catch (\PDOException $e) {
             if (SqlState::BAD_TABLE === $e->getCode()) {
                 /** @var ShardTableNotExistEvent $event */
-                $event = $this->eventDispatcher->dispatch(new ShardTableNotExistEvent($this, $this->getTableName()));
+                $event = $this->getEventDispatcher()->dispatch(new ShardTableNotExistEvent($this, $this->getTableName()));
                 if ($event->isTableCreated()) {
                     return parent::doQuery();
                 }

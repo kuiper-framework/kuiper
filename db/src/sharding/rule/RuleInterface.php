@@ -22,5 +22,5 @@ interface RuleInterface
      *
      * @return int|string
      */
-    public function getPartition(array $fields);
+    public function getPartition(array $fields): int|string;
 }

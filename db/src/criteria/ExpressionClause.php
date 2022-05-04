@@ -18,31 +18,11 @@ use kuiper\helper\Text;
 
 class ExpressionClause implements CriteriaClauseInterface
 {
-    /**
-     * @var string
-     */
-    private $column;
-
-    /**
-     * @var string
-     */
-    private $operator;
-
-    /**
-     * @var mixed
-     */
-    private $value;
-
-    /**
-     * ExpressionClause constructor.
-     *
-     * @param mixed $value
-     */
-    public function __construct(string $column, string $operator, $value)
+    public function __construct(
+        private readonly string $column,
+        private readonly string $operator,
+        private readonly mixed $value)
     {
-        $this->column = $column;
-        $this->operator = $operator;
-        $this->value = $value;
     }
 
     public function getColumn(): string
@@ -58,7 +38,7 @@ class ExpressionClause implements CriteriaClauseInterface
     /**
      * @return mixed
      */
-    public function getValue()
+    public function getValue(): mixed
     {
         return $this->value;
     }

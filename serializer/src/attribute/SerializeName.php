@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\annotation;
+namespace kuiper\serializer\annotation;
 
 /**
+ * changes serialize field name.
+ *
  * @Annotation
- * @Target("PROPERTY")
+ * @Target({"METHOD", "PROPERTY"})
  */
-final class Convert implements Annotation
+class SerializeName
 {
     /**
-     * The name of converter.
-     *
      * @var string
      * @Required
      */

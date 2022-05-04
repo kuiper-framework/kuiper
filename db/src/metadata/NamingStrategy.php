@@ -17,14 +17,8 @@ use kuiper\helper\Text;
 
 class NamingStrategy implements NamingStrategyInterface
 {
-    /**
-     * @var string
-     */
-    private $tablePrefix;
-
-    public function __construct(string $tablePrefix = '')
+    public function __construct(private readonly string $tablePrefix = '')
     {
-        $this->tablePrefix = $tablePrefix;
     }
 
     /**

@@ -25,7 +25,7 @@ interface AttributeConverterInterface
      *
      * @return string|float|int|null the converted data to be stored in the database column
      */
-    public function convertToDatabaseColumn($attribute, Column $column);
+    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed;
 
     /**
      * Converts the data stored in the database column into the
@@ -39,5 +39,5 @@ interface AttributeConverterInterface
      *
      * @return mixed the converted value to be stored in the entity attribute
      */
-    public function convertToEntityAttribute($dbData, Column $column);
+    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed;
 }

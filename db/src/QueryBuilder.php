@@ -15,28 +15,21 @@ namespace kuiper\db;
 
 use Aura\SqlQuery\QueryFactory;
 use Aura\SqlQuery\QueryInterface;
+use kuiper\event\EventDispatcherAwareInterface;
+use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\event\NullEventDispatcher;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
-class QueryBuilder implements QueryBuilderInterface
+class QueryBuilder implements QueryBuilderInterface, EventDispatcherAwareInterface
 {
-    /**
-     * @var ConnectionPoolInterface
-     */
-    private $pool;
-    /**
-     * @var QueryFactory
-     */
-    private $queryFactory;
-    /**
-     * @var EventDispatcherInterface|null
-     */
-    private $eventDispatcher;
+    use EventDispatcherAwareTrait;
 
-    public function __construct(ConnectionPoolInterface $pool, ?QueryFactory $queryFactory, ?EventDispatcherInterface $eventDispatcher)
+    private readonly  QueryFactory $queryFactory;
+
+    public function __construct(
+        private readonly ConnectionPoolInterface $pool,
+        ?QueryFactory $queryFactory)
     {
-        $this->pool = $pool;
-        $this->eventDispatcher = $eventDispatcher ?? new NullEventDispatcher();
         if (null !== $queryFactory) {
             $this->queryFactory = $queryFactory;
         } else {
@@ -51,10 +44,7 @@ class QueryBuilder implements QueryBuilderInterface
         return $this->pool;
     }
 
-    /**
-     * @return EventDispatcherInterface|null
-     */
-    public function getEventDispatcher()
+    public function getEventDispatcher(): EventDispatcherInterface
     {
         return $this->eventDispatcher;
     }

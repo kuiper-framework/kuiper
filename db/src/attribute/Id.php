@@ -11,16 +11,10 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\annotation;
+namespace kuiper\db\attribute;
 
-/**
- * @Annotation
- * @Target({"PROPERTY","ANNOTATION"})
- */
-final class Column implements Annotation
+
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
+final class Id implements Attribute
 {
-    /**
-     * @var string
-     */
-    public $name;
 }

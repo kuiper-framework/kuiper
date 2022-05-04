@@ -13,24 +13,15 @@ declare(strict_types=1);
 
 namespace kuiper\db\fixtures;
 
-use kuiper\db\annotation\Id;
+use kuiper\db\attribute\Id;
 
 class Door
 {
-    /**
-     * @var DoorId
-     * @Id()
-     */
-    private $doorId;
+    #[Id]
+    private ?DoorId $doorId = null;
 
-    /**
-     * @var string
-     */
-    private $name;
+    private ?string $name = null;
 
-    /**
-     * Door constructor.
-     */
     public function __construct(DoorId $doorId)
     {
         $this->doorId = $doorId;

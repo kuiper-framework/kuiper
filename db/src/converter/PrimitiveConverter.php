@@ -19,20 +19,14 @@ use kuiper\reflection\ReflectionTypeInterface;
 
 class PrimitiveConverter implements AttributeConverterInterface
 {
-    /**
-     * @var ReflectionTypeInterface
-     */
-    private $type;
-
-    public function __construct(ReflectionTypeInterface $type)
+    public function __construct(private readonly ReflectionTypeInterface $type)
     {
-        $this->type = $type;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn($attribute, Column $column)
+    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed
     {
         if (isset($attribute) && !is_scalar($attribute)) {
             throw new \InvalidArgumentException(sprintf('Cannot convert %s to %s', ReflectionType::describe($attribute), $this->type->getName()));
@@ -44,7 +38,7 @@ class PrimitiveConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute($dbData, Column $column)
+    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed
     {
         return $this->type->sanitize($dbData);
     }

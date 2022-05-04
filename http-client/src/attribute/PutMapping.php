@@ -11,12 +11,13 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\annotation;
+namespace kuiper\http\client\annotation;
 
 /**
  * @Annotation
- * @Target("CLASS")
+ * @Target({"METHOD"})
  */
-final class Entity implements Annotation
+final class PutMapping extends RequestMapping
 {
+    public $method = 'PUT';
 }

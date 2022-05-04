@@ -21,23 +21,11 @@ class ShardTableNotExistEvent implements StoppableEventInterface
 {
     use StoppableEventTrait;
 
-    /**
-     * @var StatementInterface
-     */
-    private $statement;
-    /**
-     * @var string
-     */
-    private $table;
-    /**
-     * @var bool
-     */
-    private $tableCreated = false;
+    private bool $tableCreated = false;
 
-    public function __construct(StatementInterface $statement, string $table)
+    public function __construct(private readonly StatementInterface $statement,
+                                private readonly string $table)
     {
-        $this->statement = $statement;
-        $this->table = $table;
     }
 
     public function getStatement(): StatementInterface

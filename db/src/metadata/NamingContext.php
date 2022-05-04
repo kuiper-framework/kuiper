@@ -15,20 +15,11 @@ namespace kuiper\db\metadata;
 
 class NamingContext
 {
-    /**
-     * @var \ReflectionClass
-     */
-    private $entityClass;
+    private ?\ReflectionClass $entityClass = null;
 
-    /**
-     * @var string
-     */
-    private $annotationValue;
+    private ?string $annotationValue = null;
 
-    /**
-     * @var string
-     */
-    private $propertyName;
+    private ?string $propertyName = null;
 
     public function getEntityClass(): \ReflectionClass
     {

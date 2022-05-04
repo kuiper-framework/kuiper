@@ -8,6 +8,9 @@ use kuiper\db\fixtures\Item;
 use kuiper\db\fixtures\ItemRepository;
 use kuiper\db\metadata\MetaModelFactory;
 use kuiper\db\metadata\NamingStrategy;
+use kuiper\event\NullEventDispatcher;
+use kuiper\logger\Logger;
+use kuiper\reflection\ReflectionDocBlockFactory;
 use function kuiper\helper\env;
 use kuiper\swoole\pool\PoolConfig;
 use kuiper\swoole\pool\SimplePool;
@@ -49,12 +52,17 @@ class PooledTransactionManagerTest extends AbstractRepositoryTestCase
             ++$nofConn;
 
             return $this->createConnection($eventDispatcher);
-        }, new PoolConfig(), $eventDispatcher, \kuiper\logger\Logger::nullLogger());
+        }, new PoolConfig(), $eventDispatcher);
+        $pool->setLogger(Logger::nullLogger());
         $connectionPool = new ConnectionPool($pool);
         $tm = new PooledTransactionManager($connectionPool);
+        $queryBuilder = new QueryBuilder($connectionPool, null);
+        $queryBuilder->setEventDispatcher(new NullEventDispatcher());
+        $metaModelFactory = new MetaModelFactory($this->createAttributeRegistry(),
+            new NamingStrategy('test_'), ReflectionDocBlockFactory::getInstance());
         $repository = new ItemRepository(
-            new QueryBuilder($connectionPool, null, $eventDispatcher),
-            new MetaModelFactory($this->createAttributeRegistry(), new NamingStrategy('test_'), null, null),
+            $queryBuilder,
+            $metaModelFactory,
             new DateTimeFactory(),
             $eventDispatcher);
         $tm->transaction(function () use ($repository) {

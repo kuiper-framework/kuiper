@@ -15,20 +15,14 @@ namespace kuiper\db;
 
 class TransactionManager implements TransactionManagerInterface
 {
-    /**
-     * @var ConnectionInterface
-     */
-    private $connection;
-
-    public function __construct(ConnectionInterface $connection)
+    public function __construct(private readonly ConnectionInterface $connection)
     {
-        $this->connection = $connection;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function transaction(callable $callback)
+    public function transaction(callable $callback): mixed
     {
         $connection = $this->connection;
         if ($connection->inTransaction()) {

@@ -20,22 +20,12 @@ class Sort
     public const DESC = 'DESC';
 
     /**
-     * @var string
-     */
-    private $column;
-
-    /**
-     * @var string
-     */
-    private $direction;
-
-    /**
      * Sort constructor.
      */
-    private function __construct(string $column, string $direction = self::ASC)
+    private function __construct(
+        private readonly string $column,
+        private readonly string $direction = self::ASC)
     {
-        $this->column = $column;
-        $this->direction = $direction;
     }
 
     public static function of(string $column, string $direction = self::ASC): Sort

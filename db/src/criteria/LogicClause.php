@@ -15,20 +15,9 @@ namespace kuiper\db\criteria;
 
 abstract class LogicClause implements CriteriaClauseInterface
 {
-    /**
-     * @var CriteriaClauseInterface
-     */
-    private $left;
-
-    /**
-     * @var CriteriaClauseInterface
-     */
-    private $right;
-
-    public function __construct(CriteriaClauseInterface $left, CriteriaClauseInterface $right)
+    public function __construct(private readonly CriteriaClauseInterface $left,
+                                private readonly CriteriaClauseInterface $right)
     {
-        $this->left = $left;
-        $this->right = $right;
     }
 
     public function getLeft(): CriteriaClauseInterface

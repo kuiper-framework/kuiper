@@ -15,14 +15,8 @@ namespace kuiper\db;
 
 class SingleConnectionPool implements ConnectionPoolInterface
 {
-    /**
-     * @var ConnectionInterface
-     */
-    private $connection;
-
-    public function __construct(ConnectionInterface $connection)
+    public function __construct(private readonly ConnectionInterface $connection)
     {
-        $this->connection = $connection;
     }
 
     public function take(): ConnectionInterface

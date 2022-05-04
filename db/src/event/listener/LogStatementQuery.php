@@ -15,17 +15,13 @@ namespace kuiper\db\event\listener;
 
 use kuiper\db\event\StatementQueriedEvent;
 use kuiper\db\Statement;
-use kuiper\event\annotation\EventListener;
+use kuiper\event\attribute\EventListener;
 use kuiper\event\EventListenerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Webmozart\Assert\Assert;
 
-/**
- * Class StatementQueriedEventListener.
- *
- * @EventListener()
- */
+#[EventListener]
 class LogStatementQuery implements EventListenerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;

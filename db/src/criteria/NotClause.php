@@ -15,17 +15,8 @@ namespace kuiper\db\criteria;
 
 class NotClause implements CriteriaClauseInterface
 {
-    /**
-     * @var CriteriaClauseInterface
-     */
-    private $clause;
-
-    /**
-     * NotClause constructor.
-     */
-    public function __construct(CriteriaClauseInterface $clause)
+    public function __construct(private readonly CriteriaClauseInterface $clause)
     {
-        $this->clause = $clause;
     }
 
     public function getClause(): CriteriaClauseInterface

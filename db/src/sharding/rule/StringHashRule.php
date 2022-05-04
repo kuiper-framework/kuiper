@@ -20,21 +20,16 @@ class StringHashRule extends HashRule
      */
     protected $hashFunction;
 
-    /**
-     * StringHashRule constructor.
-     *
-     * @param string|callable $hashFunction
-     */
-    public function __construct(string $field, int $bucket, $hashFunction = 'crc32')
+    public function __construct(string $field, int $bucket, string|callable $hashFunction = 'crc32')
     {
         parent::__construct($field, $bucket);
         $this->hashFunction = $hashFunction;
     }
 
-    protected function getPartitionFor($value)
+    protected function getPartitionFor(mixed $value): int|string
     {
         if (!is_string($value)) {
-            throw new \InvalidArgumentException("Value of column '{$this->field}' must be a string, Got $value");
+            throw new \InvalidArgumentException("Value of column '{$this->getField()}' must be a string, Got $value");
         }
 
         return parent::getPartitionFor(call_user_func($this->hashFunction, $value));

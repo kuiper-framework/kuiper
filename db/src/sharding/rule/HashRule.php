@@ -13,17 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\db\sharding\rule;
 
+use InvalidArgumentException;
+use function is_numeric;
+
 class HashRule extends AbstractRule
 {
-    /**
-     * @var int
-     */
-    protected $bucket;
-
-    public function __construct(string $field, int $bucket)
+    public function __construct(string $field, private readonly int $bucket)
     {
         parent::__construct($field);
-        $this->bucket = $bucket;
     }
 
     public function getBucket(): int
@@ -31,10 +28,10 @@ class HashRule extends AbstractRule
         return $this->bucket;
     }
 
-    protected function getPartitionFor($value)
+    protected function getPartitionFor(mixed $value): string|int
     {
-        if (!\is_numeric($value) || $value != (int) $value) {
-            throw new \InvalidArgumentException("Value of column '{$this->field}' must be an integer, Got $value");
+        if (!is_numeric($value) || $value != (int) $value) {
+            throw new InvalidArgumentException("Value of column '{$this->getField()}' must be an integer, Got $value");
         }
 
         return $value % $this->bucket;

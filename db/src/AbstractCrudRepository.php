@@ -24,46 +24,24 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 abstract class AbstractCrudRepository implements CrudRepositoryInterface
 {
     private const DB_LAST_STATEMENT = '__dbLastStatement';
-    /**
-     * @var QueryBuilderInterface
-     */
-    protected $queryBuilder;
 
-    /**
-     * @var MetaModelInterface
-     */
-    protected $metaModel;
+    protected readonly MetaModelInterface $metaModel;
 
-    /**
-     * @var DateTimeFactoryInterface
-     */
-    protected $dateTimeFactory;
+    private ?StatementInterface $lastStatement = null;
 
-    /**
-     * @var EventDispatcherInterface
-     */
-    protected $eventDispatcher;
-
-    /**
-     * @var StatementInterface|null
-     */
-    private $lastStatement;
-
-    public function __construct(QueryBuilderInterface $queryBuilder,
-                                MetaModelFactoryInterface $metaModelFactory,
-                                DateTimeFactoryInterface $dateTimeFactory,
-                                EventDispatcherInterface $eventDispatcher)
+    public function __construct(
+        private                   readonly QueryBuilderInterface $queryBuilder,
+        MetaModelFactoryInterface $metaModelFactory,
+        private                   readonly DateTimeFactoryInterface $dateTimeFactory,
+        private                   readonly EventDispatcherInterface $eventDispatcher)
     {
-        $this->queryBuilder = $queryBuilder;
-        $this->dateTimeFactory = $dateTimeFactory;
         $this->metaModel = $metaModelFactory->createFromRepository(get_class($this));
-        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function insert($entity)
+    public function insert(object $entity): object
     {
         $this->checkEntityClassMatch($entity);
         $stmt = $this->buildInsertStatement($entity);
@@ -121,13 +99,13 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function update($entity)
+    public function update(object $entity): object
     {
         $this->checkEntityClassMatch($entity);
 
         $uniqueKeys = $this->getUniqueKeyValues($entity);
         if (!isset($uniqueKeys)) {
-            throw new \InvalidArgumentException('Unique key is not set');
+            throw new InvalidArgumentException('Unique key is not set');
         }
         $stmt = $this->buildUpdateStatement($entity, $uniqueKeys);
         $this->doExecute($stmt);
@@ -156,7 +134,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function save($entity)
+    public function save(object $entity): object
     {
         $this->checkEntityClassMatch($entity);
 
@@ -211,7 +189,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         } elseif (is_callable($update)) {
             $stmt = $update($stmt);
         } else {
-            throw new \InvalidArgumentException('Expected array or callable, got '.gettype($update));
+            throw new InvalidArgumentException('Expected array or callable, got ' . gettype($update));
         }
         $this->doExecute($stmt);
     }
@@ -219,7 +197,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function findById($id)
+    public function findById(mixed $id): ?object
     {
         return $this->findFirstBy($this->metaModel->idToPrimaryKey($id));
     }
@@ -227,7 +205,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function existsById($id): bool
+    public function existsById(mixed $id): bool
     {
         return $this->count($this->metaModel->idToPrimaryKey($id)) > 0;
     }
@@ -235,7 +213,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function findFirstBy($criteria)
+    public function findFirstBy(mixed $criteria): ?object
     {
         $stmt = $this->buildQueryStatement($criteria)->limit(1)
             ->offset(0);
@@ -250,13 +228,13 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function findByNaturalId($example)
+    public function findByNaturalId(object $example): ?object
     {
         $this->checkEntityClassMatch($example);
 
         $criteria = $this->metaModel->getNaturalIdValues($example);
         if (!isset($criteria)) {
-            throw new \InvalidArgumentException('Cannot extract unique constraint from input');
+            throw new InvalidArgumentException('Cannot extract unique constraint from input');
         }
 
         return $this->findFirstBy($criteria);
@@ -275,7 +253,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             $this->checkEntityClassMatch($example);
             $criteria = $values[] = $this->metaModel->getNaturalIdValues($example);
             if (!isset($criteria)) {
-                throw new \InvalidArgumentException('Cannot extract unique constraint from input');
+                throw new InvalidArgumentException('Cannot extract unique constraint from input');
             }
         }
         // 不能直接使用 Criteria 对象，因为  criteria 对象会被 filterCriteria 进行值转换
@@ -324,7 +302,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             ->offset(0)
             ->orderBy([]);
 
-        return (int) $this->doQuery($stmt)->fetchColumn(0);
+        return (int)$this->doQuery($stmt)->fetchColumn();
     }
 
     /**
@@ -353,7 +331,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
 
         $uniqueKeys = $this->getUniqueKeyValues($entity);
         if (!isset($uniqueKeys)) {
-            throw new \InvalidArgumentException('missing unique key');
+            throw new InvalidArgumentException('missing unique key');
         }
         $this->deleteAllBy($uniqueKeys);
     }
@@ -410,10 +388,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $this->metaModel;
     }
 
-    /**
-     * @param array|callable|Criteria $criteria
-     */
-    protected function buildQueryStatement($criteria): StatementInterface
+    protected function buildQueryStatement(mixed $criteria): StatementInterface
     {
         return $this->buildStatement(
             $this->queryBuilder->from($this->getTableName())
@@ -422,10 +397,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         );
     }
 
-    /**
-     * @param object $entity
-     */
-    protected function buildInsertStatement($entity): StatementInterface
+    protected function buildInsertStatement(object $entity): StatementInterface
     {
         $this->setCreationTimestamp($entity);
         $this->setUpdateTimestamp($entity);
@@ -435,11 +407,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             ->cols($cols);
     }
 
-    /**
-     * @param object $entity
-     * @param mixed  $condition
-     */
-    protected function buildUpdateStatement($entity, $condition): StatementInterface
+    protected function buildUpdateStatement(object $entity, mixed $condition): StatementInterface
     {
         $this->setUpdateTimestamp($entity);
         $cols = $this->metaModel->freeze($entity);
@@ -452,10 +420,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $this->buildStatement($stmt, $condition);
     }
 
-    /**
-     * @param array|callable|Criteria $condition
-     */
-    protected function buildStatement(StatementInterface $stmt, $condition): StatementInterface
+    protected function buildStatement(StatementInterface $stmt, mixed $condition): StatementInterface
     {
         if ($condition instanceof Criteria) {
             $this->buildStatementByCriteria($stmt, $this->metaModel->filterCriteria($condition));
@@ -467,7 +432,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         } elseif (is_callable($condition)) {
             $stmt = $condition($stmt);
         } else {
-            throw new InvalidArgumentException('Expected primary key, Got '.gettype($condition));
+            throw new InvalidArgumentException('Expected primary key, Got ' . gettype($condition));
         }
 
         return $stmt;
@@ -530,9 +495,9 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     {
         if (class_exists(Coroutine::class)) {
             return Coroutine::getContext()[self::DB_LAST_STATEMENT] ?? null;
-        } else {
-            return $this->lastStatement;
         }
+
+        return $this->lastStatement;
     }
 
     protected function doQuery(StatementInterface $stmt): StatementInterface
@@ -547,10 +512,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $this->dateTimeFactory->currentTimeString();
     }
 
-    /**
-     * @param object $entity
-     */
-    protected function setCreationTimestamp($entity): void
+    protected function setCreationTimestamp(object $entity): void
     {
         $column = $this->metaModel->getCreationTimestamp();
         if (null !== $column) {
@@ -561,10 +523,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         }
     }
 
-    /**
-     * @param object $entity
-     */
-    protected function setUpdateTimestamp($entity): void
+    protected function setUpdateTimestamp(object $entity): void
     {
         $column = $this->metaModel->getUpdateTimestamp();
         if (null !== $column) {
@@ -572,12 +531,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         }
     }
 
-    /**
-     * @param object $entity
-     *
-     * @return array
-     */
-    protected function getUniqueKeyValues($entity): ?array
+    protected function getUniqueKeyValues(object $entity): ?array
     {
         return $this->metaModel->getIdValues($entity)
             ?? $this->metaModel->getNaturalIdValues($entity);
@@ -588,13 +542,10 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         return $this->metaModel->getTable();
     }
 
-    /**
-     * @param object $entity
-     */
-    protected function checkEntityClassMatch($entity): void
+    protected function checkEntityClassMatch(object $entity): void
     {
         if (!$this->metaModel->getEntityClass()->isInstance($entity)) {
-            throw new \InvalidArgumentException('Expected entity instance of '.$this->metaModel->getEntityClass()->getName().', got '.get_class($entity));
+            throw new InvalidArgumentException('Expected entity instance of ' . $this->metaModel->getEntityClass()->getName() . ', got ' . get_class($entity));
         }
     }
 
@@ -619,13 +570,13 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         foreach ($fields as $field) {
             $caseExp = ["case `$idColumn`"];
             foreach ($idValues as $idValue) {
-                $v1 = 'i'.($i++);
-                $v2 = 'i'.($i++);
+                $v1 = 'i' . ($i++);
+                $v2 = 'i' . ($i++);
                 $caseExp[] = sprintf('when :%s then :%s', $v1, $v2);
                 $bindValues[$v1] = $idValue;
                 $bindValues[$v2] = $rows[$idValue][$field] ?? null;
             }
-            $stmt->set($field, implode(' ', $caseExp).' end');
+            $stmt->set($field, implode(' ', $caseExp) . ' end');
         }
         $stmt->bindValues($bindValues);
         $stmt->in($idColumn, $idValues);
@@ -641,12 +592,12 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             $this->checkEntityClassMatch($entity);
             $id = $this->metaModel->getId($entity);
             if (!isset($id)) {
-                throw new \InvalidArgumentException('entity id should not empty');
+                throw new InvalidArgumentException('entity id should not empty');
             }
             $idColumns = $this->metaModel->idToPrimaryKey($id);
             if (empty($idColumn)) {
                 if (1 !== count($idColumns)) {
-                    throw new \InvalidArgumentException('Cannot batch update for primary key that contain multiple columns');
+                    throw new InvalidArgumentException('Cannot batch update for primary key that contain multiple columns');
                 }
                 $idColumn = array_keys($idColumns)[0];
             }

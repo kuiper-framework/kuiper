@@ -13,28 +13,29 @@ declare(strict_types=1);
 
 namespace kuiper\db\converter;
 
+use BackedEnum;
 use kuiper\db\metadata\Column;
-use kuiper\helper\Enum;
+use UnitEnum;
 
 class EnumConverter implements AttributeConverterInterface
 {
-    /**
-     * @var bool
-     */
-    private $ordinal;
+    private static array $ENUM_CASES = [];
 
-    public function __construct(bool $ordinal)
+    public function __construct()
     {
-        $this->ordinal = $ordinal;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn($attribute, Column $column)
+    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed
     {
-        if ($attribute instanceof Enum) {
-            return $this->ordinal ? $attribute->ordinal() : $attribute->name();
+        if ($attribute instanceof BackedEnum) {
+            return $attribute->value;
+        }
+
+        if ($attribute instanceof UnitEnum) {
+            return $attribute->name;
         }
         throw new \InvalidArgumentException('attribute is not enum type');
     }
@@ -42,13 +43,25 @@ class EnumConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute($dbData, Column $column)
+    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed
     {
         if (null === $dbData || '' === $dbData) {
             return null;
         }
         $enumType = $column->getType()->getName();
 
-        return call_user_func([$enumType, $this->ordinal ? 'fromOrdinal' : 'fromName'], $dbData);
+        if (is_a($enumType, BackedEnum::class, true)) {
+            return $enumType::tryFrom($dbData);
+        }
+
+        if (is_a($enumType, UnitEnum::class, true)) {
+            if (!isset(self::$ENUM_CASES[$enumType])) {
+                foreach ($enumType::cases() as $enum) {
+                    self::$ENUM_CASES[$enumType][$enum->name] = $enum;
+                }
+            }
+            return self::$ENUM_CASES[$enumType][$dbData] ?? null;
+        }
+        throw new \InvalidArgumentException('attribute is not enum type');
     }
 }

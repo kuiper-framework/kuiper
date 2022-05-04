@@ -21,14 +21,8 @@ abstract class AbstractEvent implements StoppableEventInterface
 {
     use StoppableEventTrait;
 
-    /**
-     * @var ConnectionInterface
-     */
-    private $connection;
-
-    public function __construct(ConnectionInterface $connection)
+    public function __construct(private readonly ConnectionInterface $connection)
     {
-        $this->connection = $connection;
     }
 
     public function getConnection(): ConnectionInterface

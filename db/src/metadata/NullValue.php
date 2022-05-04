@@ -15,10 +15,7 @@ namespace kuiper\db\metadata;
 
 final class NullValue
 {
-    /**
-     * @var NullValue|null
-     */
-    private static $INSTANCE;
+    private static ?NullValue $INSTANCE = null;
 
     public static function instance(): NullValue
     {

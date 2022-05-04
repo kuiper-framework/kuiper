@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 /*
  * This file is part of the Kuiper package.
@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+use InvalidArgumentException;
 use kuiper\db\criteria\AndClause;
 use kuiper\db\criteria\CriteriaClauseInterface;
 use kuiper\db\criteria\CriteriaFilterInterface;
@@ -40,37 +41,19 @@ class Criteria
     /**
      * @var string[]
      */
-    private $columns = [];
+    private array $columns = [];
 
-    /**
-     * @var CriteriaClauseInterface|null
-     */
-    private $clause;
+    private ?CriteriaClauseInterface $clause = null;
 
-    /**
-     * @var int|null
-     */
-    private $limit;
+    private ?int $limit = null;
 
-    /**
-     * @var int|null
-     */
-    private $offset;
+    private ?int $offset = null;
 
-    /**
-     * @var array
-     */
-    private $orderBy = [];
+    private array $orderBy = [];
 
-    /**
-     * @var array
-     */
-    private $groupBy = [];
+    private array $groupBy = [];
 
-    /**
-     * @var array
-     */
-    private $bindValues = [];
+    private array $bindValues = [];
 
     final private function __construct()
     {
@@ -114,10 +97,7 @@ class Criteria
         return $this;
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function where(string $column, $value, string $op = self::OPERATOR_EQUAL): self
+    public function where(string $column, mixed $value, string $op = self::OPERATOR_EQUAL): self
     {
         if (self::OPERATOR_EQUAL === $op) {
             $this->bindValues[$column] = $value;
@@ -126,26 +106,17 @@ class Criteria
         return $this->merge(new ExpressionClause($column, $op, $value));
     }
 
-    /**
-     * @param mixed ...$bindValues
-     */
     public function expression(string $expression, ...$bindValues): self
     {
         return $this->merge(new RawClause($expression, $bindValues));
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function like(string $column, $value): self
+    public function like(string $column, mixed $value): self
     {
         return $this->where($column, $value, self::OPERATOR_LIKE);
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function notLike(string $column, $value): self
+    public function notLike(string $column, mixed $value): self
     {
         return $this->where($column, $value, self::OPERATOR_NOT_LIKE);
     }
@@ -153,7 +124,7 @@ class Criteria
     public function in(string $column, array $value): self
     {
         if (empty($value)) {
-            throw new \InvalidArgumentException('value expected not empty');
+            throw new InvalidArgumentException('value expected not empty');
         }
 
         return $this->where($column, $value, self::OPERATOR_IN);
@@ -162,16 +133,13 @@ class Criteria
     public function notIn(string $column, array $value): self
     {
         if (empty($value)) {
-            throw new \InvalidArgumentException('value expected not empty');
+            throw new InvalidArgumentException('value expected not empty');
         }
 
         return $this->where($column, $value, self::OPERATOR_NOT_IN);
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function orWhere(string $column, $value, string $op = self::OPERATOR_EQUAL): self
+    public function orWhere(string $column, mixed $value, string $op = self::OPERATOR_EQUAL): self
     {
         return $this->merge(new ExpressionClause($column, $op, $value), false);
     }
@@ -215,10 +183,10 @@ class Criteria
             foreach ($naturalIds as $naturalId) {
                 $value = $naturalId[$column] ?? null;
                 if (!isset($value)) {
-                    throw new \InvalidArgumentException("$column is required");
+                    throw new InvalidArgumentException("$column is required");
                 }
                 if (!is_scalar($value)) {
-                    throw new \InvalidArgumentException("Support only scalar type, $column is ".(is_object($value) ? get_class($value) : gettype($value)));
+                    throw new InvalidArgumentException("Support only scalar type, $column is ". get_debug_type($value));
                 }
             }
         }
@@ -341,7 +309,7 @@ class Criteria
      *
      * @return Criteria
      */
-    public function filter($filter): self
+    public function filter(CriteriaFilterInterface|callable $filter): self
     {
         $copy = clone $this;
         if (null !== $copy->clause) {
@@ -427,7 +395,7 @@ class Criteria
             $column = $clause->getColumn();
             if (is_array($clause->getValue())) {
                 if (!in_array($clause->getOperator(), [self::OPERATOR_IN, self::OPERATOR_NOT_IN], true)) {
-                    throw new \InvalidArgumentException($clause->getOperator().' does not support array value');
+                    throw new InvalidArgumentException($clause->getOperator().' does not support array value');
                 }
                 $stmt = sprintf('%s %s (%s)',
                     $column,
@@ -449,13 +417,10 @@ class Criteria
         if ($clause instanceof RawClause) {
             return array_merge([$clause->getExpression()], $clause->getBindValues());
         }
-        throw new \InvalidArgumentException('unknown conditions type '.get_class($clause));
+        throw new InvalidArgumentException('unknown conditions type '.get_class($clause));
     }
 
-    /**
-     * @param callable|CriteriaFilterInterface $callback
-     */
-    private function filterClause(CriteriaClauseInterface $clause, $callback): CriteriaClauseInterface
+    private function filterClause(CriteriaClauseInterface $clause, CriteriaFilterInterface|callable $callback): CriteriaClauseInterface
     {
         if ($clause instanceof LogicClause) {
             $class = get_class($clause);
@@ -473,7 +438,7 @@ class Criteria
             if ($ret instanceof CriteriaClauseInterface) {
                 return $ret;
             }
-            throw new \InvalidArgumentException('invalid filter callback return value');
+            throw new InvalidArgumentException('invalid filter callback return value');
         }
 
         if ($clause instanceof NotClause) {
@@ -483,6 +448,6 @@ class Criteria
         if ($clause instanceof RawClause) {
             return $clause;
         }
-        throw new \InvalidArgumentException('unknown conditions type '.get_class($clause));
+        throw new InvalidArgumentException('unknown conditions type '.get_class($clause));
     }
 }

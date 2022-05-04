@@ -17,25 +17,15 @@ use kuiper\db\metadata\Column;
 
 class JsonConverter implements AttributeConverterInterface
 {
-    /**
-     * @var bool
-     */
-    private $assoc;
-    /**
-     * @var int
-     */
-    private $options;
-
-    public function __construct(bool $assoc = true, ?int $options = null)
+    public function __construct(private readonly bool $assoc = true,
+                                private readonly int $options = (JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
     {
-        $this->assoc = $assoc;
-        $this->options = $options ?? (JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn($attribute, Column $column)
+    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed
     {
         return json_encode($attribute, $this->options);
     }
@@ -43,7 +33,7 @@ class JsonConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute($dbData, Column $column)
+    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed
     {
         return json_decode($dbData, $this->assoc);
     }

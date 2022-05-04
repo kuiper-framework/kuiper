@@ -11,23 +11,30 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\annotation;
-
-use Doctrine\Common\Annotations\Annotation\Enum;
+namespace kuiper\http\client\annotation;
 
 /**
  * @Annotation
- * @Target("PROPERTY")
+ * @Target({"METHOD"})
  */
-final class Enumerated implements Annotation
+class RequestMapping
 {
-    public const ORDINAL = 'ORDINAL';
-    public const STRING = 'STRING';
-
     /**
-     * @Enum({"ORDINAL", "STRING"})
+     * The path mapping URI.
      *
      * @var string
      */
-    public $value = self::ORDINAL;
+    public $value;
+
+    /**
+     * The HTTP request methods to map to.
+     *
+     * @var string
+     */
+    public $method;
+
+    /**
+     * @var array
+     */
+    public $queryParams;
 }

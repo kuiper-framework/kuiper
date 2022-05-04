@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\db\metadata;
 
-use kuiper\db\annotation\Annotation;
+use kuiper\db\attribute\Attribute;
 use kuiper\db\converter\AttributeConverterInterface;
 use kuiper\db\exception\MetaModelException;
 use kuiper\reflection\ReflectionTypeInterface;
@@ -22,60 +22,51 @@ class MetaModelProperty
 {
     public const PATH_SEPARATOR = '.';
 
-    /**
-     * @var \ReflectionProperty
-     */
-    private $property;
-
-    /**
-     * @var ReflectionTypeInterface
-     */
-    private $type;
-
-    /**
-     * @var MetaModelProperty|null
-     */
-    private $parent;
-
-    /**
-     * @var Annotation[]
-     */
-    private $annotations;
-
-    /**
-     * @var Column|null
-     */
-    private $column;
+    private ?Column $column = null;
 
     /**
      * @var MetaModelProperty[]
      */
-    private $children = [];
+    private array $children = [];
 
-    /**
-     * @var \ReflectionClass
-     */
-    private $modelClass;
+    private ?\ReflectionClass $modelClass = null;
 
-    /**
-     * @var string
-     */
-    private $path;
+    private readonly string $path;
 
     /**
      * @var MetaModelProperty[]
      */
-    private $ancestors;
+    private readonly array $ancestors;
 
-    public function __construct(\ReflectionProperty $property, ReflectionTypeInterface $type, ?MetaModelProperty $parent, array $annotations)
+    /**
+     * @param \ReflectionProperty $property
+     * @param ReflectionTypeInterface $type
+     * @param MetaModelProperty|null $parent
+     * @param Attribute[] $attributes
+     * @throws MetaModelException|\ReflectionException
+     */
+    public function __construct(
+        private readonly \ReflectionProperty $property,
+        private readonly ReflectionTypeInterface $type,
+        private readonly ?MetaModelProperty $parent,
+        private readonly array $attributes)
     {
-        $property->setAccessible(true);
-        $this->property = $property;
-        $this->type = $type;
-        $this->parent = $parent;
-        $this->annotations = $annotations;
         $this->path = (null !== $parent ? $parent->getPath().self::PATH_SEPARATOR : '').$property->getName();
-        $this->ancestors = $this->buildAncestors();
+
+        $ancestors = [];
+        $metaProperty = $this->parent;
+        while (null !== $metaProperty) {
+            if (null === $metaProperty->modelClass) {
+                if (!$metaProperty->type->isClass()) {
+                    throw new MetaModelException($metaProperty->type.' not class');
+                }
+                $metaProperty->modelClass = new \ReflectionClass($metaProperty->type->getName());
+            }
+            $ancestors[] = $metaProperty;
+            $metaProperty = $metaProperty->parent;
+        }
+
+        $this->ancestors = $ancestors;
     }
 
     public function getName(): string
@@ -113,7 +104,7 @@ class MetaModelProperty
     /**
      * @param mixed $propertyValue
      */
-    public function getColumnValues($propertyValue): array
+    public function getColumnValues(mixed $propertyValue): array
     {
         if (null !== $this->column) {
             return [
@@ -133,12 +124,7 @@ class MetaModelProperty
         }, array_values($this->children)));
     }
 
-    /**
-     * @param object $entity
-     *
-     * @return mixed|null
-     */
-    public function getValue($entity)
+    public function getValue(object $entity): mixed
     {
         if (null !== $this->parent) {
             $value = $this->parent->getValue($entity);
@@ -151,11 +137,7 @@ class MetaModelProperty
         return $this->property->getValue($entity);
     }
 
-    /**
-     * @param object $entity
-     * @param mixed  $value
-     */
-    public function setValue($entity, $value): void
+    public function setValue(object $entity, mixed $value): void
     {
         $model = $entity;
         foreach ($this->ancestors as $path) {
@@ -170,20 +152,25 @@ class MetaModelProperty
         $this->property->setValue($model, $value);
     }
 
-    public function getAnnotation(string $annotationName): ?Annotation
+    /**
+     * @template T
+     * @param class-string<T> $attributeName
+     * @return T|null
+     */
+    public function getAttribute(string $attributeName)
     {
-        foreach ($this->annotations as $annotation) {
-            if ($annotation instanceof $annotationName) {
-                return $annotation;
+        foreach ($this->attributes as $attribute) {
+            if ($attribute instanceof $attributeName) {
+                return $attribute;
             }
         }
 
-        return null !== $this->parent ? $this->parent->getAnnotation($annotationName) : null;
+        return $this->parent?->getAttribute($attributeName);
     }
 
-    public function hasAnnotation(string $annotationName): bool
+    public function hasAttribute(string $annotationName): bool
     {
-        return null !== $this->getAnnotation($annotationName);
+        return $this->getAttribute($annotationName) !== null;
     }
 
     public function getEntityClass(): \ReflectionClass
@@ -229,23 +216,5 @@ class MetaModelProperty
         foreach ($children as $child) {
             $this->children[$child->getName()] = $child;
         }
-    }
-
-    private function buildAncestors(): array
-    {
-        $ancestors = [];
-        $metaProperty = $this->parent;
-        while (null !== $metaProperty) {
-            if (null === $metaProperty->modelClass) {
-                if (!$metaProperty->type->isClass()) {
-                    throw new MetaModelException($metaProperty->type.' not class');
-                }
-                $metaProperty->modelClass = new \ReflectionClass($metaProperty->type->getName());
-            }
-            $ancestors[] = $metaProperty;
-            $metaProperty = $metaProperty->parent;
-        }
-
-        return $ancestors;
     }
 }

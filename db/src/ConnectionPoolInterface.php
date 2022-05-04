@@ -15,7 +15,14 @@ namespace kuiper\db;
 
 interface ConnectionPoolInterface
 {
+    /**
+     * @return ConnectionInterface
+     */
     public function take(): ConnectionInterface;
 
+    /**
+     * @param ConnectionInterface $connection
+     * @return void
+     */
     public function release(ConnectionInterface $connection): void;
 }

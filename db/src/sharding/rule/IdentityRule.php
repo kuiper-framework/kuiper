@@ -15,17 +15,11 @@ namespace kuiper\db\sharding\rule;
 
 class IdentityRule implements RuleInterface
 {
-    /**
-     * @var int
-     */
-    private $id;
-
-    public function __construct(int $id)
+    public function __construct(private readonly int|string $id)
     {
-        $this->id = $id;
     }
 
-    public function getPartition(array $fields)
+    public function getPartition(array $fields): int|string
     {
         return $this->id;
     }

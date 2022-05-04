@@ -18,25 +18,15 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 class ObjectConverter implements AttributeConverterInterface
 {
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-    /**
-     * @var string
-     */
-    private $format;
-
-    public function __construct(SerializerInterface $serializer, string $format = 'json')
+    public function __construct(private readonly SerializerInterface $serializer,
+                                private readonly string $format = 'json')
     {
-        $this->serializer = $serializer;
-        $this->format = $format;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn($attribute, Column $column)
+    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed
     {
         return $this->serializer->serialize($attribute, $this->format);
     }
@@ -44,7 +34,7 @@ class ObjectConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute($dbData, Column $column)
+    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed
     {
         return $this->serializer->deserialize($dbData, $column->getType()->getName(), $this->format);
     }

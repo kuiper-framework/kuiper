@@ -13,95 +13,77 @@ declare(strict_types=1);
 
 namespace kuiper\db\metadata;
 
-use kuiper\db\annotation\CreationTimestamp;
-use kuiper\db\annotation\Id;
-use kuiper\db\annotation\NaturalId;
-use kuiper\db\annotation\UpdateTimestamp;
+use InvalidArgumentException;
+use kuiper\db\attribute\CreationTimestamp;
+use kuiper\db\attribute\Id;
+use kuiper\db\attribute\NaturalId;
+use kuiper\db\attribute\UpdateTimestamp;
 use kuiper\db\Criteria;
 use kuiper\db\criteria\CriteriaFilterInterface;
 use kuiper\db\criteria\MetaModelCriteriaFilter;
 use kuiper\helper\Arrays;
+use ReflectionClass;
 
 class MetaModel implements MetaModelInterface
 {
-    /**
-     * @var string
-     */
-    private $table;
-
-    /**
-     * @var \ReflectionClass
-     */
-    private $entityClass;
 
     /**
      * @var MetaModelProperty[]
      */
-    private $properties;
+    private array $properties = [];
 
     /**
      * @var Column[]
      */
-    private $columns;
+    private array $columns = [];
 
     /**
      * @var array
      */
-    private $annotatedColumns;
+    private array $annotatedColumns = [];
 
-    /**
-     * @var MetaModelProperty|null
-     */
-    private $idProperty;
+    private ?MetaModelProperty $idProperty = null;
 
-    /**
-     * @var MetaModelCriteriaFilter|null
-     */
-    private $expressionClauseFilter;
+    private ?MetaModelCriteriaFilter $expressionClauseFilter = null;
 
-    /**
-     * @var array|null
-     */
-    private $columnAlias;
+    private ?array $columnAlias = null;
 
-    /**
-     * @var string|null
-     */
-    private $naturalIdIndex;
+    private ?string $naturalIdIndex  = null;
 
-    public function __construct(string $table, \ReflectionClass $entityClass, array $properties)
+    public function __construct(
+        private readonly string $table,
+        private readonly ReflectionClass $entityClass,
+        array $properties)
     {
-        $this->table = $table;
-        $this->entityClass = $entityClass;
         /** @var MetaModelProperty $property */
         foreach ($properties as $property) {
             $this->properties[$property->getName()] = $property;
-            if ($property->hasAnnotation(Id::class)) {
+            if ($property->hasAttribute(Id::class)) {
                 $this->idProperty = $property;
             }
-            if ($property->hasAnnotation(NaturalId::class)) {
+            if ($property->hasAttribute(NaturalId::class)) {
                 /** @var NaturalId $naturalIdAnnotation */
-                $naturalIdAnnotation = $property->getAnnotation(NaturalId::class);
-                if (!empty($naturalIdAnnotation->value)) {
-                    $this->naturalIdIndex = $naturalIdAnnotation->value;
+                $naturalIdAnnotation = $property->getAttribute(NaturalId::class);
+                if (!empty($naturalIdAnnotation->getName())) {
+                    $this->naturalIdIndex = $naturalIdAnnotation->getName();
                 }
             }
             foreach ($property->getColumns() as $column) {
                 $this->columns[$column->getName()] = $column;
-                if ($column->isId()) {
+                if ($column->hasId()) {
                     $this->annotatedColumns[Id::class][] = $column;
-                } elseif ($column->isNaturalId()) {
+                } elseif ($column->hasNaturalId()) {
                     $this->annotatedColumns[NaturalId::class][] = $column;
                 }
-                if ($column->isCreationTimestamp()) {
+                if ($column->hasCreationTimestamp()) {
                     $this->annotatedColumns[CreationTimestamp::class] = $column;
-                } elseif ($column->isUpdateTimestamp()) {
+                } elseif ($column->hasUpdateTimestamp()) {
                     $this->annotatedColumns[UpdateTimestamp::class] = $column;
                 }
             }
         }
         if (!isset($this->idProperty)) {
-            throw new \InvalidArgumentException($entityClass->getName().' does not contain id');
+            throw new InvalidArgumentException($entityClass->getName().' does not contain id');
         }
     }
 
@@ -116,25 +98,22 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function getEntityClass(): \ReflectionClass
+    public function getEntityClass(): ReflectionClass
     {
         return $this->entityClass;
     }
 
-    /**
-     * @param object $entity
-     */
-    protected function checkEntityMatch($entity): void
+    protected function checkEntityMatch(object $entity): void
     {
         if (!$this->getEntityClass()->isInstance($entity)) {
-            throw new \InvalidArgumentException("Expected {$this->getEntityClass()->getName()}, got ".get_class($entity));
+            throw new InvalidArgumentException("Expected {$this->getEntityClass()->getName()}, got ".get_class($entity));
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function freeze($entity, bool $ignoreNull = true): array
+    public function freeze(object $entity, bool $ignoreNull = true): array
     {
         $this->checkEntityMatch($entity);
         $columnValues = [];
@@ -153,7 +132,7 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function thaw(array $columnValues)
+    public function thaw(array $columnValues): object
     {
         $entity = $this->createEntity();
         foreach ($columnValues as $column => $value) {
@@ -168,7 +147,7 @@ class MetaModel implements MetaModelInterface
     /**
      * {@inheritdoc}
      */
-    public function getValue($entity, string $columnName)
+    public function getValue($entity, string $columnName): mixed
     {
         $this->checkEntityMatch($entity);
 
@@ -225,7 +204,7 @@ class MetaModel implements MetaModelInterface
     {
         /** @var Column[] $idColumns */
         $idColumns = $this->annotatedColumns[Id::class];
-        if (1 === count($idColumns) && $idColumns[0]->isGeneratedValue()) {
+        if (1 === count($idColumns) && $idColumns[0]->hasGeneratedValue()) {
             return $idColumns[0]->getName();
         }
 
@@ -260,7 +239,7 @@ class MetaModel implements MetaModelInterface
         $this->checkEntityMatch($entity);
         $values = $this->getUniqueKeyValues($entity, NaturalId::class);
         if (null === $values) {
-            throw new \InvalidArgumentException($this->getEntityClass()->getName().' does not has natural id');
+            throw new InvalidArgumentException($this->getEntityClass()->getName().' does not has natural id');
         }
 
         $key = implode($joiner, $values);
@@ -268,10 +247,7 @@ class MetaModel implements MetaModelInterface
         return $ignoreCase ? strtolower($key) : $key;
     }
 
-    /**
-     * @param object $entity
-     */
-    protected function getUniqueKeyValues($entity, string $idAnnotation): ?array
+    protected function getUniqueKeyValues(object $entity, string $idAnnotation): ?array
     {
         if (!isset($this->annotatedColumns[$idAnnotation])) {
             return null;
@@ -285,7 +261,7 @@ class MetaModel implements MetaModelInterface
             $nullKeys = array_filter(array_keys($values), static function ($key) use ($values): bool {
                 return !isset($values[$key]);
             });
-            throw new \InvalidArgumentException('Entity contains null value in unique key columns: '.implode(',', $nullKeys));
+            throw new InvalidArgumentException('Entity contains null value in unique key columns: '.implode(',', $nullKeys));
         }
 
         return $values;
@@ -346,7 +322,7 @@ class MetaModel implements MetaModelInterface
      * @param object   $entity
      * @param Column[] $columns
      */
-    protected function getColumnValues($entity, array $columns): ?array
+    protected function getColumnValues(object $entity, array $columns): ?array
     {
         $values = [];
         foreach ($columns as $column) {
@@ -364,10 +340,7 @@ class MetaModel implements MetaModelInterface
         return $this->entityClass->newInstanceWithoutConstructor();
     }
 
-    /**
-     * @param mixed $value
-     */
-    protected function isNull($value): bool
+    protected function isNull(mixed $value): bool
     {
         return $value instanceof NullValue;
     }

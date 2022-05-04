@@ -13,35 +13,24 @@ declare(strict_types=1);
 
 namespace kuiper\db\fixtures;
 
-use kuiper\db\annotation\Column;
-use kuiper\db\annotation\GeneratedValue;
-use kuiper\db\annotation\Id;
-use kuiper\db\annotation\NaturalId;
-use kuiper\db\annotation\ShardKey;
+use kuiper\db\attribute\Column;
+use kuiper\db\attribute\GeneratedValue;
+use kuiper\db\attribute\Id;
+use kuiper\db\attribute\NaturalId;
+use kuiper\db\attribute\ShardKey;
 
 class Item
 {
-    /**
-     * @var int
-     * @Id()
-     * @Column(name="id")
-     * @GeneratedValue()
-     */
-    private $itemId;
+    #[Id]
+    #[GeneratedValue]
+    #[Column("id")]
+    private ?int $itemId = null;
 
-    /**
-     * @ShardKey
-     *
-     * @var int
-     */
-    private $sharding;
+    #[ShardKey]
+    private ?int $sharding = null;
 
-    /**
-     * @NaturalId("uk_item")
-     *
-     * @var string|null
-     */
-    private $itemNo;
+    #[NaturalId("uk_item")]
+    private ?string $itemNo = null;
 
     public function getItemId(): int
     {

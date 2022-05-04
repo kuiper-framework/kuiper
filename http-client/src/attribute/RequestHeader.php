@@ -11,20 +11,16 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\annotation;
-
-use Doctrine\Common\Annotations\Annotation\Required;
-use kuiper\di\annotation\Service;
+namespace kuiper\http\client\annotation;
 
 /**
  * @Annotation
- * @Target({"CLASS"})
+ * @Target({"CLASS", "METHOD"})
  */
-class Repository extends Service
+class RequestHeader
 {
     /**
      * @var string
-     * @Required()
      */
-    public $entityClass;
+    public $value;
 }

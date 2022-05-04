@@ -25,24 +25,15 @@ class Cluster implements ClusterInterface, EventDispatcherAwareInterface
     use EventDispatcherAwareTrait;
 
     /**
-     * @var ConnectionPoolInterface[]
-     */
-    private $poolList;
-
-    /**
-     * @var QueryFactory
-     */
-    private $queryFactory;
-
-    /**
      * @var array
      */
-    private $tables;
+    private array $tables;
 
-    public function __construct(array $poolList, QueryFactory $queryFactory, EventDispatcherInterface $eventDispatcher)
+    public function __construct(
+        private readonly array $poolList,
+        private readonly QueryFactory $queryFactory,
+        EventDispatcherInterface $eventDispatcher)
     {
-        $this->poolList = $poolList;
-        $this->queryFactory = $queryFactory;
         $this->setEventDispatcher($eventDispatcher);
     }
 

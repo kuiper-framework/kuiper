@@ -17,19 +17,13 @@ interface EntityMapperInterface
 {
     /**
      * Converts entity object to database column values.
-     *
-     * @param object $entity entity
-     *
-     * @return array the column values
      */
-    public function freeze($entity, bool $ignoreNull = true): array;
+    public function freeze(object $entity, bool $ignoreNull = true): array;
 
     /**
      * Converts database column values.
-     *
-     * @return object $entity
      */
-    public function thaw(array $columnValues);
+    public function thaw(array $columnValues): object;
 
     /**
      * Gets the database column value from entity object.
@@ -39,7 +33,7 @@ interface EntityMapperInterface
      *
      * @return string|int|null the database column value
      */
-    public function getValue($entity, string $columnName);
+    public function getValue(object $entity, string $columnName): mixed;
 
     /**
      * Sets the entity property value.
@@ -48,12 +42,12 @@ interface EntityMapperInterface
      * @param string     $columnName the database column name
      * @param string|int $value      the database column name
      */
-    public function setValue($entity, string $columnName, $value): void;
+    public function setValue(object $entity, string $columnName, mixed $value): void;
 
     /**
      * Converts id value to database column value.
      *
      * @param mixed $id
      */
-    public function idToPrimaryKey($id): array;
+    public function idToPrimaryKey(mixed $id): array;
 }

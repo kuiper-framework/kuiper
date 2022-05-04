@@ -15,20 +15,9 @@ namespace kuiper\db\criteria;
 
 class RawClause implements CriteriaClauseInterface
 {
-    /**
-     * @var string
-     */
-    private $expression;
-
-    /**
-     * @var array
-     */
-    private $bindValues;
-
-    public function __construct(string $expression, array $bindValues)
+    public function __construct(private readonly string $expression,
+                                private readonly array $bindValues)
     {
-        $this->expression = $expression;
-        $this->bindValues = $bindValues;
     }
 
     public function getExpression(): string

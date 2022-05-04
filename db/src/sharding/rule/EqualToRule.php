@@ -15,14 +15,8 @@ namespace kuiper\db\sharding\rule;
 
 class EqualToRule implements RuleInterface
 {
-    /**
-     * @var string
-     */
-    private $field;
-
-    public function __construct(string $field)
+    public function __construct(private readonly string $field)
     {
-        $this->field = $field;
     }
 
     public function getField(): string
@@ -30,7 +24,7 @@ class EqualToRule implements RuleInterface
         return $this->field;
     }
 
-    public function getPartition(array $fields)
+    public function getPartition(array $fields): int|string
     {
         return $fields[$this->field];
     }

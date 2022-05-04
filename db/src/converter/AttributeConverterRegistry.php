@@ -18,7 +18,7 @@ class AttributeConverterRegistry
     /**
      * @var AttributeConverterInterface[]
      */
-    private $converters;
+    private array $converters = [];
 
     public function get(string $name): ?AttributeConverterInterface
     {

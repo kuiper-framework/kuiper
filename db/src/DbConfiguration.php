@@ -15,7 +15,7 @@ namespace kuiper\db;
 
 use Aura\SqlQuery\QueryFactory;
 use Carbon\Carbon;
-use DI\Annotation\Inject;
+use DI\Attribute\Inject;
 use function DI\autowire;
 use function DI\factory;
 use kuiper\db\converter\AttributeConverterRegistry;
@@ -30,11 +30,11 @@ use kuiper\db\metadata\MetaModelFactory;
 use kuiper\db\metadata\MetaModelFactoryInterface;
 use kuiper\db\metadata\NamingStrategy;
 use kuiper\db\metadata\NamingStrategyInterface;
-use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnClass;
-use kuiper\di\annotation\ConditionalOnMissingClass;
-use kuiper\di\annotation\ConditionalOnProperty;
-use kuiper\di\annotation\Configuration;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\ConditionalOnClass;
+use kuiper\di\attribute\ConditionalOnMissingClass;
+use kuiper\di\attribute\ConditionalOnProperty;
+use kuiper\di\attribute\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
@@ -45,10 +45,8 @@ use kuiper\swoole\pool\PoolFactoryInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Swoole\Coroutine\Channel;
 
-/**
- * @Configuration()
- * @ConditionalOnProperty("application.database")
- */
+#[Configuration]
+#[ConditionalOnProperty('application.database')]
 class DbConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
@@ -63,20 +61,15 @@ class DbConfiguration implements DefinitionConfiguration
         ];
     }
 
-    /**
-     * @Bean()
-     * @Inject({"tablePrefix" = "application.database.table_prefix"})
-     */
-    public function namingStrategy(?string $tablePrefix): NamingStrategyInterface
+    #[Bean]
+    public function namingStrategy(#[Inject("application.database.table_prefix")] ?string $tablePrefix): NamingStrategyInterface
     {
         return new NamingStrategy($tablePrefix ?? '');
     }
 
-    /**
-     * @Bean()
-     * @Inject({"config" = "application.database"})
-     */
-    public function connection(EventDispatcherInterface $eventDispatcher, array $config): ConnectionInterface
+    #[Bean]
+    public function connection(EventDispatcherInterface $eventDispatcher,
+                               #[Inject("application.database")] array $config): ConnectionInterface
     {
         $connection = new Connection(
             $this->buildDsn($config),
@@ -88,33 +81,26 @@ class DbConfiguration implements DefinitionConfiguration
         return $connection;
     }
 
-    /**
-     * @Bean()
-     * @ConditionalOnMissingClass(Channel::class)
-     */
+    #[Bean]
+    #[ConditionalOnMissingClass(Channel::class)]
     public function connectionPool(ConnectionInterface $connection): ConnectionPoolInterface
     {
         return new SingleConnectionPool($connection);
     }
 
-    /**
-     * @Bean()
-     * @Inject({"config" = "application.database"})
-     * @ConditionalOnClass(Channel::class)
-     */
+    #[Bean]
+    #[ConditionalOnClass(Channel::class)]
     public function swooleConnectionPool(
         PoolFactoryInterface $poolFactory,
         EventDispatcherInterface $eventDispatcher,
-        array $config): ConnectionPoolInterface
+        #[Inject("application.database")] array $config): ConnectionPoolInterface
     {
         return new ConnectionPool($poolFactory->create('db', function () use ($eventDispatcher, $config): ConnectionInterface {
             return $this->connection($eventDispatcher, $config);
         }));
     }
 
-    /**
-     * @Bean()
-     */
+    #[Bean]
     public function attributeConverterRegistry(DateTimeFactoryInterface $dateTimeFactory): AttributeConverterRegistry
     {
         $registry = new AttributeConverterRegistry();
@@ -131,37 +117,28 @@ class DbConfiguration implements DefinitionConfiguration
         return $registry;
     }
 
-    /**
-     * @ConditionalOnMissingClass(Carbon::class)
-     * @Bean()
-     */
+    #[Bean]
+    #[ConditionalOnMissingClass(Carbon::class)]
     public function dateTimeFactory(): DateTimeFactoryInterface
     {
         return new DateTimeFactory();
     }
 
-    /**
-     * @ConditionalOnClass(Carbon::class)
-     * @Bean()
-     */
+    #[Bean]
+    #[ConditionalOnClass(Carbon::class)]
     public function carbonDateTimeFactory(): DateTimeFactoryInterface
     {
         return new CarbonDateTimeFactory();
     }
 
-    /**
-     * @Bean()
-     * @Inject({"driver":"application.database.driver"})
-     */
-    public function queryFactory(?string $driver): QueryFactory
+    #[Bean]
+    public function queryFactory(#[Inject('application.database.driver')] ?string $driver): QueryFactory
     {
         return new QueryFactory($driver ?? 'mysql');
     }
 
-    /**
-     * @Bean()
-     * @ConditionalOnProperty("application.database.logging", hasValue=true)
-     */
+    #[Bean]
+    #[ConditionalOnProperty("application.database.logging", hasValue: true)]
     public function logQueryEventListener(LoggerFactoryInterface $loggerFactory): LogStatementQuery
     {
         $listener = new LogStatementQuery();

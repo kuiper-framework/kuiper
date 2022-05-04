@@ -13,20 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\db\fixtures;
 
-use kuiper\db\annotation\Column;
-use kuiper\db\annotation\Embeddable;
+use kuiper\db\attribute\Column;
+use kuiper\db\attribute\Embeddable;
 
-/**
- * @Embeddable()
- */
+#[Embeddable]
 class DoorId
 {
-    /**
-     * @Column("door_code")
-     *
-     * @var string
-     */
-    private $value;
+    #[Column("door_code")]
+    private readonly string $value;
 
     /**
      * DoorId constructor.

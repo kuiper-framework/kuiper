@@ -11,12 +11,10 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\annotation;
+namespace kuiper\db\attribute;
 
-/**
- * @Annotation
- * @Target("PROPERTY")
- */
-final class Id implements Annotation
+
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
+final class CreationTimestamp implements Attribute
 {
 }

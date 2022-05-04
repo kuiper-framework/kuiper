@@ -19,20 +19,14 @@ use kuiper\db\metadata\Column;
 
 class AbstractDateTimeConverter implements AttributeConverterInterface
 {
-    /**
-     * @var DateTimeFactoryInterface
-     */
-    private $dateTimeFactory;
-
-    public function __construct(DateTimeFactoryInterface $dateTimeFactory)
+    public function __construct(private readonly DateTimeFactoryInterface $dateTimeFactory)
     {
-        $this->dateTimeFactory = $dateTimeFactory;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn($attribute, Column $column)
+    public function convertToDatabaseColumn(mixed $attribute, Column $column): string
     {
         if ($attribute instanceof DateTimeInterface) {
             return $this->format($attribute);
@@ -44,7 +38,7 @@ class AbstractDateTimeConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute($dbData, Column $column)
+    public function convertToEntityAttribute(mixed $dbData, Column $column): ?DateTimeInterface
     {
         try {
             return $this->dateTimeFactory->stringToTime($dbData);

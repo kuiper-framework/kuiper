@@ -13,44 +13,28 @@ declare(strict_types=1);
 
 namespace kuiper\db\fixtures;
 
-use kuiper\db\annotation\CreationTimestamp;
-use kuiper\db\annotation\GeneratedValue;
-use kuiper\db\annotation\Id;
-use kuiper\db\annotation\ShardKey;
-use kuiper\db\annotation\UpdateTimestamp;
+use kuiper\db\attribute\CreationTimestamp;
+use kuiper\db\attribute\GeneratedValue;
+use kuiper\db\attribute\Id;
+use kuiper\db\attribute\ShardKey;
+use kuiper\db\attribute\UpdateTimestamp;
 
 class Employee
 {
-    /**
-     * @Id()
-     * @GeneratedValue()
-     *
-     * @var int
-     */
-    private $id;
+    #[Id]
+    #[GeneratedValue]
+    private ?int $id = null;
 
-    /**
-     * @CreationTimestamp()
-     *
-     * @var \DateTimeInterface
-     */
-    private $createTime;
+    #[CreationTimestamp]
+    private ?\DateTimeInterface $createTime = null;
 
-    /**
-     * @UpdateTimestamp()
-     *
-     * @var \DateTimeInterface
-     */
-    private $updateTime;
-    /**
-     * @var int
-     * @ShardKey()
-     */
-    private $sharding;
-    /**
-     * @var string
-     */
-    private $name;
+    #[UpdateTimestamp]
+    private ?\DateTimeInterface $updateTime = null;
+
+    #[ShardKey]
+    private ?int $sharding = null;
+
+    private ?string $name = null;
 
     public function getId(): int
     {
@@ -62,22 +46,22 @@ class Employee
         $this->id = $id;
     }
 
-    public function getCreateTime(): \DateTime
+    public function getCreateTime(): \DateTimeInterface
     {
         return $this->createTime;
     }
 
-    public function setCreateTime(\DateTime $createTime): void
+    public function setCreateTime(\DateTimeInterface $createTime): void
     {
         $this->createTime = $createTime;
     }
 
-    public function getUpdateTime(): \DateTime
+    public function getUpdateTime(): \DateTimeInterface
     {
         return $this->updateTime;
     }
 
-    public function setUpdateTime(\DateTime $updateTime): void
+    public function setUpdateTime(\DateTimeInterface $updateTime): void
     {
         $this->updateTime = $updateTime;
     }

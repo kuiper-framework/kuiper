@@ -11,8 +11,13 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\annotation;
+namespace kuiper\http\client\annotation;
 
-interface Annotation
+/**
+ * @Annotation
+ * @Target({"METHOD"})
+ */
+final class PostMapping extends RequestMapping
 {
+    public $method = 'POST';
 }

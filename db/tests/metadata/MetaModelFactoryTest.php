@@ -19,6 +19,7 @@ use kuiper\db\fixtures\Department;
 use kuiper\db\fixtures\Door;
 use kuiper\db\fixtures\DoorId;
 use kuiper\db\fixtures\User;
+use kuiper\reflection\ReflectionDocBlockFactory;
 
 class MetaModelFactoryTest extends AbstractRepositoryTestCase
 {
@@ -29,7 +30,7 @@ class MetaModelFactoryTest extends AbstractRepositoryTestCase
 
     public function setUp(): void
     {
-        $this->metaModelFactory = new MetaModelFactory($this->createAttributeRegistry(), null, null, null);
+        $this->metaModelFactory = new MetaModelFactory($this->createAttributeRegistry(), new NamingStrategy(), ReflectionDocBlockFactory::getInstance());
     }
 
     public function testCreate()

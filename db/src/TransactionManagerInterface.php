@@ -20,5 +20,5 @@ interface TransactionManagerInterface
      *
      * @return mixed
      */
-    public function transaction(callable $callback);
+    public function transaction(callable $callback): mixed;
 }

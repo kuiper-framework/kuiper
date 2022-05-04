@@ -29,6 +29,7 @@ use kuiper\db\sharding\rule\EqualToRule;
 use kuiper\db\sharding\rule\IdentityRule;
 use kuiper\db\sharding\rule\RuleInterface;
 use kuiper\db\sharding\Strategy;
+use kuiper\reflection\ReflectionDocBlockFactory;
 use function kuiper\helper\env;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -92,7 +93,7 @@ class ShardingRepositoryTest extends AbstractRepositoryTestCase
 
         return new $repositoryClass(
             $cluster,
-            new MetaModelFactory($this->createAttributeRegistry(), new NamingStrategy($tablePrefix), null, null),
+            new MetaModelFactory($this->createAttributeRegistry(), new NamingStrategy($tablePrefix), ReflectionDocBlockFactory::getInstance()),
             new DateTimeFactory(),
             $eventDispatcher);
     }

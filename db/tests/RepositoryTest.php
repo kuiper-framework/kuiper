@@ -23,6 +23,8 @@ use kuiper\db\fixtures\Item;
 use kuiper\db\fixtures\ItemRepository;
 use kuiper\db\metadata\MetaModelFactory;
 use kuiper\db\metadata\NamingStrategy;
+use kuiper\event\NullEventDispatcher;
+use kuiper\reflection\ReflectionDocBlockFactory;
 use function kuiper\helper\env;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -61,9 +63,11 @@ class RepositoryTest extends AbstractRepositoryTestCase
             error_log($event->getStatement()->getStatement());
         });
 
+        $queryBuilder = new QueryBuilder(new SingleConnectionPool($this->createConnection($eventDispatcher)), null);
+        $queryBuilder->setEventDispatcher(new NullEventDispatcher());
         return new $repositoryClass(
-            new QueryBuilder(new SingleConnectionPool($this->createConnection($eventDispatcher)), null, $eventDispatcher),
-            new MetaModelFactory($this->createAttributeRegistry(), new NamingStrategy('test_'), null, null),
+            $queryBuilder,
+            new MetaModelFactory($this->createAttributeRegistry(), new NamingStrategy('test_'), ReflectionDocBlockFactory::getInstance()),
             new DateTimeFactory(),
             $eventDispatcher);
     }

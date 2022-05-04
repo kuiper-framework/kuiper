@@ -25,7 +25,7 @@ interface CrudRepositoryInterface
      *
      * @return object the entity
      */
-    public function insert($entity);
+    public function insert(object $entity): object;
 
     /**
      * Batch insert entities.
@@ -39,7 +39,7 @@ interface CrudRepositoryInterface
      *
      * @return object the entity
      */
-    public function update($entity);
+    public function update(object $entity): object;
 
     /**
      * Batch update entities.
@@ -53,7 +53,7 @@ interface CrudRepositoryInterface
      *
      * @return object the entity
      */
-    public function save($entity);
+    public function save(object $entity): object;
 
     /**
      * Batch save entities.
@@ -66,7 +66,7 @@ interface CrudRepositoryInterface
      * @param array|Criteria|callable $criteria
      * @param array|callable          $update
      */
-    public function updateBy($criteria, $update): void;
+    public function updateBy(mixed $criteria, array|callable $update): void;
 
     /**
      * Finds the entity by id.
@@ -75,14 +75,14 @@ interface CrudRepositoryInterface
      *
      * @return object|null the entity
      */
-    public function findById($id);
+    public function findById(mixed $id): ?object;
 
     /**
      * Returns whether an entity with the given id exists.
      *
      * @param mixed $id
      */
-    public function existsById($id): bool;
+    public function existsById(mixed $id): bool;
 
     /**
      * Finds the entity.
@@ -91,7 +91,7 @@ interface CrudRepositoryInterface
      *
      * @return object|null the entity
      */
-    public function findFirstBy($criteria);
+    public function findFirstBy(mixed $criteria): ?object;
 
     /**
      * Find the entity by fields annotated with @{@see NaturalId}.
@@ -100,7 +100,7 @@ interface CrudRepositoryInterface
      *
      * @return object|null the entity
      */
-    public function findByNaturalId($example);
+    public function findByNaturalId(object $example): ?object;
 
     /**
      * Find all entities by fields annotated with @{@see NaturalId}.
@@ -119,48 +119,53 @@ interface CrudRepositoryInterface
      *
      * @param array|callable|Criteria $criteria
      */
-    public function findAllBy($criteria): array;
+    public function findAllBy(mixed $criteria): array;
 
     /**
      * Query with the given criteria.
      *
      * @param array|callable|Criteria $criteria
      */
-    public function query($criteria): array;
+    public function query(mixed $criteria): array;
 
     /**
      * Returns row count match the criteria.
      *
      * @param array|callable|Criteria $criteria
      */
-    public function count($criteria): int;
+    public function count(mixed $criteria): int;
 
     /**
      * Finds the entity by id.
      *
      * @param mixed $id
      */
-    public function deleteById($id): void;
+    public function deleteById(mixed $id): void;
 
     /**
      * Deletes the entity.
      *
      * @param object $entity
      */
-    public function delete($entity): void;
+    public function delete(object $entity): void;
 
     /**
      * Delete first entity matches criteria.
      *
      * @param Criteria|callable $criteria
      */
-    public function deleteFirstBy($criteria): void;
+    public function deleteFirstBy(mixed $criteria): void;
 
     /**
      * Delete all entity by id.
      */
     public function deleteAllById(array $ids): void;
 
+    /**
+     * Deletes all entities
+     * @param object[] $entities
+     * @return void
+     */
     public function deleteAll(array $entities): void;
 
     /**
@@ -168,7 +173,7 @@ interface CrudRepositoryInterface
      *
      * @param Criteria|callable $criteria
      */
-    public function deleteAllBy($criteria): void;
+    public function deleteAllBy(mixed $criteria): void;
 
     public function getQueryBuilder(): QueryBuilderInterface;
 

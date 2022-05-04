@@ -79,12 +79,12 @@ interface PdoInterface
     /**
      * Returns the last inserted autoincrement sequence value.
      *
-     * @param string $name the name of the sequence to check; typically needed
+     * @param string|null $name the name of the sequence to check; typically needed
      *                     only for PostgreSQL, where it takes the form of `<table>_<column>_seq`
      *
      * @see http://php.net/manual/en/pdo.lastinsertid.php
      */
-    public function lastInsertId($name = null);
+    public function lastInsertId(?string $name = null): string|false;
 
     /**
      * Prepares an SQL statement for execution.
@@ -97,7 +97,7 @@ interface PdoInterface
      *
      * @return \PDOStatement|false
      */
-    public function prepare($statement, $options = []);
+    public function prepare(string $query, array $options = []): PDOStatement|false;
 
     /**
      * Queries the database and returns a PDOStatement.
@@ -112,7 +112,7 @@ interface PdoInterface
      *
      * @see http://php.net/manual/en/pdo.query.php
      */
-    public function query($statement, $fetch_mode = \PDO::ATTR_DEFAULT_FETCH_MODE, $fetch_arg1 = null, array $fetch_arg2 = []): PDOStatement;
+    public function query($statement, $mode = PDO::ATTR_DEFAULT_FETCH_MODE, ...$fetch_mode_args): PDOStatement|false;
 
     /**
      * Quotes a value for use in an SQL statement.
@@ -144,7 +144,7 @@ interface PdoInterface
      *
      * @return mixed the value for the attribute
      */
-    public function getAttribute($attribute);
+    public function getAttribute(int $attribute): mixed;
 
     /**
      * Returns all currently available PDO drivers.

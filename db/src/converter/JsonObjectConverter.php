@@ -18,20 +18,14 @@ use kuiper\serializer\JsonSerializerInterface;
 
 class JsonObjectConverter implements AttributeConverterInterface
 {
-    /**
-     * @var JsonSerializerInterface
-     */
-    private $serializer;
-
-    public function __construct(JsonSerializerInterface $serializer)
+    public function __construct(private readonly JsonSerializerInterface $serializer)
     {
-        $this->serializer = $serializer;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn($attribute, Column $column)
+    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed
     {
         return $this->serializer->toJson($attribute, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
@@ -39,7 +33,7 @@ class JsonObjectConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute($dbData, Column $column)
+    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed
     {
         return $this->serializer->fromJson($dbData, $column->getType());
     }

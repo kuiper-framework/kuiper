@@ -19,18 +19,12 @@ use kuiper\swoole\pool\PoolInterface;
 class ConnectionPool implements ConnectionPoolInterface
 {
     /**
-     * @var PoolInterface
-     */
-    private $pool;
-
-    /**
      * @var ConnectionInterface[]
      */
-    private $connections;
+    private array $connections = [];
 
-    public function __construct(PoolInterface $pool)
+    public function __construct(private readonly PoolInterface $pool)
     {
-        $this->pool = $pool;
     }
 
     public function take(): ConnectionInterface

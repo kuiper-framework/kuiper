@@ -17,24 +17,11 @@ use kuiper\db\ConnectionInterface;
 
 class SqlQueriedEvent extends AbstractEvent
 {
-    /**
-     * @var string
-     */
-    private $sql;
-
-    /**
-     * @var array
-     */
-    private $params;
-
-    /**
-     * SqlExecutedEvent constructor.
-     */
-    public function __construct(ConnectionInterface $connection, string $sql, array $params)
+    public function __construct(ConnectionInterface $connection,
+                                private readonly string $sql,
+                                private readonly array $params)
     {
         parent::__construct($connection);
-        $this->sql = $sql;
-        $this->params = $params;
     }
 
     public function getSql(): string

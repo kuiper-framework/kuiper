@@ -21,23 +21,9 @@ abstract class AbstractPersistEvent implements StoppableEventInterface
 {
     use StoppableEventTrait;
 
-    /**
-     * @var CrudRepositoryInterface
-     */
-    private $repository;
-
-    /**
-     * @var object
-     */
-    private $entity;
-
-    /**
-     * AbstractPersistEvent constructor.
-     */
-    public function __construct(CrudRepositoryInterface $repository, object $entity)
+    public function __construct(private readonly CrudRepositoryInterface $repository,
+                                private readonly object $entity)
     {
-        $this->repository = $repository;
-        $this->entity = $entity;
     }
 
     public function getRepository(): CrudRepositoryInterface

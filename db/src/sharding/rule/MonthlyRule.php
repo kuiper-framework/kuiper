@@ -15,7 +15,7 @@ namespace kuiper\db\sharding\rule;
 
 class MonthlyRule extends AbstractRule
 {
-    protected function getPartitionFor($value)
+    protected function getPartitionFor(mixed $value): string
     {
         $time = strtotime($value);
         if (false === $time) {

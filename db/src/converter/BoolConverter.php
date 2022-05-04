@@ -20,15 +20,15 @@ class BoolConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn($attribute, Column $column)
+    public function convertToDatabaseColumn(mixed $attribute, Column $column): int
     {
-        return ((bool) $attribute) ? 1 : 0;
+        return $attribute ? 1 : 0;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute($dbData, Column $column)
+    public function convertToEntityAttribute(mixed $dbData, Column $column): bool
     {
         return (bool) $dbData;
     }

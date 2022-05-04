@@ -11,12 +11,13 @@
 
 declare(strict_types=1);
 
-namespace kuiper\db\annotation;
+namespace kuiper\http\client\annotation;
 
 /**
  * @Annotation
- * @Target("PROPERTY")
+ * @Target({"METHOD"})
  */
-final class Transient implements Annotation
+final class PatchMapping extends RequestMapping
 {
+    public $method = 'PATCH';
 }

@@ -15,11 +15,10 @@
         }
     ],
     "require": {
-        "php": ">=7.2.5",
+        "php": ">=8.1",
         "ext-pdo": "*",
-        "aura/sqlquery": "^2.7",
+        "aura/sqlquery": "^2.0",
         "webmozart/assert": "^1.0",
-        "kuiper/annotations": "^0.8",
         "kuiper/event": "^0.8",
         "kuiper/helper": "^0.8",
         "kuiper/logger": "^0.8",
