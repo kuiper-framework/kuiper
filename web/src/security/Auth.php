@@ -18,24 +18,10 @@ use kuiper\web\session\SessionInterface;
 
 class Auth implements AuthInterface
 {
-    /**
-     * session 数据中记录 auth 信息 key 值
-     *
-     * @var string
-     */
-    private $sessionKey;
-
-    /**
-     * session 组件.
-     *
-     * @var SessionInterface
-     */
-    private $session;
-
-    public function __construct(SessionInterface $session, string $sessionKey = 'auth')
+    public function __construct(
+        private readonly SessionInterface $session,
+        private readonly string $sessionKey = 'auth')
     {
-        $this->session = $session;
-        $this->sessionKey = $sessionKey;
     }
 
     public function getSessionKey(): string

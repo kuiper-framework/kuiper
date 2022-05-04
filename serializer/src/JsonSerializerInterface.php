@@ -23,7 +23,7 @@ interface JsonSerializerInterface
      *
      * @throws exception\SerializeException
      */
-    public function toJson($data, int $options = 0): string;
+    public function toJson(mixed $data, int $options = 0): string;
 
     /**
      * Converts json to object.
@@ -34,5 +34,5 @@ interface JsonSerializerInterface
      *
      * @throws exception\SerializeException
      */
-    public function fromJson(string $jsonString, $type);
+    public function fromJson(string $jsonString, string|object $type): mixed;
 }

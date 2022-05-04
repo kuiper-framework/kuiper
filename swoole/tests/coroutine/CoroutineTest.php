@@ -18,6 +18,11 @@ use Swoole\Coroutine as SwooleCoroutine;
 
 class CoroutineTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        $this->markTestSkipped();
+    }
+
     public function testGetContext(): void
     {
         SwooleCoroutine::create(function () {

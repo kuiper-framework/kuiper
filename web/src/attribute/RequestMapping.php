@@ -11,32 +11,46 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\annotation;
+namespace kuiper\web\attribute;
 
-/**
- * @Annotation
- * @Target({"CLASS","METHOD"})
- */
+use Attribute;
+
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class RequestMapping
 {
     /**
-     * The path mapping URIs. type is string|string[].
-     *
-     * @var mixed
+     * @param string|string[] $mapping The path mapping URIs. type is string|string[].
+     * @param string $name Assign a name to this mapping.
+     * @param string[] $method The HTTP request methods to map to.
      */
-    public $value;
+    public function __construct(
+        private readonly string|array $mapping,
+        private readonly string $name = '',
+        private readonly array $method = [])
+    {
+    }
 
     /**
-     * Assign a name to this mapping.
-     *
-     * @var string
+     * @return string[]
      */
-    public $name;
+    public function getMapping(): array
+    {
+        return (array) $this->mapping;
+    }
 
     /**
-     * The HTTP request methods to map to.
-     *
-     * @var string[]
+     * @return string
      */
-    public $method;
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getMethod(): array
+    {
+        return $this->method;
+    }
 }

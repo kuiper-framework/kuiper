@@ -11,24 +11,23 @@
 
 declare(strict_types=1);
 
-namespace kuiper\swoole;
+namespace kuiper\swoole\constants;
 
-use kuiper\swoole\constants\ServerType;
 use PHPUnit\Framework\TestCase;
 
 class ServerTypeTest extends TestCase
 {
-    public function testAllServerTypeHasSettings()
+    public function testAllServerTypeHasSettings(): void
     {
-        foreach (ServerType::instances() as $serverType) {
-            $this->assertIsArray($serverType->settings);
+        foreach (ServerType::cases() as $serverType) {
+            $this->assertIsArray($serverType->settings());
         }
     }
 
-    public function testAllServerTypeHasEvents()
+    public function testAllServerTypeHasEvents(): void
     {
-        foreach (ServerType::instances() as $serverType) {
-            $this->assertIsArray($serverType->events);
+        foreach (ServerType::cases() as $serverType) {
+            $this->assertIsArray($serverType->handledEvents());
         }
     }
 }

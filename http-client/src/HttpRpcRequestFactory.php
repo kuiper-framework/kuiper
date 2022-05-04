@@ -45,7 +45,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
      */
     private $rpcMethodFactory;
 
-    public function __construct(AnnotationReaderInterface $annotationReader, NormalizerInterface $normalizer, RpcMethodFactoryInterface $rpcMethodFactory)
+    public function __construct(NormalizerInterface $normalizer, RpcMethodFactoryInterface $rpcMethodFactory)
     {
         $this->annotationReader = $annotationReader;
         $this->normalizer = $normalizer;

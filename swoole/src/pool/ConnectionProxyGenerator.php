@@ -18,6 +18,7 @@ use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionType;
 use kuiper\reflection\type\MixedType;
 use kuiper\reflection\type\VoidType;
+use Laminas\Code\Generator\AbstractMemberGenerator;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\ParameterGenerator;
@@ -71,7 +72,7 @@ class ConnectionProxyGenerator
             $phpClass->setExtendedClass($className);
         }
 
-        $phpClass->addProperty('pool', null, PropertyGenerator::FLAG_PRIVATE);
+        $phpClass->addProperty('pool', null, AbstractMemberGenerator::FLAG_PRIVATE);
         $phpClass->addMethod('__construct',
             [
                 [
@@ -79,7 +80,7 @@ class ConnectionProxyGenerator
                     'name' => 'pool',
                 ],
             ],
-            MethodGenerator::FLAG_PUBLIC,
+            AbstractMemberGenerator::FLAG_PUBLIC,
             '$this->pool = $pool;'
         );
         $phpClass->addMethod('__call',
@@ -93,7 +94,7 @@ class ConnectionProxyGenerator
                     'name' => 'args',
                 ],
             ],
-            MethodGenerator::FLAG_PUBLIC,
+            AbstractMemberGenerator::FLAG_PUBLIC,
             implode("\n", [
                 'return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($method, $args) {',
                 'return $conn->$method(...$args);',
@@ -103,7 +104,7 @@ class ConnectionProxyGenerator
         $phpClass->addMethod('__destruct');
 
         foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
-            if (in_array($reflectionMethod->getName(), ['__construct', '__destruct'], true) || $reflectionMethod->isStatic()) {
+            if ($reflectionMethod->isStatic() || in_array($reflectionMethod->getName(), ['__construct', '__destruct'], true)) {
                 continue;
             }
             $params = array_map(function ($parameter) use ($reflectionMethod): ParameterGenerator {

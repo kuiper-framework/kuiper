@@ -25,25 +25,14 @@ use Slim\Exception\HttpUnauthorizedException;
 
 class PreAuthorize implements MiddlewareInterface
 {
-    /**
-     * @var PermissionEvaluator
-     */
-    private $permissionEvaluator;
+    private readonly PermissionEvaluator $permissionEvaluator;
 
-    /**
-     * @var array
-     */
-    private $requiredAuthorities;
-    /**
-     * @var array
-     */
-    private $anyAuthorities;
-
-    public function __construct(AclInterface $acl, array $requiredAuthorities, array $anyAuthorities)
+    public function __construct(
+        AclInterface $acl,
+        private readonly array $requiredAuthorities,
+        private readonly array $anyAuthorities)
     {
         $this->permissionEvaluator = new PermissionEvaluator($acl);
-        $this->requiredAuthorities = $requiredAuthorities;
-        $this->anyAuthorities = $anyAuthorities;
     }
 
     /**

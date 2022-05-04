@@ -178,9 +178,9 @@ final class Endpoint
 
     private static function create(string $schema, string $host, int $port, array $options): self
     {
-        $connectTimeout = self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null);
-        $receiveTimeout = self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null);
-        unset($options[ClientSettings::CONNECT_TIMEOUT], $options[ClientSettings::RECV_TIMEOUT], $options['timeout']);
+        $connectTimeout = self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT->value] ?? $options['timeout'] ?? null);
+        $receiveTimeout = self::filterTimeout($options[ClientSettings::RECV_TIMEOUT->value] ?? $options['timeout'] ?? null);
+        unset($options[ClientSettings::CONNECT_TIMEOUT->value], $options[ClientSettings::RECV_TIMEOUT->value], $options['timeout']);
 
         return new self(
             $schema,

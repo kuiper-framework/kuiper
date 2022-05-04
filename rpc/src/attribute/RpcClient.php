@@ -11,41 +11,63 @@
 
 declare(strict_types=1);
 
-namespace kuiper\rpc\annotation;
+namespace kuiper\rpc\attribute;
 
-use kuiper\di\annotation\ComponentInterface;
-use kuiper\di\annotation\ComponentTrait;
+use Attribute;
+use kuiper\di\attribute\ComponentTrait;
+use kuiper\di\Component;
 
-/**
- * @Annotation
- * @Target({"CLASS"})
- */
-class RpcClient implements ComponentInterface
+#[Attribute(Attribute::TARGET_CLASS)]
+class RpcClient implements Component
 {
     use ComponentTrait;
 
-    /**
-     * @var string
-     */
-    public $service;
+    public function __construct(
+        private readonly string $service = '',
+        private readonly string $version = '',
+        private readonly string $namespace = '',
+        private readonly string $protocol = '',
+        private readonly string $endpoint = '')
+    {
+    }
 
     /**
-     * @var string
+     * @return string
      */
-    public $version;
+    public function getService(): string
+    {
+        return $this->service;
+    }
 
     /**
-     * @var string
+     * @return string
      */
-    public $namespace;
+    public function getVersion(): string
+    {
+        return $this->version;
+    }
 
     /**
-     * @var string
+     * @return string
      */
-    public $protocol;
+    public function getNamespace(): string
+    {
+        return $this->namespace;
+    }
 
     /**
-     * @var string
+     * @return string
      */
-    public $endpoint;
+    public function getProtocol(): string
+    {
+        return $this->protocol;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEndpoint(): string
+    {
+        return $this->endpoint;
+    }
 }

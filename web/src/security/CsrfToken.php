@@ -18,28 +18,18 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class CsrfToken implements CsrfTokenInterface
 {
-    /**
-     * @var SessionInterface
-     */
-    private $session;
+    private array $options;
 
-    /**
-     * @var array
-     */
-    private $options;
-
-    /**
-     * @var array
-     */
-    private static $DEFAULT_OPTIONS = [
+    private static array $DEFAULT_OPTIONS = [
         'tokenParamKey' => '_token',
         'tokenValueSessionId' => 'csrf:val',
         'tokenValueLength' => 32,
     ];
 
-    public function __construct(SessionInterface $session, array $options = [])
+    public function __construct(
+        private readonly SessionInterface $session,
+        array $options = [])
     {
-        $this->session = $session;
         $this->options = array_merge(self::$DEFAULT_OPTIONS, $options);
     }
 
@@ -64,9 +54,6 @@ class CsrfToken implements CsrfTokenInterface
         return $token;
     }
 
-    /**
-     * @return string
-     */
     public function getSessionTokenValue(): ?string
     {
         $value = $this->session->get($this->options['tokenValueSessionId']);
@@ -93,9 +80,7 @@ class CsrfToken implements CsrfTokenInterface
     public function check(ServerRequestInterface $request, $destroyIfValid = true): bool
     {
         $post = $request->getParsedBody();
-        $tokenValue = isset($post[$this->getTokenKey()])
-            ? $post[$this->getTokenKey()]
-            : $request->getHeaderLine('x-csrf-token');
+        $tokenValue = $post[$this->getTokenKey()] ?? $request->getHeaderLine('x-csrf-token');
 
         return null !== $tokenValue && $this->checkToken($tokenValue, $destroyIfValid);
     }
@@ -105,7 +90,11 @@ class CsrfToken implements CsrfTokenInterface
         if (!function_exists('openssl_random_pseudo_bytes')) {
             throw new \RuntimeException('openssl extension must be loaded');
         }
-        $string = base64_encode(openssl_random_pseudo_bytes($bytes));
+        $randBytes = openssl_random_pseudo_bytes($bytes, $strong);
+        if (!$strong || $randBytes === false) {
+            return $this->generateRandomString($bytes);
+        }
+        $string = base64_encode($randBytes);
 
         return preg_replace('/[^0-9a-zA-Z]/', '', base64_encode($string));
     }

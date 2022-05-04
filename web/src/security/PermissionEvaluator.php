@@ -15,24 +15,13 @@ namespace kuiper\web\security;
 
 class PermissionEvaluator
 {
-    /**
-     * @var string
-     */
-    private static $SUPER_USER_ROLE = 'admin';
-
-    /**
-     * @var AclInterface
-     */
-    private $acl;
+    private static string $SUPER_USER_ROLE = 'admin';
 
     /**
      * PermissionEvaluator constructor.
-     *
-     * @param AclInterface $acl
      */
-    public function __construct(AclInterface $acl)
+    public function __construct(private readonly AclInterface $acl)
     {
-        $this->acl = $acl;
     }
 
     /**
@@ -41,7 +30,7 @@ class PermissionEvaluator
      *
      * @return bool
      */
-    public function hasPermission(UserIdentity $userIdentity, $authorities): bool
+    public function hasPermission(UserIdentity $userIdentity, array|string $authorities): bool
     {
         return $this->isAllowAll($userIdentity->getAuthorities(), (array) $authorities);
     }

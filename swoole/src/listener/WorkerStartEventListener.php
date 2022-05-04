@@ -16,6 +16,7 @@ namespace kuiper\swoole\listener;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
 use kuiper\event\EventListenerInterface;
+use kuiper\logger\Logger;
 use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\event\WorkerStartEvent;
 use kuiper\swoole\server\ServerInterface;
@@ -36,7 +37,7 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
 
     public function __construct(private readonly ServerInterface $server)
     {
-        $this->setLogger(\kuiper\logger\Logger::nullLogger());
+        $this->setLogger(Logger::nullLogger());
     }
 
     /**

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\web;
 
-interface AnnotationProcessorInterface
+interface AttributeProcessorInterface
 {
     /**
      * Processes the annotation.

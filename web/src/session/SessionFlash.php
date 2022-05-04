@@ -15,25 +15,12 @@ namespace kuiper\web\session;
 
 class SessionFlash implements FlashInterface
 {
-    /**
-     * @var SessionInterface
-     */
-    private $session;
+    private ?array $messages = null;
 
-    /**
-     * @var string
-     */
-    private $sessionKey;
-
-    /**
-     * @var array|null
-     */
-    private $messages;
-
-    public function __construct(SessionInterface $session, string $key = '_flashMessages')
+    public function __construct(
+        private readonly SessionInterface $session,
+        private readonly string $sessionKey = '_flashMessages')
     {
-        $this->session = $session;
-        $this->sessionKey = $key;
     }
 
     /**
@@ -84,11 +71,8 @@ class SessionFlash implements FlashInterface
     public function has(string $type = null): bool
     {
         $messages = $this->getMessages();
-        if (isset($type)) {
-            return !empty($messages);
-        }
-
         return !empty($messages);
+
     }
 
     /**

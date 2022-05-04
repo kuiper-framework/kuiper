@@ -15,17 +15,8 @@ namespace kuiper\http\client\request;
 
 class Request
 {
-    /**
-     * @var array
-     */
-    private $options;
-
-    /**
-     * Request constructor.
-     */
-    public function __construct(array $options)
+    public function __construct(private readonly array $options)
     {
-        $this->options = $options;
     }
 
     public function getOptions(): array

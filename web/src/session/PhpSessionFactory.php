@@ -17,10 +17,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class PhpSessionFactory implements SessionFactoryInterface
 {
-    /**
-     * @var bool
-     */
-    private $autoStart;
+    private bool $autoStart;
 
     public function __construct(array $options = [])
     {

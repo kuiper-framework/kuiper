@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\constants;
 
-class HttpHeaderName
+final class HttpHeaderName
 {
     public const HOST = 'host';
     public const CONNECTION = 'connection';

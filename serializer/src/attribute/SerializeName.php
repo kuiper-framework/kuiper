@@ -11,19 +11,22 @@
 
 declare(strict_types=1);
 
-namespace kuiper\serializer\annotation;
+namespace kuiper\serializer\attribute;
 
-/**
- * changes serialize field name.
- *
- * @Annotation
- * @Target({"METHOD", "PROPERTY"})
- */
-class SerializeName
+use Attribute;
+
+#[Attribute(Attribute::TARGET_METHOD| Attribute::TARGET_PROPERTY)]
+final class SerializeName
 {
+    public function __construct(private readonly string $name)
+    {
+    }
+
     /**
-     * @var string
-     * @Required
+     * @return string
      */
-    public $value;
+    public function getName(): string
+    {
+        return $this->name;
+    }
 }

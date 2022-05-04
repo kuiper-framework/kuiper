@@ -36,20 +36,14 @@ class HttpServer extends SelectTcpServer
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @var HttpMessageFactoryHolder
-     */
-    private $httpMessageFactoryHolder;
+    private ?HttpMessageFactoryHolder $httpMessageFactoryHolder = null;
 
-    /**
-     * @var ResponseBuilder|null
-     */
-    private $responseBuilder;
+    private ?ResponseBuilder $responseBuilder = null;
 
     /**
      * @var RequestParser[]
      */
-    private $requestParsers;
+    private array $requestParsers = [];
 
     public function getHttpMessageFactoryHolder(): HttpMessageFactoryHolder
     {
@@ -103,10 +97,10 @@ class HttpServer extends SelectTcpServer
 
     public function dispatch(string $eventName, array $args): ?AbstractServerEvent
     {
-        if (in_array($eventName, [Event::CONNECT, Event::CLOSE], true)) {
+        if (in_array($eventName, [Event::CONNECT->value, Event::CLOSE->value], true)) {
             return null;
         }
-        if (Event::RECEIVE === $eventName) {
+        if (Event::RECEIVE->value === $eventName) {
             $this->onReceive(...$args);
 
             return null;
@@ -132,7 +126,7 @@ class HttpServer extends SelectTcpServer
         }
         if ($requestParser->isCompleted()) {
             /** @var RequestEvent $event */
-            $event = $this->dispatch(Event::REQUEST, [$requestParser->getRequest()]);
+            $event = $this->dispatch(Event::REQUEST->value, [$requestParser->getRequest()]);
             $this->sendResponse($clientId, $event->getRequest(), $event->getResponse()
                 ?? $this->getResponseFactory()->createResponse(500));
         }

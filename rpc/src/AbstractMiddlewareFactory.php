@@ -16,9 +16,11 @@ namespace kuiper\rpc;
 abstract class AbstractMiddlewareFactory implements MiddlewareFactoryInterface
 {
     /**
-     * @var int
+     * @param int $priority
      */
-    public $priority = 1024;
+    public function __construct(private readonly int $priority = 1024)
+    {
+    }
 
     /**
      * @return int

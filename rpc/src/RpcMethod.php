@@ -47,7 +47,11 @@ class RpcMethod implements RpcMethodInterface
      *
      * @param object|string|mixed $target
      */
-    public function __construct($target, ServiceLocator $serviceLocator, string $methodName, array $arguments)
+    public function __construct(
+        private readonly mixed $target,
+        private ServiceLocator $serviceLocator,
+        private readonly string $methodName,
+        private readonly array $arguments)
     {
         if (is_object($target) || is_string($target)) {
             $this->target = $target;

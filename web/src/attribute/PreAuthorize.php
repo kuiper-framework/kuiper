@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\annotation;
+namespace kuiper\web\attribute;
 
 use kuiper\web\middleware\AbstractMiddlewareFactory;
 use kuiper\web\middleware\PreAuthorize as PreAuthorizeMiddleware;
@@ -19,21 +19,21 @@ use kuiper\web\security\AclInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\MiddlewareInterface;
 
-/**
- * @Annotation
- * @Target({"CLASS", "METHOD"})
- */
+use Attribute;
+
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class PreAuthorize extends AbstractMiddlewareFactory
 {
     /**
-     * @var string[]
+     * @param string[] $requiredAuthorities
+     * @param string[] $anyAuthorities
      */
-    public $value;
-
-    /**
-     * @var string[]
-     */
-    public $any;
+    public function __construct(
+        private readonly array $requiredAuthorities,
+        private readonly array $anyAuthorities = [])
+    {
+        parent::__construct();
+    }
 
     /**
      * {@inheritdoc}
@@ -41,6 +41,6 @@ class PreAuthorize extends AbstractMiddlewareFactory
     public function create(ContainerInterface $container): MiddlewareInterface
     {
         /** @phpstan-ignore-next-line */
-        return new PreAuthorizeMiddleware($container->get(AclInterface::class), (array) $this->value, (array) $this->any);
+        return new PreAuthorizeMiddleware($container->get(AclInterface::class), $this->requiredAuthorities, $this->anyAuthorities);
     }
 }

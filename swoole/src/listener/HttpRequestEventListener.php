@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\swoole\listener;
 
 use kuiper\event\EventListenerInterface;
+use kuiper\logger\Logger;
 use kuiper\swoole\event\RequestEvent;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -30,7 +31,7 @@ class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInt
 
     public function __construct(private readonly RequestHandlerInterface $requestHandler)
     {
-        $this->setLogger(\kuiper\logger\Logger::nullLogger());
+        $this->setLogger(Logger::nullLogger());
     }
 
     /**

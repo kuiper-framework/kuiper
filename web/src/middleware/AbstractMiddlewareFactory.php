@@ -15,10 +15,9 @@ namespace kuiper\web\middleware;
 
 abstract class AbstractMiddlewareFactory implements MiddlewareFactory
 {
-    /**
-     * @var int
-     */
-    public $priority = 1024;
+    public function __construct(private readonly int $priority = 1024)
+    {
+    }
 
     /**
      * {@inheritdoc}

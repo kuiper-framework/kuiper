@@ -28,14 +28,8 @@ class CsrfToken implements MiddlewareInterface
      */
     public const ALLOWED_METHODS = ['PUT', 'POST', 'DELETE'];
 
-    /**
-     * @var bool
-     */
-    private $repeatOk;
-
-    public function __construct(bool $repeatOk)
+    public function __construct(private readonly bool $repeatOk)
     {
-        $this->repeatOk = $repeatOk;
     }
 
     /**
@@ -47,7 +41,7 @@ class CsrfToken implements MiddlewareInterface
             throw (new HttpMethodNotAllowedException($request))->setAllowedMethods(self::ALLOWED_METHODS);
         }
         $csrfToken = SecurityContext::fromRequest($request)->getCsrfToken();
-        if ($csrfToken->check($request, $destroy = !$this->repeatOk)) {
+        if ($csrfToken->check($request, !$this->repeatOk)) {
             return $handler->handle($request);
         }
 

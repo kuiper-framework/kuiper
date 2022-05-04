@@ -11,12 +11,11 @@
 
 declare(strict_types=1);
 
-namespace kuiper\rpc\annotation;
+namespace kuiper\rpc\attribute;
 
-/**
- * @Annotation
- * @Target({"METHOD"})
- */
+use Attribute;
+
+#[Attribute(Attribute::TARGET_METHOD)]
 class Ignore
 {
 }

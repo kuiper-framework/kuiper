@@ -15,10 +15,7 @@ namespace kuiper\web\security;
 
 class Acl implements AclInterface
 {
-    /**
-     * @var array
-     */
-    private $allows = [];
+    private array $allows = [];
 
     /**
      * Add resource to the role.

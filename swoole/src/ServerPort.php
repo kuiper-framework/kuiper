@@ -33,7 +33,7 @@ class ServerPort
     {
         $this->settings = [];
         foreach ($settings as $name => $value) {
-            if (ServerSetting::tryFrom($name) !== null) {
+            if (is_string($name) && ServerSetting::has($name) !== null) {
                 $this->settings[$name] = $value;
             }
         }

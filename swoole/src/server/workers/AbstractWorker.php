@@ -27,50 +27,23 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @var WorkerManagerInterface
-     */
-    protected $manager;
+    private readonly int $pid;
 
-    /**
-     * @var int
-     */
-    private $workerId;
+    private bool $stopped = false;
 
-    /**
-     * @var SocketChannel
-     */
-    private $channel;
+    private readonly \SplPriorityQueue $tickCallbacks;
 
-    /**
-     * @var int
-     */
-    private $pid;
+    private int $timerId = 0;
 
-    /**
-     * @var bool
-     */
-    private $stopped;
-
-    /**
-     * @var \SplPriorityQueue
-     */
-    private $tickCallbacks;
-
-    /**
-     * @var int
-     */
-    private $timerId = 0;
-
-    /**
-     * AbstractWorker constructor.
-     */
-    public function __construct(WorkerManagerInterface $manager, SocketChannel $channel, int $pid, int $workerId, LoggerInterface $logger)
+    public function __construct(
+        protected readonly WorkerManagerInterface $manager,
+        private readonly SocketChannel $channel,
+        int $pid,
+        private readonly int $workerId,
+        LoggerInterface $logger)
     {
-        $this->manager = $manager;
-        $this->workerId = $workerId;
-        $this->channel = $channel;
         $this->setLogger($logger);
+        $this->tickCallbacks = new \SplPriorityQueue();
         $this->pid = $pid > 0 ? $pid : getmypid();
     }
 
@@ -91,12 +64,11 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
 
     public function start(): void
     {
-        $this->tickCallbacks = new \SplPriorityQueue();
         $this->channel->child();
         $this->installSignal();
 
         $this->onStart();
-        $this->dispatch(Event::WORKER_START, [$this->workerId]);
+        $this->dispatch(Event::WORKER_START->value, [$this->workerId]);
         while (!$this->stopped) {
             pcntl_signal_dispatch();
             $this->setErrorHandler();
@@ -105,7 +77,7 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
         }
         $this->channel->close();
         $this->onStop();
-        $this->dispatch(Event::WORKER_STOP, [$this->workerId]);
+        $this->dispatch(Event::WORKER_STOP->value, [$this->workerId]);
     }
 
     public function tick(int $millisecond, callable $callback): int

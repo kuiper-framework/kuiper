@@ -13,10 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\serializer;
 
-use DI\Annotation\Inject;
+use DI\Attribute\Inject;
+use kuiper\di\attribute\Bean;
 use function DI\get;
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\Bean;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Enum;
@@ -38,18 +37,14 @@ class SerializerConfiguration implements DefinitionConfiguration
         ];
     }
 
-    /**
-     * @Bean()
-     * @Inject({"normalizers": "serializerNormalizers"})
-     */
-    public function serializer(AnnotationReaderInterface $annotationReader, ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory, array $normalizers): Serializer
+    #[Bean]
+    public function serializer(ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory,
+                               #[Inject("serializerNormalizers")] array $normalizers): Serializer
     {
-        return new Serializer($annotationReader, $reflectionDocBlockFactory, $normalizers);
+        return new Serializer($reflectionDocBlockFactory, $normalizers);
     }
 
-    /**
-     * @Bean("serializerNormalizers")
-     */
+    #[Bean("serializerNormalizers")]
     public function serializerNormalizers(ContainerInterface $container): array
     {
         return [

@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server;
 
+use Exception;
 use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\Event;
-use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\event\MessageInterface;
 use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\http\HttpMessageFactoryHolder;
@@ -23,6 +23,7 @@ use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use kuiper\swoole\http\SwooleResponseBridgeInterface;
 use kuiper\swoole\ServerPort;
 use Psr\Http\Message\ResponseFactoryInterface;
+use RuntimeException;
 use Swoole\Server;
 
 class SwooleServer extends AbstractServer
@@ -75,10 +76,10 @@ class SwooleServer extends AbstractServer
     public static function check(): void
     {
         if (!extension_loaded('swoole')) {
-            throw new \RuntimeException('extension swoole should be enabled');
+            throw new RuntimeException('extension swoole should be enabled');
         }
         if (!class_exists(Server::class)) {
-            throw new \RuntimeException('swoole.use_namespace should be enabled');
+            throw new RuntimeException('swoole.use_namespace should be enabled');
         }
     }
 
@@ -88,7 +89,7 @@ class SwooleServer extends AbstractServer
     public function start(): void
     {
         self::check();
-        $this->dispatch(Event::BOOTSTRAP, []);
+        $this->dispatch(Event::BOOTSTRAP->value, []);
         $ports = $this->getServerConfig()->getPorts();
         $this->createSwooleServer(array_shift($ports));
         foreach ($ports as $adapter) {
@@ -102,9 +103,9 @@ class SwooleServer extends AbstractServer
      */
     public function reload(): void
     {
-        $this->dispatch(Event::BEFORE_RELOAD, []);
+        $this->dispatch(Event::BEFORE_RELOAD->value, []);
         $this->resource->reload();
-        $this->dispatch(Event::AFTER_RELOAD, []);
+        $this->dispatch(Event::AFTER_RELOAD->value, []);
     }
 
     /**
@@ -178,22 +179,21 @@ class SwooleServer extends AbstractServer
         if (empty($clientInfo)) {
             return null;
         }
-        $connectionInfo = new ConnectionInfo();
-        $connectionInfo->setRemoteIp((string) ($clientInfo['remote_ip'] ?? ''));
-        $connectionInfo->setRemotePort((int) ($clientInfo['remote_port'] ?? 0));
-        $connectionInfo->setServerPort((int) ($clientInfo['server_port'] ?? 0));
-        $connectionInfo->setServerFd((int) ($clientInfo['server_fd'] ?? 0));
-        $connectionInfo->setConnectTime((int) ($clientInfo['connect_time'] ?? 0));
-        $connectionInfo->setLastTime((int) ($clientInfo['last_time'] ?? 0));
-
-        return $connectionInfo;
+        return new ConnectionInfo(
+            remoteIp: (string) ($clientInfo['remote_ip'] ?? ''),
+            remotePort: (int) ($clientInfo['remote_port'] ?? 0),
+            serverPort: (int) ($clientInfo['server_port'] ?? 0),
+            serverFd: (int) ($clientInfo['server_fd'] ?? 0),
+            connectTime: (int) ($clientInfo['connect_time'] ?? 0),
+            lastTime:(int) ($clientInfo['last_time'] ?? 0)
+        );
     }
 
     public function sendMessage(MessageInterface $message, int $workerId): void
     {
         $data = serialize($message);
         if ($workerId === $this->resource->worker_id) {
-            $this->dispatch(Event::PIPE_MESSAGE, [$workerId, $data]);
+            $this->dispatch(Event::PIPE_MESSAGE->value, [$workerId, $data]);
         } else {
             $this->resource->sendMessage($data, $workerId);
         }
@@ -207,41 +207,38 @@ class SwooleServer extends AbstractServer
         }
     }
 
-    public function getResource()
+    public function getResource(): ?Server
     {
         return $this->resource;
     }
 
     private function createSwooleServer(ServerPort $port): void
     {
-        $serverType = ServerType::fromValue($port->getServerType());
-        $swooleServerClass = $serverType->server;
+        $swooleServerClass = $port->getServerType()->serverClass();
         $this->resource = new $swooleServerClass($port->getHost(), $port->getPort(), SWOOLE_PROCESS, $port->getSockType());
         $this->resource->set($port->getSettings());
 
-        foreach (Event::values() as $event) {
-            if (Event::fromValue($event)->non_swoole
-                || in_array($event, Event::requestEvents(), true)) {
+        foreach (Event::cases() as $event) {
+            if (!$event->isSwooleEvent() || in_array($event, Event::requestEvents(), true)) {
                 continue;
             }
             $this->attach($event);
         }
 
-        foreach ($serverType->events as $event) {
+        foreach ($port->getServerType()->handledEvents() as $event) {
             $this->attach($event);
         }
     }
 
     private function addPort(ServerPort $port): void
     {
-        $serverType = ServerType::fromValue($port->getServerType());
         /** @var Server\Port $swoolePort */
         $swoolePort = $this->resource->addListener($port->getHost(), $port->getPort(), $port->getSockType());
         $swoolePort->set($port->getSettings());
 
-        foreach ($serverType->events as $event) {
-            $this->logger->debug(static::TAG."attach $event to port ".$port->getPort());
-            $swoolePort->on($event, $this->createEventHandler($event));
+        foreach ($port->getServerType()->handledEvents() as $event) {
+            $this->logger->debug(static::TAG."attach $event->value to port ".$port->getPort());
+            $swoolePort->on($event->value, $this->createEventHandler($event->value));
         }
     }
 
@@ -250,7 +247,7 @@ class SwooleServer extends AbstractServer
         return function () use ($eventName) {
             $this->logger->debug(static::TAG.'receive event '.$eventName);
             $args = func_get_args();
-            if (Event::REQUEST === $eventName) {
+            if (Event::REQUEST->value === $eventName) {
                 $this->onRequest(...$args);
 
                 return;
@@ -262,22 +259,22 @@ class SwooleServer extends AbstractServer
         };
     }
 
-    private function attach(string $event): void
+    private function attach(Event $event): void
     {
-        $this->logger->debug(static::TAG."attach $event to server");
-        $this->resource->on($event, $this->createEventHandler($event));
+        $this->logger->debug(static::TAG."attach $event->value to server");
+        $this->resource->on($event->value, $this->createEventHandler($event->value));
     }
 
     private function onRequest($request, $response): void
     {
         try {
             /** @var RequestEvent $event */
-            $event = $this->dispatch(Event::REQUEST, [$this->getSwooleRequestBridge()->create($request)]);
+            $event = $this->dispatch(Event::REQUEST->value, [$this->getSwooleRequestBridge()->create($request)]);
             if ($event) {
                 $this->getSwooleResponseBridge()->update($event->getResponse() ?? $this->getResponseFactory()
                         ->createResponse(500), $response);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error(static::TAG.'handle http request failed: '.$e->getMessage()."\n"
                 .$e->getTraceAsString());
             if (isset($event) && null !== $event->getResponse()) {

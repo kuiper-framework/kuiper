@@ -24,15 +24,9 @@ use kuiper\swoole\server\workers\WorkerManagerInterface;
 
 class SelectTcpServer extends AbstractServer
 {
-    /**
-     * @var int
-     */
-    private $masterPid;
+    private int $masterPid = 0;
 
-    /**
-     * @var WorkerManagerInterface
-     */
-    private $workerManager;
+    private ?WorkerManagerInterface $workerManager = null;
 
     public static function check(): void
     {
@@ -58,8 +52,8 @@ class SelectTcpServer extends AbstractServer
             ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
         ]);
         $this->masterPid = getmypid();
-        $this->dispatch(Event::BOOTSTRAP, []);
-        $this->dispatch(Event::START, []);
+        $this->dispatch(Event::BOOTSTRAP->value, []);
+        $this->dispatch(Event::START->value, []);
 
         if (1 === $this->getSettings()->getInt(ServerSetting::WORKER_NUM)) {
             $this->workerManager = new SingleWorkerManager($this, $this->logger);
@@ -68,7 +62,7 @@ class SelectTcpServer extends AbstractServer
         }
         $this->workerManager->loop();
 
-        $this->dispatch(Event::SHUTDOWN, []);
+        $this->dispatch(Event::SHUTDOWN->value, []);
     }
 
     /**
@@ -91,7 +85,7 @@ class SelectTcpServer extends AbstractServer
 
     private function assertMasterProcessAlive(): void
     {
-        if (!posix_kill($this->getMasterPid(), 0)) {
+        if ($this->getMasterPid() > 0 && !posix_kill($this->getMasterPid(), 0)) {
             throw new ServerStateException('Master process is not running');
         }
     }
@@ -112,11 +106,17 @@ class SelectTcpServer extends AbstractServer
         $this->workerManager->finish($data);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getMasterPid(): int
     {
         return $this->masterPid;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isTaskWorker(): bool
     {
         return $this->workerManager->isTaskWorker();
@@ -130,10 +130,7 @@ class SelectTcpServer extends AbstractServer
         $this->workerManager->send($clientId, $data);
     }
 
-    /**
-     * @return resource
-     */
-    public function getResource()
+    public function getResource(): mixed
     {
         return $this->workerManager->getResource();
     }

@@ -31,14 +31,14 @@ interface ControllerInterface
      *
      * @return static
      */
-    public function withRequest(ServerRequestInterface $request);
+    public function withRequest(ServerRequestInterface $request): static;
 
     /**
      * Sets response.
      *
      * @return static
      */
-    public function withResponse(ResponseInterface $response);
+    public function withResponse(ResponseInterface $response): static;
 
     /**
      * Gets the response.

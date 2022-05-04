@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 class ApplicationTest extends TestCase
 {
-    public function testCreate()
+    public function testCreate(): void
     {
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $app = Application::create();
@@ -27,7 +27,7 @@ class ApplicationTest extends TestCase
         ], Arrays::select($app->getConfig()['application']->toArray(), ['env']));
     }
 
-    public function testCreateWithConfigFile()
+    public function testCreateWithConfigFile(): void
     {
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $_SERVER['argv'] = ['--config', __DIR__.'/fixtures/config.ini'];
@@ -35,7 +35,7 @@ class ApplicationTest extends TestCase
         $this->assertEquals($app->getConfig()['application']->toArray()['env'], 'dev');
     }
 
-    public function testCreateWithCommandOption()
+    public function testCreateWithCommandOption(): void
     {
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $_SERVER['argv'] = ['--define', 'env=dev'];

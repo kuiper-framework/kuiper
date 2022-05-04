@@ -28,24 +28,15 @@ class SecurityContext
     /**
      * @var string[]
      */
-    protected static $COMPONENTS = [
+    protected static array $COMPONENTS = [
         SecurityContext::class => SecurityContext::class,
         FlashInterface::class => SessionFlash::class,
         CsrfTokenInterface::class => CsrfToken::class,
         AuthInterface::class => Auth::class,
     ];
 
-    /**
-     * @var SessionInterface
-     */
-    private $session;
-
-    /**
-     * SecurityContext constructor.
-     */
-    public function __construct(SessionInterface $session)
+    public function __construct(private readonly SessionInterface $session)
     {
-        $this->session = $session;
     }
 
     public function getFlash(): FlashInterface
@@ -119,13 +110,10 @@ class SecurityContext
             throw new \BadMethodCallException('SessionMiddleware not enabled');
         }
 
-        return self::createComponent(SecurityContext::class, $session);
+        return self::createComponent(__CLASS__, $session);
     }
 
-    /**
-     * @return mixed
-     */
-    private static function createComponent(string $component, SessionInterface $session)
+    private static function createComponent(string $component, SessionInterface $session): mixed
     {
         $class = self::$COMPONENTS[$component];
 

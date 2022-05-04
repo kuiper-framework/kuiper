@@ -11,36 +11,25 @@
 
 declare(strict_types=1);
 
-namespace kuiper\swoole\annotation;
+namespace kuiper\swoole\attribute;
 
-use kuiper\di\annotation\ComponentInterface;
-use kuiper\di\annotation\ComponentTrait;
+use kuiper\di\attribute\ComponentTrait;
+use kuiper\di\Component;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 
-/**
- * @Annotation
- * @Target({"CLASS"})
- */
-class KuiperApplication implements ComponentInterface
+#[\Attribute(\Attribute::TARGET_CLASS)]
+class KuiperApplication implements Component
 {
     use ComponentTrait;
     use ContainerBuilderAwareTrait;
 
-    /**
-     * @var array
-     */
-    public $exclude;
-
-    /**
-     * @var array
-     */
-    public $excludeNamespaces;
-
-    /**
-     * @var array
-     */
-    public $priorities;
+    public function __construct(
+        private readonly array $exclude,
+        private readonly array $excludeNamespaces,
+        private readonly array $priorities)
+    {
+    }
 
     public function handle(): void
     {

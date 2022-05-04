@@ -1,8 +1,7 @@
-namespace kuiper\annotations;
+namespace Psr\Container;
 
-class AnnotationReaderInterface1d356f758499c39080313a53a357a2b2 implements AnnotationReaderInterface
+class ContainerInterface3298038d8dc6c424bc406714db2a2290 implements ContainerInterface
 {
-
     private $pool = null;
 
     public function __construct(\kuiper\swoole\pool\PoolInterface $pool)
@@ -21,47 +20,17 @@ class AnnotationReaderInterface1d356f758499c39080313a53a357a2b2 implements Annot
     {
     }
 
-    public function getClassAnnotations(\ReflectionClass $class)
+    public function get(string $id)
     {
-        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($class) {
-        return $conn->getClassAnnotations($class);
+        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($id) {
+        return $conn->get($id);
         });
     }
 
-    public function getClassAnnotation(\ReflectionClass $class, $annotationName)
+    public function has(string $id) : bool
     {
-        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($class, $annotationName) {
-        return $conn->getClassAnnotation($class, $annotationName);
+        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($id) {
+        return $conn->has($id);
         });
     }
-
-    public function getMethodAnnotations(\ReflectionMethod $method)
-    {
-        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($method) {
-        return $conn->getMethodAnnotations($method);
-        });
-    }
-
-    public function getMethodAnnotation(\ReflectionMethod $method, $annotationName)
-    {
-        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($method, $annotationName) {
-        return $conn->getMethodAnnotation($method, $annotationName);
-        });
-    }
-
-    public function getPropertyAnnotations(\ReflectionProperty $property)
-    {
-        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($property) {
-        return $conn->getPropertyAnnotations($property);
-        });
-    }
-
-    public function getPropertyAnnotation(\ReflectionProperty $property, $annotationName)
-    {
-        return \kuiper\swoole\pool\PoolHelper::call($this->pool, function($conn) use ($property, $annotationName) {
-        return $conn->getPropertyAnnotation($property, $annotationName);
-        });
-    }
-
-
 }

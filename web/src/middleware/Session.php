@@ -22,14 +22,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class Session implements MiddlewareInterface
 {
-    /**
-     * @var SessionFactoryInterface
-     */
-    private $sessionFactory;
-
-    public function __construct(SessionFactoryInterface $sessionFactory)
+    public function __construct(private readonly SessionFactoryInterface $sessionFactory)
     {
-        $this->sessionFactory = $sessionFactory;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface

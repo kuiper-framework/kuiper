@@ -11,30 +11,41 @@
 
 declare(strict_types=1);
 
-namespace kuiper\http\client\annotation;
+namespace kuiper\http\client\attribute;
 
-/**
- * @Annotation
- * @Target({"METHOD"})
- */
+use Attribute;
+
+#[Attribute(Attribute::TARGET_METHOD)]
 class RequestMapping
 {
-    /**
-     * The path mapping URI.
-     *
-     * @var string
-     */
-    public $value;
+    public function __construct(
+        private readonly string $path,
+        private readonly string $method = '',
+        private readonly array $queryParams = [])
+    {
+    }
 
     /**
-     * The HTTP request methods to map to.
-     *
-     * @var string
+     * @return string
      */
-    public $method;
+    public function getPath(): string
+    {
+        return $this->path;
+    }
 
     /**
-     * @var array
+     * @return string
      */
-    public $queryParams;
+    public function getMethod(): string
+    {
+        return $this->method;
+    }
+
+    /**
+     * @return array
+     */
+    public function getQueryParams(): array
+    {
+        return $this->queryParams;
+    }
 }

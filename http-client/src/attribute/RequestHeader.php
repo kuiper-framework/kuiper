@@ -11,16 +11,22 @@
 
 declare(strict_types=1);
 
-namespace kuiper\http\client\annotation;
+namespace kuiper\http\client\attribute;
 
-/**
- * @Annotation
- * @Target({"CLASS", "METHOD"})
- */
+use Attribute;
+
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class RequestHeader
 {
+    public function __construct(private readonly string $name)
+    {
+    }
+
     /**
-     * @var string
+     * @return string
      */
-    public $value;
+    public function getName(): string
+    {
+        return $this->name;
+    }
 }

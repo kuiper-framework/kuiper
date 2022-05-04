@@ -13,9 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server\workers;
 
+use Exception;
 use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\Event;
 use kuiper\swoole\constants\ServerSetting;
+use SplPriorityQueue;
+use SplQueue;
 
 class SingleWorkerManager extends AbstractWorkerManager
 {
@@ -24,60 +27,29 @@ class SingleWorkerManager extends AbstractWorkerManager
     /**
      * @var resource[]
      */
-    private $sockets;
+    private array $sockets = [];
 
-    /**
-     * @var array
-     */
-    private $clients;
+    private array $clients = [];
 
-    /**
-     * @var int
-     */
-    private $socketBufferSize;
+    private int $socketBufferSize = 0;
 
-    /**
-     * @var int
-     */
-    private $bufferOutputSize;
+    private int $bufferOutputSize = 0;
 
-    /**
-     * @var int
-     */
-    private $maxConnections;
+    private int $maxConnections = 0;
 
-    /**
-     * @var array
-     */
-    private $taskCallbacks;
+    private array $taskCallbacks = [];
 
-    /**
-     * @var \SplQueue
-     */
-    private $taskQueue;
+    private ?SplQueue $taskQueue = null;
 
-    /**
-     * @var int
-     */
-    private $taskCallbackId = 0;
-    /**
-     * @var int
-     */
-    private $taskId = 0;
-    /**
-     * @var Task|null
-     */
-    private $currentTask;
+    private int $taskCallbackId = 0;
 
-    /**
-     * @var int
-     */
-    private $timerId = 0;
+    private int $taskId = 0;
 
-    /**
-     * @var \SplPriorityQueue
-     */
-    private $timerCallbacks;
+    private ?Task $currentTask = null;
+
+    private int $timerId = 0;
+
+    private ?SplPriorityQueue $timerCallbacks = null;
 
     public function loop(): void
     {
@@ -86,12 +58,12 @@ class SingleWorkerManager extends AbstractWorkerManager
         $this->socketBufferSize = $settings->getInt(ServerSetting::SOCKET_BUFFER_SIZE);
         $this->maxConnections = $settings->getInt(ServerSetting::MAX_CONN);
         $this->bufferOutputSize = $settings->getInt(ServerSetting::BUFFER_OUTPUT_SIZE);
-        $this->taskQueue = new \SplQueue();
-        $this->timerCallbacks = new \SplPriorityQueue();
+        $this->taskQueue = new SplQueue();
+        $this->timerCallbacks = new SplPriorityQueue();
 
         try {
             $this->listen();
-            $this->dispatch(Event::WORKER_START, [$this->getWorkerId()]);
+            $this->dispatch(Event::WORKER_START->value, [$this->getWorkerId()]);
             $socket = $this->getResource();
             $this->sockets[(int) $socket] = $socket;
             $this->setErrorHandler();
@@ -102,8 +74,8 @@ class SingleWorkerManager extends AbstractWorkerManager
                 $this->dispatchTask();
             }
             $this->restoreErrorHandler();
-            $this->dispatch(Event::WORKER_STOP, [$this->getWorkerId()]);
-        } catch (\Exception $e) {
+            $this->dispatch(Event::WORKER_STOP->value, [$this->getWorkerId()]);
+        } catch (Exception $e) {
             $this->logger->error(static::TAG.'start fail', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -121,13 +93,13 @@ class SingleWorkerManager extends AbstractWorkerManager
             foreach ($read as $socket) {
                 if ($socket === $this->getResource()) {
                     if ($clientSocketId = $this->accept()) {
-                        $this->dispatch(Event::CONNECT, [$clientSocketId, 0]);
+                        $this->dispatch(Event::CONNECT->value, [$clientSocketId, 0]);
                     }
                 } else {
                     $data = $this->read($socket, $this->socketBufferSize);
                     if (!empty($data)) {
                         $this->clients[(int) $socket]['last_time'] = time();
-                        $this->dispatch(Event::RECEIVE, [(int) $socket, 0, $data]);
+                        $this->dispatch(Event::RECEIVE->value, [(int) $socket, 0, $data]);
                     } else {
                         $this->closeConnection((int) $socket);
                     }
@@ -185,7 +157,7 @@ class SingleWorkerManager extends AbstractWorkerManager
                 $task->setTaskId($this->taskId++);
                 $task->setTaskWorkerId($this->getWorkerId());
                 $this->currentTask = $task;
-                $this->dispatch(Event::TASK, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
+                $this->dispatch(Event::TASK->value, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
             } finally {
                 $this->currentTask = null;
             }
@@ -217,13 +189,10 @@ class SingleWorkerManager extends AbstractWorkerManager
             fclose($this->sockets[$clientId]);
         }
         unset($this->sockets[$clientId], $this->clients[$clientId]);
-        $this->dispatch(Event::CLOSE, [$clientId, 0]);
+        $this->dispatch(Event::CLOSE->value, [$clientId, 0]);
     }
 
-    /**
-     * @return false|int
-     */
-    private function accept()
+    private function accept(): bool|int
     {
         $socket = stream_socket_accept($this->getResource(), 0);
         //惊群
@@ -285,13 +254,14 @@ class SingleWorkerManager extends AbstractWorkerManager
         return 0;
     }
 
-    public function task($data, $taskWorkerId = -1, $onFinish = null)
+    public function task($data, $taskWorkerId = -1, $onFinish = null): void
     {
-        $task = new Task();
-        $task->setFromWorkerId($this->getWorkerId());
-        $task->setCallbackId($this->taskCallbackId++);
-        $task->setTaskWorkerId($taskWorkerId);
-        $task->setData($data);
+        $task = new Task(
+            taskWorkerId: $taskWorkerId,
+            fromWorkerId: $this->getWorkerId(),
+            callbackId: $this->taskCallbackId++,
+            data: $data
+        );
         $this->taskCallbacks[$task->getCallbackId()] = $onFinish;
         $this->taskQueue->push($task);
     }
@@ -327,19 +297,18 @@ class SingleWorkerManager extends AbstractWorkerManager
 
     public function getConnectionInfo(int $clientId): ?ConnectionInfo
     {
-        if (!$this->clients[$clientId]) {
+        if (!isset($this->clients[$clientId])) {
             return null;
         }
         $name = stream_socket_get_name($this->sockets[$clientId], true);
         [$ip, $port] = explode(':', $name);
-        $connectionInfo = new ConnectionInfo();
-        $connectionInfo->setRemoteIp($ip);
-        $connectionInfo->setRemotePort((int) $port);
-        $connectionInfo->setServerFd((int) $this->resource);
-        $connectionInfo->setServerPort($this->getServerConfig()->getPort()->getPort());
-        $connectionInfo->setConnectTime($this->clients[$clientId]['connect_time'] ?? 0);
-        $connectionInfo->setLastTime($this->clients[$clientId]['last_time'] ?? 0);
-
-        return $connectionInfo;
+        return new ConnectionInfo(
+            remoteIp: $ip,
+            remotePort: (int) $port,
+            serverPort: $this->getServerConfig()->getPort()->getPort(),
+            serverFd: (int) $this->resource,
+            connectTime: (int) ($this->clients[$clientId]['connect_time'] ?? 0),
+            lastTime:(int) ($this->clients[$clientId]['last_time'] ?? 0)
+        );
     }
 }

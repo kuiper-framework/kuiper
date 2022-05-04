@@ -8,39 +8,17 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 declare(strict_types=1);
 
 namespace kuiper\rpc;
 
-class ServiceLocator
+class ServiceLocatorImpl implements ServiceLocator
 {
-    /**
-     * @var string
-     */
-    private $name;
-
-    /**
-     * @var string
-     */
-    private $namespace;
-    /**
-     * @var string
-     */
-    private $version;
-
-    /**
-     * ServiceLocator constructor.
-     *
-     * @param string $name
-     * @param string $namespace
-     * @param string $version
-     */
-    public function __construct(string $name, string $namespace = 'default', string $version = '1.0')
+    public function __construct(
+        private readonly string $name,
+        private readonly string $namespace = 'default',
+        private readonly string $version = '1.0')
     {
-        $this->name = $name;
-        $this->namespace = $namespace;
-        $this->version = $version;
     }
 
     /**
@@ -94,8 +72,8 @@ class ServiceLocator
 
     public function equals(ServiceLocator $other): bool
     {
-        return $this->name === $other->name
-            && $this->namespace === $other->namespace
-            && $this->version === $other->version;
+        return $this->getName() === $other->getName()
+            && $this->getNamespace() === $other->getNamespace()
+            && $this->getVersion() === $other->getVersion();
     }
 }

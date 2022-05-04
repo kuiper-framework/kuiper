@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\constants;
 
-enum HttpServerSetting: string
+final class HttpServerSetting
 {
     public const GZIP = 'gzip';
     public const KEEPALIVE = 'keepalive';

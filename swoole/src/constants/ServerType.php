@@ -49,24 +49,27 @@ enum ServerType: string
     {
         return match ($this) {
             self::HTTP => [
-                ServerSetting::OPEN_HTTP_PROTOCOL->value => true,
-                ServerSetting::OPEN_HTTP2_PROTOCOL->value => false,
+                ServerSetting::OPEN_HTTP_PROTOCOL => true,
+                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
             ],
             self::HTTP2 => [
-                ServerSetting::OPEN_HTTP_PROTOCOL->value => false,
-                ServerSetting::OPEN_HTTP2_PROTOCOL->value => true,
+                ServerSetting::OPEN_HTTP_PROTOCOL => false,
+                ServerSetting::OPEN_HTTP2_PROTOCOL => true,
             ],
             self::WEBSOCKET => [
-                ServerSetting::OPEN_WEBSOCKET_PROTOCOL->value => true,
-                ServerSetting::OPEN_HTTP2_PROTOCOL->value => false,
+                ServerSetting::OPEN_WEBSOCKET_PROTOCOL => true,
+                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
             ],
             self::TCP, self::UDP => [
-                ServerSetting::OPEN_HTTP_PROTOCOL->value => false,
-                ServerSetting::OPEN_HTTP2_PROTOCOL->value => false,
+                ServerSetting::OPEN_HTTP_PROTOCOL => false,
+                ServerSetting::OPEN_HTTP2_PROTOCOL => false,
             ],
         };
     }
 
+    /**
+     * @return Event[]
+     */
     public function handledEvents(): array
     {
         return match ($this) {

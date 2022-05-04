@@ -28,40 +28,14 @@ use kuiper\serializer\NormalizerInterface;
 
 class HttpProxyClientFactory
 {
-    /**
-     * @var ClientInterface
-     */
-    private $httpClient;
-    /**
-     * @var AnnotationReaderInterface
-     */
-    private $annotationReader;
-    /**
-     * @var NormalizerInterface
-     */
-    private $normalizer;
+    private ?RpcResponseFactoryInterface $rpcResponseFactory = null;
 
-    /**
-     * @var RpcResponseFactoryInterface|null
-     */
-    private $rpcResponseFactory;
-    /**
-     * @var ReflectionDocBlockFactoryInterface|null
-     */
-    private $reflectionDocBlockFactory;
+    private ?ReflectionDocBlockFactory $reflectionDocBlockFactory = null;
 
-    /**
-     * HttpProxyClientFactory constructor.
-     *
-     * @param ClientInterface           $httpClient
-     * @param AnnotationReaderInterface $annotationReader
-     * @param NormalizerInterface       $normalizer
-     */
-    public function __construct(ClientInterface $httpClient, AnnotationReaderInterface $annotationReader, NormalizerInterface $normalizer)
+    public function __construct(
+        private readonly ClientInterface $httpClient,
+        private readonly NormalizerInterface $normalizer)
     {
-        $this->httpClient = $httpClient;
-        $this->annotationReader = $annotationReader;
-        $this->normalizer = $normalizer;
     }
 
     /**
@@ -126,7 +100,7 @@ class HttpProxyClientFactory
         $class = $generatedClass->getClassName();
 
         $rpcClient = new RpcClient(new HttpTransporter($this->httpClient), $this->getRpcResponseFactory());
-        $requestFactory = new HttpRpcRequestFactory($this->annotationReader, $this->normalizer, new RpcMethodFactory());
+        $requestFactory = new HttpRpcRequestFactory($this->normalizer, new RpcMethodFactory());
         $rpcExecutorFactory = new RpcExecutorFactory($requestFactory, $rpcClient);
         /** @phpstan-ignore-next-line */
         return new $class($rpcExecutorFactory);

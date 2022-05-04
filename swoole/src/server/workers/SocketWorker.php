@@ -28,25 +28,25 @@ class SocketWorker extends AbstractWorker
     /**
      * @var resource[]
      */
-    private $sockets = [];
+    private array $sockets = [];
     /**
      * @var array
      */
-    private $clients;
+    private array $clients = [];
 
     /**
      * 只在 worker 进程中使用.
      *
      * @var array
      */
-    private $callbacks = [];
+    private array $callbacks = [];
 
     /**
      * 只在 worker 进程中使用.
      *
      * @var int
      */
-    private $callbackId = 0;
+    private int $callbackId = 0;
 
     protected function work(): void
     {
@@ -57,13 +57,13 @@ class SocketWorker extends AbstractWorker
                 if ($socket === $this->resource) {
                     if ($clientSocketId = $this->accept()) {
                         $this->clients[$clientSocketId]['connect_time'] = time();
-                        $this->dispatch(Event::CONNECT, [$clientSocketId, 0]);
+                        $this->dispatch(Event::CONNECT->value, [$clientSocketId, 0]);
                     }
                 } else {
                     $data = $this->read($socket, $this->getSettings()->getInt(ServerSetting::SOCKET_BUFFER_SIZE));
                     if (!empty($data)) {
                         $this->clients[(int) $socket]['last_time'] = time();
-                        $this->dispatch(Event::RECEIVE, [(int) $socket, 0, $data]);
+                        $this->dispatch(Event::RECEIVE->value, [(int) $socket, 0, $data]);
                     } else {
                         $this->close((int) $socket);
                     }
@@ -73,18 +73,16 @@ class SocketWorker extends AbstractWorker
         $this->handleMessages();
     }
 
-    /**
-     * @param mixed $data
-     */
-    public function sendTask($data, int $taskWorkerId, ?callable $onFinish): void
+    public function sendTask(mixed $data, int $taskWorkerId, ?callable $onFinish): void
     {
-        $task = new Task();
-        $task->setFromWorkerId($this->getWorkerId());
-        $task->setCallbackId($this->callbackId++);
-        $task->setTaskWorkerId($taskWorkerId);
-        $task->setData($data);
+        $task = new Task(
+            taskWorkerId: $taskWorkerId,
+            fromWorkerId: $this->getWorkerId(),
+            callbackId: $this->callbackId++,
+            data: $data
+        );
         $this->callbacks[$task->getCallbackId()] = $onFinish;
-        $this->getChannel()->send([MessageType::TASK, $task]);
+        $this->getChannel()->push([MessageType::TASK, $task]);
     }
 
     protected function onStart(): void
@@ -102,10 +100,7 @@ class SocketWorker extends AbstractWorker
         }
     }
 
-    /**
-     * @return false|int
-     */
-    private function accept()
+    private function accept(): bool|int
     {
         $socket = stream_socket_accept($this->resource, 0);
         //惊群
@@ -166,33 +161,29 @@ class SocketWorker extends AbstractWorker
             fclose($this->sockets[$socketId]);
         }
         unset($this->sockets[$socketId], $this->clients[$socketId]);
-        $this->dispatch(Event::CLOSE, [$socketId, 0]);
+        $this->dispatch(Event::CLOSE->value, [$socketId, 0]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getConnectionInfo(int $clientId): ?ConnectionInfo
     {
-        if (!$this->clients[$clientId]) {
+        if (!isset($this->clients[$clientId])) {
             return null;
         }
         $name = stream_socket_get_name($this->sockets[$clientId], true);
         [$ip, $port] = explode(':', $name);
-        $connectionInfo = new ConnectionInfo();
-        $connectionInfo->setRemoteIp($ip);
-        $connectionInfo->setRemotePort((int) $port);
-        $connectionInfo->setServerFd((int) $this->resource);
-        $connectionInfo->setServerPort($this->getServerConfig()->getPort()->getPort());
-        $connectionInfo->setConnectTime($this->clients[$clientId]['connect_time'] ?? 0);
-        $connectionInfo->setLastTime($this->clients[$clientId]['last_time'] ?? 0);
-
-        return $connectionInfo;
+        return new ConnectionInfo(
+            remoteIp: $ip,
+            remotePort: (int) $port,
+            serverPort: $this->getServerConfig()->getPort()->getPort(),
+            serverFd: (int) $this->resource,
+            connectTime: (int) ($this->clients[$clientId]['connect_time'] ?? 0),
+            lastTime:(int) ($this->clients[$clientId]['last_time'] ?? 0)
+        );
     }
 
     private function handleMessages(): void
     {
-        $data = $this->getChannel()->receive(0);
+        $data = $this->getChannel()->pop(0);
         if (!empty($data) && 2 === count($data)) {
             /** @var Task $task */
             [$msgType, $task] = $data;

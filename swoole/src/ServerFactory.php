@@ -147,27 +147,34 @@ class ServerFactory implements LoggerAwareInterface, EventDispatcherAwareInterfa
 
     private function createTcpServer(ServerConfig $serverConfig): SelectTcpServer
     {
-        return new SelectTcpServer($serverConfig, $this->getEventDispatcher(), $this->logger);
+        $server = new SelectTcpServer($serverConfig);
+        $server->setLogger($this->logger);
+        $server->setEventDispatcher($this->getEventDispatcher());
+        return $server;
     }
 
     private function createHttpServer(ServerConfig $serverConfig): HttpServer
     {
-        $httpServer = new HttpServer($serverConfig, $this->getEventDispatcher(), $this->logger);
-        $httpServer->setHttpMessageFactoryHolder($this->getHttpMessageFactoryHolder());
+        $server = new HttpServer($serverConfig);
+        $server->setLogger($this->logger);
+        $server->setEventDispatcher($this->getEventDispatcher());
+        $server->setHttpMessageFactoryHolder($this->getHttpMessageFactoryHolder());
 
-        return $httpServer;
+        return $server;
     }
 
     private function createSwooleServer(ServerConfig $serverConfig): SwooleServer
     {
-        $swooleServer = new SwooleServer($serverConfig, $this->getEventDispatcher(), $this->logger);
+        $server = new SwooleServer($serverConfig);
+        $server->setLogger($this->logger);
+        $server->setEventDispatcher($this->getEventDispatcher());
         if ($serverConfig->getPort()->isHttpProtocol()) {
-            $swooleServer->setHttpMessageFactoryHolder($this->getHttpMessageFactoryHolder());
-            $swooleServer->setSwooleRequestBridge($this->getSwooleRequestBridge());
-            $swooleServer->setSwooleResponseBridge($this->getSwooleResponseBridge());
+            $server->setHttpMessageFactoryHolder($this->getHttpMessageFactoryHolder());
+            $server->setSwooleRequestBridge($this->getSwooleRequestBridge());
+            $server->setSwooleResponseBridge($this->getSwooleResponseBridge());
         }
 
-        return $swooleServer;
+        return $server;
     }
 
     private function checkDiactoros(): void

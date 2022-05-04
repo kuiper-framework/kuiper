@@ -13,12 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\config;
 
-use DI\Annotation\Inject;
+use DI\Attribute\Inject;
+use kuiper\di\attribute\Bean;
 use function DI\autowire;
 use function DI\get;
 use function DI\value;
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\Bean;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -55,9 +54,7 @@ class FoundationConfiguration implements DefinitionConfiguration
         ];
     }
 
-    /**
-     * @Bean("coroutineEnabled")
-     */
+    #[Bean("coroutineEnabled")]
     public function coroutineEnabled(): bool
     {
         $config = Application::getInstance()->getConfig();
@@ -68,23 +65,23 @@ class FoundationConfiguration implements DefinitionConfiguration
         return $config->getBool('application.swoole.enable_coroutine', true);
     }
 
-    /**
-     * @Bean()
-     */
-    public function validator(AnnotationReaderInterface $annotationReader): ValidatorInterface
+    #[Bean]
+    public function validator(): ValidatorInterface
     {
         return Validation::createValidatorBuilder()
-            ->enableAnnotationMapping($annotationReader)
+            ->enableAnnotationMapping()
             ->getValidator();
     }
 
-    /**
-     * @Bean()
-     * @Inject({"poolConfig" = "application.pool"})
-     */
-    public function poolFactory(?array $poolConfig, LoggerFactoryInterface $loggerFactory, EventDispatcherInterface $eventDispatcher): PoolFactoryInterface
+    #[Bean]
+    public function poolFactory(
+        #[Inject("application.pool")] ?array $poolConfig,
+        LoggerFactoryInterface $loggerFactory,
+        EventDispatcherInterface $eventDispatcher): PoolFactoryInterface
     {
-        return new PoolFactory($this->coroutineEnabled(),
-            $poolConfig ?? [], $loggerFactory->create(PoolFactory::class), $eventDispatcher);
+        $poolFactory = new PoolFactory($this->coroutineEnabled(), $poolConfig ?? []);
+        $poolFactory->setLogger($loggerFactory->create(PoolFactory::class));
+        $poolFactory->setEventDispatcher($eventDispatcher);
+        return $poolFactory;
     }
 }

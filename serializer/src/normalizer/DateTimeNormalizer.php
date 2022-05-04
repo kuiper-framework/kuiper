@@ -25,9 +25,9 @@ class DateTimeNormalizer implements NormalizerInterface
     {
         if ($object instanceof \DateTimeInterface) {
             return $object->format(\DateTimeInterface::RFC3339);
-        } else {
-            throw new \InvalidArgumentException('Expected DateTime object, got '.gettype($object));
         }
+
+        throw new \InvalidArgumentException('Expected DateTime object, got '.gettype($object));
     }
 
     /**

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\http;
 
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 
 class ResponseHelper
@@ -26,10 +27,10 @@ class ResponseHelper
             $rawAttribute = array_shift($rawAttributes);
 
             if (!is_string($rawAttribute)) {
-                throw new \InvalidArgumentException(sprintf('The provided cookie string "%s" must have at least one attribute', $setCookie));
+                throw new InvalidArgumentException(sprintf('The provided cookie string "%s" must have at least one attribute', $setCookie));
             }
 
-            [$cookieName, $cookieValue] = self::splitCookiePair($rawAttribute);
+            [$cookieName,] = self::splitCookiePair($rawAttribute);
             $cookies[$cookieName] = $setCookie;
         }
 
@@ -39,7 +40,7 @@ class ResponseHelper
     /** @return string[] */
     public static function splitOnAttributeDelimiter(string $string): array
     {
-        $splitAttributes = preg_split('@\s*[;]\s*@', $string);
+        $splitAttributes = preg_split('@\s*;\s*@', $string);
 
         assert(is_array($splitAttributes));
 
@@ -77,7 +78,7 @@ class ResponseHelper
     public static function setCookie(ResponseInterface $response, array $cookies): ResponseInterface
     {
         $modified = $response->withoutHeader('set-cookie');
-        foreach ($cookies as $name => $cookie) {
+        foreach ($cookies as $cookie) {
             $modified = $modified->withAddedHeader('set-cookie', $cookie);
         }
 

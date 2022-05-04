@@ -13,49 +13,44 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server\workers;
 
+use Exception;
+use InvalidArgumentException;
 use kuiper\helper\Arrays;
 use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\exception\ServerStateException;
+use RuntimeException;
+use SplQueue;
 
 class ForkedWorkerManager extends AbstractWorkerManager
 {
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @var int
-     */
-    private $taskWorkerNum;
+    private int $taskWorkerNum = 0;
 
-    /**
-     * @var int
-     */
-    private $workerNum;
+    private int $workerNum = 0;
 
     /**
      * @var WorkerInterface[]
      */
-    private $workers;
-    /**
-     * @var WorkerInterface|null
-     */
-    private $worker;
-    /**
-     * @var \SplQueue
-     */
-    private $taskQueue;
-    /**
-     * @var int
-     */
-    private $taskId = 0;
+    private array $workers;
 
+    private ?WorkerInterface $worker = null;
+
+    private ?SplQueue $taskQueue = null;
+
+    private int $taskId = 0;
+
+    /**
+     * @throws ServerStateException
+     */
     public function loop(): void
     {
         $this->installSignal();
         $settings = $this->getServerConfig()->getSettings();
         $this->workerNum = $settings->getInt(ServerSetting::WORKER_NUM);
         $this->taskWorkerNum = $settings->getInt(ServerSetting::TASK_WORKER_NUM);
-        $this->taskQueue = new \SplQueue();
+        $this->taskQueue = new SplQueue();
 
         try {
             $this->listen();
@@ -65,7 +60,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
                 $this->dispatchTask();
                 sleep(1);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error(static::TAG.'start fail', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -76,7 +71,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
         $this->close();
     }
 
-    public function task($data, $taskWorkerId = -1, $onFinish = null)
+    public function task($data, $taskWorkerId = -1, $onFinish = null): void
     {
         $this->getSocketWorker()->sendTask($data, $taskWorkerId, $onFinish);
     }
@@ -129,8 +124,8 @@ class ForkedWorkerManager extends AbstractWorkerManager
 
             $channel = new SocketChannel();
             $pid = pcntl_fork();
-            if (-1 == $pid) {
-                throw new \RuntimeException('Cannot fork queue worker');
+            if (-1 === $pid) {
+                throw new RuntimeException('Cannot fork queue worker');
             }
             /** @var WorkerInterface $worker */
             $worker = new $workerType($this, $channel, $pid, $workerId, $this->logger);
@@ -141,7 +136,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
                 $this->worker = $worker;
                 try {
                     $worker->start();
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->logger->error(static::TAG.'Cannot start worker', [
                         'error' => $e->getMessage(),
                         'trace' => $e->getTraceAsString(), ]);
@@ -151,7 +146,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
             }
             $channel->parent();
             if (!$channel->isActive()) {
-                throw new \RuntimeException('Cannot create channel');
+                throw new RuntimeException('Cannot create channel');
             }
             $this->workers[$workerId] = $worker;
         }
@@ -164,6 +159,9 @@ class ForkedWorkerManager extends AbstractWorkerManager
         }
     }
 
+    /**
+     * @throws ServerStateException
+     */
     private function wait(): void
     {
         $timeout = 30;
@@ -204,8 +202,8 @@ class ForkedWorkerManager extends AbstractWorkerManager
 
     private function getSocketWorker(): SocketWorker
     {
-        if (null === $this->worker || !$this->worker instanceof SocketWorker) {
-            throw new \InvalidArgumentException('cannot send without worker');
+        if (!$this->worker instanceof SocketWorker) {
+            throw new InvalidArgumentException('cannot send without worker');
         }
 
         return $this->worker;
@@ -217,13 +215,13 @@ class ForkedWorkerManager extends AbstractWorkerManager
             && $this->workers[$workerId] instanceof SocketWorker) {
             return $this->workers[$workerId];
         }
-        throw new \InvalidArgumentException("cannot find worker id=$workerId");
+        throw new InvalidArgumentException("cannot find worker id=$workerId");
     }
 
     private function getTaskWorker(): TaskWorker
     {
-        if (null === $this->worker || !$this->worker instanceof TaskWorker) {
-            throw new \InvalidArgumentException('not in task worker: '.(isset($this->worker) ? get_class($this->worker) : 'null'));
+        if (!$this->worker instanceof TaskWorker) {
+            throw new InvalidArgumentException('not in task worker: '.(isset($this->worker) ? get_class($this->worker) : 'null'));
         }
 
         return $this->worker;
@@ -235,7 +233,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
             && $this->workers[$taskWorkerId] instanceof TaskWorker) {
             return $this->workers[$taskWorkerId];
         }
-        throw new \InvalidArgumentException("cannot find task worker id=$taskWorkerId");
+        throw new InvalidArgumentException("cannot find task worker id=$taskWorkerId");
     }
 
     private function handleMessages(): void
@@ -315,19 +313,19 @@ class ForkedWorkerManager extends AbstractWorkerManager
 
     private function sendTaskResult(Task $task): void
     {
-        $this->getSocketWorkerByWorkerId($task->getFromWorkerId())->getChannel()->send([MessageType::TASK_RESULT, $task]);
+        $this->getSocketWorkerByWorkerId($task->getFromWorkerId())->getChannel()->push([MessageType::TASK_RESULT, $task]);
     }
 
     private function onTaskFinished(Task $task): void
     {
         $this->getTaskWorkerByWorkerId($task->getTaskWorkerId())->done();
-        $this->getSocketWorkerByWorkerId($task->getFromWorkerId())->getChannel()->send([MessageType::TASK_FINISH, $task]);
+        $this->getSocketWorkerByWorkerId($task->getFromWorkerId())->getChannel()->push([MessageType::TASK_FINISH, $task]);
     }
 
     public function tick(int $millisecond, callable $callback): int
     {
         if (null === $this->worker) {
-            throw new \InvalidArgumentException('Cannot call tick on master process');
+            throw new InvalidArgumentException('Cannot call tick on master process');
         }
 
         return $this->worker->tick($millisecond, $callback);
@@ -336,7 +334,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
     public function after(int $millisecond, callable $callback): int
     {
         if (null === $this->worker) {
-            throw new \InvalidArgumentException('Cannot call tick on master process');
+            throw new InvalidArgumentException('Cannot call tick on master process');
         }
 
         return $this->worker->after($millisecond, $callback);
@@ -346,7 +344,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
     {
         foreach ($this->workers as $worker) {
             if ($worker->getChannel()->isActive()) {
-                $worker->getChannel()->send([MessageType::TICK, null]);
+                $worker->getChannel()->push([MessageType::TICK, null]);
             } else {
                 $this->logger->error(static::TAG.'worker channel is closed', ['worker' => $worker->getWorkerId()]);
             }

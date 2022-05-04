@@ -20,20 +20,10 @@ use Twig\Error\Error;
 
 class TwigView implements ViewInterface
 {
-    /**
-     * @var Environment
-     */
-    private $twig;
-
-    /**
-     * @var string|null
-     */
-    private $extension;
-
-    public function __construct(Environment $twig, ?string $extension = '.html')
+    public function __construct(
+        private readonly Environment $twig,
+        private readonly ?string $extension = '.html')
     {
-        $this->twig = $twig;
-        $this->extension = $extension;
     }
 
     public function getTwig(): Environment
@@ -45,7 +35,7 @@ class TwigView implements ViewInterface
     {
         try {
             if (null !== $this->extension
-                && !Text::endsWith($name, $this->extension)
+                && str_ends_with($name, $this->extension)
                 && '' === pathinfo($name, PATHINFO_EXTENSION)) {
                 $name .= $this->extension;
             }

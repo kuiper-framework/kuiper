@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use kuiper\logger\Logger;
 use kuiper\swoole\coroutine\Channel;
 use kuiper\swoole\coroutine\ChannelInterface;
 use kuiper\swoole\coroutine\Coroutine;
@@ -58,7 +59,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     {
         $this->connectionFactory = $connectionFactory;
         $this->channel = new Channel($this->poolConfig->getMaxConnections());
-        $this->setLogger(\kuiper\logger\Logger::nullLogger());
+        $this->setLogger(Logger::nullLogger());
     }
 
     public function close(): void

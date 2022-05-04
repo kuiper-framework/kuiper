@@ -52,7 +52,7 @@ class RemoteAddress implements MiddlewareInterface
 
         if (!empty($header)) {
             foreach (array_map('trim', explode(',', $header)) as $ip) {
-                if ((false === array_search($ip, $ipList, true)) && filter_var($ip, FILTER_VALIDATE_IP)) {
+                if ((!in_array($ip, $ipList, true)) && filter_var($ip, FILTER_VALIDATE_IP)) {
                     $ipList[] = $ip;
                 }
             }

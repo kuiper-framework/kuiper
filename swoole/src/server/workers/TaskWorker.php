@@ -26,7 +26,7 @@ class TaskWorker extends AbstractWorker
 
     protected function work(): void
     {
-        $data = $this->getChannel()->receive();
+        $data = $this->getChannel()->pop();
         if (!empty($data) && 2 === count($data)) {
             /** @var Task $task */
             /** @var int $msgType */
@@ -43,7 +43,7 @@ class TaskWorker extends AbstractWorker
             $this->dispatch(Event::TASK, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
             unset($this->task);
             $task->setData(null);
-            $this->getChannel()->send([MessageType::TASK_FINISH, $task]);
+            $this->getChannel()->push([MessageType::TASK_FINISH, $task]);
         }
     }
 
@@ -55,7 +55,7 @@ class TaskWorker extends AbstractWorker
         $ret = clone $this->task;
         $ret->setData(null);
         $ret->setResult($data);
-        $this->getChannel()->send([MessageType::TASK_RESULT, $ret]);
+        $this->getChannel()->push([MessageType::TASK_RESULT, $ret]);
     }
 
     /**
@@ -69,7 +69,7 @@ class TaskWorker extends AbstractWorker
     public function setTask(Task $task): void
     {
         $this->task = $task;
-        $this->getChannel()->send([MessageType::TASK, $task]);
+        $this->getChannel()->push([MessageType::TASK, $task]);
     }
 
     public function done(): void

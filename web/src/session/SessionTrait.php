@@ -17,63 +17,36 @@ use kuiper\web\exception\SessionNotStartException;
 
 trait SessionTrait
 {
-    /**
-     * @var bool
-     */
-    private $started = false;
+    private bool $started = false;
 
-    /**
-     * @var bool
-     */
-    private $autoStart = false;
+    private bool $autoStart = false;
 
-    /**
-     * @param mixed $offset
-     */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
         return $this->has($offset);
     }
 
-    /**
-     * @param mixed $offset
-     *
-     * @return mixed|null
-     */
-    public function offsetGet($offset)
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->get($offset);
     }
 
-    /**
-     * @param mixed $offset
-     * @param mixed $value
-     */
-    public function offsetSet($offset, $value): void
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->set($offset, $value);
     }
 
-    /**
-     * @param mixed $offset
-     */
-    public function offsetUnset($offset): void
+    public function offsetUnset(mixed $offset): void
     {
         $this->remove($offset);
     }
 
-    /**
-     * @return mixed|null
-     */
-    public function __get(string $index)
+    public function __get(string $index): mixed
     {
         return $this->get($index);
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function __set(string $index, $value): void
+    public function __set(string $index, mixed $value): void
     {
         $this->set($index, $value);
     }
@@ -98,7 +71,7 @@ trait SessionTrait
         if ($this->isStarted()) {
             return;
         }
-        if ($this->autoStart) {
+        if ($this->isAutoStart()) {
             $this->start();
 
             return;

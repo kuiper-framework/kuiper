@@ -13,27 +13,24 @@ declare(strict_types=1);
 
 namespace kuiper\http\client;
 
-use DI\Annotation\Inject;
+use DI\Attribute\Inject;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\ConditionalOnClass;
+use kuiper\di\attribute\Configuration;
 use function DI\autowire;
 use function DI\factory;
 use GuzzleHttp\ClientInterface;
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnClass;
-use kuiper\di\annotation\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Text;
-use kuiper\http\client\annotation\HttpClient;
+use kuiper\http\client\attribute\HttpClient;
 use kuiper\serializer\NormalizerInterface;
 use kuiper\swoole\Application;
 use Psr\Container\ContainerInterface;
 
-/**
- * @Configuration()
- * @ConditionalOnClass(ClientInterface::class)
- */
+#[Configuration]
+#[ConditionalOnClass(ClientInterface::class)]
 class HttpClientConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
@@ -45,11 +42,11 @@ class HttpClientConfiguration implements DefinitionConfiguration
         ]);
     }
 
-    /**
-     * @Bean()
-     * @Inject({"options": "application.http_client.default"})
-     */
-    public function httpClient(ContainerInterface $container, HttpClientFactoryInterface $httpClientFactory, ?array $options): ClientInterface
+    #[Bean]
+    public function httpClient(
+        ContainerInterface $container,
+        HttpClientFactoryInterface $httpClientFactory,
+        #[Inject("application.http_client.default")] ?array $options): ClientInterface
     {
         if (isset($options['middleware'])) {
             foreach ($options['middleware'] as $i => $middleware) {
@@ -66,7 +63,7 @@ class HttpClientConfiguration implements DefinitionConfiguration
     {
         $self = $this;
         $definitions = [];
-        foreach (ComponentCollection::getComponents(HttpClient::class) as $annotation) {
+        foreach (ComponentCollection::getComponents(HttpClient::class) as $attribute) {
             /** @var HttpClient $annotation */
             $definitions[$annotation->getComponentId()] = factory(function (ContainerInterface $container) use ($self, $annotation) {
                 $options = $container->get('application.http_client');
@@ -83,7 +80,6 @@ class HttpClientConfiguration implements DefinitionConfiguration
                 }
                 $factory = new HttpProxyClientFactory(
                     $httpClient,
-                    $container->get(AnnotationReaderInterface::class),
                     $container->get(NormalizerInterface::class)
                 );
 

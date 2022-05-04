@@ -13,18 +13,17 @@ declare(strict_types=1);
 
 namespace kuiper\web;
 
-use DI\Annotation\Inject;
+use DI\Attribute\Inject;
 use kuiper\web\view\ViewInterface;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * @method getResponse(): ResponseInterface
+ */
 trait ControllerViewTrait
 {
-    /**
-     * @Inject()
-     *
-     * @var ViewInterface
-     */
-    protected $view;
+    #[Inject]
+    protected ViewInterface $view;
 
     protected function render(string $page, array $context = []): ResponseInterface
     {

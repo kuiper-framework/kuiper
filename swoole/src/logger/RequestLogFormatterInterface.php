@@ -20,13 +20,8 @@ use Throwable;
 interface RequestLogFormatterInterface
 {
     /**
-     * @param RequestInterface       $request
-     * @param ResponseInterface|null $response
-     * @param Throwable|null         $error
-     * @param float                  $startTime
-     * @param float                  $endTime
-     *
+     * @param LogContext $context
      * @return array formatted message and extra info
      */
-    public function format(RequestInterface $request, ?ResponseInterface $response, ?Throwable $error, float $startTime, float $endTime): array;
+    public function format(LogContext $context): array;
 }

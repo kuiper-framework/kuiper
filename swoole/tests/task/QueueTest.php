@@ -29,7 +29,7 @@ class QueueTest extends SwooleServerTestCase
 {
     private const TAG = '['.__CLASS__.'] ';
 
-    public function testName()
+    public function testQueue(): void
     {
         $container = $this->createContainer();
         $logger = $container->get(LoggerInterface::class);

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use kuiper\swoole\constants\Event;
 use kuiper\swoole\event\ServerEventFactory;
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\ServerManager;
@@ -106,7 +107,7 @@ class ServerStopCommand extends AbstractServerCommand
         $serviceName = $this->serverProperties->getServerName();
         $configFile = $confPath.'/'.$serviceName.$this->serverProperties->getSupervisorConfExtension();
         $this->withFileLock($configFile, function () use ($serviceName, $configFile): void {
-            $shutdownEvent = $this->serverEventFactory->create('shutdown', [$this->server]);
+            $shutdownEvent = $this->serverEventFactory->create(Event::SHUTDOWN->value, [$this->server]);
             if (null !== $shutdownEvent) {
                 $this->eventDispatcher->dispatch($shutdownEvent);
             }

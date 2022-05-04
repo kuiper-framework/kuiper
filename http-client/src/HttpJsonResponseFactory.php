@@ -25,21 +25,12 @@ use Psr\Http\Message\ResponseInterface;
 class HttpJsonResponseFactory implements RpcResponseFactoryInterface
 {
     /**
-     * @var RpcResponseNormalizer
-     */
-    private $normalizer;
-    /**
-     * @var string|null
-     */
-    private $node;
-
-    /**
      * DefaultResponseParser constructor.
      */
-    public function __construct(RpcResponseNormalizer $normalizer, string $node = null)
+    public function __construct(
+        private readonly RpcResponseNormalizer $normalizer,
+        private readonly string $node = null)
     {
-        $this->normalizer = $normalizer;
-        $this->node = $node;
     }
 
     public function createResponse(RpcRequestInterface $request, ResponseInterface $response): RpcResponseInterface

@@ -30,7 +30,7 @@ interface SessionInterface extends \ArrayAccess, \Iterator
      *
      * @return mixed
      */
-    public function get($index, $defaultValue = null);
+    public function get(string $index, mixed $defaultValue = null): mixed;
 
     /**
      * Sets a session variable in an application context.
@@ -38,21 +38,21 @@ interface SessionInterface extends \ArrayAccess, \Iterator
      * @param string $index
      * @param mixed  $value
      */
-    public function set($index, $value): void;
+    public function set(string $index, mixed $value): void;
 
     /**
      * Check whether a session variable is set in an application context.
      *
      * @param string $index
      */
-    public function has($index): bool;
+    public function has(string $index): bool;
 
     /**
      * Removes a session variable from an application context.
      *
      * @param string $index
      */
-    public function remove($index): void;
+    public function remove(string $index): void;
 
     /**
      * Returns active session id.

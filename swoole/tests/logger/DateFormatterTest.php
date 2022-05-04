@@ -22,15 +22,15 @@ class DateFormatterTest extends TestCase
         date_default_timezone_set('Asia/Shanghai');
     }
 
-    public function testName()
+    public function testName(): void
     {
         $formatter = new DateFormatter('Y-m-d H:i:s.v');
         $this->assertEquals('2021-09-26 10:18:36.804', $formatter->format(1632622716.804));
     }
 
-    public function testStrftime()
+    public function testFormat()
     {
-        $formatter = new StrftimeDateFormatter('%d/%b/%Y:%H:%M:%S %z');
+        $formatter = new DateFormatter('d/M/Y:H:i:s O');
         $this->assertEquals('26/Sep/2021:10:18:36 +0800', $formatter->format(1632622716.804));
     }
 }

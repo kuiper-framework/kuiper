@@ -17,19 +17,10 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class DefaultLoginUrlBuilder implements LoginUrlBuilderInterface
 {
-    /**
-     * @var string
-     */
-    private $loginUrl;
-    /**
-     * @var string|null
-     */
-    private $redirectParam;
-
-    public function __construct(string $loginUrl = '/login', ?string $redirectParam = 'redirect')
+    public function __construct(
+        private readonly string $loginUrl = '/login',
+        private readonly ?string $redirectParam = 'redirect')
     {
-        $this->loginUrl = $loginUrl;
-        $this->redirectParam = $redirectParam;
     }
 
     public function build(ServerRequestInterface $request): string
@@ -38,7 +29,7 @@ class DefaultLoginUrlBuilder implements LoginUrlBuilderInterface
             $redirectUrl = (string) $request->getUri();
 
             return $this->loginUrl
-                .(false === strpos($this->loginUrl, '?') ? '?' : '&')
+                .(str_contains($this->loginUrl, '?') ? '&' : '?')
                 .$this->redirectParam.'='.urlencode($redirectUrl);
         } else {
             return $this->loginUrl;

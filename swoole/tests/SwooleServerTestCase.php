@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use kuiper\di\ContainerAwareInterface;
 use function DI\autowire;
 use function DI\factory;
 use kuiper\di\AwareInjection;
@@ -42,6 +43,7 @@ abstract class SwooleServerTestCase extends TestCase
         $containerBuilder = new ContainerBuilder();
         $containerBuilder
             ->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class))
+            ->addAwareInjection(AwareInjection::create(ContainerAwareInterface::class))
             ->addDefinitions([
                 ServerConfig::class => new ServerConfig('test_server', [
                     new ServerPort('0.0.0.0', 9876, ServerType::HTTP, [
@@ -55,7 +57,8 @@ abstract class SwooleServerTestCase extends TestCase
                 },
                 ServerInterface::class => factory([ServerFactory::class, 'create']),
                 ServerFactory::class => function (EventDispatcherInterface $eventDispatcher, LoggerInterface $logger) {
-                    $serverFactory = new ServerFactory($logger);
+                    $serverFactory = new ServerFactory();
+                    $serverFactory->setLogger($logger);
                     $serverFactory->setEventDispatcher($eventDispatcher);
 
                     return $serverFactory;

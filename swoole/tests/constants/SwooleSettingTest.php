@@ -11,17 +11,14 @@
 
 declare(strict_types=1);
 
-namespace kuiper\swoole;
+namespace kuiper\swoole\constants;
 
-use kuiper\swoole\constants\ServerSetting;
 use PHPUnit\Framework\TestCase;
 
 class SwooleSettingTest extends TestCase
 {
-    public function testEverySettingHasType()
+    public function testEverySettingHasType(): void
     {
-        foreach (ServerSetting::instances() as $setting) {
-            $this->assertNotNull($setting->type);
-        }
+        $this->assertTrue(ServerSetting::has('package_body_offset'));
     }
 }

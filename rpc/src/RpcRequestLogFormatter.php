@@ -15,6 +15,7 @@ namespace kuiper\rpc;
 
 use kuiper\rpc\server\ServerRequestHolder;
 use kuiper\swoole\logger\LineRequestLogFormatter;
+use kuiper\swoole\logger\LogContext;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -23,39 +24,40 @@ class RpcRequestLogFormatter extends LineRequestLogFormatter
     /**
      * {@inheritDoc}
      */
-    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, ?\Throwable $error, float $startTime, float $endTime): array
+    protected function prepareMessageContext(LogContext $context): array
     {
-        $context = parent::prepareMessageContext($request, $response, $error, $startTime, $endTime);
+        $message = parent::prepareMessageContext($context);
         /** @var RpcRequestInterface $request */
+        $request = $context->getRequest();
         $rpcMethod = $request->getRpcMethod();
-        $context['service'] = $rpcMethod->getServiceLocator()->getName();
-        $context['method'] = $rpcMethod->getMethodName();
+        $message['service'] = $rpcMethod->getServiceLocator()->getName();
+        $message['method'] = $rpcMethod->getMethodName();
         if ($request instanceof HasRequestIdInterface) {
-            $context['request_id'] = $request->getRequestId();
+            $message['request_id'] = $request->getRequestId();
         }
-        $context['server_addr'] = $request->getUri()->getHost()
+        $message['server_addr'] = $request->getUri()->getHost()
             .($request->getUri()->getPort() > 0 ? ':'.$request->getUri()->getPort() : '');
         if (null !== RpcRequestHelper::getConnectionInfo($request)) {
             $serverRequest = ServerRequestHolder::getRequest();
             if (null !== $serverRequest) {
                 $calleeMethod = $serverRequest->getRpcMethod();
-                $context['callee_service'] = $calleeMethod->getServiceLocator()->getName();
-                $context['callee_method'] = $calleeMethod->getMethodName();
+                $message['callee_service'] = $calleeMethod->getServiceLocator()->getName();
+                $message['callee_method'] = $calleeMethod->getMethodName();
             }
         } else {
             // client request exchange body bytes
-            [$context['body_bytes_recv'], $context['body_bytes_sent']]
-            = [$context['body_bytes_sent'], $context['body_bytes_recv']];
+            [$message['body_bytes_recv'], $message['body_bytes_sent']]
+            = [$message['body_bytes_sent'], $message['body_bytes_recv']];
         }
         if (in_array('params', $this->getExtra(), true)) {
             $param = str_replace('"', "'", (string) json_encode($rpcMethod->getArguments(),
                 JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-            $context['extra']['params'] = strlen($param) > $this->getBodyMaxSize()
+            $message['extra']['params'] = strlen($param) > $this->getBodyMaxSize()
                 ? sprintf('%s...%d more', mb_substr($param, 0, $this->getBodyMaxSize()), strlen($param) - $this->getBodyMaxSize())
                 : $param;
         }
 
-        return $context;
+        return $message;
     }
 
     protected function getIpList(RequestInterface $request): array

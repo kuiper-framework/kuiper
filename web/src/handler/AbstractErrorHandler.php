@@ -21,19 +21,20 @@ use Slim\Interfaces\ErrorHandlerInterface;
 
 abstract class AbstractErrorHandler implements ErrorHandlerInterface
 {
-    /**
-     * @var ErrorHandlerInterface
-     */
-    protected $defaultErrorHandler;
-    /**
-     * @var ResponseFactoryInterface
-     */
-    protected $responseFactory;
-
-    public function __construct(ErrorHandlerInterface $defaultErrorHandler, ResponseFactoryInterface $responseFactory)
+    public function __construct(
+        private readonly ErrorHandlerInterface $defaultErrorHandler,
+        private readonly ResponseFactoryInterface $responseFactory)
     {
-        $this->defaultErrorHandler = $defaultErrorHandler;
-        $this->responseFactory = $responseFactory;
+    }
+
+    public function getDefaultErrorHandler(): ErrorHandlerInterface
+    {
+        return $this->defaultErrorHandler;
+    }
+
+    public function getResponseFactory(): ResponseFactoryInterface
+    {
+        return $this->responseFactory;
     }
 
     public function __invoke(
@@ -51,9 +52,9 @@ abstract class AbstractErrorHandler implements ErrorHandlerInterface
 
         if (MediaType::TEXT_HTML === $contentType) {
             return $this->respondHtml($request, $exception, $displayErrorDetails);
-        } else {
-            return $this->respondApi($request, $exception, $logErrors);
         }
+
+        return $this->respondApi($request, $exception, $logErrors);
     }
 
     protected function respondApi(ServerRequestInterface $request, \Throwable $exception, bool $logErrors): ResponseInterface

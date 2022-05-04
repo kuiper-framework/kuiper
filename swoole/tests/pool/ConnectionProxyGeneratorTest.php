@@ -13,42 +13,40 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\swoole\fixtures\FooConnection;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 
 class ConnectionProxyGeneratorTest extends TestCase
 {
-    public function testCode()
+    public function testCode(): void
     {
         $generator = new ConnectionProxyGenerator();
-        $result = $generator->generate(AnnotationReaderInterface::class);
-        $this->assertEquals($result->getCode(), file_get_contents(__DIR__.'/../fixtures/AnnotaionReaderProxy.txt'));
+        $result = $generator->generate(ContainerInterface::class);
+        $this->assertEquals($result->getCode(), file_get_contents(__DIR__.'/../fixtures/ContainerProxy.txt'));
     }
 
-    public function testName()
+    public function testCreateProxy(): void
     {
         $generator = new ConnectionProxyGenerator();
-        $result = $generator->generate(AnnotationReaderInterface::class);
+        $result = $generator->generate(ContainerInterface::class);
         // echo $result->getCode();
         $result->eval();
         $class = $result->getClassName();
         $reader = new $class(new SingleConnectionPool('reader', function () {
-            return AnnotationReader::getInstance();
+            return \Mockery::mock(ContainerInterface::class);
         }, new PoolConfig()));
-        $this->assertInstanceOf(AnnotationReaderInterface::class, $reader);
+        $this->assertInstanceOf(ContainerInterface::class, $reader);
     }
 
-    public function testDestructNotCall()
+    public function testDestructNotCall(): void
     {
         $poolFactory = new PoolFactory();
         $test = static function () use ($poolFactory) {
-            $object = ConnectionProxyGenerator::create($poolFactory, FooConnection::class, function () {
+            $object = ConnectionProxyGenerator::create($poolFactory, FooConnection::class, static function () {
                 throw new \InvalidArgumentException('should not call');
-                // return AnnotationReader::getInstance();
             });
-            // $object->__destruct();
             unset($object);
         };
         $test();

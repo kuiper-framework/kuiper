@@ -13,16 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\web;
 
-use DI\Annotation\Inject;
+use DI\Attribute\Inject;
+use kuiper\di\attribute\AnyCondition;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\ConditionalOnClass;
+use kuiper\di\attribute\ConditionalOnMissingClass;
+use kuiper\di\attribute\ConditionalOnProperty;
+use kuiper\di\attribute\Configuration;
 use function DI\autowire;
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\AllConditions;
-use kuiper\di\annotation\AnyCondition;
-use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnClass;
-use kuiper\di\annotation\ConditionalOnMissingClass;
-use kuiper\di\annotation\ConditionalOnProperty;
-use kuiper\di\annotation\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -70,9 +68,7 @@ use Twig\Environment as Twig;
 use Twig\Loader\FilesystemLoader;
 use Twig\Loader\LoaderInterface;
 
-/**
- * @Configuration(dependOn={ServerConfiguration::class})
- */
+#[Configuration(dependOn: [ServerConfiguration::class])]
 class WebConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
@@ -129,18 +125,14 @@ class WebConfiguration implements DefinitionConfiguration
         ]);
     }
 
-    /**
-     * @Bean
-     */
+    #[Bean]
     public function slimApp(ContainerInterface $container): App
     {
         return SlimAppFactory::create($container);
     }
 
-    /**
-     * @Bean()
-     */
-    public function requestHandler(App $app, ContainerInterface $container, AnnotationProcessorInterface $annotationProcessor): RequestHandlerInterface
+    #[Bean]
+    public function requestHandler(App $app, ContainerInterface $container, AttributeProcessorInterface $annotationProcessor): RequestHandlerInterface
     {
         $annotationProcessor->process();
         $middlewares = $container->get('application.web.middleware');
@@ -155,35 +147,27 @@ class WebConfiguration implements DefinitionConfiguration
         return $app;
     }
 
-    /**
-     * @Bean()
-     * @Inject({"options": "application.web"})
-     */
+    #[Bean]
     public function annotationProcessor(
         ContainerInterface $container,
-        AnnotationReaderInterface $annotationReader,
         App $app,
-        ?array $options): AnnotationProcessorInterface
+        #[Inject('application.web')] ?array $options): AttributeProcessorInterface
     {
-        return new AnnotationProcessor(
+        return new AttributeProcessor(
             $container,
-            $annotationReader,
             $app,
             $options['context_url'] ?? null,
             $options['namespace'] ?? null
         );
     }
 
-    /**
-     * @Bean()
-     * @Inject({"options": "application.web.error"})
-     */
+    #[Bean]
     public function errorMiddleware(
         ContainerInterface $container,
         App $app,
         LoggerFactoryInterface $loggerFactory,
         ErrorHandlerInterface $defaultErrorHandler,
-        ?array $options): ErrorMiddleware
+        #[Inject('application.web.error')] ?array $options): ErrorMiddleware
     {
         $errorMiddleware = new ErrorMiddleware($app->getCallableResolver(),
             $app->getResponseFactory(),
@@ -199,10 +183,10 @@ class WebConfiguration implements DefinitionConfiguration
         foreach ($errorHandlers as $type => $errorHandler) {
             $errorMiddleware->setErrorHandler($type, $container->get($errorHandler));
         }
-        foreach (ComponentCollection::getComponents(annotation\ErrorHandler::class) as $annotation) {
-            /** @var annotation\ErrorHandler $annotation */
+        foreach (ComponentCollection::getComponents(attribute\ErrorHandler::class) as $attributes) {
+            /** @var attribute\ErrorHandler $annotation */
             $errorHandler = $container->get($annotation->getComponentId());
-            foreach ((array) $annotation->value as $type) {
+            foreach ($annotation->getExceptions() as $type) {
                 $errorMiddleware->setErrorHandler($type, $errorHandler);
             }
         }
@@ -211,10 +195,8 @@ class WebConfiguration implements DefinitionConfiguration
         return $errorMiddleware;
     }
 
-    /**
-     * @Bean("webErrorRenderers")
-     */
-    public function webErrorRenders(ContainerInterface $container): array
+    #[Bean('webErrorRenderers')]
+    public function webErrorRenderers(ContainerInterface $container): array
     {
         return [
             MediaType::APPLICATION_JSON => $container->get(JsonErrorRenderer::class),
@@ -225,19 +207,13 @@ class WebConfiguration implements DefinitionConfiguration
         ];
     }
 
-    /**
-     * @Bean()
-     * @Inject({
-     *     "errorRenderers": "webErrorRenderers",
-     *     "includeStacktrace": "application.web.error.include_stacktrace"
-     * })
-     */
+    #[Bean]
     public function defaultErrorHandler(
         ResponseFactoryInterface $responseFactory,
         LoggerFactoryInterface $loggerFactory,
         ErrorRendererInterface $logErrorRenderer,
-        array $errorRenderers,
-        ?string $includeStacktrace): ErrorHandlerInterface
+        #[Inject('webErrorRenderers')] array $errorRenderers,
+        #[Inject('application.web.error.include_stacktrace')] ?string $includeStacktrace): ErrorHandlerInterface
     {
         $logger = $loggerFactory->create(ErrorHandler::class);
         $errorHandler = new ErrorHandler($responseFactory, $errorRenderers, $logErrorRenderer, $logger);
@@ -246,28 +222,22 @@ class WebConfiguration implements DefinitionConfiguration
         return $errorHandler;
     }
 
-    /**
-     * @Bean()
-     * @Inject({"options": "application.web.view"})
-     * @AnyCondition({
-     *     @ConditionalOnMissingClass(Twig::class),
-     *     @ConditionalOnProperty("application.web.view.engine", hasValue="php")
-     * })
-     */
-    public function phpView(?array $options): ViewInterface
+    #[Bean]
+    #[AnyCondition(
+        new ConditionalOnMissingClass(Twig::class),
+        new ConditionalOnProperty("application.web.view.engine", hasValue: "php")
+    )]
+    public function phpView(#[Inject('application.web.view')] ?array $options): ViewInterface
     {
-        return new PhpView($options['path'] ?? getcwd(), $options['extension'] ?? '.php');
+        return new PhpView(rtrim($options['path'] ?? getcwd(), '/'), $options['extension'] ?? '.php');
     }
 
-    /**
-     * @Bean()
-     * @Inject({"options": "application.web.view"})
-     * @AllConditions({
-     *     @ConditionalOnClass(Twig::class),
-     *     @ConditionalOnProperty("application.web.view.engine", hasValue="twig", matchIfMissing=true)
-     * })
-     */
-    public function twigView(LoaderInterface $twigLoader, ?array $options): ViewInterface
+    #[Bean]
+    #[AnyCondition(
+        new ConditionalOnClass(Twig::class),
+        new ConditionalOnProperty("application.web.view.engine", hasValue: "twig", matchIfMissing: true)
+    )]
+    public function twigView(LoaderInterface $twigLoader, #[Inject('application.web.view')] ?array $options): ViewInterface
     {
         $twig = new Twig($twigLoader, $options ?? []);
         if (!empty($options['globals'])) {
@@ -284,7 +254,9 @@ class WebConfiguration implements DefinitionConfiguration
      * @Inject({"options": "application.web.view"})
      * @ConditionalOnClass(Twig::class)
      */
-    public function twigLoader(?array $options): LoaderInterface
+    #[Bean]
+    #[ConditionalOnClass(Twig::class)]
+    public function twigLoader(#[Inject('application.web.view')] ?array $options): LoaderInterface
     {
         $loader = new FilesystemLoader($options['path'] ?? getcwd());
 
@@ -297,11 +269,10 @@ class WebConfiguration implements DefinitionConfiguration
         return $loader;
     }
 
-    /**
-     * @Bean()
-     * @Inject({"sessionConfig": "application.web.session"})
-     */
-    public function sessionFactory(CacheItemPoolInterface $cache, ?array $sessionConfig): SessionFactoryInterface
+    #[Bean]
+    public function sessionFactory(
+        CacheItemPoolInterface $cache,
+        #[Inject('application.web.session')] ?array $sessionConfig): SessionFactoryInterface
     {
         $sessionConfig = ($sessionConfig ?? []) + [
                 'auto_start' => true,
@@ -310,11 +281,10 @@ class WebConfiguration implements DefinitionConfiguration
         return new CacheStoreSessionFactory(new CacheSessionHandler($cache, $sessionConfig), $sessionConfig);
     }
 
-    /**
-     * @Bean()
-     * @Inject({"loginUrl": "application.web.login.url", "redirectParam": "application.web.login.redirect_param"})
-     */
-    public function loginUrlBuilder(?string $loginUrl, ?string $redirectParam): LoginUrlBuilderInterface
+    #[Bean]
+    public function loginUrlBuilder(
+        #[Inject('application.web.login.url')] ?string $loginUrl,
+        #[Inject('application.web.login.redirect_param')] ?string $redirectParam): LoginUrlBuilderInterface
     {
         return new DefaultLoginUrlBuilder($loginUrl ?? '/login', $redirectParam ?? 'redirect');
     }

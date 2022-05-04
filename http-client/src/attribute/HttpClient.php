@@ -11,14 +11,12 @@
 
 declare(strict_types=1);
 
-namespace kuiper\http\client\annotation;
+namespace kuiper\http\client\attribute;
 
+use Attribute;
 use kuiper\rpc\annotation\RpcClient;
 
-/**
- * @Annotation
- * @Target({"CLASS"})
- */
+#[Attribute(Attribute::TARGET_CLASS)]
 class HttpClient extends RpcClient
 {
     /**

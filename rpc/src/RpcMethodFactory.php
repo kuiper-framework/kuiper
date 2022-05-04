@@ -22,6 +22,6 @@ class RpcMethodFactory implements RpcMethodFactoryInterface
     {
         $serviceName = is_string($service) ? $service : get_class($service);
 
-        return new RpcMethod($service, new ServiceLocator($serviceName), $method, $args);
+        return new RpcMethod($service, new ServiceLocatorImpl($serviceName), $method, $args);
     }
 }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\swoole\listener;
 
 use kuiper\event\EventListenerInterface;
+use kuiper\logger\Logger;
 use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\event\StartEvent;
 use kuiper\swoole\server\SwooleServer;
@@ -32,7 +33,7 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
 
     public function __construct()
     {
-        $this->setLogger(\kuiper\logger\Logger::nullLogger());
+        $this->setLogger(Logger::nullLogger());
     }
 
     /**

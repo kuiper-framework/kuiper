@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server\workers;
 
-class MessageType
+enum MessageType
 {
-    public const TASK = 0;
-    public const TASK_RESULT = 1;
-    public const TASK_FINISH = 2;
-    public const TICK = 3;
+    case TASK;
+    case TASK_RESULT;
+    case TASK_FINISH;
+    case TICK ;
 }

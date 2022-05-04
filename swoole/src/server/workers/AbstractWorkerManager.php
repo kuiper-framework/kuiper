@@ -29,23 +29,16 @@ abstract class AbstractWorkerManager implements LoggerAwareInterface, WorkerMana
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @var SelectTcpServer
-     */
-    protected $server;
-
-    /**
      * @var resource|null
      */
     protected $resource;
 
-    /**
-     * @var bool
-     */
-    protected $stopped = false;
+    protected bool $stopped = false;
 
-    public function __construct(SelectTcpServer $server, LoggerInterface $logger)
+    public function __construct(
+        protected readonly SelectTcpServer $server,
+        LoggerInterface $logger)
     {
-        $this->server = $server;
         $this->setLogger($logger);
     }
 

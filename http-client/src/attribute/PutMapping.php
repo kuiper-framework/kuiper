@@ -11,13 +11,15 @@
 
 declare(strict_types=1);
 
-namespace kuiper\http\client\annotation;
+namespace kuiper\http\client\attribute;
 
-/**
- * @Annotation
- * @Target({"METHOD"})
- */
+use Attribute;
+
+#[Attribute(Attribute::TARGET_METHOD)]
 final class PutMapping extends RequestMapping
 {
-    public $method = 'PUT';
+    public function __construct(string $path)
+    {
+        parent::__construct($path, 'PUT');
+    }
 }

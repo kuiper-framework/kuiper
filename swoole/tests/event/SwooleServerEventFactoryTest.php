@@ -19,27 +19,24 @@ use PHPUnit\Framework\TestCase;
 
 class SwooleServerEventFactoryTest extends TestCase
 {
-    /**
-     * @var ServerEventFactory
-     */
-    private $factory;
+    private ServerEventFactory $factory;
 
     protected function setUp(): void
     {
         $this->factory = new ServerEventFactory();
     }
 
-    public function testCreate()
+    public function testCreate(): void
     {
-        $event = $this->factory->create(Event::START, []);
+        $event = $this->factory->create(Event::START->value, []);
         $this->assertInstanceOf(StartEvent::class, $event);
     }
 
-    public function testCreatePipeMessage()
+    public function testCreatePipeMessage(): void
     {
         $message = new FooMessage('key');
         /** @var PipeMessageEvent $event */
-        $event = $this->factory->create(Event::PIPE_MESSAGE, [null, 1, serialize($message)]);
+        $event = $this->factory->create(Event::PIPE_MESSAGE->value, [null, 1, serialize($message)]);
         // print_r($event->getMessage());
         $this->assertInstanceOf(FooMessage::class, $event->getMessage());
     }

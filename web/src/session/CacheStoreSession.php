@@ -21,45 +21,17 @@ class CacheStoreSession implements SessionInterface
 {
     use SessionTrait;
 
-    /**
-     * @var \SessionHandlerInterface|\SessionIdInterface
-     */
-    private $sessionHandler;
-    /**
-     * @var int
-     */
-    private $cookieLifetime;
-    /**
-     * @var string
-     */
-    private $cookieName;
-    /**
-     * @var bool
-     */
-    private $compatibleMode;
-    /**
-     * @var ServerRequestInterface
-     */
-    private $request;
+    private ?string $sessionId = null;
+    private array $sessionData = [];
 
-    /**
-     * @var string|null
-     */
-    private $sessionId;
-
-    /**
-     * @var array
-     */
-    private $sessionData;
-
-    public function __construct(\SessionHandlerInterface $handler, ServerRequestInterface $request, string $cookieName, int $cookieLifetime, bool $compatibleMode, bool $autoStart)
+    public function __construct(
+        private readonly \SessionHandlerInterface $sessionHandler,
+        private readonly ServerRequestInterface $request,
+        private readonly string $cookieName,
+        private readonly int $cookieLifetime,
+        private readonly bool $compatibleMode,
+        private readonly bool $autoStart)
     {
-        $this->sessionHandler = $handler;
-        $this->cookieName = $cookieName;
-        $this->cookieLifetime = $cookieLifetime;
-        $this->compatibleMode = $compatibleMode;
-        $this->autoStart = $autoStart;
-        $this->request = $request;
     }
 
     /**

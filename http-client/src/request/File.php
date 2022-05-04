@@ -18,11 +18,7 @@ class File
     /**
      * @var string
      */
-    private $path;
-    /**
-     * @var string
-     */
-    private $name;
+    private readonly string $name;
 
     /**
      * File constructor.
@@ -30,9 +26,9 @@ class File
      * @param string      $path
      * @param string|null $name
      */
-    public function __construct(string $path, string $name = null)
+    public function __construct(
+        private readonly string $path, string $name = null)
     {
-        $this->path = $path;
         $this->name = $name ?? basename($path);
     }
 

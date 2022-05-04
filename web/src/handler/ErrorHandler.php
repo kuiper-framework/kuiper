@@ -55,10 +55,10 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
     private $includeStacktraceStrategy;
 
     public function __construct(
-        ResponseFactoryInterface $responseFactory,
-        array $errorRenderers,
-        ?ErrorRendererInterface $logErrorRenderer,
-        ?LoggerInterface $logger,
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly array $errorRenderers,
+        private readonly ?ErrorRendererInterface $logErrorRenderer,
+        private readonly ?LoggerInterface $logger,
         string $defaultContentType = MediaType::TEXT_HTML,
         string $includeStacktraceStrategy = IncludeStacktrace::NEVER)
     {

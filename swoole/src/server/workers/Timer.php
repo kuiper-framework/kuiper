@@ -15,20 +15,7 @@ namespace kuiper\swoole\server\workers;
 
 class Timer
 {
-    /**
-     * @var int
-     */
-    private $timerId;
-
-    /**
-     * @var int
-     */
-    private $interval;
-
-    /**
-     * @var int
-     */
-    private $triggerTime;
+    private int $triggerTime;
 
     /**
      * @var callable
@@ -36,18 +23,14 @@ class Timer
     private $callback;
 
     /**
-     * @var bool
-     */
-    private $once;
-
-    /**
      * Timer constructor.
      */
-    public function __construct(int $timerId, int $interval, bool $once, callable $callback)
+    public function __construct(
+        private readonly int $timerId,
+        private readonly int $interval,
+        private readonly bool $once,
+        callable $callback)
     {
-        $this->timerId = $timerId;
-        $this->interval = $interval;
-        $this->once = $once;
         $this->triggerTime = time() + $interval;
         $this->callback = $callback;
     }

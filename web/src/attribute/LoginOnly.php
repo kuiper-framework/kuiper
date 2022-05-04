@@ -11,23 +11,21 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\annotation;
+namespace kuiper\web\attribute;
 
 use kuiper\web\middleware\AbstractMiddlewareFactory;
 use kuiper\web\middleware\LoginOnly as LoginOnlyMiddleware;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\MiddlewareInterface;
+use Attribute;
 
-/**
- * @Annotation
- * @Target({"CLASS", "METHOD"})
- */
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class LoginOnly extends AbstractMiddlewareFactory
 {
-    /**
-     * @var int
-     */
-    public $priority = 101;
+    public function __construct(int $priority = 101)
+    {
+        parent::__construct($priority);
+    }
 
     /**
      * {@inheritdoc}

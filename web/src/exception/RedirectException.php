@@ -15,18 +15,12 @@ namespace kuiper\web\exception;
 
 class RedirectException extends \RuntimeException
 {
-    /**
-     * @var string
-     */
-    private $url;
-
-    public function __construct(string $url, int $code = 302)
+    public function __construct(private readonly string $url, int $code = 302)
     {
         if ($code > 310 || $code < 300) {
             throw new \InvalidArgumentException("Invalid redirect http code $code");
         }
         parent::__construct("redirect to $url", $code);
-        $this->url = $url;
     }
 
     public function getUrl(): string

@@ -18,7 +18,7 @@ interface RpcMethodInterface
     /**
      * @return object|string
      */
-    public function getTarget();
+    public function getTarget(): object|string;
 
     /**
      * @return string

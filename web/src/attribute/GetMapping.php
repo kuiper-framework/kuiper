@@ -11,13 +11,17 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\annotation;
+namespace kuiper\web\attribute;
 
-/**
- * @Annotation
- * @Target({"CLASS","METHOD"})
- */
+use Attribute;
+
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 final class GetMapping extends RequestMapping
 {
-    public $method = ['GET'];
+    public function __construct(
+        string|array $mapping,
+        string       $name)
+    {
+        parent::__construct($mapping, $name, ['GET']);
+    }
 }

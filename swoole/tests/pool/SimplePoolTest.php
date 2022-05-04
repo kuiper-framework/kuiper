@@ -19,14 +19,14 @@ use Psr\Log\NullLogger;
 
 class SimplePoolTest extends TestCase
 {
-    private $connections;
+    private array $connections;
 
     protected function setUp(): void
     {
         $this->connections = [];
     }
 
-    public function testReturnRefererence()
+    public function testReturnReference(): void
     {
         $eventDispatcher = new InMemoryEventDispatcher();
         $pool = new SimplePool(
@@ -40,7 +40,6 @@ class SimplePoolTest extends TestCase
             },
             new PoolConfig(),
             $eventDispatcher,
-            \kuiper\logger\Logger::nullLogger()
         );
         $connection = $pool->take();
         foreach ($this->connections as $i => $c) {
@@ -53,7 +52,7 @@ class SimplePoolTest extends TestCase
         $this->assertCount(1, $events);
     }
 
-    public function testReturnConnection()
+    public function testReturnConnection(): void
     {
         $eventDispatcher = new InMemoryEventDispatcher();
         $pool = new SimplePool(
@@ -64,8 +63,7 @@ class SimplePoolTest extends TestCase
                 return time();
             },
             new PoolConfig(),
-            $eventDispatcher,
-            \kuiper\logger\Logger::nullLogger()
+            $eventDispatcher
         );
         $connection = $pool->take();
         foreach ($this->connections as $i => $c) {

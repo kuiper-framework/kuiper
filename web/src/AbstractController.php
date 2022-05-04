@@ -18,17 +18,12 @@ use Psr\Http\Message\ServerRequestInterface;
 
 abstract class AbstractController implements ControllerInterface
 {
-    /**
-     * @var ServerRequestInterface
-     */
-    protected $request;
+    protected ?ServerRequestInterface $request = null;
 
     /**
      * A response object to send to the HTTP client.
-     *
-     * @var ResponseInterface
      */
-    protected $response;
+    protected ?ResponseInterface $response = null;
 
     /**
      * {@inheritdoc}
@@ -40,7 +35,7 @@ abstract class AbstractController implements ControllerInterface
     /**
      * {@inheritdoc}
      */
-    public function withRequest(ServerRequestInterface $request)
+    public function withRequest(ServerRequestInterface $request): static
     {
         $new = clone $this;
         $new->request = $request;
@@ -59,7 +54,7 @@ abstract class AbstractController implements ControllerInterface
     /**
      * {@inheritdoc}
      */
-    public function withResponse(ResponseInterface $response)
+    public function withResponse(ResponseInterface $response): static
     {
         $new = clone $this;
         $new->response = $response;

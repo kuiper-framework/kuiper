@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\web;
 
-use DI\Annotation\Inject;
+use DI\Attribute\Inject;
 use kuiper\web\exception\RedirectException;
 use kuiper\web\security\SecurityContext;
 use kuiper\web\session\FlashInterface;
@@ -21,14 +21,14 @@ use kuiper\web\session\SessionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\App;
 
+/**
+ * @method getResponse(): ResponseInterface
+ * @method getRequest(): \Psr\Http\Message\RequestInterface
+ */
 trait ControllerTrait
 {
-    /**
-     * @Inject()
-     *
-     * @var App
-     */
-    protected $app;
+    #[Inject]
+    protected App $app;
 
     protected function getSession(): SessionInterface
     {

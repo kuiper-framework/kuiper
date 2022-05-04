@@ -19,79 +19,57 @@ use Psr\Http\Message\StreamInterface;
 class RpcResponse implements RpcResponseInterface
 {
     /**
-     * @var RpcRequestInterface
-     */
-    protected $request;
-
-    /**
-     * @var ResponseInterface
-     */
-    protected $httpResponse;
-
-    /**
      * RpcResponse constructor.
      */
-    public function __construct(RpcRequestInterface $request, ResponseInterface $httpResponse)
+    public function __construct(
+        private readonly RpcRequestInterface $request,
+        private readonly ResponseInterface $httpResponse)
     {
-        $this->request = $request;
-        $this->httpResponse = $httpResponse;
     }
 
-    public function getProtocolVersion()
+    public function getProtocolVersion(): string
     {
         return $this->httpResponse->getProtocolVersion();
     }
 
-    public function withProtocolVersion($version)
+    public function withProtocolVersion($version): RpcResponse
     {
-        $copy = clone $this;
-        $copy->httpResponse = $this->httpResponse->withProtocolVersion($version);
-
-        return $copy;
+        return new self($this->request, $this->httpResponse->withProtocolVersion($version));
     }
 
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return $this->httpResponse->getHeaders();
     }
 
-    public function hasHeader($name)
+    public function hasHeader($name): bool
     {
         return $this->httpResponse->hasHeader($name);
     }
 
-    public function getHeader($name)
+    public function getHeader($name): array
     {
         return $this->httpResponse->getHeader($name);
     }
 
-    public function getHeaderLine($name)
+    public function getHeaderLine($name): string
     {
         return $this->httpResponse->getHeaderLine($name);
     }
 
-    public function withHeader($name, $value)
+    public function withHeader($name, $value): RpcResponse
     {
-        $copy = clone $this;
-        $copy->httpResponse = $this->httpResponse->withHeader($name, $value);
-
-        return $copy;
+        return new self($this->request, $this->httpResponse->withHeader($name, $value));
     }
 
     public function withAddedHeader($name, $value)
     {
-        $copy = clone $this;
-        $copy->httpResponse = $this->httpResponse->withAddedHeader($name, $value);
-
-        return $copy;
+        return new self($this->request, $this->httpResponse->withAddedHeader($name, $value));
     }
 
     public function withoutHeader($name)
     {
-        $copy = clone $this;
-        $copy->httpResponse = $this->httpResponse->withoutHeader($name);
-
-        return $copy;
+        return new self($this->request, $this->httpResponse->withoutHeader($name));
     }
 
     public function getBody()
@@ -101,10 +79,7 @@ class RpcResponse implements RpcResponseInterface
 
     public function withBody(StreamInterface $body)
     {
-        $copy = clone $this;
-        $copy->httpResponse = $this->httpResponse->withBody($body);
-
-        return $copy;
+        return new self($this->request, $this->httpResponse->withBody($body));
     }
 
     public function getStatusCode()
@@ -114,10 +89,7 @@ class RpcResponse implements RpcResponseInterface
 
     public function withStatus($code, $reasonPhrase = '')
     {
-        $copy = clone $this;
-        $copy->httpResponse = $this->httpResponse->withStatus($code, $reasonPhrase);
-
-        return $copy;
+        return new self($this->request, $this->httpResponse->withStatus($code, $reasonPhrase));
     }
 
     public function getReasonPhrase()

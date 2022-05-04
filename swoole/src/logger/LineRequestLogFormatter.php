@@ -52,7 +52,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         string|callable               $template = self::MAIN,
         private                       readonly array $extra = ['query', 'body'],
         private                       readonly int $bodyMaxSize = 4096,
-        string|DateFormatterInterface $dateFormat = '%d/%b/%Y:%H:%M:%S %z')
+        string|DateFormatterInterface $dateFormat = 'd/M/Y:H:i:s O')
     {
         if (is_string($template) || is_callable($template)) {
             $this->template = $template;
@@ -68,9 +68,6 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         if ($dateFormatter instanceof DateFormatterInterface) {
             return $dateFormatter;
         }
-        if (substr_count($dateFormatter, '%') >= 2) {
-            return new StrftimeDateFormatter($dateFormatter);
-        }
 
         return new DateFormatter($dateFormatter);
     }
@@ -78,11 +75,11 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
     /**
      * {@inheritDoc}
      */
-    public function format(RequestInterface $request, ?ResponseInterface $response, ?\Throwable $error, float $startTime, float $endTime): array
+    public function format(LogContext $context): array
     {
-        $messageContext = $this->prepareMessageContext($request, $response, $error, $startTime, $endTime);
+        $messageContext = $this->prepareMessageContext($context);
         if (is_string($this->template)) {
-            return [\strtr($this->template, Arrays::mapKeys($messageContext, function ($key) {
+            return [\strtr($this->template, Arrays::mapKeys($messageContext, static function ($key) {
                 return '$' . $key;
             })), $messageContext['extra'] ?? []];
         }
@@ -105,32 +102,31 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
     /**
      * Extract message context.
      *
-     * @param RequestInterface $request
-     * @param ResponseInterface|null $response
-     * @param \Throwable|null $error
-     * @param float $startTime
-     * @param float $endTime
-     *
+     * @param LogContext $context
      * @return array
      */
-    protected function prepareMessageContext(RequestInterface $request, ?ResponseInterface $response, ?\Throwable $error, float $startTime, float $endTime): array
+    protected function prepareMessageContext(LogContext $context): array
     {
-        $time = round(($endTime - $startTime) * 1000, 2);
+        $time = round($context->getRequestTime() * 1000, 2);
 
+        $request = $context->getRequest();
         $ipList = $this->getIpList($request);
-        if (isset($response)) {
-            $statusCode = $response->getStatusCode();
-        } elseif (isset($error) && is_int($error->getCode()) && $error->getCode() > 0) {
-            $statusCode = $error->getCode();
+        if ($context->hasResponse()) {
+            $statusCode = $context->getResponse()->getStatusCode();
         } else {
-            $statusCode = 500;
+            $error = $context->getError();
+            if (isset($error) && is_int($error->getCode()) && $error->getCode() > 0) {
+                $statusCode = $error->getCode();
+            } else {
+                $statusCode = 500;
+            }
         }
-        $responseBodySize = isset($response) ? $response->getBody()->getSize() : 0;
+        $responseBodySize = $context->hasResponse() ? $context->getResponse()->getBody()->getSize() : 0;
         $requestBodySize = $request->getBody()->getSize();
         $messageContext = [
             'remote_addr' => $ipList[0] ?? '-',
             'remote_user' => $request->getUri()->getUserInfo(),
-            'time_local' => $this->dateFormatter->format($startTime),
+            'time_local' => $this->dateFormatter->format($context->getStartTime()),
             'request_method' => $request->getMethod(),
             'request_uri' => (string)$request->getUri(),
             'request' => strtoupper($request->getMethod()) . ' '
@@ -167,7 +163,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
                 $extra['cookies'] = $request->getHeaderLine('cookie');
             } elseif ('jwt' === $name) {
                 $extra['jwt'] = $this->getJwtPayload($request->getHeaderLine('Authorization'));
-            } elseif (0 === strpos($name, 'header.')) {
+            } elseif (str_starts_with($name, 'header.')) {
                 $header = substr($name, 7);
                 $extra[$header] = $request->getHeaderLine($header);
             } elseif ('pid' === $name) {
@@ -213,7 +209,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
     /**
      * @return callable|string
      */
-    public function getTemplate()
+    public function getTemplate(): callable|string
     {
         return $this->template;
     }

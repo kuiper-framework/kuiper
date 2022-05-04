@@ -11,23 +11,21 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\annotation;
+namespace kuiper\web\attribute;
 
+use Attribute;
 use kuiper\web\middleware\AbstractMiddlewareFactory;
 use kuiper\web\middleware\CsrfToken as CsrfTokenMiddleware;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\MiddlewareInterface;
 
-/**
- * @Annotation
- * @Target({"CLASS", "METHOD"})
- */
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class CsrfToken extends AbstractMiddlewareFactory
 {
-    /**
-     * @var bool
-     */
-    public $repeatOk = true;
+    public function __construct(private readonly bool $repeatOk)
+    {
+        parent::__construct();
+    }
 
     /**
      * {@inheritdoc}

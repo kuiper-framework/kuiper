@@ -173,7 +173,7 @@ class RpcRequest implements RpcRequestInterface
     /**
      * {@inheritDoc}
      */
-    public function withAttribute(string $name, $value)
+    public function withAttribute(string $name, mixed $value)
     {
         $new = clone $this;
         $new->attributes[$name] = $value;

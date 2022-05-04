@@ -46,14 +46,12 @@ class SocketChannel
     {
         fclose($this->parent);
         $this->socket = $this->child;
-//        unset($this->parent, $this->child);
     }
 
     public function parent(): void
     {
         fclose($this->child);
         $this->socket = $this->parent;
-//        unset($this->parent, $this->child);
     }
 
     public function close(): void
@@ -72,7 +70,7 @@ class SocketChannel
     /**
      * @param mixed $data
      */
-    public function send($data): void
+    public function push(mixed $data): void
     {
         if (!$this->isActive()) {
             throw new \InvalidArgumentException('Cannot send on closed channel');
@@ -98,7 +96,7 @@ class SocketChannel
     /**
      * @return mixed|null
      */
-    public function receive(?int $timeout = null)
+    public function pop(?int $timeout = null): mixed
     {
         $select = self::select([$this], $timeout);
         if (!empty($select)) {
@@ -111,7 +109,7 @@ class SocketChannel
     /**
      * @return mixed|null
      */
-    public function read()
+    public function read(): mixed
     {
         if (!$this->isActive()) {
             throw new \InvalidArgumentException('cannot read on closed channel');
@@ -138,7 +136,7 @@ class SocketChannel
             $buffer .= $read;
         } while (strlen($buffer) < $len);
 
-        return unserialize($buffer);
+        return unserialize($buffer, ['allowed_classes' => true]);
     }
 
     /**
@@ -155,13 +153,16 @@ class SocketChannel
             }
         }
         $write = $except = null;
-        if (!empty($read) && stream_select($read, $write, $except, $timeout) && !empty($read)) {
-            $ready = [];
-            foreach ($read as $i => $fd) {
-                $ready[] = $channels[$i];
-            }
+        if (!empty($read)) {
+            $ret = stream_select($read, $write, $except, $timeout);
+            if ($ret !== false && !empty($read)) {
+                $ready = [];
+                foreach ($read as $i => $fd) {
+                    $ready[] = $channels[$i];
+                }
 
-            return $ready;
+                return $ready;
+            }
         }
 
         return [];

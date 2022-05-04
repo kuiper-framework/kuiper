@@ -11,12 +11,11 @@
 
 declare(strict_types=1);
 
-namespace kuiper\http\client\annotation;
+namespace kuiper\http\client\attribute;
 
-/**
- * @Annotation
- * @Target({"METHOD"})
- */
+use Attribute;
+
+#[Attribute(Attribute::TARGET_METHOD)]
 final class DeleteMapping extends RequestMapping
 {
     public $method = 'DELETE';

@@ -15,35 +15,17 @@ namespace kuiper\swoole\server\workers;
 
 class Task
 {
-    /**
-     * @var int
-     */
-    private $taskId;
+    private int $taskId = 0;
 
-    /**
-     * @var int
-     */
-    private $fromWorkerId;
+    private mixed $result = null;
 
-    /**
-     * @var int
-     */
-    private $taskWorkerId;
-
-    /**
-     * @var int
-     */
-    private $callbackId;
-
-    /**
-     * @var mixed
-     */
-    private $data;
-
-    /**
-     * @var mixed
-     */
-    private $result;
+    public function __construct(
+        private int $taskWorkerId,
+        private readonly int $fromWorkerId,
+        private readonly int $callbackId,
+        private readonly mixed $data)
+    {
+    }
 
     public function getTaskId(): int
     {
@@ -60,19 +42,9 @@ class Task
         return $this->fromWorkerId;
     }
 
-    public function setFromWorkerId(int $fromWorkerId): void
-    {
-        $this->fromWorkerId = $fromWorkerId;
-    }
-
     public function getTaskWorkerId(): int
     {
         return $this->taskWorkerId;
-    }
-
-    public function setTaskWorkerId(int $taskWorkerId): void
-    {
-        $this->taskWorkerId = $taskWorkerId;
     }
 
     public function getCallbackId(): int
@@ -80,40 +52,23 @@ class Task
         return $this->callbackId;
     }
 
-    public function setCallbackId(int $callbackId): void
-    {
-        $this->callbackId = $callbackId;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getData()
+    public function getData(): mixed
     {
         return $this->data;
     }
 
-    /**
-     * @param mixed $data
-     */
-    public function setData($data): void
-    {
-        $this->data = $data;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getResult()
+    public function getResult(): mixed
     {
         return $this->result;
     }
 
-    /**
-     * @param mixed $result
-     */
-    public function setResult($result): void
+    public function setResult(mixed $result): void
     {
         $this->result = $result;
+    }
+
+    public function setTaskWorkerId(int $taskWorkerId): void
+    {
+        $this->taskWorkerId = $taskWorkerId;
     }
 }

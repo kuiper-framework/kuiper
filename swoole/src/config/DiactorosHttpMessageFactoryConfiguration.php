@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\config;
 
+use kuiper\di\attribute\AllConditions;
+use kuiper\di\attribute\ConditionalOnClass;
+use kuiper\di\attribute\ConditionalOnProperty;
+use kuiper\di\attribute\Configuration;
 use function DI\autowire;
 use function DI\get;
-use kuiper\di\annotation\AllConditions;
-use kuiper\di\annotation\ConditionalOnClass;
-use kuiper\di\annotation\ConditionalOnProperty;
-use kuiper\di\annotation\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\swoole\http\DiactorosSwooleRequestBridge;
@@ -36,13 +36,11 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 
-/**
- * @Configuration()
- * @AllConditions(
- *     @ConditionalOnClass(ServerRequestFactory::class),
- *     @ConditionalOnProperty("application.server.http_factory", hasValue="diactoros", matchIfMissing=true)
- * )
- */
+#[Configuration]
+#[AllConditions(
+    new ConditionalOnClass(ServerRequestFactory::class),
+    new ConditionalOnProperty("application.server.http_factory", hasValue: "diactoros", matchIfMissing: true)
+)]
 class DiactorosHttpMessageFactoryConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;

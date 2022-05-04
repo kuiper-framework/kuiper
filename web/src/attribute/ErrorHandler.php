@@ -11,24 +11,30 @@
 
 declare(strict_types=1);
 
-namespace kuiper\web\annotation;
+namespace kuiper\web\attribute;
 
-use Doctrine\Common\Annotations\Annotation\Target;
-use kuiper\di\annotation\ComponentInterface;
-use kuiper\di\annotation\ComponentTrait;
+use Attribute;
+use kuiper\di\attribute\ComponentTrait;
+use kuiper\di\Component;
 
-/**
- * @Annotation
- * @Target({"CLASS"})
- */
-class ErrorHandler implements ComponentInterface
+#[Attribute(Attribute::TARGET_CLASS)]
+class ErrorHandler implements Component
 {
     use ComponentTrait;
 
     /**
-     * Exception class name, can be string or string[].
-     *
-     * @var mixed
+     * @param string|string[] $exceptions Exception class name
      */
-    public $value;
+    public function __construct(
+        private readonly string|array $exceptions)
+    {
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getExceptions(): array
+    {
+        return (array) $this->exceptions;
+    }
 }

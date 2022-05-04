@@ -13,62 +13,34 @@ declare(strict_types=1);
 
 namespace kuiper\web;
 
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\Controller;
+use kuiper\di\attribute\Controller;
 use kuiper\di\ComponentCollection;
 use kuiper\helper\Text;
-use kuiper\web\annotation\RequestMapping;
+use kuiper\web\attribute\RequestMapping;
 use kuiper\web\middleware\MiddlewareFactory;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Interfaces\RouteGroupInterface;
 use Slim\Interfaces\RouteInterface;
 
-class AnnotationProcessor implements AnnotationProcessorInterface
+class AttributeProcessor implements AttributeProcessorInterface
 {
-    /**
-     * @var ContainerInterface
-     */
-    private $container;
-    /**
-     * @var AnnotationReaderInterface
-     */
-    private $annotationReader;
-    /**
-     * @var RouteCollectorProxyInterface
-     */
-    private $routeCollector;
-
-    /**
-     * @var string|null
-     */
-    private $contextUrl;
-    /**
-     * @var string|null
-     */
-    private $namespace;
-
     public function __construct(
-        ContainerInterface $container,
-        AnnotationReaderInterface $annotationReader,
-        RouteCollectorProxyInterface $routeCollector,
-        ?string $contextUrl = null,
-        ?string $namespace = null)
+        private readonly ContainerInterface $container,
+        private readonly RouteCollectorProxyInterface $routeCollector,
+        private readonly ?string $contextUrl = null,
+        private readonly ?string $namespace = null)
     {
-        $this->container = $container;
-        $this->annotationReader = $annotationReader;
-        $this->routeCollector = $routeCollector;
-        $this->contextUrl = $contextUrl;
-        $this->namespace = $namespace;
     }
 
     public function process(): void
     {
         $seen = [];
-        foreach (ComponentCollection::getComponents(Controller::class) as $annotation) {
-            /** @var Controller $annotation */
-            $controllerClass = $annotation->getTarget();
-            if (null !== $this->namespace && !Text::startsWith($controllerClass->getNamespaceName(), $this->namespace)) {
+        foreach (ComponentCollection::getComponents(Controller::class) as $attribute) {
+            /** @var Controller $attribute */
+            /** @var \ReflectionClass $controllerClass */
+            $controllerClass = $attribute->getTarget();
+            if (null !== $this->namespace && !str_starts_with($controllerClass->getNamespaceName(), $this->namespace)) {
                 continue;
             }
             if (isset($seen[$controllerClass->getName()])) {
@@ -76,10 +48,11 @@ class AnnotationProcessor implements AnnotationProcessorInterface
             }
             $seen[$controllerClass->getName()] = true;
             $prefix = $this->contextUrl;
-            /** @var RequestMapping|null $requestMapping */
-            $requestMapping = $this->annotationReader->getClassAnnotation($controllerClass, RequestMapping::class);
-            if (null !== $requestMapping) {
-                $prefix .= $requestMapping->value;
+            $attributes = $controllerClass->getAttributes(RequestMapping::class);
+            if (count($attributes) > 0) {
+                /** @var RequestMapping $requestMapping */
+                $requestMapping = $attributes[0]->newInstance();
+                $prefix .= $requestMapping->getMapping()[0];
             }
             if (null === $prefix || '' === $prefix) {
                 $this->addMapping($this->routeCollector, $controllerClass);
@@ -99,43 +72,41 @@ class AnnotationProcessor implements AnnotationProcessorInterface
             if (!$reflectionMethod->isPublic() || $reflectionMethod->isStatic()) {
                 continue;
             }
-            /** @var RequestMapping|null $mapping */
-            $mapping = $this->annotationReader->getMethodAnnotation($reflectionMethod, RequestMapping::class);
-            if (null !== $mapping) {
-                foreach ((array) $mapping->value as $pattern) {
-                    if (isset($mapping->method)) {
-                        $route = $routeCollector->map($mapping->method, $pattern, [$controller, $reflectionMethod->getName()]);
+            $attributes = $reflectionMethod->getAttributes(RequestMapping::class, \ReflectionAttribute::IS_INSTANCEOF);
+            if (count($attributes) > 0) {
+                /** @var RequestMapping $requestMapping */
+                $requestMapping = $attributes[0];
+                foreach ($requestMapping->getMapping() as $pattern) {
+                    if (count($requestMapping->getMethod()) > 0) {
+                        $route = $routeCollector->map($requestMapping->getMethod(), $pattern, [$controller, $reflectionMethod->getName()]);
                     } else {
                         $route = $routeCollector->any($pattern, [$controller, $reflectionMethod->getName()]);
                     }
                     $this->addRouteMiddleware($route, $reflectionMethod);
-                    if (Text::isNotEmpty($mapping->name)) {
-                        if (is_array($mapping->value)) {
-                            throw new \InvalidArgumentException('Cannot set route name when there multiple routes for method '.$reflectionMethod->getDeclaringClass().'::'.$reflectionMethod->getName());
+                    if (Text::isNotEmpty($requestMapping->getName())) {
+                        if (count($requestMapping->getMapping()) > 1) {
+                            throw new \InvalidArgumentException('Cannot set route name when there multiple routes for method '
+                                . $reflectionMethod->getDeclaringClass() . '::' . $reflectionMethod->getName());
                         }
-                        $route->setName($mapping->name);
+                        $route->setName($requestMapping->getName());
                     }
                 }
             }
         }
     }
 
-    /**
-     * @param RouteGroupInterface|RouteInterface $route
-     */
-    private function addRouteMiddleware($route, \ReflectionMethod $method): void
+    private function addRouteMiddleware(RouteInterface|RouteGroupInterface $route, \ReflectionMethod $method): void
     {
         /** @var MiddlewareFactory[] $filters */
         $filters = [];
-        foreach ($this->annotationReader->getMethodAnnotations($method) as $annotation) {
-            if ($annotation instanceof MiddlewareFactory) {
-                $filters[get_class($annotation)] = $annotation;
-            }
+        foreach ($method->getAttributes(MiddlewareFactory::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+            $attr = $attribute->newInstance();
+            $filters[get_class($attr)] = $attr;
         }
-        foreach ($this->annotationReader->getClassAnnotations($method->getDeclaringClass()) as $annotation) {
-            if ($annotation instanceof MiddlewareFactory
-                && !isset($filters[get_class($annotation)])) {
-                $filters[get_class($annotation)] = $annotation;
+        foreach ($method->getDeclaringClass()->getAttributes(MiddlewareFactory::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+            $attr = $attribute->newInstance();
+            if (!isset($filters[get_class($attr)])) {
+                $filters[get_class($attr)] = $attr;
             }
         }
         if (!empty($filters)) {

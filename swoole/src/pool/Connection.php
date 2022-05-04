@@ -32,7 +32,7 @@ class Connection implements ConnectionInterface
         return $this->id;
     }
 
-    public function getResource()
+    public function getResource(): mixed
     {
         return $this->resource;
     }

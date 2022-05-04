@@ -41,7 +41,7 @@ class AnnotationProcessorTest extends TestCase
         $annotationReader = AnnotationReader::getInstance();
         $app = SlimAppFactory::create($container);
 
-        $processor = new AnnotationProcessor($container, $annotationReader, $app);
+        $processor = new AttributeProcessor($container, $annotationReader, $app);
         $processor->process();
         $response = $app->handle($this->createRequest('GET /index'));
         $this->assertEquals(200, $response->getStatusCode());

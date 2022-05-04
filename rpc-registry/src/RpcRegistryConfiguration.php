@@ -46,7 +46,6 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
             ConsulAgent::class => factory(function (ContainerInterface $container): ConsulAgent {
                 $clientFactory = new HttpProxyClientFactory(
                     $container->get('consulHttpClient'),
-                    $container->get(AnnotationReaderInterface::class),
                     $container->get(NormalizerInterface::class)
                 );
 

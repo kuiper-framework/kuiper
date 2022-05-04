@@ -21,32 +21,19 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class HealthyStatus implements MiddlewareInterface
 {
-    /**
-     * @var ResponseFactoryInterface
-     */
-    private $responseFactory;
-    /**
-     * @var string[]
-     */
-    private $pathList;
-    /**
-     * @var string
-     */
-    private $body;
+    private readonly array $pathList;
 
     /**
      * HealthyStatus constructor.
      *
-     * @param string|array $path
+     * @param string|string[] $path
      */
     public function __construct(
-        ResponseFactoryInterface $responseFactory,
-        $path = '/status.html',
-        string $body = 'ok')
+        private      readonly ResponseFactoryInterface $responseFactory,
+        string|array $path = '/status.html',
+        private      readonly string $body = 'ok')
     {
-        $this->pathList = (array) $path;
-        $this->responseFactory = $responseFactory;
-        $this->body = $body;
+        $this->pathList = (array)$path;
     }
 
     /**
