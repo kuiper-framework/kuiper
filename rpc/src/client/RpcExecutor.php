@@ -16,32 +16,23 @@ namespace kuiper\rpc\client;
 use kuiper\rpc\MiddlewareSupport;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
+use ReflectionProperty;
 
 class RpcExecutor implements RpcExecutorInterface
 {
     use MiddlewareSupport;
 
-    /**
-     * @var RpcRequestInterface
-     */
-    private $request;
-    /**
-     * @var RpcRequestHandlerInterface
-     */
-    private $requestHandler;
-
-    public function __construct(RpcRequestHandlerInterface $requestHandler, RpcRequestInterface $request, array $middlewares)
+    public function __construct(
+        private readonly RpcRequestHandlerInterface $requestHandler,
+        private readonly RpcRequestInterface $request,
+        array $middlewares)
     {
-        $this->request = $request;
-        $this->requestHandler = $requestHandler;
         $this->middlewares = $middlewares;
     }
 
     public function mapRequest(callable $callback): self
     {
-        $this->request = $callback($this->request);
-
-        return $this;
+        return new self($this->requestHandler,  $callback($this->request), $this->middlewares);
     }
 
     /**
@@ -67,13 +58,15 @@ class RpcExecutor implements RpcExecutorInterface
         }
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public static function create(object $client, string $method, array $args): self
     {
         if (method_exists($client, 'getRpcExecutorFactory')) {
             $rpcExecutorFactory = $client->getRpcExecutorFactory();
         } else {
-            $property = new \ReflectionProperty($client, 'rpcExecutorFactory');
-            $property->setAccessible(true);
+            $property = new ReflectionProperty($client, 'rpcExecutorFactory');
             $rpcExecutorFactory = $property->getValue($client);
         }
 

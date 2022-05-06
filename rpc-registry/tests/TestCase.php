@@ -62,7 +62,6 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             PoolFactoryInterface::class => new PoolFactory(false),
             PropertyResolverInterface::class => $config,
             ServiceResolverInterface::class => new InMemoryServiceResolver(),
-            AnnotationReaderInterface::class => AnnotationReader::getInstance(),
         ]);
         $builder->defer(function (ContainerInterface $container) {
             foreach ($this->getDefinitions() as $name => $definition) {

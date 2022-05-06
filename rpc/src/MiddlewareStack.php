@@ -16,31 +16,17 @@ namespace kuiper\rpc;
 class MiddlewareStack implements RpcRequestHandlerInterface
 {
     /**
-     * @var MiddlewareInterface[]
-     */
-    private $middlewares;
-    /**
-     * @var RpcRequestHandlerInterface
-     */
-    private $final;
-
-    /**
      * MiddlewareStack constructor.
      *
      * @param MiddlewareInterface[] $middlewares
      */
-    public function __construct(array $middlewares, RpcRequestHandlerInterface $final)
+    public function __construct(private readonly array $middlewares, private readonly RpcRequestHandlerInterface $final)
     {
-        $this->middlewares = $middlewares;
-        $this->final = $final;
     }
 
     public function withFinalHandler(RpcRequestHandlerInterface $final): self
     {
-        $copy = clone $this;
-        $copy->final = $final;
-
-        return $copy;
+        return new self($this->middlewares, $final);
     }
 
     public function handle(RpcRequestInterface $request): RpcResponseInterface

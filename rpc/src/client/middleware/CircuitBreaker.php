@@ -21,19 +21,8 @@ use kuiper\rpc\RpcResponseInterface;
 
 class CircuitBreaker implements MiddlewareInterface
 {
-    /**
-     * @var CircuitBreakerFactory
-     */
-    private $circuitBreakerFactory;
-
-    /**
-     * CircuitBreaker constructor.
-     *
-     * @param CircuitBreakerFactory $circuitBreakerFactory
-     */
-    public function __construct(CircuitBreakerFactory $circuitBreakerFactory)
+    public function __construct(private readonly CircuitBreakerFactory $circuitBreakerFactory)
     {
-        $this->circuitBreakerFactory = $circuitBreakerFactory;
     }
 
     public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $handler): RpcResponseInterface

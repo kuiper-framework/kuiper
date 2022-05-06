@@ -130,7 +130,6 @@ class MetaModelFactory implements MetaModelFactoryInterface
      */
     private function createProperty(\ReflectionProperty $property, array $attributes, ?MetaModelProperty $parent): MetaModelProperty
     {
-        $property->setAccessible(true);
         $type = $this->reflectionDocBlockFactory->createPropertyDocBlock($property)->getType();
         $metaProperty = new MetaModelProperty($property, $type, $parent, $attributes);
         $attributeConverter = $this->getAttributeConverter($metaProperty);

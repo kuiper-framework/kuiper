@@ -35,4 +35,10 @@ final class ClientSettings
             default => 'string'
         };
     }
+
+    public static function has(string $name): bool
+    {
+        $constantName = __CLASS__ . "::" . strtoupper($name);
+        return defined($constantName) && constant($constantName) === $name;
+    }
 }

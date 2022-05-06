@@ -18,12 +18,12 @@ use PHPUnit\Framework\TestCase;
 
 class ProxyGeneratorTest extends TestCase
 {
-    public function testGenerate()
+    public function testGenerate(): void
     {
         $generator = new ProxyGenerator();
         $result = $generator->generate(UserService::class);
         $this->assertNotNull($result->getCode());
         //echo $result->getCode();
-        $this->assertEquals(file_get_contents(dirname(__DIR__).'/fixtures/UserServiceProxy.txt'), $result->getCode());
+        $this->assertStringEqualsFile(dirname(__DIR__) . '/fixtures/UserServiceProxy.txt', $result->getCode());
     }
 }

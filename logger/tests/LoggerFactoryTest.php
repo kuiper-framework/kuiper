@@ -87,7 +87,6 @@ class LoggerFactoryTest extends TestCase
     private function assertLogLevel(string $level, LoggerInterface $logger): void
     {
         $property = new \ReflectionProperty($logger, 'logLevel');
-        $property->setAccessible(true);
         $this->assertEquals(Logger::getLevel($level), $property->getValue($logger));
     }
 

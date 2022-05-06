@@ -17,18 +17,9 @@ use kuiper\rpc\RpcRequestInterface;
 
 class RequestException extends \Exception
 {
-    /**
-     * @var RpcRequestInterface
-     */
-    private $request;
-
-    /**
-     * InvalidRequestException constructor.
-     */
-    public function __construct(RpcRequestInterface $request, string $message, int $code)
+    public function __construct(private readonly RpcRequestInterface $request, string $message, int $code)
     {
         parent::__construct($message, $code);
-        $this->request = $request;
     }
 
     public function getRequest(): RpcRequestInterface

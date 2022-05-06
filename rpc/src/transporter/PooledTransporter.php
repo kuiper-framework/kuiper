@@ -18,17 +18,8 @@ use Psr\Http\Message\RequestInterface;
 
 class PooledTransporter implements TransporterInterface
 {
-    /**
-     * @var PoolInterface
-     */
-    private $pool;
-
-    /**
-     * PooledTransporter constructor.
-     */
-    public function __construct(PoolInterface $pool)
+    public function __construct(private readonly PoolInterface $pool)
     {
-        $this->pool = $pool;
     }
 
     public function close(): void

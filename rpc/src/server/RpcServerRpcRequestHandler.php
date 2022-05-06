@@ -27,26 +27,12 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
 {
     use MiddlewareSupport;
 
-    /**
-     * @var object[]
-     */
-    private $services;
-
-    /**
-     * @var RpcServerResponseFactoryInterface
-     */
-    private $responseFactory;
-
-    /**
-     * @var ErrorHandlerInterface
-     */
-    private $errorHandler;
-
-    public function __construct(array $services, RpcServerResponseFactoryInterface $responseFactory, ErrorHandlerInterface $errorHandler, array $middlewares = [])
+    public function __construct(
+        private readonly array $services,
+        private readonly RpcServerResponseFactoryInterface $responseFactory,
+        private readonly ErrorHandlerInterface $errorHandler,
+        array $middlewares = [])
     {
-        $this->services = $services;
-        $this->responseFactory = $responseFactory;
-        $this->errorHandler = $errorHandler;
         $this->middlewares = $middlewares;
     }
 

@@ -20,8 +20,7 @@ class RequestMapping
 {
     public function __construct(
         private readonly string $path,
-        private readonly string $method = '',
-        private readonly array $queryParams = [])
+        private readonly string $method = '')
     {
     }
 
@@ -39,13 +38,5 @@ class RequestMapping
     public function getMethod(): string
     {
         return $this->method;
-    }
-
-    /**
-     * @return array
-     */
-    public function getQueryParams(): array
-    {
-        return $this->queryParams;
     }
 }

@@ -23,7 +23,7 @@ class InMemoryServiceResolver implements ServiceResolverInterface, ServiceRegist
     /**
      * @var ServiceEndpoint[]
      */
-    private $serviceEndpoints;
+    private array $serviceEndpoints = [];
 
     /**
      * {@inheritDoc}
@@ -57,7 +57,7 @@ class InMemoryServiceResolver implements ServiceResolverInterface, ServiceRegist
         $serverPort = $service->getServerPort();
 
         return new Endpoint(
-            $serverPort->getServerType(),
+            $serverPort->getServerType()->value,
             $serverPort->getHost(),
             $serverPort->getPort(),
             null,

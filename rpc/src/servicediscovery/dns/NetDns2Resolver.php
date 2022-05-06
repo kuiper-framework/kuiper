@@ -9,21 +9,13 @@ use Net_DNS2_RR_SRV;
 
 class NetDns2Resolver implements DnsResolverInterface
 {
-    /**
-     * @var Net_DNS2_Resolver
-     */
-    private $resolver;
-
-    /**
-     * NetDns2Resolver constructor.
-     *
-     * @param Net_DNS2_Resolver $resolver
-     */
-    public function __construct(Net_DNS2_Resolver $resolver)
+    public function __construct(private readonly Net_DNS2_Resolver $resolver)
     {
-        $this->resolver = $resolver;
     }
 
+    /**
+     * @throws \Net_DNS2_Exception
+     */
     public function resolve(string $hostname): array
     {
         $result = $this->resolver->query($hostname, 'SRV');

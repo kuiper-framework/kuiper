@@ -22,7 +22,7 @@ class SwooleCoroutineTcpTransporter extends SwooleTcpTransporter
     /**
      * {@inheritdoc}
      */
-    protected function createSwooleClient()
+    protected function createSwooleClient(): object
     {
         return new Client(SWOOLE_TCP);
     }

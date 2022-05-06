@@ -21,19 +21,8 @@ use kuiper\rpc\RpcResponseInterface;
 
 class Retry implements MiddlewareInterface
 {
-    /**
-     * @var RetryFactory
-     */
-    private $retryFactory;
-
-    /**
-     * Retry constructor.
-     *
-     * @param RetryFactory $retryFactory
-     */
-    public function __construct(RetryFactory $retryFactory)
+    public function __construct(private readonly RetryFactory $retryFactory)
     {
-        $this->retryFactory = $retryFactory;
     }
 
     public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $handler): RpcResponseInterface

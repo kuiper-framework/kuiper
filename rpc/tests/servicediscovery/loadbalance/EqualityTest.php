@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 class EqualityTest extends TestCase
 {
-    public function testName()
+    public function testName(): void
     {
         $lb = new Equality(['a', 'b', 'c']);
         $this->assertEquals('a', $lb->select());

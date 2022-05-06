@@ -26,25 +26,15 @@ class ServiceDiscoveryListener implements EventSubscriberInterface, LoggerAwareI
     use LoggerAwareTrait;
 
     /**
-     * @var ServiceRegistryInterface
-     */
-    private $serviceRegistry;
-
-    /**
-     * @var Service[]
-     */
-    private $services;
-
-    /**
      * ServiceDiscoveryListener constructor.
      *
      * @param ServiceRegistryInterface $serviceRegistry
      * @param Service[]                $services
      */
-    public function __construct(ServiceRegistryInterface $serviceRegistry, array $services)
+    public function __construct(
+        private readonly ServiceRegistryInterface $serviceRegistry,
+        private readonly array $services)
     {
-        $this->serviceRegistry = $serviceRegistry;
-        $this->services = $services;
     }
 
     public function __invoke($event): void

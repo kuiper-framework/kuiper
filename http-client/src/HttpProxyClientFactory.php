@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace kuiper\http\client;
 
 use GuzzleHttp\ClientInterface;
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\rpc\client\ProxyGenerator;

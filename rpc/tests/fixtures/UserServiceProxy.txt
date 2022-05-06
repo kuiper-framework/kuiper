@@ -2,7 +2,6 @@ namespace kuiper\rpc\fixtures;
 
 class UserService77db530f911d931cbce393d66ceda611 implements UserService
 {
-
     private $rpcExecutorFactory = null;
 
     public function __construct(\kuiper\rpc\client\RpcExecutorFactoryInterface $rpcExecutorFactory)
@@ -40,6 +39,4 @@ class UserService77db530f911d931cbce393d66ceda611 implements UserService
     {
         return $this->rpcExecutorFactory;
     }
-
-
 }

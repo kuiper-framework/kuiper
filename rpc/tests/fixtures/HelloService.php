@@ -13,16 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\fixtures;
 
-use kuiper\rpc\annotation\CircuitBreaker;
-use kuiper\rpc\annotation\Retry;
+use kuiper\rpc\attribute\CircuitBreaker;
+use kuiper\rpc\attribute\Retry;
 
-/**
- * @CircuitBreaker()
- */
+#[CircuitBreaker]
 interface HelloService
 {
-    /**
-     * @Retry()
-     */
+    #[Retry]
     public function hello(string $name): string;
 }

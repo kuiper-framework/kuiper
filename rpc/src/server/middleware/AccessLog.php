@@ -26,17 +26,14 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
     use LoggerAwareTrait;
 
     /**
-     * @var RequestLogFormatterInterface
-     */
-    private $formatter;
-    /**
      * @var callable|null
      */
     private $requestFilter;
 
-    public function __construct(RequestLogFormatterInterface $formatter, callable $requestFilter = null)
+    public function __construct(
+        private readonly RequestLogFormatterInterface $formatter,
+        callable $requestFilter = null)
     {
-        $this->formatter = $formatter;
         $this->requestFilter = $requestFilter;
     }
 

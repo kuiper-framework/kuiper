@@ -18,7 +18,6 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
-use kuiper\annotations\AnnotationReader;
 use kuiper\http\client\fixtures\GithubService;
 use kuiper\http\client\fixtures\GitRepository;
 use kuiper\serializer\Serializer;
@@ -26,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 
 class HttpClientProxyTest extends TestCase
 {
-    public function testGithubService()
+    public function testGithubService(): void
     {
         $mock = new MockHandler([
             new Response(200, [
@@ -42,7 +41,7 @@ class HttpClientProxyTest extends TestCase
         $handlerStack->push($history);
         $client = new Client(['handler' => $handlerStack]);
 
-        $clientFactory = new HttpProxyClientFactory($client, AnnotationReader::getInstance(), new Serializer());
+        $clientFactory = new HttpProxyClientFactory($client, new Serializer());
         $clientFactory->setRpcResponseFactory(new HttpJsonResponseFactory($clientFactory->getRpcResponseNormalizer(), 'data'));
 
         $proxy = $clientFactory->create(GithubService::class);

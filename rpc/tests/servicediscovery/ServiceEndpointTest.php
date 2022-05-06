@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 class ServiceEndpointTest extends TestCase
 {
-    public function testFromString()
+    public function testFromString(): void
     {
         $endpoint = ServiceEndpoint::fromString('a@tcp://localhost:9000');
         $this->assertEquals('default/a:1.0@tcp://localhost:9000?', (string) $endpoint);

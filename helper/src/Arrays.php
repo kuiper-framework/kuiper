@@ -296,7 +296,6 @@ class Arrays
                             continue;
                         }
                         $property = $class->getProperty($name);
-                        $property->setAccessible(true);
                         $property->setValue($bean, $val);
                     }
                 } catch (ReflectionException $e) {

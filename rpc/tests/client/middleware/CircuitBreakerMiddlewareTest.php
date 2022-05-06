@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace kuiper\rpc\client\middleware;
 
 use GuzzleHttp\Psr7\Response;
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\event\InMemoryEventDispatcher;
@@ -40,7 +38,7 @@ use Psr\Http\Message\RequestInterface;
 
 class CircuitBreakerMiddlewareTest extends TestCase
 {
-    public function testName()
+    public function testName(): void
     {
         $proxyGenerator = new ProxyGenerator();
         $class = $proxyGenerator->generate(HelloService::class);
@@ -68,25 +66,19 @@ class CircuitBreakerMiddlewareTest extends TestCase
         $config = Properties::create([
             'application' => [
                 'client' => [
-                    'circuit_breaker' => [
+                    'circuitbreaker' => [
                         'default' => [
                         ],
                         HelloService::class => [
                             'minimum_number_of_calls' => 2,
                         ],
-                    ],
-                    'retry' => [
-                        'default' => [
-                            'wait_duration' => 0,
-                        ],
-                    ],
+                    ]
                 ],
             ],
         ]);
         $builder->addDefinitions(new PropertiesDefinitionSource($config));
         $builder->addDefinitions([
             EventDispatcherInterface::class => $eventDispatcher = new InMemoryEventDispatcher(),
-            AnnotationReaderInterface::class => AnnotationReader::getInstance(),
             PropertyResolverInterface::class => $config,
             PoolFactoryInterface::class => new PoolFactory(),
         ]);
@@ -96,6 +88,7 @@ class CircuitBreakerMiddlewareTest extends TestCase
         /** @var HelloService $service */
         $service = new $className($executorFactory);
         $responseFactory->setResult(['hello world']);
+        $ret = null;
         foreach (range(1, 3) as $times) {
             try {
                 $ret = $service->hello((string) $times);

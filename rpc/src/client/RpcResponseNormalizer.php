@@ -13,45 +13,40 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client;
 
+use kuiper\reflection\exception\ClassNotFoundException;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\reflection\ReflectionType;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\reflection\type\VoidType;
 use kuiper\rpc\RpcMethodInterface;
 use kuiper\serializer\NormalizerInterface;
+use ReflectionException;
+use ReflectionMethod;
 use Webmozart\Assert\Assert;
 
 class RpcResponseNormalizer
 {
     /**
-     * @var NormalizerInterface
-     */
-    private $normalizer;
-
-    /**
-     * @var ReflectionDocBlockFactoryInterface
-     */
-    private $reflectionDocBlockFactory;
-
-    /**
      * @var array
      */
-    private $cachedTypes;
+    private array $cachedTypes;
 
     /**
      * JsonRpcSerializerResponseFactory constructor.
      */
-    public function __construct(NormalizerInterface $normalizer, ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
+    public function __construct(
+        private readonly NormalizerInterface $normalizer,
+        private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
     {
-        $this->normalizer = $normalizer;
-        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
     }
 
     /**
      * @param RpcMethodInterface $method
-     * @param array              $result
+     * @param array $result
      *
      * @return array
+     * @throws ReflectionException
+     * @throws ClassNotFoundException
      */
     public function normalize(RpcMethodInterface $method, array $result): array
     {
@@ -92,13 +87,17 @@ class RpcResponseNormalizer
         return $ret;
     }
 
+    /**
+     * @throws ReflectionException
+     * @throws ClassNotFoundException
+     */
     private function getMethodReturnTypes(RpcMethodInterface $method): array
     {
         $key = (string) $method;
         if (isset($this->cachedTypes[$key])) {
             return $this->cachedTypes[$key];
         }
-        $reflectionMethod = new \ReflectionMethod($method->getTarget(), $method->getMethodName());
+        $reflectionMethod = new ReflectionMethod($method->getTarget(), $method->getMethodName());
         $docBlock = $this->reflectionDocBlockFactory->createMethodDocBlock($reflectionMethod);
         $returnType = $this->createType($reflectionMethod->getReturnType(), $docBlock->getReturnType());
         $docParamTypes = $docBlock->getParameterTypes();
@@ -112,6 +111,11 @@ class RpcResponseNormalizer
         return $this->cachedTypes[$key] = [$returnType, $types];
     }
 
+    /**
+     * @param \ReflectionType|null $phpType
+     * @param ReflectionTypeInterface $docType
+     * @return ReflectionTypeInterface|null
+     */
     private function createType(?\ReflectionType $phpType, ReflectionTypeInterface $docType): ?ReflectionTypeInterface
     {
         if (null === $phpType) {

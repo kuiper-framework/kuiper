@@ -13,34 +13,16 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
+use InvalidArgumentException;
+
 class RpcMethod implements RpcMethodInterface
 {
     /**
-     * @var object|string
-     */
-    private $target;
-
-    /**
-     * @var ServiceLocator
-     */
-    private $serviceLocator;
-
-    /**
-     * @var string
-     */
-    private $methodName;
-
-    /**
-     * @var array
-     */
-    private $arguments;
-
-    /**
      * 返回值，形式为 [$returnValue, ...$outParams].
-     *
-     * @var array|null
      */
-    private $result;
+    private ?array $result = null;
+
+    private readonly object|string $target;
 
     /**
      * InvokingMethod constructor.
@@ -48,25 +30,19 @@ class RpcMethod implements RpcMethodInterface
      * @param object|string|mixed $target
      */
     public function __construct(
-        private readonly mixed $target,
-        private ServiceLocator $serviceLocator,
+        mixed $target,
+        private readonly ServiceLocator $serviceLocator,
         private readonly string $methodName,
         private readonly array $arguments)
     {
         if (is_object($target) || is_string($target)) {
             $this->target = $target;
         } else {
-            throw new \InvalidArgumentException('expect target is an object or class name, got '.gettype($target));
+            throw new InvalidArgumentException('expect target is an object or class name, got '.gettype($target));
         }
-        $this->serviceLocator = $serviceLocator;
-        $this->methodName = $methodName;
-        $this->arguments = $arguments;
     }
 
-    /**
-     * @return object|string
-     */
-    public function getTarget()
+    public function getTarget(): object|string
     {
         return $this->target;
     }
@@ -120,10 +96,7 @@ class RpcMethod implements RpcMethodInterface
      */
     public function withArguments(array $args)
     {
-        $copy = clone $this;
-        $copy->arguments = $args;
-
-        return $copy;
+        return new self($this->target, $this->serviceLocator, $this->methodName, $args);
     }
 
     public function getResult(): array

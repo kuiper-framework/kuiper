@@ -26,7 +26,7 @@ use Swoole\Coroutine;
 
 class HttpClientFactoryTest extends TestCase
 {
-    public function testName()
+    public function testName(): void
     {
         $logger = new Logger('', [new ErrorLogHandler()], [new CoroutineIdProcessor()]);
         $httpClientFactory = new HttpClientFactory(new PoolFactory());
@@ -37,10 +37,10 @@ class HttpClientFactoryTest extends TestCase
         ]);
         $response = $httpClient->get('http://baidu.com');
         // print_r($response);
-        self::assertInstanceOf(ResponseInterface::class, $response);
+        $this->assertInstanceOf(ResponseInterface::class, $response);
     }
 
-    public function testCoroutine()
+    public function testCoroutine(): void
     {
         $logger = new Logger('', [new ErrorLogHandler()], [new CoroutineIdProcessor()]);
         $httpClientFactory = new HttpClientFactory(new PoolFactory());

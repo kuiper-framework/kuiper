@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\resilience;
 
+use Psr\Container\ContainerInterface;
 use function DI\autowire;
+use function DI\factory;
 use function DI\get;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -67,9 +69,13 @@ class ResilienceConfiguration implements DefinitionConfiguration
             Clock::class => autowire(SimpleClock::class),
             MetricsFactory::class => autowire(MetricsFactoryImpl::class),
             CircuitBreakerFactory::class => autowire(CircuitBreakerFactoryImpl::class)
-                ->constructorParameter('options', get('application.client.circuitbreaker')),
+                ->constructorParameter('options', factory(function (ContainerInterface $container) {
+                    return $container->get('application.client.circuitbreaker') ?? [];
+                })),
             RetryFactory::class => autowire(RetryFactoryImpl::class)
-                ->constructorParameter('options', get('application.client.retry')),
+                ->constructorParameter('options', factory(function (ContainerInterface $container) {
+                    return $container->get('application.client.retry') ?? [];
+                })),
         ];
     }
 }

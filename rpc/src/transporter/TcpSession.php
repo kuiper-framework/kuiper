@@ -8,19 +8,8 @@ use Psr\Http\Message\ResponseInterface;
 
 class TcpSession implements Session
 {
-    /**
-     * @var AbstractTcpTransporter
-     */
-    private $transporter;
-
-    /**
-     * TcpSession constructor.
-     *
-     * @param AbstractTcpTransporter $transporter
-     */
-    public function __construct(AbstractTcpTransporter $transporter)
+    public function __construct(private readonly AbstractTcpTransporter $transporter)
     {
-        $this->transporter = $transporter;
     }
 
     public function close(): void

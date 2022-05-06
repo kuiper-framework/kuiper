@@ -19,21 +19,12 @@ use Psr\SimpleCache\CacheInterface;
 class CachedServiceResolver implements ServiceResolverInterface
 {
     /**
-     * @var ServiceResolverInterface
-     */
-    private $resolver;
-    /**
-     * @var CacheInterface
-     */
-    private $cache;
-
-    /**
      * ChainRouteResolver constructor.
      */
-    public function __construct(ServiceResolverInterface $resolver, CacheInterface $cache)
+    public function __construct(
+        private readonly ServiceResolverInterface $resolver,
+        private readonly CacheInterface $cache)
     {
-        $this->resolver = $resolver;
-        $this->cache = $cache;
     }
 
     /**

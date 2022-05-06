@@ -15,17 +15,11 @@ namespace kuiper\rpc\servicediscovery\loadbalance;
 
 class Random implements LoadBalanceInterface
 {
-    /**
-     * @var array
-     */
-    private $hosts;
-
-    public function __construct(array $hosts)
+    public function __construct(private readonly array $hosts)
     {
-        $this->hosts = $hosts;
     }
 
-    public function select()
+    public function select(): mixed
     {
         return $this->hosts[array_rand($this->hosts)];
     }

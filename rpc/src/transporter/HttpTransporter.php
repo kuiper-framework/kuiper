@@ -18,17 +18,8 @@ use Psr\Http\Message\RequestInterface;
 
 class HttpTransporter implements TransporterInterface
 {
-    /**
-     * @var ClientInterface
-     */
-    private $httpClient;
-
-    /**
-     * HttpTransporter constructor.
-     */
-    public function __construct(ClientInterface $httpClient)
+    public function __construct(private readonly ClientInterface $httpClient)
     {
-        $this->httpClient = $httpClient;
     }
 
     public function close(): void

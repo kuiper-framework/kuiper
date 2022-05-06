@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpComposerExtensionStubsInspection */
 
 /*
  * This file is part of the Kuiper package.
@@ -13,8 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
+use kuiper\rpc\exception\ConnectionException;
 use kuiper\rpc\exception\ErrorCode;
 use Psr\Http\Message\ResponseInterface;
+use function socket_close;
+use function socket_connect;
+use function socket_create;
+use function socket_read;
+use function socket_write;
 
 /**
  * Class SocketTcpTransporter.
@@ -28,14 +34,14 @@ class SocketTcpTransporter extends AbstractTcpTransporter
      */
     protected function createResource()
     {
-        $socket = \socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 
         if (false === $socket) {
-            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_CREATE_FAILED));
+            $this->onConnectionError(ErrorCode::SOCKET_CREATE_FAILED);
         }
-        if (!\socket_connect($socket, $this->getEndpoint()->getHost(), $this->getEndpoint()->getPort())) {
-            \socket_close($socket);
-            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_CONNECT_FAILED));
+        if (!socket_connect($socket, $this->getEndpoint()->getHost(), $this->getEndpoint()->getPort())) {
+            socket_close($socket);
+            $this->onConnectionError(ErrorCode::SOCKET_CONNECT_FAILED);
         }
 
         return $socket;
@@ -46,7 +52,7 @@ class SocketTcpTransporter extends AbstractTcpTransporter
      */
     protected function destroyResource(): void
     {
-        \socket_close($this->getResource());
+        socket_close($this->getResource());
     }
 
     /**
@@ -55,31 +61,31 @@ class SocketTcpTransporter extends AbstractTcpTransporter
     protected function doSend(string $data): void
     {
         $socket = $this->getResource();
-        if (!\socket_write($socket, $data, strlen($data))) {
-            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_SEND_FAILED));
+        if (!socket_write($socket, $data, strlen($data))) {
+            $this->onConnectionError(ErrorCode::SOCKET_SEND_FAILED);
         }
     }
 
     /**
-     * @throws \kuiper\rpc\exception\ConnectionException
+     * @throws ConnectionException
      */
     public function recv(): ResponseInterface
     {
         $socket = $this->getResource();
         $time = microtime(true);
-        $timeout = ($this->getEndpoint()->getReceiveTimeout() ?? 5) * 10000;
+        $timeout = ($this->getEndpoint()->getReceiveTimeout() ?? 5.0) * 10000;
         $responseLength = 0;
         $response = null;
         while (true) {
             if (1000 * (microtime(true) - $time) > $timeout) {
-                $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_SELECT_TIMEOUT));
+                $this->onConnectionError(ErrorCode::SOCKET_SELECT_TIMEOUT);
             }
             //读取最多32M的数据
-            $data = \socket_read($socket, 65536, PHP_BINARY_READ);
+            $data = socket_read($socket, 65536, PHP_BINARY_READ);
 
             if (empty($data)) {
                 // 已经断开连接
-                $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_CLOSED));
+                $this->onConnectionError(ErrorCode::SOCKET_CLOSED);
             }
 
             //第一个包

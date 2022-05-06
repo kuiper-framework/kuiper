@@ -18,5 +18,8 @@ use Attribute;
 #[Attribute(Attribute::TARGET_METHOD)]
 final class DeleteMapping extends RequestMapping
 {
-    public $method = 'DELETE';
+    public function __construct(string $path)
+    {
+        parent::__construct($path, 'DELETE');
+    }
 }

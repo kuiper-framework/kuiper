@@ -18,40 +18,13 @@ use kuiper\swoole\ServerPort;
 
 class Service
 {
-    /**
-     * @var ServiceLocator
-     */
-    private $serviceLocator;
-
-    /**
-     * @var object
-     */
-    private $service;
-
-    /**
-     * @var string[]
-     */
-    private $methods;
-
-    /**
-     * @var ServerPort
-     */
-    private $serverPort;
-
-    /**
-     * @var int
-     */
-    private $weight;
-
     public function __construct(
-        ServiceLocator $serviceLocator, object $service, array $methods,
-        ServerPort $serverPort, int $weight = 100)
+        private readonly ServiceLocator $serviceLocator,
+        private readonly object $service,
+        private readonly array $methods,
+        private readonly ServerPort $serverPort,
+        private readonly int $weight = 100)
     {
-        $this->serviceLocator = $serviceLocator;
-        $this->service = $service;
-        $this->methods = $methods;
-        $this->serverPort = $serverPort;
-        $this->weight = $weight;
     }
 
     /**

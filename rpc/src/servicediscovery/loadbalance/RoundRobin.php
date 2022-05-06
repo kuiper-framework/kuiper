@@ -18,25 +18,19 @@ class RoundRobin implements LoadBalanceInterface
     /**
      * @var array
      */
-    private $hosts;
-
-    /**
-     * @var array
-     */
-    private $weights;
+    private readonly array $hosts;
 
     /**
      * @var array
      */
     private $states;
 
-    public function __construct(array $hosts, array $weights)
+    public function __construct(array $hosts, private readonly array $weights)
     {
         if (empty($hosts)) {
             throw new \InvalidArgumentException('hosts should not be empty');
         }
         $this->hosts = $hosts;
-        $this->weights = $weights;
         $this->states = [];
         foreach ($hosts as $key => $item) {
             $this->states[$key] = ['weight' => 0, 'count' => 0];
@@ -46,7 +40,7 @@ class RoundRobin implements LoadBalanceInterface
     /**
      * {@inheritdoc}
      */
-    public function select()
+    public function select(): mixed
     {
         $total = 0;
         $best = null;

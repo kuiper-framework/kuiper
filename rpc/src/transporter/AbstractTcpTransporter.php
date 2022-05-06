@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
+use kuiper\logger\Logger;
 use kuiper\rpc\exception\CannotResolveEndpointException;
 use kuiper\rpc\exception\CommunicationException;
 use kuiper\rpc\exception\ConnectFailedException;
@@ -26,7 +27,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwareInterface
 {
@@ -42,33 +42,30 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
     ];
 
     /**
-     * @var ResponseFactoryInterface
-     */
-    private $responseFactory;
-
-    /**
      * @var array
      */
-    protected $options = [];
+    protected array $options = [];
 
     /**
      * @var Endpoint|null
      */
-    private $endpoint;
+    private ?Endpoint $endpoint = null;
 
     /**
      * @var mixed
      */
-    private $resource;
+    private mixed $resource = null;
 
     /**
      * AbstractTcpTransporter constructor.
      */
-    public function __construct(ResponseFactoryInterface $responseFactory, array $options = [], LoggerInterface $logger = null)
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory,
+        array $options = [],
+        LoggerInterface $logger = null)
     {
-        $this->responseFactory = $responseFactory;
         $this->setOptions($options);
-        $this->setLogger($logger ?? \kuiper\logger\Logger::nullLogger());
+        $this->setLogger($logger ?? Logger::nullLogger());
     }
 
     public function getEndpoint(): Endpoint
@@ -171,7 +168,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
      *
      * @throws ConnectionException
      */
-    protected function onConnectionError(ErrorCode $errorCode, string $message = null): void
+    protected function onConnectionError(int $errorCode, string $message = null): void
     {
         $exception = $this->createException($errorCode, $message);
         $this->close();
@@ -179,14 +176,14 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
         throw $exception;
     }
 
-    protected function createException(ErrorCode $errorCode, ?string $message): ConnectionException
+    protected function createException(int $errorCode, ?string $message): ConnectionException
     {
-        $message = ($message ?? $errorCode->message).'(address='.$this->endpoint.')';
-        if (array_key_exists($errorCode->value(), self::ERROR_EXCEPTIONS)) {
-            $class = self::ERROR_EXCEPTIONS[$errorCode->value()];
-            $exception = new $class($this, $message, $errorCode->value());
+        $message = ($message ?? ErrorCode::getMessage($errorCode)).'(address='.$this->endpoint.')';
+        if (isset(self::ERROR_EXCEPTIONS[$errorCode])) {
+            $class = self::ERROR_EXCEPTIONS[$errorCode];
+            $exception = new $class($this, $message, $errorCode);
         } else {
-            $exception = new ConnectionException($this, $message, $errorCode->value());
+            $exception = new ConnectionException($this, $message, $errorCode);
         }
 
         return $exception;
@@ -213,6 +210,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
 
     /**
      * @return ResponseInterface
+     * @throws ConnectionException
      */
     abstract public function recv(): ResponseInterface;
 }

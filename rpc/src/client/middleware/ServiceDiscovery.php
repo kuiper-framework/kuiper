@@ -13,13 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client\middleware;
 
+use InvalidArgumentException;
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
-use kuiper\rpc\servicediscovery\InMemoryCache;
 use kuiper\rpc\servicediscovery\loadbalance\Equality;
 use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceInterface;
@@ -35,30 +35,15 @@ use Webmozart\Assert\Assert;
 class ServiceDiscovery implements MiddlewareInterface
 {
     /**
-     * @var ServiceResolverInterface
-     */
-    private $serviceResolver;
-
-    /**
-     * @var CacheInterface
-     */
-    private $cache;
-
-    /**
-     * @var string
-     */
-    private $loadBalance;
-
-    /**
      * @var LoadBalanceInterface[]
      */
-    private $lb;
+    private array $lb;
 
-    public function __construct(ServiceResolverInterface $serviceResolver, CacheInterface $cache = null, string $loadBalance = null)
+    public function __construct(
+        private readonly ServiceResolverInterface $serviceResolver,
+        private readonly CacheInterface $cache,
+        private readonly LoadBalanceAlgorithm $loadBalance)
     {
-        $this->serviceResolver = $serviceResolver;
-        $this->cache = $cache ?? new InMemoryCache();
-        $this->loadBalance = $loadBalance ?? LoadBalanceAlgorithm::ROUND_ROBIN;
     }
 
     public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $handler): RpcResponseInterface
@@ -69,7 +54,7 @@ class ServiceDiscovery implements MiddlewareInterface
             return $handler->handle($request);
         }
         $serviceEndpoint = $this->getServiceEndpoint($serviceLocator);
-        $endpoint = $serviceEndpoint->getEndpoint($this->lb[(string) $serviceLocator]->select());
+        $endpoint = $serviceEndpoint->getEndpoint($this->lb[(string)$serviceLocator]->select());
         Assert::notNull($endpoint);
 
         return $handler->handle($request->withUri(
@@ -86,7 +71,7 @@ class ServiceDiscovery implements MiddlewareInterface
             return;
         }
         $serviceEndpoint = $serviceEndpoint->remove($endpoint);
-        $key = (string) $serviceLocator;
+        $key = (string)$serviceLocator;
         if ($serviceEndpoint->isEmpty()) {
             $this->cache->delete($key);
         } else {
@@ -97,10 +82,10 @@ class ServiceDiscovery implements MiddlewareInterface
 
     private function resolve(ServiceLocator $serviceLocator): ServiceEndpoint
     {
-        $key = (string) $serviceLocator;
+        $key = (string)$serviceLocator;
         $serviceEndpoint = $this->serviceResolver->resolve($serviceLocator);
         if (null === $serviceEndpoint || $serviceEndpoint->isEmpty()) {
-            throw new \InvalidArgumentException("Cannot resolve service $key");
+            throw new InvalidArgumentException("Cannot resolve service $key");
         }
         $this->cache->set($key, $serviceEndpoint);
         $this->lb[$key] = $this->createLoadBalance($serviceEndpoint);
@@ -113,21 +98,18 @@ class ServiceDiscovery implements MiddlewareInterface
         $endpoints = $serviceEndpoint->getEndpoints();
         $addresses = Arrays::pull($endpoints, 'address');
         $weights = array_map(static function (Endpoint $endpoint): int {
-            return (int) ($endpoint->getOption('weight') ?? 100);
+            return (int)($endpoint->getOption('weight') ?? 100);
         }, $endpoints);
-        switch ($this->loadBalance) {
-            case LoadBalanceAlgorithm::ROUND_ROBIN:
-                return new RoundRobin($addresses, $weights);
-            case LoadBalanceAlgorithm::RANDOM:
-                return new Random($addresses);
-            default:
-                return new Equality($addresses);
-        }
+        return match ($this->loadBalance) {
+            LoadBalanceAlgorithm::ROUND_ROBIN => new RoundRobin($addresses, $weights),
+            LoadBalanceAlgorithm::RANDOM => new Random($addresses),
+            default => new Equality($addresses),
+        };
     }
 
     private function getServiceEndpoint(ServiceLocator $serviceLocator): ServiceEndpoint
     {
-        $key = (string) $serviceLocator;
+        $key = (string)$serviceLocator;
         $serviceEndpoint = $this->cache->get($key);
         if (null === $serviceEndpoint) {
             $serviceEndpoint = $this->resolve($serviceLocator);

@@ -18,5 +18,5 @@ interface LoadBalanceInterface
     /**
      * @return mixed
      */
-    public function select();
+    public function select(): mixed;
 }

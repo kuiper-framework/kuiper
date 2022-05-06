@@ -15,6 +15,7 @@ namespace kuiper\rpc;
 
 use kuiper\helper\Arrays;
 use kuiper\swoole\logger\JsonRequestLogFormatter;
+use kuiper\swoole\logger\LogContext;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -31,27 +32,21 @@ class JsonRpcRequestLogFormatter extends RpcRequestLogFormatter
         'body_bytes_sent', 'body_bytes_recv', 'request_id', 'request_time', 'extra',
     ];
 
-    /**
-     * @var string[]
-     */
-    private $fields;
-
     public function __construct(
-        array $fields = self::SERVER,
+        private readonly array $fields = self::SERVER,
         array $extra = ['params', 'pid'],
         int $bodyMaxSize = 4096,
         $dateFormat = 'Y-m-d\TH:i:s.v')
     {
         parent::__construct('', $extra, $bodyMaxSize, $dateFormat);
-        $this->fields = $fields;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function format(RequestInterface $request, ?ResponseInterface $response, ?\Throwable $error, float $startTime, float $endTime): array
+    public function format(LogContext $context): array
     {
-        $messageContext = $this->prepareMessageContext($request, $response, $error, $startTime, $endTime);
+        $messageContext = $this->prepareMessageContext($context);
 
         return [JsonRequestLogFormatter::jsonEncode(Arrays::select($messageContext, $this->fields))];
     }

@@ -14,19 +14,8 @@ use kuiper\rpc\transporter\AbstractTcpTransporter;
 
 class RetryOnRetryRemoveEndpointListener implements EventListenerInterface
 {
-    /**
-     * @var ServiceDiscovery
-     */
-    private $serviceDiscovery;
-
-    /**
-     * RetryOnRetryRemoveEndpointListener constructor.
-     *
-     * @param ServiceDiscovery $serviceDiscovery
-     */
-    public function __construct(ServiceDiscovery $serviceDiscovery)
+    public function __construct(private readonly ServiceDiscovery $serviceDiscovery)
     {
-        $this->serviceDiscovery = $serviceDiscovery;
     }
 
     public function __invoke(object $event): void

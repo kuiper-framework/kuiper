@@ -17,14 +17,13 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\http\client\fixtures\GithubService;
 use kuiper\http\client\fixtures\GitRepository;
+use kuiper\logger\Logger;
 use kuiper\reflection\ReflectionConfiguration;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\serializer\SerializerConfiguration;
@@ -39,7 +38,7 @@ use Psr\Log\NullLogger;
 
 class HttpClientConfigurationTest extends TestCase
 {
-    public function testName()
+    public function testName(): void
     {
         $mock = new MockHandler([
             new Response(200, [
@@ -78,7 +77,7 @@ class HttpClientConfigurationTest extends TestCase
         $builder->addConfiguration(new HttpClientConfiguration());
         $builder->addConfiguration(new ReflectionConfiguration());
         $builder->addConfiguration(new SerializerConfiguration());
-        $app = Application::create(function () use ($builder) {
+        $app = Application::create(static function () use ($builder) {
             return $builder->build();
         });
         $config = Application::getInstance()->getConfig();
@@ -91,10 +90,9 @@ class HttpClientConfigurationTest extends TestCase
         $builder->componentScan([__NAMESPACE__.'\\fixtures']);
         $builder->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class));
         $builder->addDefinitions([
-            LoggerInterface::class => \kuiper\logger\Logger::nullLogger(),
+            LoggerInterface::class => Logger::nullLogger(),
             PoolFactoryInterface::class => new PoolFactory(false),
             PropertyResolverInterface::class => $config,
-            AnnotationReaderInterface::class => AnnotationReader::getInstance(),
         ]);
 
         return $app->getContainer();

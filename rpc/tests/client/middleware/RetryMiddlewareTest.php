@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace kuiper\rpc\client\middleware;
 
 use GuzzleHttp\Psr7\Response;
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\event\InMemoryEventDispatcher;
@@ -39,7 +37,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 class RetryMiddlewareTest extends TestCase
 {
-    public function testName()
+    public function testName(): void
     {
         $proxyGenerator = new ProxyGenerator();
         $class = $proxyGenerator->generate(HelloService::class);
@@ -61,16 +59,11 @@ class RetryMiddlewareTest extends TestCase
         $executorFactory = new RpcExecutorFactory(new RpcRequestFactory(), $rpcClient);
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new ResilienceConfiguration());
-        $ignoreErrors = [\InvalidArgumentException::class];
+        //$ignoreErrors = [\InvalidArgumentException::class];
         $ignoreErrors = [];
         $config = Properties::create([
             'application' => [
                 'client' => [
-                    'circuit_breaker' => [
-                        HelloService::class => [
-                            'minimum_number_of_calls' => 2,
-                        ],
-                    ],
                     'retry' => [
                         HelloService::class => [
                             'wait_duration' => 0,
@@ -83,7 +76,6 @@ class RetryMiddlewareTest extends TestCase
         $builder->addDefinitions(new PropertiesDefinitionSource($config));
         $builder->addDefinitions([
             EventDispatcherInterface::class => $eventDispatcher = new InMemoryEventDispatcher(),
-            AnnotationReaderInterface::class => AnnotationReader::getInstance(),
             PropertyResolverInterface::class => $config,
             PoolFactoryInterface::class => new PoolFactory(),
         ]);
@@ -93,20 +85,22 @@ class RetryMiddlewareTest extends TestCase
         /** @var HelloService $service */
         $service = new $className($executorFactory);
         $responseFactory->setResult(['hello world']);
+        $ret = [];
         foreach (range(1, 3) as $times) {
-            $c = 1;
+            // $c = 1;
             try {
                 $ret[$times] = $service->hello('world');
-            } catch (CallNotPermittedException|\InvalidArgumentException $e) {
+            } catch (\InvalidArgumentException $e) {
             }
         }
         $events = $eventDispatcher->getEvents();
         // echo count($events);
-        var_export($ret);
+        // var_export($ret);
         // $this->assertEquals('hello world', $ret);
         // $this->assertCount(2, $events);
         /** @var \kuiper\resilience\retry\Retry $retry */
-        $retry = array_values($container->get(RetryFactory::class)->getRetryList())[0];
-        $this->assertEquals(3, $retry->getMetrics()->getNumberOfSuccessfulCallsWithRetryAttempt());
+        $retryList = $container->get(RetryFactory::class)->getRetryList();
+        $retry = array_values($retryList)[0];
+        $this->assertEquals(1, $retry->getMetrics()->getNumberOfSuccessfulCallsWithRetryAttempt());
     }
 }

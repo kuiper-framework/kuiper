@@ -14,25 +14,18 @@ declare(strict_types=1);
 namespace kuiper\rpc\servicediscovery;
 
 use kuiper\rpc\ServiceLocator;
+use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\rpc\transporter\Endpoint;
 
 class ServiceEndpoint implements \Iterator
 {
-    public const DEFAULT_WEIGHT = 100;
-
-    /**
-     * @var ServiceLocator
-     */
-    private $serviceLocator;
-
     /**
      * @var Endpoint[]
      */
-    private $endpoints;
+    private array $endpoints;
 
-    public function __construct(ServiceLocator $serviceLocator, array $endpoints)
+    public function __construct(private readonly ServiceLocator $serviceLocator, array $endpoints)
     {
-        $this->serviceLocator = $serviceLocator;
         foreach ($endpoints as $endpoint) {
             $this->endpoints[$endpoint->getAddress()] = $endpoint;
         }
@@ -49,7 +42,7 @@ class ServiceEndpoint implements \Iterator
         }
 
         return new self(
-            ServiceLocator::fromString(substr($serviceEndpoint, 0, $pos)),
+            ServiceLocatorImpl::fromString(substr($serviceEndpoint, 0, $pos)),
             array_map([Endpoint::class, 'fromString'], explode(';', substr($serviceEndpoint, $pos + 1)))
         );
     }
@@ -135,7 +128,7 @@ class ServiceEndpoint implements \Iterator
      *
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return current($this->endpoints);
     }
@@ -150,10 +143,8 @@ class ServiceEndpoint implements \Iterator
 
     /**
      * {@inheritDoc}
-     *
-     * @return int|string|null
      */
-    public function key()
+    public function key(): mixed
     {
         return key($this->endpoints);
     }

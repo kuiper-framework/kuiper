@@ -14,23 +14,45 @@ declare(strict_types=1);
 namespace kuiper\http\client\attribute;
 
 use Attribute;
-use kuiper\rpc\annotation\RpcClient;
+use kuiper\rpc\attribute\RpcClient;
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class HttpClient extends RpcClient
 {
-    /**
-     * @var string
-     */
-    public $url;
+    public function __construct(
+        string  $service = '',
+        string  $version = '',
+        string  $namespace = '',
+        string  $protocol = '',
+        string  $endpoint = '',
+        private readonly string $url = '',
+        private readonly string $path = '',
+        private readonly string $responseParser = '')
+    {
+        parent::__construct($service, $version, $namespace, $protocol, $endpoint);
+    }
 
     /**
-     * @var string
+     * @return string
      */
-    public $path;
+    public function getUrl(): string
+    {
+        return $this->url;
+    }
 
     /**
-     * @var string
+     * @return string
      */
-    public $responseParser;
+    public function getPath(): string
+    {
+        return $this->path;
+    }
+
+    /**
+     * @return string
+     */
+    public function getResponseParser(): string
+    {
+        return $this->responseParser;
+    }
 }

@@ -15,10 +15,10 @@ namespace kuiper\http\client\attribute;
 
 use Attribute;
 
-#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
-class RequestHeader
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::TARGET_PARAMETER)]
+class HttpHeader
 {
-    public function __construct(private readonly string $name)
+    public function __construct(private readonly string $name, private readonly string $value = '')
     {
     }
 
@@ -28,5 +28,13 @@ class RequestHeader
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getValue(): string
+    {
+        return $this->value;
     }
 }

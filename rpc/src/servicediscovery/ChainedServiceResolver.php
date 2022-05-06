@@ -18,16 +18,11 @@ use kuiper\rpc\ServiceLocator;
 class ChainedServiceResolver implements ServiceResolverInterface
 {
     /**
-     * @var ServiceResolverInterface[]
-     */
-    private $resolvers;
-
-    /**
      * ChainRouteResolver constructor.
+     * @param ServiceResolverInterface[] $resolvers
      */
-    public function __construct(array $resolvers)
+    public function __construct(private readonly array $resolvers)
     {
-        $this->resolvers = $resolvers;
     }
 
     /**

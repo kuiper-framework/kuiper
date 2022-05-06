@@ -29,7 +29,7 @@ class HttpJsonResponseFactory implements RpcResponseFactoryInterface
      */
     public function __construct(
         private readonly RpcResponseNormalizer $normalizer,
-        private readonly string $node = null)
+        private readonly ?string $node = null)
     {
     }
 

@@ -24,27 +24,16 @@ class InMemoryCache implements CacheInterface
     /**
      * @var array
      */
-    private $table = [];
+    private array $table = [];
 
-    /**
-     * @var int
-     */
-    private $ttl;
-
-    /**
-     * InMemoryCache constructor.
-     *
-     * @param int $ttl
-     */
-    public function __construct(int $ttl = self::DEFAULT_TTL)
+    public function __construct(private readonly int $ttl = self::DEFAULT_TTL)
     {
-        $this->ttl = $ttl;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         $result = $this->table[$key] ?? null;
         if (null !== $result && time() < $result[self::KEY_EXPIRES]) {
@@ -57,7 +46,7 @@ class InMemoryCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
     {
         $this->table[$key] = [
             self::KEY_DATA => $value,
@@ -70,7 +59,7 @@ class InMemoryCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function delete($key)
+    public function delete(string $key): bool
     {
         unset($this->table[$key]);
 
@@ -80,7 +69,7 @@ class InMemoryCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function clear()
+    public function clear(): bool
     {
         $this->table = [];
 
@@ -90,7 +79,7 @@ class InMemoryCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
         $result = [];
         foreach ($keys as $key) {
@@ -103,7 +92,7 @@ class InMemoryCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);
@@ -115,7 +104,7 @@ class InMemoryCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys): bool
     {
         foreach ($keys as $key) {
             $this->delete($key);
@@ -127,7 +116,7 @@ class InMemoryCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function has($key)
+    public function has(string $key): bool
     {
         return null !== $this->get($key);
     }

@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpComposerExtensionStubsInspection */
 
 /*
  * This file is part of the Kuiper package.
@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
-use kuiper\rpc\exception\ConnectFailedException;
 use kuiper\rpc\exception\ErrorCode;
 use kuiper\swoole\constants\ClientSettings;
 use Psr\Http\Message\ResponseInterface;
@@ -26,7 +25,7 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
     /**
      * @var array
      */
-    protected $options = [
+    protected array $options = [
         ClientSettings::OPEN_LENGTH_CHECK => true,
         ClientSettings::PACKAGE_LENGTH_TYPE => 'N',
         ClientSettings::PACKAGE_LENGTH_OFFSET => 0,
@@ -39,22 +38,19 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
     /**
      * @var array
      */
-    protected $clientOptions = [];
+    protected array $clientOptions = [];
 
     public function setOptions(array $options): void
     {
         parent::setOptions($options);
         foreach ($this->options as $name => $value) {
-            if (ClientSettings::hasValue($name)) {
+            if (ClientSettings::has($name)) {
                 $this->clientOptions[$name] = $value;
             }
         }
     }
 
-    /**
-     * @return Client|\Swoole\Coroutine\Client
-     */
-    protected function createSwooleClient()
+    protected function createSwooleClient(): object
     {
         return new Client(SWOOLE_SOCK_TCP);
     }
@@ -76,7 +72,7 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
             if ($client->isConnected()) {
                 $client->close();
             }
-            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_CONNECT_FAILED));
+            $this->onConnectionError(ErrorCode::SOCKET_CONNECT_FAILED);
         }
 
         return $client;
@@ -99,7 +95,7 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
         /** @var Client $client */
         $client = $this->getResource();
         if (false === $client->send($data)) {
-            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_CONNECT_FAILED));
+            $this->onConnectionError(ErrorCode::SOCKET_CONNECT_FAILED);
         }
     }
 
@@ -115,20 +111,19 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
     {
         $client = $this->getResource();
         if (null === $client) {
-            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_CLOSED));
+            $this->onConnectionError(ErrorCode::SOCKET_CLOSED);
         }
         $response = $this->doRecv($this->getEndpoint()->getReceiveTimeout() ?? $this->options[ClientSettings::RECV_TIMEOUT]);
         if (is_string($response) && '' !== $response) {
             return $this->createResponse($response);
         }
         if ('' === $response) {
-            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_CLOSED));
+            $this->onConnectionError(ErrorCode::SOCKET_CLOSED);
         } elseif (SOCKET_ETIMEDOUT === $client->errCode) {
-            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_TIMEOUT));
+            $this->onConnectionError(ErrorCode::SOCKET_TIMEOUT);
         } else {
-            $this->onConnectionError(ErrorCode::fromValue(ErrorCode::SOCKET_RECEIVE_FAILED),
+            $this->onConnectionError(ErrorCode::SOCKET_RECEIVE_FAILED,
                 isset($client->errCode) ? socket_strerror($client->errCode) : null);
         }
-        throw new ConnectFailedException($this, 'should not arrive here');
     }
 }

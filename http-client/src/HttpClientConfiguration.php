@@ -64,11 +64,11 @@ class HttpClientConfiguration implements DefinitionConfiguration
         $self = $this;
         $definitions = [];
         foreach (ComponentCollection::getComponents(HttpClient::class) as $attribute) {
-            /** @var HttpClient $annotation */
-            $definitions[$annotation->getComponentId()] = factory(function (ContainerInterface $container) use ($self, $annotation) {
+            /** @var HttpClient $attribute */
+            $definitions[$attribute->getComponentId()] = factory(function (ContainerInterface $container) use ($self, $attribute) {
                 $options = $container->get('application.http_client');
                 /** @noinspection AmbiguousMethodsCallsInArrayMappingInspection */
-                $componentId = $annotation->getComponentId();
+                $componentId = $attribute->getComponentId();
                 if (isset($options[$componentId])) {
                     $httpClient = $self->httpClient(
                         $container,
@@ -83,12 +83,12 @@ class HttpClientConfiguration implements DefinitionConfiguration
                     $container->get(NormalizerInterface::class)
                 );
 
-                if (Text::isNotEmpty($annotation->responseParser)) {
-                    $factory->setRpcResponseFactory($container->get($annotation->responseParser));
+                if ('' !== $attribute->getResponseParser()) {
+                    $factory->setRpcResponseFactory($container->get($attribute->getResponseParser()));
                 }
 
                 /** @phpstan-ignore-next-line */
-                return $factory->create($annotation->getTargetClass());
+                return $factory->create($attribute->getTargetClass());
             });
         }
 
@@ -99,7 +99,7 @@ class HttpClientConfiguration implements DefinitionConfiguration
                 if ('default' === $name || isset($definitions[$name])) {
                     continue;
                 }
-                $options = array_merge($defaultOptions, $options);
+                $options += $defaultOptions;
                 $definitions[$name] = factory(function (ContainerInterface $container) use ($self, $options): ClientInterface {
                     return $self->httpClient($container, $container->get(HttpClientFactoryInterface::class), $options);
                 });

@@ -8,19 +8,8 @@ use Psr\Http\Message\ResponseInterface;
 
 class SimpleSession implements Session
 {
-    /**
-     * @var ResponseInterface
-     */
-    private $response;
-
-    /**
-     * SimpleSession constructor.
-     *
-     * @param ResponseInterface $response
-     */
-    public function __construct(ResponseInterface $response)
+    public function __construct(private readonly ResponseInterface $response)
     {
-        $this->response = $response;
     }
 
     public function close(): void

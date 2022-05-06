@@ -21,4 +21,13 @@ class SwooleSettingTest extends TestCase
     {
         $this->assertTrue(ServerSetting::has('package_body_offset'));
     }
+
+    public function testDefinitionMatch(): void
+    {
+        $refl = new \ReflectionClass(ServerSetting::class);
+        foreach ($refl->getConstants() as $key => $value) {
+            $this->assertEquals($key, strtoupper($value));
+            $this->assertEquals($value, strtolower($key));
+        }
+    }
 }

@@ -13,14 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\exception;
 
-use kuiper\helper\Enum;
-
-/**
- * Class ErrorCode.
- *
- * @property string $message
- */
-class ErrorCode extends Enum
+class ErrorCode
 {
     // 错误码定义（需要从扩展开始规划）
     public const SOCKET_SET_NONBLOCK_FAILED = -1002; // socket设置非阻塞失败
@@ -36,11 +29,9 @@ class ErrorCode extends Enum
     public const INVALID_ARGUMENT = 100000;
     public const INVALID_ENDPOINT = 100001;
 
-    /**
-     * @var array
-     */
-    protected static $PROPERTIES = [
-        'message' => [
+    public static function getMessage(int $errorCode): string
+    {
+        return match ($errorCode) {
             self::SOCKET_SET_NONBLOCK_FAILED => 'socket设置非阻塞失败',
             self::SOCKET_SEND_FAILED => 'socket发送失败',
             self::SOCKET_RECEIVE_FAILED => 'socket接收失败',
@@ -49,10 +40,9 @@ class ErrorCode extends Enum
             self::SOCKET_CONNECT_FAILED => 'socket tcp 连接失败',
             self::SOCKET_CLOSED => 'socket tcp 服务端连接关闭',
             self::SOCKET_CREATE_FAILED => 'socket 创建失败',
-
-            self::UNKNOWN => '未定义异常',
             self::INVALID_ARGUMENT => '参数不正确',
             self::INVALID_ENDPOINT => '服务地址不正确',
-        ],
-    ];
+            default => '未定义异常'
+        };
+    }
 }

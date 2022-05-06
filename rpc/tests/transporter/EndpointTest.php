@@ -18,23 +18,23 @@ use PHPUnit\Framework\TestCase;
 
 class EndpointTest extends TestCase
 {
-    public function testFromUriWithPort()
+    public function testFromUriWithPort(): void
     {
         $uri = new Uri('tcp://server:18000?connectTimeout=100&receiveTimeout=300');
         $endpoint = Endpoint::fromUri($uri);
-        var_export($endpoint);
+       // var_export($endpoint);
         $this->assertEquals('server', $endpoint->getHost());
     }
 
-    public function testFromUriWithoutPort()
+    public function testFromUriWithoutPort(): void
     {
         $uri = new Uri('tcp://server?connectTimeout=100&receiveTimeout=300');
         $endpoint = Endpoint::fromUri($uri);
-        var_export($endpoint);
+        // var_export($endpoint);
         $this->assertEquals('server', $endpoint->getHost());
     }
 
-    public function testFromUriHttp()
+    public function testFromUriHttp(): void
     {
         $uri = new Uri('http://server?connectTimeout=100&receiveTimeout=300');
 //        var_export([
@@ -46,7 +46,7 @@ class EndpointTest extends TestCase
         $this->assertEquals('server', $endpoint->getHost());
     }
 
-    public function testFromPartial()
+    public function testFromPartial(): void
     {
         $uri = new Uri('/?connectTimeout=100&receiveTimeout=300');
 //        var_export([
@@ -54,7 +54,7 @@ class EndpointTest extends TestCase
 //            $uri->getPort()
 //        ]);
         $endpoint = Endpoint::fromUri($uri);
-        var_export($endpoint);
+        // var_export($endpoint);
         $this->assertEquals('', $endpoint->getHost());
     }
 }

@@ -13,42 +13,27 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client;
 
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
 use kuiper\helper\Arrays;
 use kuiper\rpc\MiddlewareFactoryInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
+use ReflectionAttribute;
 
 class RpcExecutorFactory implements RpcExecutorFactoryInterface, ContainerAwareInterface
 {
     use ContainerAwareTrait;
 
     /**
-     * @var RpcRequestFactoryInterface
-     */
-    private $requestFactory;
-
-    /**
-     * @var RpcRequestHandlerInterface
-     */
-    private $rpcRequestHandler;
-
-    /**
      * @var array
      */
-    private $middlewares;
+    private array $methodMiddlewares;
 
-    /**
-     * @var array
-     */
-    private $methodMiddlewares;
-
-    public function __construct(RpcRequestFactoryInterface $requestFactory, RpcRequestHandlerInterface $requestHandler, array $middlewares = [])
+    public function __construct(
+        private readonly RpcRequestFactoryInterface $requestFactory,
+        private readonly RpcRequestHandlerInterface $rpcRequestHandler,
+        private readonly array $middlewares = [])
     {
-        $this->rpcRequestHandler = $requestHandler;
-        $this->requestFactory = $requestFactory;
-        $this->middlewares = $middlewares;
     }
 
     /**
@@ -57,7 +42,7 @@ class RpcExecutorFactory implements RpcExecutorFactoryInterface, ContainerAwareI
     public function createExecutor(object $proxy, string $method, array $args): RpcExecutorInterface
     {
         $middlewares = $this->middlewares;
-        if (null !== $this->container && $this->container->has(AnnotationReaderInterface::class)) {
+        if (null !== $this->container) {
             $middlewares = array_merge($middlewares, $this->getMethodAnnotationMiddlewares($proxy, $method));
         }
 
@@ -66,49 +51,48 @@ class RpcExecutorFactory implements RpcExecutorFactoryInterface, ContainerAwareI
 
     private function getMethodAnnotationMiddlewares(object $proxy, string $method): array
     {
-        $key = get_class($proxy).'::'.$method;
+        $key = get_class($proxy) . '::' . $method;
         if (isset($this->methodMiddlewares[$key])) {
             return $this->methodMiddlewares[$key];
         }
-        $annotationReader = $this->container->get(AnnotationReaderInterface::class);
         $reflectionMethod = new \ReflectionMethod($proxy, $method);
         $reflectionClass = $reflectionMethod->getDeclaringClass();
-        $annotations = [];
+        $attributes = [];
         foreach ($reflectionClass->getInterfaces() as $interface) {
             if ($interface->hasMethod($method)) {
-                $annotations[] = $this->getMethodAnnotations($annotationReader, $interface->getMethod($method));
+                $attributes[] = $this->getMethodAttributes($interface->getMethod($method));
             }
         }
         if (false !== $reflectionClass->getParentClass()
             && $reflectionClass->getParentClass()->hasMethod($method)) {
-            $annotations[] = $this->getMethodAnnotations($annotationReader, $reflectionClass->getParentClass()->getMethod($method));
+            $attributes[] = $this->getMethodAttributes($reflectionClass->getParentClass()->getMethod($method));
         }
-        $annotations[] = $this->getMethodAnnotations($annotationReader, $reflectionMethod);
+        $attributes[] = $this->getMethodAttributes($reflectionMethod);
         $middlewares = [];
-        /** @var MiddlewareFactoryInterface $annotation */
-        foreach (array_merge(...$annotations) as $annotation) {
-            $middlewares[$annotation->getPriority()][] = $annotation->create($this->container);
+        /** @var MiddlewareFactoryInterface $attribute */
+        foreach (array_merge(...$attributes) as $attribute) {
+            $middlewares[$attribute->getPriority()][] = $attribute->create($this->container);
         }
         ksort($middlewares);
 
         return $this->methodMiddlewares[$key] = Arrays::flatten($middlewares);
     }
 
-    private function getMethodAnnotations(AnnotationReaderInterface $annotationReader, \ReflectionMethod $method): array
+    private function getMethodAttributes(\ReflectionMethod $method): array
     {
-        $annotations = [];
-        foreach ($annotationReader->getMethodAnnotations($method) as $annotation) {
-            if ($annotation instanceof MiddlewareFactoryInterface) {
-                $annotations[get_class($annotation)] = $annotation;
-            }
+        $attributes = [];
+
+        foreach ($method->getAttributes(MiddlewareFactoryInterface::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+            $middleware = $attribute->newInstance();
+            $attributes[get_class($middleware)] = $middleware;
         }
-        foreach ($annotationReader->getClassAnnotations($method->getDeclaringClass()) as $annotation) {
-            if ($annotation instanceof MiddlewareFactoryInterface
-                && !isset($annotations[get_class($annotation)])) {
-                $annotations[get_class($annotation)] = $annotation;
+        foreach ($method->getDeclaringClass()->getAttributes(MiddlewareFactoryInterface::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+            $middleware = $attribute->newInstance();
+            if (!isset($attributes[get_class($middleware)])) {
+                $attributes[get_class($middleware)] = $middleware;
             }
         }
 
-        return $annotations;
+        return $attributes;
     }
 }

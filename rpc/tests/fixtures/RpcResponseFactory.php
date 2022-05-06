@@ -17,16 +17,14 @@ use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponse;
 use kuiper\rpc\RpcResponseInterface;
+use phpDocumentor\Reflection\Types\Integer;
 use Psr\Http\Message\ResponseInterface;
 
 class RpcResponseFactory implements RpcResponseFactoryInterface
 {
-    private $result;
+    private mixed $result = null;
 
-    /**
-     * @param mixed $result
-     */
-    public function setResult($result): void
+    public function setResult(mixed $result): void
     {
         $this->result = $result;
     }

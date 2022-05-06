@@ -13,31 +13,34 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\client;
 
+use InvalidArgumentException;
 use kuiper\helper\Text;
+use kuiper\reflection\exception\ClassNotFoundException;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\reflection\ReflectionType;
 use kuiper\reflection\type\VoidType;
 use kuiper\swoole\pool\GeneratedClass;
+use Laminas\Code\Generator\AbstractMemberGenerator;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\ParameterGenerator;
-use Laminas\Code\Generator\PropertyGenerator;
 use Laminas\Code\Reflection\DocBlockReflection;
 use Laminas\Code\Reflection\ParameterReflection;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
+use ReflectionParameter;
 
 class ProxyGenerator implements ProxyGeneratorInterface
 {
     /**
      * @var string[]
      */
-    private static $PROXY_INTERFACES = [];
+    private static array $PROXY_INTERFACES = [];
 
-    /**
-     * @var ReflectionDocBlockFactoryInterface
-     */
-    private $reflectionDocBlockFactory;
+    private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory;
 
     public function __construct(?ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory = null)
     {
@@ -58,13 +61,14 @@ class ProxyGenerator implements ProxyGeneratorInterface
     }
 
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
+     * @throws ClassNotFoundException
      */
     protected function createClassGenerator(string $interfaceName, array $context = []): ClassGenerator
     {
-        $class = new \ReflectionClass($interfaceName);
+        $class = new ReflectionClass($interfaceName);
         if (!$class->isInterface()) {
-            throw new \InvalidArgumentException("$interfaceName should be an interface");
+            throw new InvalidArgumentException("$interfaceName should be an interface");
         }
         if (false !== $class->getFileName()) {
             $hash = md5_file($class->getFileName());
@@ -77,7 +81,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
         );
 
         $phpClass->setImplementedInterfaces([$class->getName()]);
-        $phpClass->addProperty('rpcExecutorFactory', null, PropertyGenerator::FLAG_PRIVATE);
+        $phpClass->addProperty('rpcExecutorFactory', null, AbstractMemberGenerator::FLAG_PRIVATE);
         $phpClass->addMethod('__construct',
             [
                 [
@@ -85,7 +89,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
                     'name' => 'rpcExecutorFactory',
                 ],
             ],
-            MethodGenerator::FLAG_PUBLIC,
+            AbstractMemberGenerator::FLAG_PUBLIC,
             '$this->rpcExecutorFactory = $rpcExecutorFactory;'
         );
 
@@ -96,7 +100,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
                 array_map(function ($parameter) use ($reflectionMethod): ParameterGenerator {
                     return $this->createParameter($reflectionMethod, $parameter);
                 }, $reflectionMethod->getParameters()),
-                MethodGenerator::FLAG_PUBLIC,
+                AbstractMemberGenerator::FLAG_PUBLIC,
                 $methodBody,
                 DocBlockGenerator::fromReflection(new DocBlockReflection('/** @inheritdoc */'))
             );
@@ -109,7 +113,7 @@ class ProxyGenerator implements ProxyGeneratorInterface
             $methodGenerator = new MethodGenerator(
                 'getRpcExecutorFactory',
                 [],
-                MethodGenerator::FLAG_PUBLIC,
+                AbstractMemberGenerator::FLAG_PUBLIC,
                 'return $this->rpcExecutorFactory;'
             );
             $methodGenerator->setReturnType(RpcExecutorFactoryInterface::class);
@@ -119,14 +123,20 @@ class ProxyGenerator implements ProxyGeneratorInterface
         return $phpClass;
     }
 
-    private function createParameter(\ReflectionMethod $method, \ReflectionParameter $parameter): ParameterGenerator
+    /**
+     * @throws ReflectionException
+     */
+    private function createParameter(ReflectionMethod $method, ReflectionParameter $parameter): ParameterGenerator
     {
         return ParameterGenerator::fromReflection(new ParameterReflection(
             [$method->getDeclaringClass()->getName(), $method->getName()], $parameter->getName()
         ));
     }
 
-    private function createBody(\ReflectionMethod $reflectionMethod): string
+    /**
+     * @throws ClassNotFoundException
+     */
+    private function createBody(ReflectionMethod $reflectionMethod): string
     {
         $parameters = [];
         $outParameters = [];

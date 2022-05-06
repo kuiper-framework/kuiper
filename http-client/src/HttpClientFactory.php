@@ -30,17 +30,8 @@ class HttpClientFactory implements HttpClientFactoryInterface, LoggerAwareInterf
 {
     use LoggerAwareTrait;
 
-    /**
-     * @var PoolFactoryInterface
-     */
-    private $poolFactory;
-
-    /**
-     * HttpClientFactory constructor.
-     */
-    public function __construct(PoolFactoryInterface $poolFactory)
+    public function __construct(private readonly PoolFactoryInterface $poolFactory)
     {
-        $this->poolFactory = $poolFactory;
     }
 
     public function create(array $options = []): ClientInterface

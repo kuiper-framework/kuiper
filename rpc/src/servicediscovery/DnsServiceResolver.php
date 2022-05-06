@@ -10,19 +10,8 @@ use kuiper\rpc\transporter\Endpoint;
 
 class DnsServiceResolver implements ServiceResolverInterface
 {
-    /**
-     * @var DnsResolverInterface
-     */
-    private $dnsResolver;
-
-    /**
-     * DnsServiceResolver constructor.
-     *
-     * @param DnsResolverInterface $dnsResolver
-     */
-    public function __construct(DnsResolverInterface $dnsResolver)
+    public function __construct(private readonly DnsResolverInterface $dnsResolver)
     {
-        $this->dnsResolver = $dnsResolver;
     }
 
     public function resolve(ServiceLocator $serviceLocator): ?ServiceEndpoint

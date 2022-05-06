@@ -25,7 +25,7 @@ interface RpcRequestInterface extends RequestInterface
     /**
      * @return static
      */
-    public function withRpcMethod(RpcMethodInterface $rpcMethod): static;
+    public function withRpcMethod(RpcMethodInterface $rpcMethod);
 
     /**
      * Retrieve attributes derived from the request.
@@ -76,5 +76,5 @@ interface RpcRequestInterface extends RequestInterface
      *
      * @return static
      */
-    public function withAttribute(string $name, mixed $value): static;
+    public function withAttribute(string $name, mixed $value);
 }

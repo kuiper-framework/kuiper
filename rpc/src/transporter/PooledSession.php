@@ -9,26 +9,11 @@ use Psr\Http\Message\ResponseInterface;
 
 class PooledSession implements Session
 {
-    /**
-     * @var PoolInterface
-     */
-    private $pool;
-
-    /**
-     * @var Session
-     */
-    private $session;
-
-    /**
-     * @var TransporterInterface
-     */
-    private $transporter;
-
-    public function __construct(PoolInterface $pool, TransporterInterface $transporter, Session $session)
+    public function __construct(
+        private readonly PoolInterface $pool,
+        private readonly TransporterInterface $transporter,
+        private readonly Session $session)
     {
-        $this->pool = $pool;
-        $this->session = $session;
-        $this->transporter = $transporter;
     }
 
     public function close(): void

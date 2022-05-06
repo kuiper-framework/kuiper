@@ -19,10 +19,7 @@ class GitRepository implements \JsonSerializable
 {
     use JsonSerializableTrait;
 
-    /**
-     * @var string
-     */
-    private $name;
+    private ?string $name = null;
 
     public function getName(): string
     {

@@ -18,14 +18,14 @@ class Equality implements LoadBalanceInterface
     /**
      * @var \ArrayIterator
      */
-    private $hosts;
+    private readonly \ArrayIterator $hosts;
 
     public function __construct(array $hosts)
     {
         $this->hosts = new \ArrayIterator($hosts);
     }
 
-    public function select()
+    public function select(): mixed
     {
         if (!$this->hosts->valid()) {
             $this->hosts->rewind();

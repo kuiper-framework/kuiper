@@ -24,26 +24,10 @@ use kuiper\rpc\transporter\TransporterInterface;
 
 class RpcClient implements RpcRequestHandlerInterface, Closable
 {
-    /**
-     * @var TransporterInterface
-     */
-    private $transporter;
-
-    /**
-     * @var RpcResponseFactoryInterface
-     */
-    private $responseFactory;
-
-    /**
-     * AbstractRpcClient constructor.
-     *
-     * @param TransporterInterface        $transporter
-     * @param RpcResponseFactoryInterface $responseFactory
-     */
-    public function __construct(TransporterInterface $transporter, RpcResponseFactoryInterface $responseFactory)
+    public function __construct(
+        private readonly TransporterInterface $transporter,
+        private readonly RpcResponseFactoryInterface $responseFactory)
     {
-        $this->transporter = $transporter;
-        $this->responseFactory = $responseFactory;
     }
 
     /**

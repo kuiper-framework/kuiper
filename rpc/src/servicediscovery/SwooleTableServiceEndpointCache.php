@@ -39,7 +39,7 @@ class SwooleTableServiceEndpointCache extends SwooleTableCache
     /**
      * {@inheritDoc}
      */
-    protected function unserialize(string $data)
+    protected function unserialize(string $data): mixed
     {
         return ServiceEndpoint::fromString($data);
     }

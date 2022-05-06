@@ -18,24 +18,11 @@ use Psr\Http\Message\ResponseInterface;
 
 class BadResponseException extends \Exception
 {
-    /**
-     * @var RpcRequestInterface
-     */
-    private $request;
-
-    /**
-     * @var ResponseInterface
-     */
-    private $response;
-
-    /**
-     * BadResponseException constructor.
-     */
-    public function __construct(RpcRequestInterface $request, ResponseInterface $response, \Throwable $prev = null)
+    public function __construct(
+        private readonly RpcRequestInterface $request,
+        private readonly ResponseInterface $response, \Throwable $prev = null)
     {
         parent::__construct('Cannot parse response', 0, $prev);
-        $this->request = $request;
-        $this->response = $response;
     }
 
     public function getRequest(): RpcRequestInterface

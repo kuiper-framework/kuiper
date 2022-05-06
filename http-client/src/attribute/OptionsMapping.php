@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\http\client\attribute;
 
-/**
- * @Annotation
- * @Target({"METHOD"})
- */
+#[\Attribute(\Attribute::TARGET_METHOD)]
 final class OptionsMapping extends RequestMapping
 {
-    public $method = 'OPTIONS';
+    public function __construct(string $path)
+    {
+        parent::__construct($path, 'OPTIONS');
+    }
 }

@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpMissingReturnTypeInspection */
 
 /*
  * This file is part of the Kuiper package.
@@ -20,28 +20,13 @@ use Psr\Http\Message\UriInterface;
 class RpcRequest implements RpcRequestInterface
 {
     /**
-     * @var RequestInterface
-     */
-    protected $httpRequest;
-
-    /**
-     * @var array
-     */
-    protected $attributes;
-
-    /**
-     * @var RpcMethodInterface
-     */
-    protected $rpcMethod;
-
-    /**
      * RpcRequest constructor.
      */
-    public function __construct(RequestInterface $httpRequest, RpcMethodInterface $rpcMethod)
+    public function __construct(
+        private readonly RequestInterface $httpRequest,
+        private readonly RpcMethodInterface $rpcMethod,
+        private array $attributes = [])
     {
-        $this->httpRequest = $httpRequest;
-        $this->rpcMethod = $rpcMethod;
-        $this->attributes = [];
     }
 
     public function getProtocolVersion()
@@ -49,12 +34,14 @@ class RpcRequest implements RpcRequestInterface
         return $this->httpRequest->getProtocolVersion();
     }
 
+    private function withHttpRequest(RequestInterface $httpRequest)
+    {
+        return new self($httpRequest, $this->rpcMethod, $this->attributes);
+    }
+
     public function withProtocolVersion($version)
     {
-        $copy = clone $this;
-        $copy->httpRequest = $this->httpRequest->withProtocolVersion($version);
-
-        return $copy;
+        return $this->withHttpRequest($this->httpRequest->withProtocolVersion($version));
     }
 
     public function getHeaders()
@@ -79,26 +66,17 @@ class RpcRequest implements RpcRequestInterface
 
     public function withHeader($name, $value)
     {
-        $copy = clone $this;
-        $copy->httpRequest = $this->httpRequest->withHeader($name, $value);
-
-        return $copy;
+        return $this->withHttpRequest($this->httpRequest->withHeader($name, $value));
     }
 
     public function withAddedHeader($name, $value)
     {
-        $copy = clone $this;
-        $copy->httpRequest = $this->httpRequest->withAddedHeader($name, $value);
-
-        return $copy;
+        return $this->withHttpRequest($this->httpRequest->withAddedHeader($name, $value));
     }
 
     public function withoutHeader($name)
     {
-        $copy = clone $this;
-        $copy->httpRequest = $this->httpRequest->withoutHeader($name);
-
-        return $copy;
+        return $this->withHttpRequest($this->httpRequest->withoutHeader($name));
     }
 
     public function getBody()
@@ -108,10 +86,7 @@ class RpcRequest implements RpcRequestInterface
 
     public function withBody(StreamInterface $body)
     {
-        $copy = clone $this;
-        $copy->httpRequest = $this->httpRequest->withBody($body);
-
-        return $copy;
+        return $this->withHttpRequest($this->httpRequest->withBody($body));
     }
 
     public function getRequestTarget()
@@ -121,10 +96,7 @@ class RpcRequest implements RpcRequestInterface
 
     public function withRequestTarget($requestTarget)
     {
-        $copy = clone $this;
-        $copy->httpRequest = $this->httpRequest->withRequestTarget($requestTarget);
-
-        return $copy;
+        return $this->withHttpRequest($this->httpRequest->withRequestTarget($requestTarget));
     }
 
     public function getMethod()
@@ -134,10 +106,7 @@ class RpcRequest implements RpcRequestInterface
 
     public function withMethod($method)
     {
-        $copy = clone $this;
-        $copy->httpRequest = $this->httpRequest->withMethod($method);
-
-        return $copy;
+        return $this->withHttpRequest($this->httpRequest->withMethod($method));
     }
 
     public function getUri()
@@ -147,10 +116,7 @@ class RpcRequest implements RpcRequestInterface
 
     public function withUri(UriInterface $uri, $preserveHost = false)
     {
-        $copy = clone $this;
-        $copy->httpRequest = $this->httpRequest->withUri($uri, $preserveHost);
-
-        return $copy;
+        return $this->withHttpRequest($this->httpRequest->withUri($uri, $preserveHost));
     }
 
     public function getAttributes(): array
@@ -161,7 +127,7 @@ class RpcRequest implements RpcRequestInterface
     /**
      * {@inheritDoc}
      */
-    public function getAttribute(string $name, $default = null)
+    public function getAttribute(string $name, $default = null): mixed
     {
         if (false === array_key_exists($name, $this->attributes)) {
             return $default;
@@ -196,9 +162,6 @@ class RpcRequest implements RpcRequestInterface
      */
     public function withRpcMethod(RpcMethodInterface $rpcMethod)
     {
-        $copy = clone $this;
-        $copy->rpcMethod = $rpcMethod;
-
-        return $copy;
+        return new self($this->httpRequest, $rpcMethod, $this->attributes);
     }
 }

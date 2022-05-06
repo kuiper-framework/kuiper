@@ -13,20 +13,17 @@ declare(strict_types=1);
 
 namespace kuiper\http\client\fixtures;
 
-use kuiper\http\client\annotation\GetMapping;
-use kuiper\http\client\annotation\HttpClient;
-use kuiper\http\client\annotation\RequestHeader;
+use kuiper\http\client\attribute\GetMapping;
+use kuiper\http\client\attribute\HttpClient;
+use kuiper\http\client\attribute\HttpHeader;
 
-/**
- * @HttpClient
- * @RequestHeader("content-type: application/json")
- */
+#[HttpClient]
+#[HttpHeader('content-type', 'application/json')]
 interface GithubService
 {
     /**
-     * @GetMapping("/users/{user}/list")
-     *
      * @return GitRepository[]
      */
+    #[GetMapping("/users/{user}/list")]
     public function listRepos(string $user): array;
 }

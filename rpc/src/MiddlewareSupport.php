@@ -18,12 +18,9 @@ trait MiddlewareSupport
     /**
      * @var MiddlewareInterface[]
      */
-    private $middlewares;
+    private array $middlewares = [];
 
-    /**
-     * @var MiddlewareStack|null
-     */
-    private $middlewareStack;
+    private ?MiddlewareStack $middlewareStack = null;
 
     public function addMiddleware(MiddlewareInterface $middleware): self
     {

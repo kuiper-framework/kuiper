@@ -13,26 +13,16 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\fixtures;
 
+use kuiper\rpc\AbstractMiddlewareFactory;
 use kuiper\rpc\client\RpcExecutorFactoryInterface;
 
 class HelloServiceProxy implements HelloService
 {
-    /**
-     * @var RpcExecutorFactoryInterface
-     */
-    private $rpcExecutorFactory;
-
-    /**
-     * HelloServiceProxy constructor.
-     *
-     * @param RpcExecutorFactoryInterface $rpcExecutorFactory
-     */
-    public function __construct(RpcExecutorFactoryInterface $rpcExecutorFactory)
+    public function __construct(private readonly RpcExecutorFactoryInterface $rpcExecutorFactory)
     {
-        $this->rpcExecutorFactory = $rpcExecutorFactory;
     }
 
-    public function hello(string $name): string
+    #[AbstractMiddlewareFactory] #[AbstractMiddlewareFactory] public function hello(string $name): string
     {
         [$ret] = $this->rpcExecutorFactory->createExecutor($this, __METHOD__, [$name])
             ->execute();

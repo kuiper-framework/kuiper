@@ -19,7 +19,6 @@ class ReflectionNamespaceTest extends TestCase
     {
         $class = new \ReflectionClass(ReflectionNamespaceFactory::class);
         $prop = $class->getProperty('INSTANCE');
-        $prop->setAccessible(true);
         $prop->setValue(null);
 
         return ReflectionNamespaceFactory::getInstance();

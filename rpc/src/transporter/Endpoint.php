@@ -20,45 +20,16 @@ use Psr\Http\Message\UriInterface;
 final class Endpoint
 {
     /**
-     * @var string
-     */
-    private $protocol;
-
-    /**
-     * @var string
-     */
-    private $host;
-    /**
-     * @var int
-     */
-    private $port;
-
-    /**
-     * @var float|null
-     */
-    private $connectTimeout;
-
-    /**
-     * @var float|null
-     */
-    private $receiveTimeout;
-
-    /**
-     * @var array
-     */
-    private $options;
-
-    /**
      * Endpoint constructor.
      */
-    public function __construct(string $protocol, string $host, int $port, ?float $connectTimeout, ?float $receiveTimeout, array $options = [])
+    public function __construct(
+        private readonly string $protocol, 
+        private readonly string $host, 
+        private readonly int $port, 
+        private readonly ?float $connectTimeout, 
+        private readonly ?float $receiveTimeout, 
+        private readonly array $options = [])
     {
-        $this->protocol = $protocol;
-        $this->host = $host;
-        $this->port = $port;
-        $this->connectTimeout = $connectTimeout;
-        $this->receiveTimeout = $receiveTimeout;
-        $this->options = $options;
     }
 
     public function getProtocol(): string
@@ -140,7 +111,7 @@ final class Endpoint
 
     public static function fromAddress(string $address): self
     {
-        if (false === strpos($address, ':')) {
+        if (!str_contains($address, ':')) {
             throw new \InvalidArgumentException("invalid server address '$address'");
         }
         [$host, $port] = explode(':', $address);
@@ -178,9 +149,9 @@ final class Endpoint
 
     private static function create(string $schema, string $host, int $port, array $options): self
     {
-        $connectTimeout = self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT->value] ?? $options['timeout'] ?? null);
-        $receiveTimeout = self::filterTimeout($options[ClientSettings::RECV_TIMEOUT->value] ?? $options['timeout'] ?? null);
-        unset($options[ClientSettings::CONNECT_TIMEOUT->value], $options[ClientSettings::RECV_TIMEOUT->value], $options['timeout']);
+        $connectTimeout = self::filterTimeout($options[ClientSettings::CONNECT_TIMEOUT] ?? $options['timeout'] ?? null);
+        $receiveTimeout = self::filterTimeout($options[ClientSettings::RECV_TIMEOUT] ?? $options['timeout'] ?? null);
+        unset($options[ClientSettings::CONNECT_TIMEOUT], $options[ClientSettings::RECV_TIMEOUT], $options['timeout']);
 
         return new self(
             $schema,
