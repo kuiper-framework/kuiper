@@ -16,25 +16,20 @@ namespace kuiper\serializer;
 class ClassMetadata
 {
     /**
-     * @var string
-     */
-    private $className;
-    /**
      * @var array
      */
-    private $getters = [];
+    private array $getters = [];
 
     /**
      * @var array
      */
-    private $setters = [];
+    private array $setters = [];
 
     /**
      * ClassMetadata constructor.
      */
-    public function __construct(string $className)
+    public function __construct(private readonly string $className)
     {
-        $this->className = $className;
     }
 
     public function getClassName(): string

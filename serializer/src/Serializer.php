@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\serializer;
 
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
+use JsonSerializable;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\reflection\ReflectionType;
@@ -35,7 +34,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     /**
      * @var ObjectNormalizer
      */
-    private $objectNormalizer;
+    private readonly ObjectNormalizer $objectNormalizer;
 
     /**
      * Note：
@@ -43,11 +42,11 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
      *
      * @var NormalizerInterface[]
      */
-    private $normalizers = [];
+    private array $normalizers = [];
 
-    public function __construct(?AnnotationReaderInterface $reader = null, ?ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory = null, array $normalizers = [])
+    public function __construct(?ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory = null, array $normalizers = [])
     {
-        $classMetadataFactory = new ClassMetadataFactory($reader ?? AnnotationReader::getInstance(), $reflectionDocBlockFactory ?? ReflectionDocBlockFactory::getInstance());
+        $classMetadataFactory = new ClassMetadataFactory($reflectionDocBlockFactory ?? ReflectionDocBlockFactory::getInstance());
         $this->objectNormalizer = new ObjectNormalizer($classMetadataFactory, $this);
         foreach ($normalizers as $className => $normalizer) {
             $this->addObjectNormalizer($className, $normalizer);
@@ -65,7 +64,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     /**
      * {@inheritdoc}
      */
-    public function fromJson(string $jsonString, $type)
+    public function fromJson(string $jsonString, string|object $type): mixed
     {
         return $this->denormalize(self::decodeJson($jsonString), $type);
     }
@@ -73,7 +72,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     /**
      * {@inheritdoc}
      */
-    public function normalize($object)
+    public function normalize(mixed $object): array|string
     {
         if (is_array($object)) {
             $ret = [];
@@ -94,27 +93,19 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $className)
+    public function denormalize(mixed $data, string|ReflectionTypeInterface $className): mixed
     {
         if ($className instanceof ReflectionTypeInterface) {
             return $this->toType($data, $className);
         }
 
-        if (is_string($className)) {
-            return $this->toType($data, ReflectionType::parse($className));
-        }
-
-        throw new \InvalidArgumentException('Parameter type expects class name or object, got '.gettype($className));
+        return $this->toType($data, ReflectionType::parse($className));
     }
 
     /**
      * Converts value to the type.
-     *
-     * @param mixed $value
-     *
-     * @return mixed
      */
-    private function toType($value, ReflectionTypeInterface $type)
+    private function toType(mixed $value, ReflectionTypeInterface $type): mixed
     {
         if (!isset($value)) {
             // check type nullable?
@@ -136,12 +127,12 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
                     return $this->toType($value, $subtype);
                 }
             }
-            throw new UnexpectedValueException("Expects '$type', got ".ReflectionType::describe($value));
+            throw new UnexpectedValueException("Expects '$type', got " . ReflectionType::describe($value));
         }
 
         if ($type->isArray()) {
             if (!is_array($value)) {
-                throw new UnexpectedValueException('Expects array, got '.ReflectionType::describe($value));
+                throw new UnexpectedValueException('Expects array, got ' . ReflectionType::describe($value));
             }
 
             return $this->toArrayType($value, $type->getValueType(), $type->getDimension());
@@ -151,7 +142,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
             return $type->sanitize($value);
         }
 
-        throw new UnexpectedValueException("Expects '$type', got ".ReflectionType::describe($value));
+        throw new UnexpectedValueException("Expects '$type', got " . ReflectionType::describe($value));
     }
 
     private function toArrayType(array $value, ReflectionTypeInterface $valueType, int $dimension): array
@@ -170,12 +161,9 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         return $result;
     }
 
-    /**
-     * @return mixed
-     */
-    private function normalizeObject(object $object)
+    private function normalizeObject(object $object): mixed
     {
-        if ($object instanceof \JsonSerializable) {
+        if ($object instanceof JsonSerializable) {
             return $object->jsonSerialize();
         }
         foreach ($this->normalizers as $className => $normalizer) {
@@ -187,12 +175,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
         return $this->objectNormalizer->normalize($object);
     }
 
-    /**
-     * @param mixed $data
-     *
-     * @return mixed
-     */
-    private function denormalizeObject($data, string $className)
+    private function denormalizeObject(mixed $data, string $className): mixed
     {
         foreach ($this->normalizers as $typeClass => $normalizer) {
             if (is_a($className, $typeClass, true)) {
@@ -204,11 +187,11 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     }
 
     /**
-     * @return mixed
+     * @throws \JsonException
      */
-    public static function decodeJson(string $json)
+    public static function decodeJson(string $json): mixed
     {
-        $data = json_decode($json, true);
+        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
         if (false === $data) {
             throw new MalformedJsonException(sprintf("%s, json string was '%s'", json_last_error_msg(), $json));
         }

@@ -13,36 +13,31 @@ declare(strict_types=1);
 
 namespace kuiper\serializer;
 
-use kuiper\annotations\AnnotationReaderInterface;
+use Exception;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\reflection\ReflectionTypeInterface;
-use kuiper\serializer\annotation\SerializeIgnore;
-use kuiper\serializer\annotation\SerializeName;
+use kuiper\serializer\attribute\SerializeIgnore;
+use kuiper\serializer\attribute\SerializeName;
 use kuiper\serializer\exception\NotSerializableException;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
+use ReflectionProperty;
 
 class ClassMetadataFactory
 {
     /**
-     * @var AnnotationReaderInterface
-     */
-    private $annotationReader;
-    /**
-     * @var ReflectionDocBlockFactoryInterface
-     */
-    private $reflectionDocBlockFactory;
-    /**
      * @var array<string,ClassMetadata>
      */
-    private $cache;
+    private array $cache = [];
 
-    public function __construct(AnnotationReaderInterface $annotationReader, ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
+    public function __construct(private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
     {
-        $this->annotationReader = $annotationReader;
-        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
     }
 
     /**
      * gets class properties metadata.
+     * @throws ReflectionException
      */
     public function create(string $className): ClassMetadata
     {
@@ -50,7 +45,7 @@ class ClassMetadataFactory
             return $this->getCached($className);
         }
         $metadata = new ClassMetadata($className);
-        $class = new \ReflectionClass($className);
+        $class = new ReflectionClass($className);
         $this->parseMethods($class, $metadata);
         $this->parseProperties($class, $metadata);
 
@@ -66,9 +61,9 @@ class ClassMetadataFactory
         }
     }
 
-    private function parseMethods(\ReflectionClass $class, ClassMetadata $metadata): void
+    private function parseMethods(ReflectionClass $class, ClassMetadata $metadata): void
     {
-        $isException = $class->isSubclassOf(\Exception::class);
+        $isException = $class->isSubclassOf(Exception::class);
         foreach ($class->getMethods() as $method) {
             if ($method->isStatic() || !$method->isPublic()) {
                 continue;
@@ -82,16 +77,17 @@ class ClassMetadataFactory
         }
     }
 
-    protected function parseSetter(\ReflectionMethod $method, ClassMetadata $metadata): void
+    protected function parseSetter(ReflectionMethod $method, ClassMetadata $metadata): void
     {
         $name = $method->getName();
-        if (0 === strpos($name, 'set')
+        if (str_starts_with($name, 'set')
             && 1 === $method->getNumberOfParameters()
             && !$this->isIgnore($method)) {
             $docBlock = $this->reflectionDocBlockFactory->createMethodDocBlock($method);
             $types = array_values($docBlock->getParameterTypes());
             if (!$this->validateType($types[0])) {
-                throw new NotSerializableException(sprintf('Cannot serialize class %s for method %s', $method->getDeclaringClass()->getName(), $method->getName()));
+                throw new NotSerializableException(sprintf('Cannot serialize class %s for method %s',
+                    $method->getDeclaringClass()->getName(), $method->getName()));
             }
             $field = new Field($metadata->getClassName(), lcfirst(substr($name, 3)));
             $field->setType($types[0]);
@@ -104,7 +100,7 @@ class ClassMetadataFactory
         }
     }
 
-    protected function parseGetter(\ReflectionMethod $method, ClassMetadata $metadata): void
+    protected function parseGetter(ReflectionMethod $method, ClassMetadata $metadata): void
     {
         $name = $method->getName();
         if (preg_match('/^(get|is|has)(.+)/', $name, $matches)
@@ -112,7 +108,8 @@ class ClassMetadataFactory
             && !$this->isIgnore($method)) {
             $type = $this->reflectionDocBlockFactory->createMethodDocBlock($method)->getReturnType();
             if (!$this->validateType($type)) {
-                throw new NotSerializableException(sprintf('Cannot serialize class %s for method %s', $method->getDeclaringClass()->getName(), $method->getName()));
+                throw new NotSerializableException(sprintf('Cannot serialize class %s for method %s',
+                    $method->getDeclaringClass()->getName(), $method->getName()));
             }
             $field = new Field($metadata->getClassName(), lcfirst($matches[2]));
             $field->setType($type);
@@ -125,7 +122,7 @@ class ClassMetadataFactory
         }
     }
 
-    private function parseProperties(\ReflectionClass $class, ClassMetadata $metadata): void
+    private function parseProperties(ReflectionClass $class, ClassMetadata $metadata): void
     {
         foreach ($class->getProperties() as $property) {
             if ($property->isStatic() || $this->isIgnore($property)) {
@@ -133,7 +130,8 @@ class ClassMetadataFactory
             }
             $type = $this->reflectionDocBlockFactory->createPropertyDocBlock($property)->getType();
             if (!$this->validateType($type)) {
-                throw new NotSerializableException(sprintf('Cannot serialize class %s for property %s', $property->getDeclaringClass()->getName(), $property->getName()));
+                throw new NotSerializableException(sprintf('Cannot serialize class %s for property %s',
+                    $property->getDeclaringClass()->getName(), $property->getName()));
             }
             $field = new Field($metadata->getClassName(), $property->getName());
             $field->setPublic($property->isPublic());
@@ -163,33 +161,20 @@ class ClassMetadataFactory
         }
     }
 
-    /**
-     * @param \ReflectionMethod|\ReflectionProperty $reflector
-     */
-    protected function isIgnore($reflector): bool
+    protected function isIgnore(ReflectionMethod|ReflectionProperty $reflector): bool
     {
-        if ($reflector instanceof \ReflectionMethod) {
-            $annotation = $this->annotationReader->getMethodAnnotation($reflector, SerializeIgnore::class);
-        } else {
-            $annotation = $this->annotationReader->getPropertyAnnotation($reflector, SerializeIgnore::class);
-        }
-
-        return null !== $annotation;
+        return count($reflector->getAttributes(SerializeIgnore::class)) > 0;
     }
 
-    /**
-     * @param \ReflectionMethod|\ReflectionProperty $reflector
-     */
-    protected function getSerializeName($reflector): ?string
+    protected function getSerializeName(ReflectionMethod|ReflectionProperty $reflector): ?string
     {
-        if ($reflector instanceof \ReflectionMethod) {
-            $annotation = $this->annotationReader->getMethodAnnotation($reflector, SerializeName::class);
-        } else {
-            $annotation = $this->annotationReader->getPropertyAnnotation($reflector, SerializeName::class);
+        $attributes = $reflector->getAttributes(SerializeName::class);
+        if (count($attributes) > 0) {
+            /** @var SerializeName $attribute */
+            $attribute = $attributes[0]->newInstance();
+            return $attribute->getName();
         }
-
-        /* @var SerializeName|null $annotation */
-        return null !== $annotation ? $annotation->value : null;
+        return null;
     }
 
     private function isCacheHit(string $className): bool

@@ -13,25 +13,17 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\fixtures;
 
-use kuiper\serializer\annotation\SerializeIgnore;
-use kuiper\serializer\annotation\SerializeName;
+use kuiper\serializer\attribute\SerializeIgnore;
+use kuiper\serializer\attribute\SerializeName;
 
 class Company
 {
-    /**
-     * @SerializeName("org_name")
-     */
+    #[SerializeName("org_name")]
     public $name;
 
-    /**
-     * @SerializeName("org_address")
-     */
+    #[SerializeName("org_address")]
     public $address;
 
-    /**
-     * @SerializeIgnore
-     *
-     * @var array
-     */
+    #[SerializeIgnore]
     public $employers;
 }

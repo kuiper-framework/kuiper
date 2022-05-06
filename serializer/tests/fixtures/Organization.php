@@ -20,7 +20,7 @@ class Organization
     /**
      * @var Member[]
      */
-    private $members;
+    private array $members = [];
 
     public function setName($name)
     {

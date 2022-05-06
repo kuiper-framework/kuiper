@@ -15,42 +15,17 @@ namespace kuiper\serializer;
 
 use kuiper\reflection\ReflectionTypeInterface;
 
-class Field implements \Serializable
+final class Field implements \Serializable
 {
-    /**
-     * @var string
-     */
-    private $className;
+    private ?ReflectionTypeInterface $type = null;
 
-    /**
-     * @var string
-     */
-    private $name;
+    private ?string $serializeName = null;
 
-    /**
-     * @var string|null
-     */
-    private $serializeName;
+    private bool $public = false;
 
-    /**
-     * @var bool
-     */
-    private $public = false;
+    private ?string $getter = null;
 
-    /**
-     * @var string|null
-     */
-    private $getter;
-
-    /**
-     * @var string|null
-     */
-    private $setter;
-
-    /**
-     * @var ReflectionTypeInterface|null
-     */
-    private $type;
+    private ?string $setter = null;
 
     /**
      * @var callable|null
@@ -62,13 +37,14 @@ class Field implements \Serializable
      */
     private $setFunction;
 
+
     /**
      * Field constructor.
      */
-    public function __construct(string $className, string $name)
+    public function __construct(
+        private readonly string $className,
+        private readonly string $name)
     {
-        $this->className = $className;
-        $this->name = $name;
     }
 
     public function getName(): string
@@ -86,25 +62,24 @@ class Field implements \Serializable
         return $this->public;
     }
 
-    /**
-     * @return string
-     */
     public function getGetter(): ?string
     {
         return $this->getter;
     }
 
-    /**
-     * @return string
-     */
     public function getSetter(): ?string
     {
         return $this->setter;
     }
 
-    public function getType(): ReflectionTypeInterface
+    public function getType(): ?ReflectionTypeInterface
     {
         return $this->type;
+    }
+
+    public function setType(ReflectionTypeInterface $type): void
+    {
+        $this->type = $type;
     }
 
     public function setSerializeName(string $serializeName): void
@@ -127,11 +102,6 @@ class Field implements \Serializable
         $this->setter = $setter;
     }
 
-    public function setType(ReflectionTypeInterface $type): void
-    {
-        $this->type = $type;
-    }
-
     /**
      * @return mixed
      */
@@ -150,7 +120,6 @@ class Field implements \Serializable
                 };
             } else {
                 $property = new \ReflectionProperty($this->className, $this->name);
-                $property->setAccessible(true);
                 $this->getFunction = static function ($object) use ($property) {
                     return $property->getValue($object);
                 };
@@ -180,7 +149,6 @@ class Field implements \Serializable
                 };
             } else {
                 $property = new \ReflectionProperty($this->className, $this->name);
-                $property->setAccessible(true);
                 $this->setFunction = static function ($object, $value) use ($property): void {
                     $property->setValue($object, $value);
                 };
@@ -189,40 +157,25 @@ class Field implements \Serializable
         call_user_func($this->setFunction, $object, $value);
     }
 
-    /**
-     * String representation of object.
-     *
-     * @see http://php.net/manual/en/serializable.serialize.php
-     *
-     * @return string the string representation of the object or null
-     *
-     * @since 5.1.0
-     */
     public function serialize()
     {
-        $vars = get_object_vars($this);
-        unset($vars['getFunction']);
-        unset($vars['setFunction']);
-
-        return serialize($vars);
     }
 
-    /**
-     * Constructs the object.
-     *
-     * @see http://php.net/manual/en/serializable.unserialize.php
-     *
-     * @param string $serialized <p>
-     *                           The string representation of the object.
-     *                           </p>
-     *
-     * @since 5.1.0
-     */
-    public function unserialize($serialized)
+    public function unserialize(string $data): void
     {
-        foreach (unserialize($serialized) as $key => $val) {
-            /* @phpstan-ignore-next-line */
-            $this->$key = $val;
+    }
+
+    public function __serialize(): array
+    {
+        $data = get_object_vars($this);
+        unset($data['getFunction'], $data['setFunction']);
+        return $data;
+    }
+
+    public function __unserialize(array $data): void
+    {
+        foreach ($data as $key => $value) {
+            $this->$key = $value;
         }
     }
 }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\serializer\normalizer;
 
 use kuiper\helper\Enum;
+use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\serializer\NormalizerInterface;
 
 class EnumNormalizer implements NormalizerInterface
@@ -21,19 +22,19 @@ class EnumNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize($object)
+    public function normalize(mixed $object): array|string
     {
         if ($object instanceof Enum) {
             return $object->name();
-        } else {
-            throw new \InvalidArgumentException('Expected Enum object, got '.gettype($object));
         }
+
+        throw new \InvalidArgumentException('Expected Enum object, got '.gettype($object));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $className)
+    public function denormalize(mixed $data, string|ReflectionTypeInterface $className): mixed
     {
         if (!is_string($data)) {
             throw new \InvalidArgumentException('Expected string, got '.gettype($data));

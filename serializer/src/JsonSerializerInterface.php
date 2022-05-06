@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\serializer;
 
+use JsonException;
+
 interface JsonSerializerInterface
 {
     /**
@@ -28,11 +30,13 @@ interface JsonSerializerInterface
     /**
      * Converts json to object.
      *
+     * @param string $jsonString
      * @param string|object $type
      *
      * @return mixed
      *
      * @throws exception\SerializeException
+     * @throws JsonException
      */
     public function fromJson(string $jsonString, string|object $type): mixed;
 }

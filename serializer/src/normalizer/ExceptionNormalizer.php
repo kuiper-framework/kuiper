@@ -13,14 +13,16 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\normalizer;
 
+use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\serializer\NormalizerInterface;
+use ReflectionClass;
 
 class ExceptionNormalizer implements NormalizerInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function normalize($exception)
+    public function normalize(mixed $object): array|string
     {
         /** @var \Exception $exception */
         if ($exception instanceof \Serializable) {
@@ -39,9 +41,9 @@ class ExceptionNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $className)
+    public function denormalize(mixed $data, string|ReflectionTypeInterface $className): mixed
     {
-        $exception = unserialize(base64_decode($data, true));
+        $exception = unserialize(base64_decode($data, true), ['allowed_classes' => true]);
         if (false === $exception) {
             return new \RuntimeException('Bad exception data: '.json_encode($data));
         }
@@ -50,15 +52,15 @@ class ExceptionNormalizer implements NormalizerInterface
         }
         if (is_array($exception) && isset($exception['class'], $exception['message'], $exception['code'])) {
             $exceptionClass = $exception['class'];
-            $class = new \ReflectionClass($exceptionClass);
+            $class = new ReflectionClass($exceptionClass);
             $constructor = $class->getConstructor();
-            if ($class->isSubclassOf(\Exception::class) && null !== $constructor) {
+            if (null !== $constructor && $class->isSubclassOf(\Exception::class)) {
                 $params = $constructor->getParameters();
                 $paramNames = [];
                 foreach ($params as $param) {
                     $paramNames[$param->getName()] = true;
                 }
-                if (isset($paramNames['message']) && isset($paramNames['code'])) {
+                if (isset($paramNames['message'], $paramNames['code'])) {
                     return new $exceptionClass($exception['message'], $exception['code']);
                 }
             }

@@ -13,35 +13,28 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\normalizer;
 
+use InvalidArgumentException;
 use kuiper\helper\Text;
+use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\serializer\ClassMetadataFactory;
 use kuiper\serializer\NormalizerInterface;
+use ReflectionClass;
 
 class ObjectNormalizer implements NormalizerInterface
 {
     /**
-     * @var ClassMetadataFactory
-     */
-    private $classMetadataFactory;
-
-    /**
-     * @var NormalizerInterface
-     */
-    private $serializer;
-
-    /**
      * ObjectNormalizer constructor.
      */
-    public function __construct(ClassMetadataFactory $classMetadataFactory, NormalizerInterface $serializer)
+    public function __construct(
+        private readonly ClassMetadataFactory $classMetadataFactory,
+        private readonly NormalizerInterface $serializer)
     {
-        $this->classMetadataFactory = $classMetadataFactory;
-        $this->serializer = $serializer;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function normalize($object)
+    public function normalize(mixed $object): array|string
     {
         $metadata = $this->classMetadataFactory->create(get_class($object));
         $data = [];
@@ -55,16 +48,16 @@ class ObjectNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $className)
+    public function denormalize(mixed $data, string|ReflectionTypeInterface $className): mixed
     {
         if (!is_array($data)) {
-            throw new \InvalidArgumentException('Expected array, got '.gettype($data));
+            throw new InvalidArgumentException('Expected array, got '.gettype($data));
         }
         if (!is_string($className)) {
-            throw new \InvalidArgumentException('Expected class name, got '.gettype($className));
+            throw new InvalidArgumentException('Expected class name, got '.gettype($className));
         }
         $metadata = $this->classMetadataFactory->create($className);
-        $class = new \ReflectionClass($className);
+        $class = new ReflectionClass($className);
         $object = $class->newInstanceWithoutConstructor();
         foreach ($metadata->getSetters() as $setter) {
             foreach ([$setter->getSerializeName(),

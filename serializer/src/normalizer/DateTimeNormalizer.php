@@ -15,13 +15,14 @@ namespace kuiper\serializer\normalizer;
 
 use kuiper\helper\Text;
 use kuiper\serializer\NormalizerInterface;
+use kuiper\reflection\ReflectionTypeInterface;
 
 class DateTimeNormalizer implements NormalizerInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function normalize($object)
+    public function normalize(mixed $object): array|string
     {
         if ($object instanceof \DateTimeInterface) {
             return $object->format(\DateTimeInterface::RFC3339);
@@ -33,7 +34,7 @@ class DateTimeNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $className)
+    public function denormalize(mixed $data, string|ReflectionTypeInterface $className): mixed
     {
         $dateTimeClass = Text::isNotEmpty($className)
             && (\DateTimeInterface::class === $className || is_a($className, \DateTimeImmutable::class, true))
