@@ -26,37 +26,14 @@ use Psr\Http\Server\RequestHandlerInterface;
 class JsonRpcHttpRequestHandler implements RequestHandlerInterface
 {
     /**
-     * @var RpcServerRequestFactoryInterface
-     */
-    private $requestFactory;
-
-    /**
-     * @var RpcRequestHandlerInterface
-     */
-    private $requestHandler;
-
-    /**
-     * @var InvalidRequestHandlerInterface
-     */
-    private $invalidRequestHandler;
-    /**
-     * @var ErrorHandlerInterface
-     */
-    private $errorHandler;
-
-    /**
      * JsonRpcHttpRequestHandler constructor.
      */
     public function __construct(
-        RpcServerRequestFactoryInterface $requestFactory,
-        RpcRequestHandlerInterface $requestHandler,
-        InvalidRequestHandlerInterface $invalidRequestHandler,
-        ErrorHandlerInterface $errorHandler
+        private readonly RpcServerRequestFactoryInterface $requestFactory,
+        private readonly RpcRequestHandlerInterface $requestHandler,
+        private readonly InvalidRequestHandlerInterface $invalidRequestHandler,
+        private readonly ErrorHandlerInterface $errorHandler
     ) {
-        $this->requestFactory = $requestFactory;
-        $this->requestHandler = $requestHandler;
-        $this->invalidRequestHandler = $invalidRequestHandler;
-        $this->errorHandler = $errorHandler;
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -74,5 +51,37 @@ class JsonRpcHttpRequestHandler implements RequestHandlerInterface
         } catch (\Exception $e) {
             return $this->errorHandler->handle($rpcRequest, $e);
         }
+    }
+
+    /**
+     * @return RpcServerRequestFactoryInterface
+     */
+    public function getRequestFactory(): RpcServerRequestFactoryInterface
+    {
+        return $this->requestFactory;
+    }
+
+    /**
+     * @return RpcRequestHandlerInterface
+     */
+    public function getRequestHandler(): RpcRequestHandlerInterface
+    {
+        return $this->requestHandler;
+    }
+
+    /**
+     * @return InvalidRequestHandlerInterface
+     */
+    public function getInvalidRequestHandler(): InvalidRequestHandlerInterface
+    {
+        return $this->invalidRequestHandler;
+    }
+
+    /**
+     * @return ErrorHandlerInterface
+     */
+    public function getErrorHandler(): ErrorHandlerInterface
+    {
+        return $this->errorHandler;
     }
 }

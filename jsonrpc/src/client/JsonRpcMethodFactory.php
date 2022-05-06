@@ -13,42 +13,25 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\helper\Text;
-use kuiper\jsonrpc\annotation\JsonRpcClient;
+use kuiper\jsonrpc\attribute\JsonRpcClient;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\RpcMethod;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
 use kuiper\rpc\ServiceLocator;
+use kuiper\rpc\ServiceLocatorImpl;
 
 class JsonRpcMethodFactory implements RpcMethodFactoryInterface
 {
     /**
-     * @var AnnotationReaderInterface
-     */
-    private $annotationReader;
-
-    /**
-     * @var array
-     */
-    private $options;
-
-    /**
      * @var ServiceLocator[]
      */
-    private $serviceLocators;
+    private array $serviceLocators;
 
-    /**
-     * JsonRpcMethodFactory constructor.
-     *
-     * @param AnnotationReaderInterface $annotationReader
-     */
-    public function __construct(AnnotationReaderInterface $annotationReader, array $options = [])
+    public function __construct(private readonly array $options = [])
     {
-        $this->annotationReader = $annotationReader;
-        $this->options = $options;
     }
 
     /**
@@ -63,19 +46,25 @@ class JsonRpcMethodFactory implements RpcMethodFactoryInterface
                 throw new \InvalidArgumentException("Cannot find interface class for {$className}");
             }
             $options = $this->options[$interfaceName] ?? [];
-            /** @var JsonRpcClient|null $annotation */
-            $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($interfaceName), JsonRpcClient::class);
+
+            $reflectionClass = new \ReflectionClass($interfaceName);
+            $attributes = $reflectionClass->getAttributes(JsonRpcClient::class);
+            /** @var JsonRpcClient|null $attribute */
+            $attribute = null;
+            if (count($attributes) > 0) {
+                $attribute = $attributes[0]->newInstance();
+            }
             if (!isset($options['service'])) {
-                $options['service'] = (null !== $annotation) && Text::isNotEmpty($annotation->service)
-                    ? $annotation->service
+                $options['service'] = (null !== $attribute) && $attribute->getService() !== ''
+                    ? $attribute->getService()
                     : str_replace('\\', '.', $interfaceName);
             }
             if (!isset($options['version'])) {
-                $options['version'] = (null !== $annotation) && Text::isNotEmpty($annotation->version)
-                    ? $annotation->version
+                $options['version'] = (null !== $attribute) && $attribute->getVersion() !== ''
+                    ? $attribute->getVersion()
                     : '1.0';
             }
-            $this->serviceLocators[$className] = new ServiceLocator($options['service'], JsonRpcProtocol::NS, $options['version']);
+            $this->serviceLocators[$className] = new ServiceLocatorImpl($options['service'], JsonRpcProtocol::NS, $options['version']);
         }
 
         return new RpcMethod($service, $this->serviceLocators[$className], $method, $args);

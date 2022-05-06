@@ -13,22 +13,17 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
-use DI\Annotation\Inject;
-use function DI\autowire;
-use function DI\factory;
-use function DI\get;
-use kuiper\di\annotation\Bean;
+use kuiper\di\attribute\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
-use kuiper\jsonrpc\annotation\JsonRpcClient;
-use kuiper\jsonrpc\annotation\JsonRpcService;
+use kuiper\jsonrpc\attribute\JsonRpcClient;
+use kuiper\jsonrpc\attribute\JsonRpcService;
 use kuiper\jsonrpc\client\JsonRpcClientFactory;
 use kuiper\logger\LoggerConfiguration;
-use kuiper\logger\LoggerFactoryInterface;
 use kuiper\resilience\core\SwooleAtomicCounter;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\ProxyGeneratorInterface;
@@ -39,8 +34,10 @@ use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\swoole\Application;
 use kuiper\swoole\constants\ServerType;
-use kuiper\swoole\logger\RequestLogFormatterInterface;
 use Psr\Container\ContainerInterface;
+use function DI\autowire;
+use function DI\factory;
+use function DI\get;
 
 class JsonRpcClientConfiguration implements DefinitionConfiguration
 {
@@ -69,27 +66,15 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 ->constructorParameter('httpClientFactory', factory(function (ContainerInterface $container) {
                     return $container->has(HttpClientFactoryInterface::class) ? $container->get(HttpClientFactoryInterface::class) : null;
                 })),
+            'jsonrpcRequestLog' => autowire(AccessLog::class)
+                ->constructorParameter(0, get('jsonrpcClientRequestLogFormatter'))
         ]);
     }
 
-    /**
-     * @Bean
-     */
+    #[Bean]
     public function requestIdGenerator(): RequestIdGeneratorInterface
     {
         return new RequestIdGenerator(new SwooleAtomicCounter());
-    }
-
-    /**
-     * @Bean("jsonrpcRequestLog")
-     * @Inject({"requestLogFormatter": "jsonrpcClientRequestLogFormatter"})
-     */
-    public function jsonrpcRequestLog(RequestLogFormatterInterface $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
-    {
-        $middleware = new AccessLog($requestLogFormatter);
-        $middleware->setLogger($loggerFactory->create('JsonRpcRequestLogger'));
-
-        return $middleware;
     }
 
     /**
@@ -106,7 +91,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         $options = $config->get('application.jsonrpc.client.options', []);
         $createClient = function (ContainerInterface $container, array $options) use ($config) {
             $options['protocol'] = $this->getProtocol($options);
-            if (ServerType::fromValue($options['protocol'])->isHttpProtocol()) {
+            if (ServerType::from($options['protocol'])->isHttpProtocol()) {
                 $options = array_merge($config->get('application.jsonrpc.client.http_options', []), $options);
             } else {
                 $options = array_merge($config->get('application.jsonrpc.client.tcp_options', []), $options);
@@ -164,26 +149,22 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
 
     private function getProtocol(array $options): string
     {
-        if (isset($options['protocol']) && ServerType::hasValue($options['protocol'])) {
+        if (isset($options['protocol']) && null !== ServerType::tryFrom($options['protocol'])) {
             return $options['protocol'];
         }
 
         if (isset($options['base_uri'])) {
-            return ServerType::HTTP;
+            return ServerType::HTTP->value;
         }
 
         if (isset($options['endpoint'])) {
-            $endpoint = Endpoint::fromString($options['endpoint']);
-
-            return $endpoint->getProtocol();
+            return Endpoint::fromString($options['endpoint'])->getProtocol();
         }
 
-        return ServerType::TCP;
+        return ServerType::TCP->value;
     }
 
-    /**
-     * @Bean("jsonrpcClientMiddlewares")
-     */
+    #[Bean("jsonrpcClientMiddlewares")]
     public function jsonrpcClientMiddlewares(ContainerInterface $container): array
     {
         $middlewares = [];
@@ -206,7 +187,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 'logging' => [
                     'loggers' => [
                         'JsonRpcRequestLogger' => LoggerConfiguration::createJsonLogger(
-                            $config->getString('application.logging.jsonrpc_client_log_file', $path.'/jsonrpc-client.log')),
+                            $config->getString('application.logging.jsonrpc_client_log_file', $path . '/jsonrpc-client.log')),
                     ],
                     'logger' => [
                         'JsonRpcRequestLogger' => 'JsonRpcRequestLogger',

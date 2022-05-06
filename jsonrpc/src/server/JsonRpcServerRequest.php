@@ -20,20 +20,13 @@ use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 
 class JsonRpcServerRequest extends RpcRequest implements JsonRpcRequestInterface
 {
-    /**
-     * @var int
-     */
-    private $requestId;
-    /**
-     * @var string
-     */
-    private $version;
-
-    public function __construct(HttpRequestInterface $httpRequest, RpcMethodInterface $rpcMethod, int $requestId, string $version)
+    public function __construct(
+        HttpRequestInterface $httpRequest,
+        RpcMethodInterface $rpcMethod,
+        private readonly int $requestId,
+        private readonly string $version)
     {
         parent::__construct($httpRequest, $rpcMethod);
-        $this->requestId = $requestId;
-        $this->version = $version;
     }
 
     public function getRequestId(): int

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\logger\LoggerFactoryInterface;
@@ -47,103 +46,19 @@ class JsonRpcClientFactory implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    /**
-     * @var AnnotationReaderInterface
-     */
-    private $annotationReader;
-
-    /**
-     * @var RpcResponseNormalizer
-     */
-    private $rpcResponseNormalizer;
-    /**
-     * @var ExceptionNormalizer
-     */
-    private $exceptionNormalizer;
-
-    /**
-     * @var MiddlewareInterface[]
-     */
-    private $middlewares;
-
-    /**
-     * @var ResponseFactoryInterface
-     */
-    private $httpResponseFactory;
-
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
-
-    /**
-     * @var RequestFactoryInterface
-     */
-    private $httpRequestFactory;
-
-    /**
-     * @var ProxyGeneratorInterface
-     */
-    private $proxyGenerator;
-
-    /**
-     * @var LoggerFactoryInterface
-     */
-    private $loggerFactory;
-
-    /**
-     * @var PoolFactoryInterface
-     */
-    private $poolFactory;
-
-    /**
-     * @var HttpClientFactoryInterface|null
-     */
-    private $httpClientFactory;
-    /**
-     * @var RequestIdGeneratorInterface
-     */
-    private $requestIdGenerator;
-
-    /**
-     * JsonRpcClientFactory constructor.
-     *
-     * @param MiddlewareInterface[]    $middlewares
-     * @param RpcResponseNormalizer    $rpcResponseNormalizer
-     * @param ExceptionNormalizer      $exceptionNormalizer
-     * @param ResponseFactoryInterface $httpResponseFactory
-     * @param StreamFactoryInterface   $streamFactory
-     * @param RequestFactoryInterface  $httpRequestFactory
-     * @param ProxyGeneratorInterface  $proxyGenerator
-     * @param LoggerFactoryInterface   $loggerFactory
-     * @param PoolFactoryInterface     $poolFactory
-     */
     public function __construct(
-        AnnotationReaderInterface $annotationReader,
-        RpcResponseNormalizer $rpcResponseNormalizer,
-        ExceptionNormalizer $exceptionNormalizer,
-        ResponseFactoryInterface $httpResponseFactory,
-        StreamFactoryInterface $streamFactory,
-        RequestFactoryInterface $httpRequestFactory,
-        ProxyGeneratorInterface $proxyGenerator,
-        LoggerFactoryInterface $loggerFactory,
-        PoolFactoryInterface $poolFactory,
-        RequestIdGeneratorInterface $requestIdGenerator,
-        array $middlewares,
-        HttpClientFactoryInterface $httpClientFactory = null)
+        private readonly RpcResponseNormalizer $rpcResponseNormalizer,
+        private readonly ExceptionNormalizer $exceptionNormalizer,
+        private readonly ResponseFactoryInterface $httpResponseFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly RequestFactoryInterface $httpRequestFactory,
+        private readonly ProxyGeneratorInterface $proxyGenerator,
+        private readonly LoggerFactoryInterface $loggerFactory,
+        private readonly PoolFactoryInterface $poolFactory,
+        private readonly RequestIdGeneratorInterface $requestIdGenerator,
+        private readonly array $middlewares,
+        private readonly ?HttpClientFactoryInterface $httpClientFactory = null)
     {
-        $this->annotationReader = $annotationReader;
-        $this->rpcResponseNormalizer = $rpcResponseNormalizer;
-        $this->exceptionNormalizer = $exceptionNormalizer;
-        $this->middlewares = $middlewares;
-        $this->httpResponseFactory = $httpResponseFactory;
-        $this->streamFactory = $streamFactory;
-        $this->httpRequestFactory = $httpRequestFactory;
-        $this->proxyGenerator = $proxyGenerator;
-        $this->loggerFactory = $loggerFactory;
-        $this->requestIdGenerator = $requestIdGenerator;
-        $this->poolFactory = $poolFactory;
-        $this->httpClientFactory = $httpClientFactory;
     }
 
     protected function createRpcResponseFactory(bool $outParam): RpcResponseFactoryInterface
@@ -158,7 +73,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         return new JsonRpcRequestFactory(
             $this->httpRequestFactory,
             $this->streamFactory,
-            new JsonRpcMethodFactory($this->annotationReader, [
+            new JsonRpcMethodFactory([
                 $className => $options,
             ]),
             $this->requestIdGenerator,
@@ -223,7 +138,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
             $options['endpoint'] = Endpoint::removeTcpScheme($options['endpoint']);
         }
 
-        if (ServerType::TCP === ($options['protocol'] ?? ServerType::TCP)) {
+        if (ServerType::TCP->value === ($options['protocol'] ?? ServerType::TCP->value)) {
             $rpcExecutorFactory = $this->createTcpRpcExecutorFactory($className, $options);
         } else {
             $rpcExecutorFactory = $this->createHttpRpcExecutorFactory($className, $options);

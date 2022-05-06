@@ -20,6 +20,6 @@ class OutParamJsonRpcServerResponse extends JsonRpcServerResponse
      */
     protected function getResult(): array
     {
-        return $this->request->getRpcMethod()->getResult();
+        return $this->getRequest()->getRpcMethod()->getResult();
     }
 }

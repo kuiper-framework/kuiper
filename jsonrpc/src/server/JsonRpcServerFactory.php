@@ -19,7 +19,6 @@ use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\rpc\server\RpcServerResponseFactoryInterface;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
-use kuiper\rpc\server\Service;
 use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Container\ContainerInterface;
@@ -30,94 +29,24 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class JsonRpcServerFactory
 {
-    /**
-     * @var Service[]
-     */
-    private $services;
+    private ?RpcServerRequestFactoryInterface $rpcServerRequestFactory = null;
 
-    /**
-     * @var array
-     */
-    private $middlewares;
+    private ?RpcRequestHandlerInterface $rpcRequestHandler = null;
 
-    /**
-     * @var bool
-     */
-    private $outParams;
+    private ?InvalidRequestHandlerInterface $invalidRequestHandler = null;
 
-    /**
-     * @var RequestFactoryInterface
-     */
-    private $httpRequestFactory;
+    private ?ErrorHandlerInterface $errorHandler = null;
 
-    /**
-     * @var ResponseFactoryInterface
-     */
-    private $httpResponseFactory;
-
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
-
-    /**
-     * @var NormalizerInterface
-     */
-    private $normalizer;
-
-    /**
-     * @var ReflectionDocBlockFactoryInterface
-     */
-    private $reflectionDocBlockFactory;
-
-    /**
-     * @var RpcServerRequestFactoryInterface|null
-     */
-    private $rpcServerRequestFactory;
-
-    /**
-     * @var RpcRequestHandlerInterface|null
-     */
-    private $rpcRequestHandler;
-
-    /**
-     * @var InvalidRequestHandlerInterface|null
-     */
-    private $invalidRequestHandler;
-
-    /**
-     * @var ErrorHandlerInterface|null
-     */
-    private $errorHandler;
-
-    /**
-     * JsonRpcServerFactory constructor.
-     *
-     * @param array                    $services
-     * @param array                    $middlewares
-     * @param bool                     $outParams
-     * @param ResponseFactoryInterface $httpResponseFactory
-     * @param StreamFactoryInterface   $streamFactory
-     * @param NormalizerInterface      $normalizer
-     */
     public function __construct(
-        array $services,
-        array $middlewares,
-        bool $outParams,
-        RequestFactoryInterface $httpRequestFactory,
-        ResponseFactoryInterface $httpResponseFactory,
-        StreamFactoryInterface $streamFactory,
-        NormalizerInterface $normalizer,
-        ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory
+        private readonly array $services,
+        private readonly array $middlewares,
+        private readonly bool $outParams,
+        private readonly RequestFactoryInterface $httpRequestFactory,
+        private readonly ResponseFactoryInterface $httpResponseFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly NormalizerInterface $normalizer,
+        private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory
     ) {
-        $this->services = $services;
-        $this->middlewares = $middlewares;
-        $this->outParams = $outParams;
-        $this->httpRequestFactory = $httpRequestFactory;
-        $this->httpResponseFactory = $httpResponseFactory;
-        $this->streamFactory = $streamFactory;
-        $this->normalizer = $normalizer;
-        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
     }
 
     public function getRpcResponseFactory(): RpcServerResponseFactoryInterface

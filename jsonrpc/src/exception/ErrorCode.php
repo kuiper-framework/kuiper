@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\exception;
 
-use kuiper\helper\Enum;
-
-class ErrorCode extends Enum
+class ErrorCode
 {
     public const ERROR_PARSE = -32700;
     public const ERROR_INVALID_REQUEST = -32600;

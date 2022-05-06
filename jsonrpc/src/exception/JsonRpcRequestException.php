@@ -15,18 +15,9 @@ namespace kuiper\jsonrpc\exception;
 
 class JsonRpcRequestException extends \InvalidArgumentException
 {
-    /**
-     * @var int|null
-     */
-    private $requestId;
-
-    /**
-     * JsonRpcRequestException constructor.
-     */
-    public function __construct(?int $requestId, string $message, int $code)
+    public function __construct(private readonly ?int $requestId, string $message, int $code)
     {
         parent::__construct($message, $code);
-        $this->requestId = $requestId;
     }
 
     public function getRequestId(): ?int

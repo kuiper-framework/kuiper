@@ -19,7 +19,6 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
-use kuiper\annotations\AnnotationReader;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\resilience\core\SimpleCounter;
@@ -64,7 +63,7 @@ class JsonRpcClientTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $transporter = new HttpTransporter($client);
-        $rpcMethodFactory = new JsonRpcMethodFactory(AnnotationReader::getInstance());
+        $rpcMethodFactory = new JsonRpcMethodFactory();
         $httpFactory = new HttpFactory();
         $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), $httpFactory, $rpcMethodFactory, new RequestIdGenerator(new SimpleCounter(), 0), '/');
         if (null === $responseFactory) {
@@ -100,7 +99,7 @@ class JsonRpcClientTest extends TestCase
     public function testNormalizer()
     {
         $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
-        $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
+        $normalizer = new Serializer($reflectionDocBlockFactory);
         $responseFactory = new JsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory), new ExceptionNormalizer());
         $proxy = $this->createClient(UserService::class, $responseFactory);
         $user = new User();
@@ -140,8 +139,7 @@ class JsonRpcClientTest extends TestCase
         $user = new User();
         $user->setId(2);
         $user->setName('mary');
-        $ret = $proxy->saveUser($user);
-        $this->assertNull($ret);
+        $proxy->saveUser($user);
         $request = json_decode((string) $this->requests[2]['request']->getBody(), true);
         // print_r($request);
         $this->assertEquals('kuiper.rpc.fixtures.UserService.saveUser', $request['method']);
@@ -151,7 +149,7 @@ class JsonRpcClientTest extends TestCase
     public function testNoOutParam()
     {
         $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
-        $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
+        $normalizer = new Serializer($reflectionDocBlockFactory);
         $responseFactory = new NoOutParamJsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory), new ExceptionNormalizer());
         /** @var UserService $proxy */
         $proxy = $this->createClient(UserService::class, $responseFactory);

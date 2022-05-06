@@ -22,8 +22,8 @@ class RpcResponse implements RpcResponseInterface
      * RpcResponse constructor.
      */
     public function __construct(
-        private readonly RpcRequestInterface $request,
-        private readonly ResponseInterface $httpResponse)
+        private                   readonly RpcRequestInterface $request,
+        private ResponseInterface $httpResponse)
     {
     }
 
@@ -32,9 +32,16 @@ class RpcResponse implements RpcResponseInterface
         return $this->httpResponse->getProtocolVersion();
     }
 
+    private function withResponse(ResponseInterface $response)
+    {
+        $new = clone $this;
+        $new->httpResponse = $response;
+        return $new;
+    }
+
     public function withProtocolVersion($version): RpcResponse
     {
-        return new self($this->request, $this->httpResponse->withProtocolVersion($version));
+        return $this->withResponse($this->httpResponse->withProtocolVersion($version));
     }
 
     public function getHeaders(): array
@@ -59,17 +66,17 @@ class RpcResponse implements RpcResponseInterface
 
     public function withHeader($name, $value): RpcResponse
     {
-        return new self($this->request, $this->httpResponse->withHeader($name, $value));
+        return $this->withResponse($this->httpResponse->withHeader($name, $value));
     }
 
     public function withAddedHeader($name, $value)
     {
-        return new self($this->request, $this->httpResponse->withAddedHeader($name, $value));
+        return $this->withResponse($this->httpResponse->withAddedHeader($name, $value));
     }
 
     public function withoutHeader($name)
     {
-        return new self($this->request, $this->httpResponse->withoutHeader($name));
+        return $this->withResponse($this->httpResponse->withoutHeader($name));
     }
 
     public function getBody()
@@ -79,7 +86,7 @@ class RpcResponse implements RpcResponseInterface
 
     public function withBody(StreamInterface $body)
     {
-        return new self($this->request, $this->httpResponse->withBody($body));
+        return $this->withResponse($this->httpResponse->withBody($body));
     }
 
     public function getStatusCode()
@@ -89,7 +96,7 @@ class RpcResponse implements RpcResponseInterface
 
     public function withStatus($code, $reasonPhrase = '')
     {
-        return new self($this->request, $this->httpResponse->withStatus($code, $reasonPhrase));
+        return $this->withResponse($this->httpResponse->withStatus($code, $reasonPhrase));
     }
 
     public function getReasonPhrase()

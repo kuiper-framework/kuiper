@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\web\middleware;
 
+use kuiper\swoole\logger\LogContext;
+use kuiper\swoole\logger\LogContextImpl;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -30,6 +32,8 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
      */
     private $requestFilter;
 
+    private readonly LogContext $logContext;
+
     /**
      * AccessLog constructor.
      *
@@ -41,6 +45,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
         ?callable $requestFilter = null)
     {
         $this->requestFilter = $requestFilter;
+        $this->logContext = new LogContextImpl();
     }
 
     /**
@@ -48,17 +53,18 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $start = microtime(true);
+        $this->logContext->setRequest($request);
         try {
             $response = $handler->handle($request);
             if (null === $this->requestFilter || (bool) call_user_func($this->requestFilter, $request, $response)) {
-                $this->logger->info(...$this->formatter->format($request, $response, null, $start, microtime(true)));
+                $this->logContext->setResponse($response);
+                $this->logger->info(...$this->formatter->format($this->logContext));
             }
 
             return $response;
         } catch (\Exception $error) {
-            $format = $this->formatter->format($request, null, $error, $start, microtime(true));
-            $this->logger->info(...$format);
+            $this->logContext->setError($error);
+            $this->logger->info(...$this->formatter->format($this->logContext));
             throw $error;
         }
     }

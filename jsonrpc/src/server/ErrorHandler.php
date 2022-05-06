@@ -29,24 +29,11 @@ use Webmozart\Assert\Assert;
 
 class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterface
 {
-    /**
-     * @var ResponseFactoryInterface
-     */
-    private $responseFactory;
-    /**
-     * @var ExceptionNormalizer
-     */
-    private $exceptionNormalizer;
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
-
-    public function __construct(ResponseFactoryInterface $responseFactory, StreamFactoryInterface $streamFactory, ExceptionNormalizer $exceptionNormalizer)
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly ExceptionNormalizer $exceptionNormalizer)
     {
-        $this->exceptionNormalizer = $exceptionNormalizer;
-        $this->responseFactory = $responseFactory;
-        $this->streamFactory = $streamFactory;
     }
 
     /**
@@ -93,5 +80,29 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
     {
         return $this->responseFactory->createResponse(400)
             ->withBody($this->streamFactory->createStream($body));
+    }
+
+    /**
+     * @return ResponseFactoryInterface
+     */
+    public function getResponseFactory(): ResponseFactoryInterface
+    {
+        return $this->responseFactory;
+    }
+
+    /**
+     * @return StreamFactoryInterface
+     */
+    public function getStreamFactory(): StreamFactoryInterface
+    {
+        return $this->streamFactory;
+    }
+
+    /**
+     * @return ExceptionNormalizer
+     */
+    public function getExceptionNormalizer(): ExceptionNormalizer
+    {
+        return $this->exceptionNormalizer;
     }
 }

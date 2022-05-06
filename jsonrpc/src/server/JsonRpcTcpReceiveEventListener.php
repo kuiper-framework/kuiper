@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\server;
 
+use Exception;
 use kuiper\event\EventListenerInterface;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
@@ -27,45 +28,13 @@ use Webmozart\Assert\Assert;
 
 class JsonRpcTcpReceiveEventListener implements EventListenerInterface
 {
-    /**
-     * @var RequestFactoryInterface
-     */
-    private $httpRequestFactory;
-
-    /**
-     * @var RpcServerRequestFactoryInterface
-     */
-    private $serverRequestFactory;
-
-    /**
-     * @var RpcRequestHandlerInterface
-     */
-    private $requestHandler;
-
-    /**
-     * @var InvalidRequestHandlerInterface
-     */
-    private $invalidRequestHandler;
-    /**
-     * @var ErrorHandlerInterface
-     */
-    private $errorHandler;
-
-    /**
-     * TcpReceiveEventListener constructor.
-     */
     public function __construct(
-        RequestFactoryInterface $httpRequestFactory,
-        RpcServerRequestFactoryInterface $serverRequestFactory,
-        RpcRequestHandlerInterface $requestHandler,
-        InvalidRequestHandlerInterface $errorResponseHandler,
-        ErrorHandlerInterface $errorHandler)
+        private readonly RequestFactoryInterface $httpRequestFactory,
+        private readonly RpcServerRequestFactoryInterface $serverRequestFactory,
+        private readonly RpcRequestHandlerInterface $requestHandler,
+        private readonly InvalidRequestHandlerInterface $invalidRequestHandler,
+        private readonly ErrorHandlerInterface $errorHandler)
     {
-        $this->httpRequestFactory = $httpRequestFactory;
-        $this->serverRequestFactory = $serverRequestFactory;
-        $this->requestHandler = $requestHandler;
-        $this->invalidRequestHandler = $errorResponseHandler;
-        $this->errorHandler = $errorHandler;
     }
 
     /**
@@ -95,7 +64,7 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface
             ServerRequestHolder::setRequest($serverRequest);
             $response = $this->requestHandler->handle($serverRequest);
             $server->send($event->getClientId(), (string) $response->getBody());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             /** @var JsonRpcRequestInterface $serverRequest */
             $server->send($event->getClientId(), (string) $this->errorHandler->handle($serverRequest, $e)
                 ->getBody());

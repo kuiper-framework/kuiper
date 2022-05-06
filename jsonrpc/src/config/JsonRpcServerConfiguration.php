@@ -13,49 +13,42 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
-use DI\Annotation\Inject;
-use function DI\autowire;
-use function DI\factory;
-use function DI\get;
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\Configuration;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\PropertyResolverInterface;
-use kuiper\helper\Text;
-use kuiper\jsonrpc\annotation\JsonRpcService;
+use kuiper\jsonrpc\attribute\JsonRpcService;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\server\JsonRpcServerFactory;
 use kuiper\jsonrpc\server\JsonRpcTcpReceiveEventListener;
 use kuiper\logger\LoggerConfiguration;
-use kuiper\logger\LoggerFactoryInterface;
-use kuiper\rpc\annotation\Ignore;
+use kuiper\rpc\attribute\Ignore;
 use kuiper\rpc\JsonRpcRequestLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\Service;
-use kuiper\rpc\ServiceLocator;
+use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\listener\HttpRequestEventListener;
-use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerPort;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
+use function DI\autowire;
+use function DI\factory;
+use function DI\get;
 
-/**
- * @Configuration(dependOn={ServerConfiguration::class})
- */
+#[Configuration(dependOn: [ServerConfiguration::class])]
 class JsonRpcServerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
 
-    protected const TAG = '['.__CLASS__.'] ';
+    protected const TAG = '[' . __CLASS__ . '] ';
 
     public function getDefinitions(): array
     {
@@ -101,15 +94,15 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             JsonRpcServerFactory::class => factory([JsonRpcServerFactory::class, 'createFromContainer']),
             'jsonrpcServerRequestLogFormatter' => autowire(JsonRpcRequestLogFormatter::class),
             'registerServices' => get('jsonrpcServices'),
+            'jsonrpcServerRequestLog' => autowire(AccessLog::class)
+                ->constructorParameter(0, get("jsonrpcServerRequestLogFormatter"))
         ]);
     }
 
-    /**
-     * @Bean("jsonrpcServices")
-     */
+    #[Bean("jsonrpcServices")]
     public function jsonrpcServices(ContainerInterface $container, ServerConfig $serverConfig, PropertyResolverInterface $config): array
     {
-        $weight = (int) $config->get('application.jsonrpc.server.weight');
+        $weight = (int)$config->get('application.jsonrpc.server.weight');
         if ($this->jsonrpcOnHttp($config)) {
             return $this->getJsonrpcServices($container, $serverConfig, ServerType::HTTP, $weight);
         }
@@ -122,9 +115,9 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         if ('http' === $config->get('application.jsonrpc.server.protocol')) {
             return true;
         }
-        foreach ($config->get('application.server.ports') as $port => $portConfig) {
-            $serverType = is_string($portConfig) ? $portConfig : $portConfig['protocol'] ?? ServerType::HTTP;
-            if (ServerType::fromValue($serverType)->isHttpProtocol()) {
+        foreach ($config->get('application.server.ports', []) as $portConfig) {
+            $serverType = is_string($portConfig) ? $portConfig : $portConfig['protocol'] ?? ServerType::HTTP->value;
+            if (ServerType::from($serverType)->isHttpProtocol()) {
                 return true;
             }
         }
@@ -132,10 +125,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         return false;
     }
 
-    /**
-     * @return Service[]
-     */
-    protected function getJsonrpcServices(ContainerInterface $container, ServerConfig $serverConfig, string $serverType, int $weight): array
+    protected function getJsonrpcServices(ContainerInterface $container, ServerConfig $serverConfig, ServerType $serverType, int $weight): array
     {
         $serverPort = null;
         foreach ($serverConfig->getPorts() as $port) {
@@ -151,16 +141,15 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             $serverPort = new ServerPort(gethostbyname(gethostname()), $serverPort->getPort(), $serverPort->getServerType());
         }
         $logger = $container->get(LoggerInterface::class);
-        $annotationReader = $container->get(AnnotationReaderInterface::class);
         $services = [];
         /** @var JsonRpcService $annotation */
         foreach (ComponentCollection::getComponents(JsonRpcService::class) as $annotation) {
-            $serviceName = $annotation->service ?? $this->getServiceName($annotation->getTarget());
-            $logger->info(static::TAG."register jsonrpc service $serviceName which served by ".$annotation->getTargetClass());
+            $serviceName = $annotation->getService() ?? $this->getServiceName($annotation->getTarget());
+            $logger->info(static::TAG . "register jsonrpc service $serviceName which served by " . $annotation->getTargetClass());
             $services[$serviceName] = new Service(
-                new ServiceLocator($serviceName, $annotation->version ?? '1.0', JsonRpcProtocol::NS),
+                new ServiceLocatorImpl($serviceName, $annotation->getVersion() ?? '1.0', JsonRpcProtocol::NS),
                 $container->get($annotation->getComponentId()),
-                $this->getMethods($annotation->getTarget(), $annotationReader),
+                $this->getMethods($annotation->getTarget()),
                 $serverPort,
                 $weight
             );
@@ -174,11 +163,11 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             if (!is_string($serviceName)) {
                 $serviceName = $service['service'] ?? $this->getServiceName($class);
             }
-            $logger->info(static::TAG."register jsonrpc service $serviceName which served by ".$service['class']);
+            $logger->info(static::TAG . "register jsonrpc service $serviceName which served by " . $service['class']);
             $services[$serviceName] = new Service(
-                new ServiceLocator($serviceName, $service['version'] ?? '1.0', JsonRpcProtocol::NS),
+                new ServiceLocatorImpl($serviceName, $service['version'] ?? '1.0', JsonRpcProtocol::NS),
                 $serviceImpl,
-                $this->getMethods($class, $annotationReader),
+                $this->getMethods($class),
                 $serverPort,
                 $weight
             );
@@ -195,15 +184,15 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             foreach ($class->getInterfaceNames() as $interfaceName) {
                 $parts = explode('\\', $interfaceName);
                 $shortName = end($parts);
-                if (Text::startsWith($class->getShortName(), $shortName)
-                    || Text::startsWith($shortName, $class->getShortName())) {
+                if (str_starts_with($class->getShortName(), $shortName)
+                    || str_starts_with($shortName, $class->getShortName())) {
                     $serviceClass = $interfaceName;
                     break;
                 }
             }
         }
         if (!isset($serviceClass)) {
-            throw new \InvalidArgumentException('Cannot resolve service name from '.$class->getName());
+            throw new \InvalidArgumentException('Cannot resolve service name from ' . $class->getName());
         }
 
         return $serviceClass;
@@ -214,12 +203,12 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         return str_replace('\\', '.', self::getServiceClass($class));
     }
 
-    private function getMethods(\ReflectionClass $class, AnnotationReaderInterface $annotationReader): array
+    private function getMethods(\ReflectionClass $class): array
     {
         $methods = [];
         $class = new \ReflectionClass(self::getServiceClass($class));
         foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if (null !== $annotationReader->getMethodAnnotation($method, Ignore::class)) {
+            if (count($method->getAttributes(Ignore::class)) > 0) {
                 continue;
             }
             $methods[] = $method->getName();
@@ -228,9 +217,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         return $methods;
     }
 
-    /**
-     * @Bean("jsonrpcServerMiddlewares")
-     */
+    #[Bean("jsonrpcServerMiddlewares")]
     public function jsonrpcServerMiddlewares(ContainerInterface $container): array
     {
         $middlewares = [];
@@ -239,18 +226,6 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         }
 
         return $middlewares;
-    }
-
-    /**
-     * @Bean("jsonrpcServerRequestLog")
-     * @Inject({"requestLogFormatter": "jsonrpcServerRequestLogFormatter"})
-     */
-    public function jsonrpcRequestLog(RequestLogFormatterInterface $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
-    {
-        $middleware = new AccessLog($requestLogFormatter);
-        $middleware->setLogger($loggerFactory->create('JsonRpcServerRequestLogger'));
-
-        return $middleware;
     }
 
     private function addAccessLogger(): void
@@ -265,7 +240,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
                 'logging' => [
                     'loggers' => [
                         'JsonRpcServerRequestLogger' => LoggerConfiguration::createJsonLogger(
-                            $config->get('application.logging.jsonrpc_server_log_file', $path.'/jsonrpc-server.log')),
+                            $config->get('application.logging.jsonrpc_server_log_file', $path . '/jsonrpc-server.log')),
                     ],
                     'logger' => [
                         'JsonRpcServerRequestLogger' => 'JsonRpcServerRequestLogger',

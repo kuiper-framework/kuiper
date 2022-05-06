@@ -15,7 +15,6 @@ namespace kuiper\jsonrpc\server;
 
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Request;
-use kuiper\annotations\AnnotationReader;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\rpc\fixtures\User;
@@ -23,6 +22,7 @@ use kuiper\rpc\fixtures\UserService;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
+use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\serializer\Serializer;
 use kuiper\swoole\constants\ServerType;
@@ -47,7 +47,7 @@ class ServerRequestHandlerTest extends TestCase
             ->with(\Mockery::capture($savedUser));
 
         $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
-        $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
+        $normalizer = new Serializer($reflectionDocBlockFactory);
         $services = $this->buildServices([UserService::class => $userService]);
         $handler = new RpcServerRpcRequestHandler(
             $services,
@@ -94,7 +94,7 @@ class ServerRequestHandlerTest extends TestCase
             ->with(\Mockery::capture($savedUser));
 
         $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
-        $normalizer = new Serializer(AnnotationReader::getInstance(), $reflectionDocBlockFactory);
+        $normalizer = new Serializer( $reflectionDocBlockFactory);
 
         $services = $this->buildServices([UserService::class => $userService]);
         $rpcMethodFactory = new JsonRpcServerMethodFactory($services, $normalizer, $reflectionDocBlockFactory);
@@ -125,7 +125,7 @@ class ServerRequestHandlerTest extends TestCase
     {
         $ret = [];
         foreach ($services as $name => $service) {
-            $locator = new ServiceLocator(str_replace('\\', '.', $name));
+            $locator = new ServiceLocatorImpl(str_replace('\\', '.', $name));
             $ret[$locator->getName()] = new Service(
                 $locator,
                 $service,

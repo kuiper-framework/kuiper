@@ -13,28 +13,23 @@ class LogContextImpl implements LogContext
     private ?Throwable $error = null;
     private float $startTime = 0.0;
     private float $endTime = 0.0;
-    /**
-     * @param RequestInterface $request
-     */
+
     public function setRequest(RequestInterface $request): void
     {
         $this->request = $request;
+        $this->startTime = microtime(true);
     }
 
-    /**
-     * @param ResponseInterface|null $response
-     */
-    public function setResponse(?ResponseInterface $response): void
+    public function setResponse(ResponseInterface $response): void
     {
         $this->response = $response;
+        $this->endTime = microtime(true);
     }
 
-    /**
-     * @param Throwable|null $error
-     */
-    public function setError(?Throwable $error): void
+    public function setError(Throwable $error): void
     {
         $this->error = $error;
+        $this->endTime = microtime(true);
     }
 
     /**
@@ -107,6 +102,4 @@ class LogContextImpl implements LogContext
     {
         return $this->endTime - $this->startTime;
     }
-
-
 }

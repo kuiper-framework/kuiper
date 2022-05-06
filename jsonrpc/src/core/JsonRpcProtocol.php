@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\core;
 
-class JsonRpcProtocol
+final class JsonRpcProtocol
 {
     public const EOF = "\r\n";
 

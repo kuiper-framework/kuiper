@@ -20,25 +20,16 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 
-/**
- * @property JsonRpcRequestInterface $request
- */
 class JsonRpcServerResponse extends RpcResponse
 {
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
+    private ?StreamInterface $body = null;
 
-    /**
-     * @var StreamInterface|null
-     */
-    private $body;
-
-    public function __construct(JsonRpcRequestInterface $request, ResponseInterface $httpResponse, StreamFactoryInterface $streamFactory)
+    public function __construct(
+        JsonRpcRequestInterface $request,
+        ResponseInterface $httpResponse,
+        private readonly StreamFactoryInterface $streamFactory)
     {
         parent::__construct($request, $httpResponse);
-        $this->streamFactory = $streamFactory;
     }
 
     public function withBody(StreamInterface $body)
@@ -54,7 +45,7 @@ class JsonRpcServerResponse extends RpcResponse
         if (null === $this->body) {
             $this->body = $this->streamFactory->createStream(JsonRpcProtocol::encode([
                 'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
-                'id' => $this->request->getRequestId(),
+                'id' => $this->getRequest()->getRequestId(),
                 'result' => $this->getResult(),
             ]));
         }
@@ -65,7 +56,7 @@ class JsonRpcServerResponse extends RpcResponse
     /**
      * @return mixed
      */
-    protected function getResult()
+    protected function getResult(): mixed
     {
         return $this->getRequest()->getRpcMethod()->getResult()[0];
     }

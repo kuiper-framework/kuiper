@@ -23,8 +23,8 @@ class RpcRequest implements RpcRequestInterface
      * RpcRequest constructor.
      */
     public function __construct(
-        private readonly RequestInterface $httpRequest,
-        private readonly RpcMethodInterface $rpcMethod,
+        private RequestInterface $httpRequest,
+        private RpcMethodInterface $rpcMethod,
         private array $attributes = [])
     {
     }
@@ -36,7 +36,9 @@ class RpcRequest implements RpcRequestInterface
 
     private function withHttpRequest(RequestInterface $httpRequest)
     {
-        return new self($httpRequest, $this->rpcMethod, $this->attributes);
+        $new = clone $this;
+        $new->httpRequest = $httpRequest;
+        return $new;
     }
 
     public function withProtocolVersion($version)
@@ -142,7 +144,9 @@ class RpcRequest implements RpcRequestInterface
     public function withAttribute(string $name, mixed $value)
     {
         $new = clone $this;
-        $new->attributes[$name] = $value;
+        $attributes = $this->attributes;
+        $attributes[$name] = $value;
+        $new->attributes = $attributes;
 
         return $new;
     }
@@ -162,6 +166,8 @@ class RpcRequest implements RpcRequestInterface
      */
     public function withRpcMethod(RpcMethodInterface $rpcMethod)
     {
-        return new self($this->httpRequest, $rpcMethod, $this->attributes);
+        $new = clone $this;
+        $new->rpcMethod = $rpcMethod;
+        return $new;
     }
 }

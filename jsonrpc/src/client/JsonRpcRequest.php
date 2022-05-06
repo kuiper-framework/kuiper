@@ -23,32 +23,16 @@ use Psr\Http\Message\StreamInterface;
 
 class JsonRpcRequest extends RpcRequest implements JsonRpcRequestInterface
 {
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
+    private ?StreamInterface $body = null;
 
-    /**
-     * @var StreamInterface
-     */
-    private $body;
-
-    /**
-     * @var int
-     */
-    private $requestId;
-
-    /**
-     * @var string
-     */
-    private $version;
-
-    public function __construct(RequestInterface $request, RpcMethodInterface $rpcMethod, StreamFactoryInterface $streamFactory, int $requestId, string $version)
+    public function __construct(
+        RequestInterface $request,
+        RpcMethodInterface $rpcMethod,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly int $requestId,
+        private readonly string $version)
     {
         parent::__construct($request, $rpcMethod);
-        $this->requestId = $requestId;
-        $this->streamFactory = $streamFactory;
-        $this->version = $version;
     }
 
     public function getRequestId(): int

@@ -22,22 +22,10 @@ use kuiper\serializer\normalizer\ExceptionNormalizer;
 
 class JsonRpcResponseFactory extends SimpleJsonRpcResponseFactory
 {
-    /**
-     * @var RpcResponseNormalizer
-     */
-    private $normalizer;
-    /**
-     * @var ExceptionNormalizer
-     */
-    private $exceptionNormalizer;
-
-    /**
-     * JsonRpcSerializerResponseFactory constructor.
-     */
-    public function __construct(RpcResponseNormalizer $normalizer, ExceptionNormalizer $exceptionNormalizer)
+    public function __construct(
+        private readonly RpcResponseNormalizer $normalizer,
+        private readonly ExceptionNormalizer $exceptionNormalizer)
     {
-        $this->normalizer = $normalizer;
-        $this->exceptionNormalizer = $exceptionNormalizer;
     }
 
     protected function handleError(JsonRpcRequestInterface $request, int $code, string $message, $data): RpcResponseInterface

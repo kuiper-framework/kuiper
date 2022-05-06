@@ -23,25 +23,11 @@ use Webmozart\Assert\Assert;
 
 class JsonRpcServerResponseFactory implements RpcServerResponseFactoryInterface
 {
-    /**
-     * @var ResponseFactoryInterface
-     */
-    private $httpResponseFactory;
-
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
-    /**
-     * @var string
-     */
-    private $responseClass;
-
-    public function __construct(ResponseFactoryInterface $httpResponseFactory, StreamFactoryInterface $streamFactory, string $responseClass = JsonRpcServerResponse::class)
+    public function __construct(
+        private readonly ResponseFactoryInterface $httpResponseFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly string $responseClass = JsonRpcServerResponse::class)
     {
-        $this->httpResponseFactory = $httpResponseFactory;
-        $this->streamFactory = $streamFactory;
-        $this->responseClass = $responseClass;
     }
 
     /**

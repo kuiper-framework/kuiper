@@ -13,11 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\fixtures\service;
 
-use kuiper\jsonrpc\annotation\JsonRpcClient;
 
-/**
- * @JsonRpcClient()
- */
+use kuiper\jsonrpc\attribute\JsonRpcClient;
+
+#[JsonRpcClient]
 interface CalculatorService
 {
     /**

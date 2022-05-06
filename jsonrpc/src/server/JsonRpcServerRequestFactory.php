@@ -26,17 +26,8 @@ use Psr\Http\Message\RequestInterface;
 
 class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
 {
-    /**
-     * @var RpcMethodFactoryInterface
-     */
-    private $rpcMethodFactory;
-
-    /**
-     * JsonRpcSerializerResponseFactory constructor.
-     */
-    public function __construct(RpcMethodFactoryInterface $rpcMethodFactory)
+    public function __construct(private readonly RpcMethodFactoryInterface $rpcMethodFactory)
     {
-        $this->rpcMethodFactory = $rpcMethodFactory;
     }
 
     /**

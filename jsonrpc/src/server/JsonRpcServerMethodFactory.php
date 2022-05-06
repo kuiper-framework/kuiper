@@ -31,32 +31,15 @@ use ReflectionMethod;
 class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
 {
     /**
-     * @var NormalizerInterface
-     */
-    private $normalizer;
-
-    /**
-     * @var ReflectionDocBlockFactoryInterface
-     */
-    private $reflectionDocBlockFactory;
-
-    /**
      * @var array
      */
-    private $cachedTypes;
-    /**
-     * @var Service[]
-     */
-    private $services;
+    private array $cachedTypes;
 
-    /**
-     * JsonRpcSerializerResponseFactory constructor.
-     */
-    public function __construct(array $services, NormalizerInterface $normalizer, ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
+    public function __construct(
+        private readonly array $services,
+        private readonly NormalizerInterface $normalizer,
+        private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
     {
-        $this->services = $services;
-        $this->normalizer = $normalizer;
-        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
     }
 
     /**
@@ -111,28 +94,31 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
         }
 
         $reflectionMethod = new ReflectionMethod($target, $methodName);
-        $docParamTypes = $this->reflectionDocBlockFactory->createMethodDocBlock($reflectionMethod)->getParameterTypes();
-        $paramTypes = [];
-        foreach ($reflectionMethod->getParameters() as $i => $parameter) {
-            $paramTypes[] = $this->createType($parameter->getType(), $docParamTypes[$parameter->getName()]);
-        }
-
-        return $this->cachedTypes[$key] = $paramTypes;
+        $reflectionMethodDocBlock = $this->reflectionDocBlockFactory->createMethodDocBlock($reflectionMethod);
+        return $this->cachedTypes[$key] = array_values($reflectionMethodDocBlock->getParameterTypes());
     }
 
-    private function createType(?\ReflectionType $type, ReflectionTypeInterface $docType): ?ReflectionTypeInterface
+    /**
+     * @return array
+     */
+    public function getServices(): array
     {
-        if (null === $type && $docType instanceof VoidType) {
-            return null;
-        }
-        if (null === $type) {
-            return $docType;
-        }
-        $reflectionType = ReflectionType::fromPhpType($type);
-        if ($reflectionType->isUnknown()) {
-            return $docType;
-        }
+        return $this->services;
+    }
 
-        return $reflectionType;
+    /**
+     * @return NormalizerInterface
+     */
+    public function getNormalizer(): NormalizerInterface
+    {
+        return $this->normalizer;
+    }
+
+    /**
+     * @return ReflectionDocBlockFactoryInterface
+     */
+    public function getReflectionDocBlockFactory(): ReflectionDocBlockFactoryInterface
+    {
+        return $this->reflectionDocBlockFactory;
     }
 }

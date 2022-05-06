@@ -13,9 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc;
 
-use function DI\factory;
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\ContainerBuilder;
 use kuiper\event\EventConfiguration;
 use kuiper\helper\PropertyResolverInterface;
@@ -40,14 +37,11 @@ use Monolog\Logger;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
+use function DI\factory;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
+    protected ?ContainerInterface $container = null;
 
     protected function createContainer(): ContainerInterface
     {
@@ -74,7 +68,6 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             PoolFactoryInterface::class => new PoolFactory(false),
             PropertyResolverInterface::class => $config,
             ServiceResolverInterface::class => new InMemoryServiceResolver(),
-            AnnotationReaderInterface::class => AnnotationReader::getInstance(),
         ]);
 
         /** @var ReflectionNamespaceFactory $reflectionNs */
@@ -93,7 +86,6 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             }),
             PoolFactoryInterface::class => new PoolFactory(false),
             PropertyResolverInterface::class => $config,
-            AnnotationReaderInterface::class => AnnotationReader::getInstance(),
         ]);
         $builder->defer(function (ContainerInterface $container) {
             foreach ($this->getDefinitions() as $name => $definition) {

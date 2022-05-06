@@ -24,6 +24,7 @@ class ExceptionNormalizer implements NormalizerInterface
      */
     public function normalize(mixed $object): array|string
     {
+        $exception = $object;
         /** @var \Exception $exception */
         if ($exception instanceof \Serializable) {
             $data = $exception;
