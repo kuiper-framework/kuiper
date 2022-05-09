@@ -63,6 +63,7 @@
         "kuiper/di": "self.version",
         "kuiper/event": "self.version",
         "kuiper/helper": "self.version",
+        "kuiper/http-client": "self.version",
         "kuiper/logger": "self.version",
         "kuiper/reflection": "self.version",
         "kuiper/resilience": "self.version",
