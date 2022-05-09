@@ -60,17 +60,19 @@ class TarsRequest extends RpcRequest implements TarsRequestInterface
     public function getBody(): StreamInterface
     {
         if (null === $this->body) {
-            $args = $this->getRpcMethod()->getArguments();
+            /** @var TarsMethodInterface $rpcMethod */
+            $rpcMethod = $this->getRpcMethod();
+            $args = $rpcMethod->getArguments();
             $packet = $this->packet;
             if (TarsConst::VERSION === $packet->iVersion) {
                 $params = [];
-                foreach ($this->getRpcMethod()->getParameters() as $i => $parameter) {
+                foreach ($rpcMethod->getParameters() as $i => $parameter) {
                     $params[$parameter->getName()] = TarsOutputStream::pack($parameter->getType(), $args[$i] ?? null);
                 }
                 $packet->sBuffer = TarsOutputStream::pack(MapType::byteArrayMap(), $params);
             } else {
                 $os = new TarsOutputStream();
-                foreach ($this->getRpcMethod()->getParameters() as $i => $parameter) {
+                foreach ($rpcMethod->getParameters() as $i => $parameter) {
                     $os->write(0, $args[$i] ?? null, $parameter->getType());
                 }
                 $packet->sBuffer = (string) $os;

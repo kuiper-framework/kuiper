@@ -526,6 +526,7 @@ class TarsInputStream implements TarsInputStreamInterface
         } else {
             $obj = new $className;
             foreach ($props as $key => $value) {
+                /** @phpstan-ignore-next-line */
                 $obj->{$key} = $value;
             }
         }

@@ -41,12 +41,10 @@ class TarsOutputStream implements TarsOutputStreamInterface
     public function __construct(bool $hasLengthHead = false)
     {
         $this->buffer = fopen('php://temp', 'rb+');
+        $this->hasLengthHead = $hasLengthHead;
         if ($hasLengthHead) {
-            $this->hasLengthHead = true;
             fwrite($this->buffer, pack('N', 0));
             $this->length = 4;
-        } else {
-            $this->hasLengthHead = false;
         }
     }
 

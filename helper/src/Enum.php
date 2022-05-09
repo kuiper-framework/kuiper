@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\helper;
 
-use JetBrains\PhpStorm\Deprecated;
-
 /**
  * enum class.
  *
@@ -22,7 +20,6 @@ use JetBrains\PhpStorm\Deprecated;
  * @property mixed  $value
  * @deprecated
  */
-#[Deprecated]
 abstract class Enum implements \JsonSerializable, \Stringable
 {
     /**
@@ -197,7 +194,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
      * Gets the enum instance for the name.
      *
      * @param string $name
-     * @param Enum|null $default
+     * @param static|null $default
      *
      * @return static
      */
@@ -218,7 +215,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
      * Gets the enum instance for the value.
      *
      * @param mixed $value
-     * @param Enum|null $default
+     * @param static|null $default
      *
      * @return static
      */

@@ -18,12 +18,14 @@ use kuiper\web\exception\RedirectException;
 use kuiper\web\security\SecurityContext;
 use kuiper\web\session\FlashInterface;
 use kuiper\web\session\SessionInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
 
 /**
- * @method getResponse(): ResponseInterface
- * @method getRequest(): \Psr\Http\Message\RequestInterface
+ * @method ResponseInterface getResponse()
+ * @method ServerRequestInterface getRequest()
  */
 trait ControllerTrait
 {

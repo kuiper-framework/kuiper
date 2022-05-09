@@ -118,6 +118,6 @@ class SlidingTimeWindowMetrics implements Metrics
 
     public function getWindowType(): SlideWindowType
     {
-        return SlideWindowType::TIME_BASED();
+        return SlideWindowType::TIME_BASED;
     }
 }

@@ -26,6 +26,7 @@ class JsonRpcClient extends RpcClient
         string  $endpoint = '',
         private readonly bool $outParams = false)
     {
+        parent::__construct($service, $version, $namespace, $protocol, $endpoint);
     }
 
     /**

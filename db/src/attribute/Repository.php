@@ -21,6 +21,7 @@ class Repository extends Service
 {
     public function __construct(private readonly string $entityClass)
     {
+        parent::__construct();
     }
 
     /**

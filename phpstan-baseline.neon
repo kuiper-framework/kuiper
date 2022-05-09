@@ -1,9 +1,9 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Parameter \\#1 \\$attribute \\(int\\) of method kuiper\\\\db\\\\Connection\\:\\:getAttribute\\(\\) should be contravariant with parameter \\$attribute \\(mixed\\) of method kuiper\\\\db\\\\PdoInterface\\:\\:getAttribute\\(\\)$#"
+			message: "#^Call to an undefined method kuiper\\\\db\\\\StatementInterface\\:\\:getLastInsertId\\(\\)\\.$#"
 			count: 2
-			path: db/src/Connection.php
+			path: db/src/AbstractCrudRepository.php
 
 		-
 			message: "#^Parameter \\#1 \\$attribute \\(int\\) of method kuiper\\\\db\\\\Connection\\:\\:setAttribute\\(\\) should be contravariant with parameter \\$attribute \\(mixed\\) of method kuiper\\\\db\\\\PdoInterface\\:\\:setAttribute\\(\\)$#"
@@ -21,19 +21,14 @@ parameters:
 			path: db/src/Connection.php
 
 		-
-			message: "#^Method kuiper\\\\db\\\\PdoInterface\\:\\:lastInsertId\\(\\) has no return type specified\\.$#"
+			message: "#^Method kuiper\\\\db\\\\Criteria\\:\\:expression\\(\\) has parameter \\$bindValues with no type specified\\.$#"
 			count: 1
-			path: db/src/PdoInterface.php
+			path: db/src/Criteria.php
 
 		-
-			message: "#^PHPDoc tag @param for parameter \\$fetch_arg2 with type mixed is not subtype of native type array\\.$#"
+			message: "#^Call to an undefined method Aura\\\\SqlQuery\\\\QueryInterface\\:\\:where\\(\\)\\.$#"
 			count: 1
-			path: db/src/PdoInterface.php
-
-		-
-			message: "#^PHPDoc tag @return with type mixed is not subtype of native type string\\.$#"
-			count: 1
-			path: db/src/PdoInterface.php
+			path: db/src/Statement.php
 
 		-
 			message: "#^Casting to string something that's already string\\.$#"
@@ -41,14 +36,49 @@ parameters:
 			path: db/src/Statement.php
 
 		-
-			message: "#^Property kuiper\\\\db\\\\metadata\\\\Column\\:\\:\\$generateStrategy is never read, only written\\.$#"
+			message: "#^Method kuiper\\\\db\\\\Statement\\:\\:select\\(\\) has parameter \\$columns with no type specified\\.$#"
 			count: 1
-			path: db/src/metadata/Column.php
+			path: db/src/Statement.php
 
 		-
-			message: "#^Property kuiper\\\\di\\\\annotation\\\\ComponentScan\\:\\:\\$basePackages \\(array\\<string\\>\\) on left side of \\?\\? is not nullable\\.$#"
+			message: "#^Method kuiper\\\\db\\\\Statement\\:\\:where\\(\\) has parameter \\$args with no type specified\\.$#"
 			count: 1
-			path: di/src/ComponentScanner.php
+			path: db/src/Statement.php
+
+		-
+			message: "#^Method kuiper\\\\db\\\\StatementInterface\\:\\:select\\(\\) has parameter \\$columns with no type specified\\.$#"
+			count: 1
+			path: db/src/StatementInterface.php
+
+		-
+			message: "#^Method kuiper\\\\db\\\\StatementInterface\\:\\:where\\(\\) has parameter \\$args with no type specified\\.$#"
+			count: 1
+			path: db/src/StatementInterface.php
+
+		-
+			message: "#^Only booleans are allowed in a ternary operator condition, mixed given\\.$#"
+			count: 1
+			path: db/src/converter/BoolConverter.php
+
+		-
+			message: "#^Parameter \\#1 \\$separator of function explode expects non\\-empty\\-string, string given\\.$#"
+			count: 1
+			path: db/src/converter/JoinerConverter.php
+
+		-
+			message: "#^Unable to resolve the template type T in call to method kuiper\\\\db\\\\metadata\\\\MetaModelProperty\\:\\:getAttribute\\(\\)$#"
+			count: 1
+			path: db/src/metadata/MetaModelProperty.php
+
+		-
+			message: "#^Method kuiper\\\\db\\\\sharding\\\\Statement\\:\\:where\\(\\) has parameter \\$args with no type specified\\.$#"
+			count: 1
+			path: db/src/sharding/Statement.php
+
+		-
+			message: "#^Method kuiper\\\\db\\\\sharding\\\\Statement\\:\\:where\\(\\) has parameter \\$condition with no type specified\\.$#"
+			count: 1
+			path: db/src/sharding/Statement.php
 
 		-
 			message: "#^Instanceof between mixed and ArrayAccess will always evaluate to false\\.$#"
@@ -57,6 +87,16 @@ parameters:
 
 		-
 			message: "#^Dead catch \\- ReflectionException is never thrown in the try block\\.$#"
+			count: 1
+			path: helper/src/Enum.php
+
+		-
+			message: "#^Method kuiper\\\\helper\\\\Enum\\:\\:__get\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: helper/src/Enum.php
+
+		-
+			message: "#^Method kuiper\\\\helper\\\\Enum\\:\\:fromOrdinal\\(\\) should return static\\(kuiper\\\\helper\\\\Enum\\) but returns kuiper\\\\helper\\\\Enum\\.$#"
 			count: 1
 			path: helper/src/Enum.php
 
@@ -71,12 +111,17 @@ parameters:
 			path: http-client/src/HttpClientFactory.php
 
 		-
-			message: "#^Property kuiper\\\\jsonrpc\\\\annotation\\\\JsonRpcService\\:\\:\\$service \\(string\\) on left side of \\?\\? is not nullable\\.$#"
+			message: "#^Parameter \\#1 \\$class of static method kuiper\\\\jsonrpc\\\\config\\\\JsonRpcServerConfiguration\\:\\:getServiceClass\\(\\) expects ReflectionClass, Reflector given\\.$#"
+			count: 1
+			path: jsonrpc/src/config/JsonRpcClientConfiguration.php
+
+		-
+			message: "#^Parameter \\#1 \\$class of method kuiper\\\\jsonrpc\\\\config\\\\JsonRpcServerConfiguration\\:\\:getMethods\\(\\) expects ReflectionClass, Reflector given\\.$#"
 			count: 1
 			path: jsonrpc/src/config/JsonRpcServerConfiguration.php
 
 		-
-			message: "#^Property kuiper\\\\jsonrpc\\\\annotation\\\\JsonRpcService\\:\\:\\$version \\(string\\) on left side of \\?\\? is not nullable\\.$#"
+			message: "#^Parameter \\#1 \\$class of method kuiper\\\\jsonrpc\\\\config\\\\JsonRpcServerConfiguration\\:\\:getServiceName\\(\\) expects ReflectionClass, Reflector given\\.$#"
 			count: 1
 			path: jsonrpc/src/config/JsonRpcServerConfiguration.php
 
@@ -86,9 +131,9 @@ parameters:
 			path: jsonrpc/src/server/JsonRpcHttpRequestHandler.php
 
 		-
-			message: "#^Property kuiper\\\\jsonrpc\\\\server\\\\JsonRpcHttpRequestHandler\\:\\:\\$invalidRequestHandler is never read, only written\\.$#"
+			message: "#^Call to an undefined method kuiper\\\\rpc\\\\RpcRequestInterface\\:\\:getRequestId\\(\\)\\.$#"
 			count: 1
-			path: jsonrpc/src/server/JsonRpcHttpRequestHandler.php
+			path: jsonrpc/src/server/JsonRpcServerResponse.php
 
 		-
 			message: "#^Dead catch \\- kuiper\\\\jsonrpc\\\\exception\\\\JsonRpcRequestException is never thrown in the try block\\.$#"
@@ -101,54 +146,114 @@ parameters:
 			path: jsonrpc/src/server/JsonRpcTcpReceiveEventListener.php
 
 		-
-			message: "#^Parameter \\#2 \\$level of class Monolog\\\\Handler\\\\StreamHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'error'\\|'ERROR'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
+			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
 			count: 1
 			path: logger/src/LoggerFactory.php
 
 		-
-			message: "#^Parameter \\#3 \\$level of class Monolog\\\\Handler\\\\RotatingFileHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'error'\\|'ERROR'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
 			count: 1
 			path: logger/src/LoggerFactory.php
 
 		-
-			message: "#^Call to function method_exists\\(\\) with ReflectionMethod and 'hasReturnType' will always evaluate to true\\.$#"
+			message: "#^Parameter \\#2 \\$level of class Monolog\\\\Handler\\\\StreamHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'ERROR'\\|'error'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
 			count: 1
-			path: reflection/src/ReflectionDocBlockFactory.php
+			path: logger/src/LoggerFactory.php
 
 		-
-			message: "#^Call to function method_exists\\(\\) with ReflectionParameter and 'hasType' will always evaluate to true\\.$#"
+			message: "#^Parameter \\#3 \\$level of class Monolog\\\\Handler\\\\RotatingFileHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'ERROR'\\|'error'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
 			count: 1
-			path: reflection/src/ReflectionDocBlockFactory.php
+			path: logger/src/LoggerFactory.php
 
 		-
-			message: "#^Static property kuiper\\\\reflection\\\\ReflectionDocBlockFactory\\:\\:\\$INSTANCE \\(kuiper\\\\reflection\\\\ReflectionDocBlockFactoryInterface\\) on left side of \\?\\? is not nullable\\.$#"
+			message: "#^Readonly property kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreakerMetricsImpl\\:\\:\\$minimumNumberOfCalls is already assigned\\.$#"
 			count: 1
-			path: reflection/src/ReflectionDocBlockFactory.php
+			path: resilience/src/circuitbreaker/CircuitBreakerMetricsImpl.php
 
 		-
-			message: "#^Property kuiper\\\\rpc\\\\registry\\\\consul\\\\RegisterServiceCheck\\:\\:\\$TTL is unused\\.$#"
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreakerMetrics\\:\\:onError\\(\\)\\.$#"
 			count: 1
-			path: rpc-registry/src/consul/RegisterServiceCheck.php
+			path: resilience/src/circuitbreaker/ClosedState.php
 
 		-
-			message: "#^Property kuiper\\\\rpc\\\\registry\\\\consul\\\\ServiceCheck\\:\\:\\$TTL is unused\\.$#"
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreakerMetrics\\:\\:onSuccess\\(\\)\\.$#"
 			count: 1
-			path: rpc-registry/src/consul/ServiceCheck.php
+			path: resilience/src/circuitbreaker/ClosedState.php
 
 		-
-			message: "#^Property kuiper\\\\swoole\\\\annotation\\\\KuiperApplication\\:\\:\\$exclude \\(array\\) on left side of \\?\\? is not nullable\\.$#"
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreakerMetrics\\:\\:onCallNotPermitted\\(\\)\\.$#"
 			count: 1
-			path: swoole/src/annotation/KuiperApplication.php
+			path: resilience/src/circuitbreaker/ForcedOpenState.php
 
 		-
-			message: "#^Property kuiper\\\\swoole\\\\annotation\\\\KuiperApplication\\:\\:\\$excludeNamespaces \\(array\\) on left side of \\?\\? is not nullable\\.$#"
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreaker\\:\\:transitionToCloseState\\(\\)\\.$#"
 			count: 1
-			path: swoole/src/annotation/KuiperApplication.php
+			path: resilience/src/circuitbreaker/HalfOpenState.php
+
+		-
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreaker\\:\\:transitionToOpenState\\(\\)\\.$#"
+			count: 2
+			path: resilience/src/circuitbreaker/HalfOpenState.php
+
+		-
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreakerMetrics\\:\\:onCallNotPermitted\\(\\)\\.$#"
+			count: 1
+			path: resilience/src/circuitbreaker/HalfOpenState.php
+
+		-
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreakerMetrics\\:\\:onError\\(\\)\\.$#"
+			count: 1
+			path: resilience/src/circuitbreaker/HalfOpenState.php
+
+		-
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreakerMetrics\\:\\:onSuccess\\(\\)\\.$#"
+			count: 1
+			path: resilience/src/circuitbreaker/HalfOpenState.php
+
+		-
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreakerMetrics\\:\\:onCallNotPermitted\\(\\)\\.$#"
+			count: 1
+			path: resilience/src/circuitbreaker/OpenState.php
+
+		-
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreakerMetrics\\:\\:onError\\(\\)\\.$#"
+			count: 1
+			path: resilience/src/circuitbreaker/OpenState.php
+
+		-
+			message: "#^Call to an undefined method kuiper\\\\resilience\\\\circuitbreaker\\\\CircuitBreakerMetrics\\:\\:onSuccess\\(\\)\\.$#"
+			count: 1
+			path: resilience/src/circuitbreaker/OpenState.php
+
+		-
+			message: "#^Method kuiper\\\\resilience\\\\core\\\\TryCall\\:\\:call\\(\\) has parameter \\$args with no type specified\\.$#"
+			count: 1
+			path: resilience/src/core/TryCall.php
+
+		-
+			message: "#^Method kuiper\\\\rpc\\\\RpcResponse\\:\\:withResponse\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: rpc/src/RpcResponse.php
+
+		-
+			message: "#^Return type \\(kuiper\\\\rpc\\\\RpcResponse\\) of method kuiper\\\\rpc\\\\RpcResponse\\:\\:withHeader\\(\\) should be covariant with return type \\(static\\(Psr\\\\Http\\\\Message\\\\MessageInterface\\)\\) of method Psr\\\\Http\\\\Message\\\\MessageInterface\\:\\:withHeader\\(\\)$#"
+			count: 3
+			path: rpc/src/RpcResponse.php
+
+		-
+			message: "#^Only booleans are allowed in &&, mixed given on the right side\\.$#"
+			count: 1
+			path: rpc/src/transporter/SwooleTcpTransporter.php
 
 		-
 			message: "#^Call to an undefined method kuiper\\\\logger\\\\LoggerFactoryInterface\\:\\:getLoggers\\(\\)\\.$#"
 			count: 1
 			path: swoole/src/listener/ReopenLogFile.php
+
+		-
+			message: "#^PHPDoc tag @return with type T is not subtype of native type object\\.$#"
+			count: 1
+			path: swoole/src/pool/ConnectionProxyGenerator.php
 
 		-
 			message: "#^Property kuiper\\\\swoole\\\\pool\\\\PoolConfig\\:\\:\\$connectTimeout is never read, only written\\.$#"
@@ -171,6 +276,16 @@ parameters:
 			path: swoole/src/pool/PoolConfig.php
 
 		-
+			message: "#^Variable \\$resource in isset\\(\\) always exists and is always null\\.$#"
+			count: 1
+			path: swoole/src/pool/SimplePool.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between null and null will always evaluate to true\\.$#"
+			count: 1
+			path: swoole/src/pool/SingleConnectionPool.php
+
+		-
 			message: "#^Negated boolean expression is always true\\.$#"
 			count: 1
 			path: swoole/src/server/workers/ForkedWorkerManager.php
@@ -186,24 +301,29 @@ parameters:
 			path: swoole/src/server/workers/SocketChannel.php
 
 		-
-			message: "#^Method kuiper\\\\tars\\\\config\\\\TarsClientConfiguration\\:\\:createTarsClient\\(\\) has no return type specified\\.$#"
-			count: 1
+			message: "#^Only booleans are allowed in an if condition, mixed given\\.$#"
+			count: 2
 			path: tars/src/config/TarsClientConfiguration.php
 
 		-
-			message: "#^Property kuiper\\\\tars\\\\annotation\\\\TarsParameter\\:\\:\\$order \\(int\\) on left side of \\?\\? is not nullable\\.$#"
+			message: "#^Parameter \\#1 \\$type of method kuiper\\\\tars\\\\type\\\\TypeParser\\:\\:fromPhpType\\(\\) expects ReflectionNamedType, ReflectionType\\|null given\\.$#"
 			count: 1
 			path: tars/src/core/TarsMethodFactory.php
 
 		-
-			message: "#^Property kuiper\\\\tars\\\\annotation\\\\TarsParameter\\:\\:\\$out \\(bool\\) on left side of \\?\\? is not nullable\\.$#"
+			message: "#^Parameter \\#1 \\$request of static method kuiper\\\\tars\\\\client\\\\middleware\\\\AddRequestReferer\\:\\:getReferer\\(\\) expects kuiper\\\\tars\\\\core\\\\TarsRequestInterface, Psr\\\\Http\\\\Message\\\\RequestInterface given\\.$#"
 			count: 1
-			path: tars/src/core/TarsMethodFactory.php
+			path: tars/src/core/TarsRequestLogFormatter.php
 
 		-
-			message: "#^Property kuiper\\\\tars\\\\annotation\\\\TarsServant\\:\\:\\$service \\(string\\) on left side of \\?\\? is not nullable\\.$#"
+			message: "#^Method kuiper\\\\tars\\\\integration\\\\PropertyFServant\\:\\:reportPropMsg\\(\\) has parameter \\$statmsg with no type specified\\.$#"
 			count: 1
-			path: tars/src/core/TarsMethodFactory.php
+			path: tars/src/integration/PropertyFServant.php
+
+		-
+			message: "#^Method kuiper\\\\tars\\\\integration\\\\StatFServant\\:\\:reportMicMsg\\(\\) has parameter \\$msg with no type specified\\.$#"
+			count: 1
+			path: tars/src/integration/StatFServant.php
 
 		-
 			message: "#^Dead catch \\- kuiper\\\\tars\\\\exception\\\\TarsRequestException is never thrown in the try block\\.$#"
@@ -218,15 +338,9 @@ parameters:
 		-
 			message: "#^Anonymous function uses \\$this assigned to variable \\$self\\. Use \\$this directly in the function body\\.$#"
 			count: 1
-			path: web/src/AnnotationProcessor.php
+			path: web/src/AttributeProcessor.php
 
 		-
-			message: "#^Property kuiper\\\\web\\\\annotation\\\\RequestMapping\\:\\:\\$method \\(array\\<string\\>\\) in isset\\(\\) is not nullable\\.$#"
+			message: "#^Call to an undefined method SessionHandlerInterface\\:\\:create_sid\\(\\)\\.$#"
 			count: 1
-			path: web/src/AnnotationProcessor.php
-
-		-
-			message: "#^Method kuiper\\\\web\\\\session\\\\CacheSessionHandler\\:\\:gc\\(\\) should return int\\|false but returns true\\.$#"
-			count: 1
-			path: web/src/session/CacheSessionHandler.php
-
+			path: web/src/session/CacheStoreSession.php

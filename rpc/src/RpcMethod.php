@@ -22,11 +22,6 @@ class RpcMethod implements RpcMethodInterface
      */
     private ?array $result = null;
 
-    /**
-     * InvokingMethod constructor.
-     *
-     * @param object|string|mixed $target
-     */
     public function __construct(
         private       readonly object|string $target,
         private       readonly ServiceLocator $serviceLocator,

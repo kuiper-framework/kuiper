@@ -41,7 +41,7 @@ class PhpSession implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function get($index, $defaultValue = null)
+    public function get($index, $defaultValue = null): mixed
     {
         $this->checkStart();
 

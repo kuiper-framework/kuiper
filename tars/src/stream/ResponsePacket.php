@@ -80,9 +80,7 @@ final class ResponsePacket
             $os->writeVector(6, $this->sBuffer, VectorType::byteVector());
             $os->writeMap(7, $this->status, MapType::stringMap());
             $os->writeString(8, $this->sResultDesc);
-            if (null !== $this->context) {
-                $os->writeMap(9, $this->context, MapType::stringMap());
-            }
+            $os->writeMap(9, $this->context, MapType::stringMap());
         }
 
         return $os;
@@ -103,7 +101,7 @@ final class ResponsePacket
             $is->readInt32(8, true);
             $packet->context = $is->readMap(9, true, MapType::stringMap());
             $packet->status = $is->readMap(10, true, MapType::stringMap());
-            $packet->iRet = (int) ($packet->context[TarsConst::RESULT_CODE] ?? ErrorCode::SERVER_SUCCESS);
+            $packet->iRet = (int)($packet->context[TarsConst::RESULT_CODE] ?? ErrorCode::SERVER_SUCCESS);
             $packet->sResultDesc = $packet->context[TarsConst::RESULT_DESC] ?? '';
         } else {
             $packet->cPacketType = $is->readInt8(2, true);

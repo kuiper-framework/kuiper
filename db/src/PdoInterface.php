@@ -89,7 +89,7 @@ interface PdoInterface
     /**
      * Prepares an SQL statement for execution.
      *
-     * @param string $statement the SQL statement to prepare for execution
+     * @param string $query the SQL statement to prepare for execution
      * @param array  $options   set these attributes on the returned
      *                          PDOStatement
      *
@@ -102,14 +102,10 @@ interface PdoInterface
     /**
      * Queries the database and returns a PDOStatement.
      *
-     * @param string $statement  the SQL statement to prepare and execute
-     * @param int    $fetch_mode the `PDO::FETCH_*` type to set on the returned
-     *                           `PDOStatement::setFetchMode()`
-     * @param mixed  $fetch_arg1 the first additional argument to send to
-     *                           `PDOStatement::setFetchMode()`
-     * @param mixed  $fetch_arg2 the second additional argument to send to
-     *                           `PDOStatement::setFetchMode()`
-     *
+     * @param string $statement the SQL statement to prepare and execute
+     * @param int $mode
+     * @param mixed ...$fetch_mode_args
+     * @return PDOStatement|false
      * @see http://php.net/manual/en/pdo.query.php
      */
     public function query($statement, $mode = PDO::ATTR_DEFAULT_FETCH_MODE, ...$fetch_mode_args): PDOStatement|false;
@@ -120,7 +116,7 @@ interface PdoInterface
      * @param mixed $value          the value to quote
      * @param int   $parameter_type a data type hint for the database driver
      *
-     * @return mixed the quoted value
+     * @return string the quoted value
      *
      * @see http://php.net/manual/en/pdo.quote.php
      */
@@ -140,7 +136,7 @@ interface PdoInterface
     /**
      * Gets a PDO attribute value.
      *
-     * @param mixed $attribute the PDO::ATTR_* constant
+     * @param int $attribute the PDO::ATTR_* constant
      *
      * @return mixed the value for the attribute
      */

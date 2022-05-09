@@ -46,7 +46,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
      *
      * @param string|callable $template
      * @param string[] $extra 放到 extra 中变量，可选值 query, body, jwt, cookies, headers, header.{name}.
-     * @param mixed $dateFormat
+     * @param string|DateFormatterInterface $dateFormat
      */
     public function __construct(
         string|callable               $template = self::MAIN,
@@ -54,11 +54,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         private                       readonly int $bodyMaxSize = 4096,
         string|DateFormatterInterface $dateFormat = 'd/M/Y:H:i:s O')
     {
-        if (is_string($template) || is_callable($template)) {
-            $this->template = $template;
-        } else {
-            throw new \InvalidArgumentException('format is invalid');
-        }
+        $this->template = $template;
         $this->pidProcessor = new CoroutineIdProcessor();
         $this->dateFormatter = self::createDateFormatter($dateFormat);
     }

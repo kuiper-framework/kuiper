@@ -24,7 +24,7 @@ class QueryBuilder implements QueryBuilderInterface, EventDispatcherAwareInterfa
 {
     use EventDispatcherAwareTrait;
 
-    private readonly  QueryFactory $queryFactory;
+    private QueryFactory $queryFactory;
 
     public function __construct(
         private readonly ConnectionPoolInterface $pool,

@@ -32,7 +32,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
      */
     private $requestFilter;
 
-    private readonly LogContext $logContext;
+    private readonly LogContextImpl $logContext;
 
     /**
      * AccessLog constructor.

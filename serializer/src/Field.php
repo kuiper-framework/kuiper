@@ -159,6 +159,7 @@ final class Field implements \Serializable
 
     public function serialize()
     {
+        return null;
     }
 
     public function unserialize(string $data): void
@@ -175,6 +176,7 @@ final class Field implements \Serializable
     public function __unserialize(array $data): void
     {
         foreach ($data as $key => $value) {
+            /** @phpstan-ignore-next-line */
             $this->$key = $value;
         }
     }

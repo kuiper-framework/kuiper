@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace kuiper\helper;
 
 use function DI\create;
-use JetBrains\PhpStorm\Deprecated;
 
 /**
  * Access array use key separated by dot(.) :.
@@ -259,7 +258,6 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
     /**
      * @deprecated use {@link create()}
      */
-    #[Deprecated]
     public static function fromArray(array $arr): self
     {
         return self::create($arr);

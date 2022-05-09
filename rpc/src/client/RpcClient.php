@@ -78,7 +78,7 @@ class RpcClient implements RpcRequestHandlerInterface, Closable
         }
     }
 
-    protected function createResponse($request, Session $session): RpcResponseInterface
+    protected function createResponse(RpcRequestInterface $request, Session $session): RpcResponseInterface
     {
         return $this->responseFactory->createResponse($request, $session->recv());
     }

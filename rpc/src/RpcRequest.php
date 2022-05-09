@@ -19,9 +19,6 @@ use Psr\Http\Message\UriInterface;
 
 class RpcRequest implements RpcRequestInterface
 {
-    /**
-     * RpcRequest constructor.
-     */
     public function __construct(
         private RequestInterface $httpRequest,
         private RpcMethodInterface $rpcMethod,
@@ -34,7 +31,7 @@ class RpcRequest implements RpcRequestInterface
         return $this->httpRequest->getProtocolVersion();
     }
 
-    private function withHttpRequest(RequestInterface $httpRequest)
+    private function withHttpRequest(RequestInterface $httpRequest): static
     {
         $new = clone $this;
         $new->httpRequest = $httpRequest;

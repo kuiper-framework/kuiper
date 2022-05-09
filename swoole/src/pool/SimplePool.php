@@ -32,7 +32,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @var callable
+     * @var callable|null
      */
     private $connectionFactory;
 

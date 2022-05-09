@@ -28,7 +28,7 @@ class EphemeralSession implements SessionInterface
     {
     }
 
-    public function get($index, $defaultValue = null)
+    public function get($index, $defaultValue = null): mixed
     {
         return $this->data[$index] ?? $defaultValue;
     }

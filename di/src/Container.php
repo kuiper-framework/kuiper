@@ -143,10 +143,6 @@ class Container implements ContainerInterface, FactoryInterface, InvokerInterfac
      */
     public function make(string $name, array $parameters = []): mixed
     {
-        if (!is_string($name)) {
-            throw new InvalidArgumentException(sprintf('The name parameter must be of type string, %s given', get_debug_type($name)));
-        }
-
         $definition = $this->getDefinition($name);
         if (null === $definition) {
             // If the entry is already resolved we return it
@@ -180,21 +176,11 @@ class Container implements ContainerInterface, FactoryInterface, InvokerInterfac
     /**
      * Inject all dependencies on an existing instance.
      *
-     * @template T
-     *
-     * @param T $instance Object to perform injection upon
-     *
-     * @return T $instance Returns the same instance
-     *
      * @throws DependencyException Error while injecting dependencies
      * @throws InvalidDefinition
      */
     public function injectOn(object $instance): object
     {
-        if (!$instance) {
-            return $instance;
-        }
-
         $className = get_class($instance);
 
         // If the class is anonymous, don't cache its definition
@@ -219,7 +205,7 @@ class Container implements ContainerInterface, FactoryInterface, InvokerInterfac
      *
      * Missing parameters will be resolved from the container.
      *
-     * @param callable $callable   function to call
+     * @param callable|array|string $callable   function to call
      * @param array    $parameters Parameters to use. Can be indexed by the parameter names
      *                             or not indexed (same order as the parameters).
      *                             The array can also contain DI definitions, e.g. DI\get().

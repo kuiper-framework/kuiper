@@ -29,7 +29,7 @@ class HttpProxyClientFactory
 {
     private ?RpcResponseFactoryInterface $rpcResponseFactory = null;
 
-    private ?ReflectionDocBlockFactory $reflectionDocBlockFactory = null;
+    private ?ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory = null;
 
     public function __construct(
         private readonly ClientInterface $httpClient,
@@ -101,7 +101,6 @@ class HttpProxyClientFactory
         $rpcClient = new RpcClient(new HttpTransporter($this->httpClient), $this->getRpcResponseFactory());
         $requestFactory = new HttpRpcRequestFactory($this->normalizer, new RpcMethodFactory());
         $rpcExecutorFactory = new RpcExecutorFactory($requestFactory, $rpcClient);
-        /** @phpstan-ignore-next-line */
         return new $class($rpcExecutorFactory);
     }
 }

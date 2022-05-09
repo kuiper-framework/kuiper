@@ -20,7 +20,10 @@ use kuiper\rpc\ServiceLocatorImpl;
 class TarsMethod extends RpcMethod implements TarsMethodInterface
 {
     public function __construct(
-        $target, string $servantName, string $methodName, array $arguments,
+        object|string $target,
+        string $servantName,
+        string $methodName,
+        array $arguments,
         private readonly array $parameters,
         private readonly ParameterInterface $returnValue)
     {

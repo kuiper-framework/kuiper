@@ -15,6 +15,8 @@ namespace kuiper\tars\config;
 
 use DI\Attribute\Inject;
 use kuiper\rpc\ServiceLocatorImpl;
+use ReflectionClass;
+use ReflectionMethod;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
@@ -152,7 +154,9 @@ class TarsServerConfiguration implements DefinitionConfiguration
             Assert::notNull($endpoint);
             $serverPort = new ServerPort($endpoint->getHost(), $endpoint->getPort(), $adapter->getServerType());
 
-            $methods = Arrays::pull($annotation->getTarget()->getMethods(\ReflectionMethod::IS_PUBLIC), 'name');
+            /** @var ReflectionClass $targetClass */
+            $targetClass = $annotation->getTarget();
+            $methods = Arrays::pull($targetClass->getMethods(ReflectionMethod::IS_PUBLIC), 'name');
             $services[$servantName] = new Service(
                 new ServiceLocatorImpl($servantName),
                 $serviceImpl,
@@ -168,12 +172,13 @@ class TarsServerConfiguration implements DefinitionConfiguration
     private function registerAdminServant(): void
     {
         foreach (ComponentCollection::getComponents(TarsServant::class) as $annotation) {
-            if ('AdminObj' === $annotation->service) {
+            /** @var TarsServant $annotation */
+            if ('AdminObj' === $annotation->getService()) {
                 return;
             }
         }
         $annotation = new TarsServant('AdminObj');
-        $annotation->setTarget(new \ReflectionClass(AdminServant::class));
+        $annotation->setTarget(new ReflectionClass(AdminServant::class));
         ComponentCollection::register($annotation);
     }
 

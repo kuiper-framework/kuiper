@@ -30,8 +30,9 @@ class CacheStoreSession implements SessionInterface
         private readonly string $cookieName,
         private readonly int $cookieLifetime,
         private readonly bool $compatibleMode,
-        private readonly bool $autoStart)
+        bool $autoStart)
     {
+        $this->autoStart = $autoStart;
     }
 
     /**
@@ -71,7 +72,7 @@ class CacheStoreSession implements SessionInterface
     /**
      * {@inheritdoc}
      */
-    public function get($index, $defaultValue = null)
+    public function get($index, $defaultValue = null): mixed
     {
         $this->checkStart();
 

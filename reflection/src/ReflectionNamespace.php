@@ -20,7 +20,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
     /**
      * @var string[]|null
      */
-    private array $classes;
+    private ?array $classes = null;
 
     public function __construct(
         private readonly string $namespace,

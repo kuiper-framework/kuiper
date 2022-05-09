@@ -18,7 +18,7 @@ use kuiper\web\view\ViewInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * @method getResponse(): ResponseInterface
+ * @method ResponseInterface getResponse()
  */
 trait ControllerViewTrait
 {

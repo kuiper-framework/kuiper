@@ -31,7 +31,7 @@ class AdminServantImpl implements AdminServant, LoggerAwareInterface
     /**
      * @var TarsFile[]|null
      */
-    private array $tarsFiles;
+    private ?array $tarsFiles = null;
 
     public function __construct(
         private readonly EventDispatcherInterface $eventDispatcher,
@@ -47,18 +47,17 @@ class AdminServantImpl implements AdminServant, LoggerAwareInterface
 
     public function stats(): Stat
     {
-        $stat = new Stat();
         // todo: aggregate all workers stats
         $statArr = $this->server->stats();
-        $stat->startTime = date('c', $statArr['start_time'] ?? time());
-        $stat->acceptCount = $statArr['accept_count'] ?? 0;
-        $stat->closeCount = $statArr['close_count'] ?? 0;
-        $stat->connections = $statArr['connection_num'] ?? 0;
-        $stat->dispatchCount = $statArr['dispatch_count'] ?? 0;
-        $stat->requestCount = $statArr['request_count'] ?? 0;
-        $stat->pendingTasks = $statArr['tasking_num'] ?? 0;
-
-        return $stat;
+        return new Stat(
+            startTime: date('c', $statArr['start_time'] ?? time()),
+            connections: $statArr['connection_num'] ?? 0,
+            acceptCount: $statArr['accept_count'] ?? 0,
+            closeCount: $statArr['close_count'] ?? 0,
+            requestCount: $statArr['request_count'] ?? 0,
+            dispatchCount: $statArr['dispatch_count'] ?? 0,
+            pendingTasks: $statArr['tasking_num'] ?? 0,
+        );
     }
 
     public function notify(Notification $notification): void
@@ -67,6 +66,9 @@ class AdminServantImpl implements AdminServant, LoggerAwareInterface
         $this->eventDispatcher->dispatch($notification);
     }
 
+    /**
+     * @return TarsFile[]
+     */
     public function getTarsFiles(): array
     {
         if (!isset($this->tarsFiles)) {
@@ -80,14 +82,17 @@ class AdminServantImpl implements AdminServant, LoggerAwareInterface
     {
         $ret = [];
         foreach ($this->getTarsFiles() as $tarsFile) {
-            $copy = clone $tarsFile;
-            $copy->content = file_get_contents($this->tarsFilePath.'/'.$tarsFile->name);
-            $ret[] = $copy;
+            $copy = get_object_vars($tarsFile);
+            $copy['content'] = file_get_contents($this->tarsFilePath.'/'.$tarsFile->name);
+            $ret[] = new TarsFile(...$copy);
         }
 
         return $ret;
     }
 
+    /**
+     * @return TarsFile[]
+     */
     private function listTarsFiles(): array
     {
         $list = [];
@@ -95,10 +100,10 @@ class AdminServantImpl implements AdminServant, LoggerAwareInterface
             $tarsFiles = glob($this->tarsFilePath.'/*.tars');
             if (is_array($tarsFiles)) {
                 foreach ($tarsFiles as $file) {
-                    $tarsFile = new TarsFile();
-                    $tarsFile->name = basename($file);
-                    $tarsFile->md5 = md5_file($file);
-                    $list[] = $tarsFile;
+                    $list[] = new TarsFile(
+                        name: basename($file),
+                        md5: md5_file($file)
+                    );
                 }
             }
         }

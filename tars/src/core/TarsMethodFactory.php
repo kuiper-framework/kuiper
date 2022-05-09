@@ -82,7 +82,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
         $servantAnnotation = $this->getTarsServantAnnotation($reflectionClass);
         [$parameters, $returnValue] = $this->getParameters($servant, $method);
 
-        return new TarsMethod($servant, $this->options['service'] ?? $servantAnnotation->getService() ?? '', $method, [], $parameters, $returnValue);
+        return new TarsMethod($servant, $this->options['service'] ?? $servantAnnotation->getService(), $method, [], $parameters, $returnValue);
     }
 
     /**

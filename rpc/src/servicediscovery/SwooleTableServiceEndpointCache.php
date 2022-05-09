@@ -28,10 +28,7 @@ class SwooleTableServiceEndpointCache extends SwooleTableCache
         parent::__construct($ttl, $capacity, $size);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    protected function serialize($value): string
+    protected function serialize(mixed $value): string
     {
         return (string) $value;
     }

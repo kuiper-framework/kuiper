@@ -58,13 +58,12 @@ class Monitor implements MonitorInterface, LoggerAwareInterface
 
     public function createHead(string $propertyName): StatPropMsgHead
     {
-        $propMsgHead = new StatPropMsgHead();
-        $propMsgHead->moduleName = $this->serverProperties->getServerName();
-        $propMsgHead->ip = $this->serverProperties->getLocalIp();
-        $propMsgHead->propertyName = $propertyName;
-        $propMsgHead->iPropertyVer = 1;
-
-        return $propMsgHead;
+        return new StatPropMsgHead(
+            moduleName:  $this->serverProperties->getServerName(),
+            ip: $this->serverProperties->getLocalIp(),
+            propertyName: $propertyName,
+            iPropertyVer: 1
+        );
     }
 
     /**
@@ -75,12 +74,7 @@ class Monitor implements MonitorInterface, LoggerAwareInterface
      */
     private function createBody(string $policy, string $value): StatPropMsgBody
     {
-        $propMsgBody = new StatPropMsgBody();
-        $propInfo = new StatPropInfo();
-        $propInfo->policy = $policy;
-        $propInfo->value = $value;
-        $propMsgBody->vInfo = [$propInfo];
-
-        return $propMsgBody;
+        $propInfo = new StatPropInfo($policy, $value);
+        return new StatPropMsgBody([$propInfo]);
     }
 }

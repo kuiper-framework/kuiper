@@ -18,9 +18,6 @@ use Psr\Http\Message\StreamInterface;
 
 class RpcResponse implements RpcResponseInterface
 {
-    /**
-     * RpcResponse constructor.
-     */
     public function __construct(
         private                   readonly RpcRequestInterface $request,
         private ResponseInterface $httpResponse)
@@ -39,7 +36,7 @@ class RpcResponse implements RpcResponseInterface
         return $new;
     }
 
-    public function withProtocolVersion($version): RpcResponse
+    public function withProtocolVersion($version): static
     {
         return $this->withResponse($this->httpResponse->withProtocolVersion($version));
     }

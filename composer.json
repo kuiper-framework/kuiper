@@ -120,7 +120,7 @@
         }
     },
     "scripts": {
-        "lint": "./vendor/bin/phpstan analyze --error-format=raw"
+        "lint": "@php -d memory_limit=-1 ./vendor/bin/phpstan analyze --error-format=raw"
     },
     "extra": {
         "kuiper": {

@@ -71,7 +71,6 @@ class AwareInjection
             throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} parameter {$parameter->getName()} not a class");
         }
         $setter = $method->getName();
-        /** @phpstan-ignore-next-line */
         $beanName = $parameterType->getName();
 
         return new self($awareInterfaceName, $setter, function () use ($beanName): array {

@@ -19,17 +19,13 @@ class TaskWorker extends AbstractWorker
 {
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @var Task|null
-     */
-    private $task;
+    private ?Task $task = null;
 
     protected function work(): void
     {
         $data = $this->getChannel()->pop();
         if (!empty($data) && 2 === count($data)) {
             /** @var Task $task */
-            /** @var int $msgType */
             [$msgType, $task] = $data;
             if (MessageType::TICK === $msgType) {
                 $this->triggerTick();
@@ -40,9 +36,8 @@ class TaskWorker extends AbstractWorker
                 throw new \InvalidArgumentException("TaskWorker only accept task message: type=$msgType");
             }
             $this->task = $task;
-            $this->dispatch(Event::TASK, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
+            $this->dispatch(Event::TASK->value, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
             unset($this->task);
-            $task->setData(null);
             $this->getChannel()->push([MessageType::TASK_FINISH, $task]);
         }
     }
@@ -53,7 +48,6 @@ class TaskWorker extends AbstractWorker
     public function finish($data): void
     {
         $ret = clone $this->task;
-        $ret->setData(null);
         $ret->setResult($data);
         $this->getChannel()->push([MessageType::TASK_RESULT, $ret]);
     }

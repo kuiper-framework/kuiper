@@ -20,7 +20,7 @@ use kuiper\tars\integration\StatMicMsgBody;
 use kuiper\tars\integration\StatMicMsgHead;
 use kuiper\tars\server\ServerProperties;
 
-class StatEntry
+final class StatEntry
 {
     /**
      * StatEntry constructor.
@@ -30,6 +30,11 @@ class StatEntry
         private readonly StatMicMsgHead $head,
         private readonly StatMicMsgBody $body)
     {
+    }
+
+    public function withBody(StatMicMsgBody $body): self
+    {
+        return new self($this->index, $this->head, $body);
     }
 
     private static function removeObj(string $servantName): string
@@ -54,7 +59,7 @@ class StatEntry
 
     public function getUniqueId(): string
     {
-        return (string) $this;
+        return (string)$this;
     }
 
     public function __toString(): string
@@ -77,71 +82,77 @@ class StatEntry
 
     public static function fromString(string $key): StatEntry
     {
-        $head = new StatMicMsgHead();
-        [
-            $index,
-            $head->slaveName,
-            $head->interfaceName,
-            $head->slaveIp,
-            $head->slavePort,
-            $head->slaveSetName,
-            $head->slaveSetID,
-            $head->slaveSetArea,
-            $head->masterName,
-            $head->masterIp,
-            $head->returnValue,
-            $head->tarsVersion
-        ] = explode('|', $key);
+        $parts = explode('|', $key);
+        /** @noinspection PhpNamedArgumentsWithChangedOrderInspection */
+        $head = new StatMicMsgHead(
+            slaveName: $parts[1],
+            interfaceName: $parts[2],
+            slaveIp: $parts[3],
+            slavePort: (int)$parts[4],
+            slaveSetName: $parts[5],
+            slaveSetID: $parts[6],
+            slaveSetArea: $parts[7],
+            masterName: $parts[8],
+            masterIp: $parts[9],
+            returnValue: (int)$parts[10],
+            tarsVersion: $parts[11],
+        );
 
-        return new self((int) $index, $head, new StatMicMsgBody());
+        return new self((int)$parts[0], $head, self::createMsgBody());
     }
 
     public static function success(int $index, ServerProperties $serverProperties, RpcResponseInterface $response, int $responseTime): StatEntry
     {
-        $entry = self::create($index, $serverProperties, $response, $responseTime);
-        $entry->body->count = 1;
-
-        return $entry;
+        return self::create($index, $serverProperties, $response, $responseTime, ['count' => 1]);
     }
 
     public static function fail(int $index, ServerProperties $serverProperties, RpcResponseInterface $response, int $responseTime): StatEntry
     {
-        $entry = self::create($index, $serverProperties, $response, $responseTime);
-        $entry->body->execCount = 1;
-
-        return $entry;
+        return self::create($index, $serverProperties, $response, $responseTime, ['execCount' => 1]);
     }
 
     public static function timedOut(int $index, ServerProperties $serverProperties, RpcResponseInterface $response, int $responseTime): StatEntry
     {
-        $entry = self::create($index, $serverProperties, $response, $responseTime);
-        $entry->body->timeoutCount = 1;
-
-        return $entry;
+        return self::create($index, $serverProperties, $response, $responseTime, ['timeoutCount' => 1]);
     }
 
-    private static function create(int $index, ServerProperties $serverProperties, RpcResponseInterface $response, int $responseTime): StatEntry
+    private static function create(int $index, ServerProperties $serverProperties, RpcResponseInterface $response, int $responseTime, array $count): StatEntry
     {
-        $head = new StatMicMsgHead();
-        $head->masterName = $serverProperties->getServerName();
-        $head->masterIp = $serverProperties->getLocalIp();
-        $request = $response->getRequest();
-        $head->slaveName = self::removeObj($request->getRpcMethod()->getServiceLocator()->getName());
-        $head->interfaceName = $request->getRpcMethod()->getMethodName();
-        $head->slaveIp = $request->getUri()->getHost();
-        $head->slavePort = $request->getUri()->getPort();
         /** @var TarsResponse $response */
-        $head->returnValue = $response->getResponsePacket()->iRet;
-        $head->slaveSetName = '';
-        $head->slaveSetArea = '';
-        $head->slaveSetID = '';
         /** @var TarsRequest $request */
-        $head->tarsVersion = (string) $request->getVersion();
-        $body = new StatMicMsgBody();
-        $body->totalRspTime = $responseTime;
-        $body->minRspTime = $responseTime;
-        $body->maxRspTime = $responseTime;
+        $request = $response->getRequest();
+        $head = new StatMicMsgHead(
+            masterName: $serverProperties->getServerName(),
+            slaveName: self::removeObj($request->getRpcMethod()->getServiceLocator()->getName()),
+            interfaceName: $request->getRpcMethod()->getMethodName(),
+            masterIp: $serverProperties->getLocalIp(),
+            slaveIp: $request->getUri()->getHost(),
+            slavePort: $request->getUri()->getPort(),
+            returnValue: $response->getResponsePacket()->iRet,
+            slaveSetName: '',
+            slaveSetArea: '',
+            slaveSetID: '',
+            tarsVersion: (string)$request->getVersion(),
+        );
+        $count += [
+            'totalRspTime' => $responseTime,
+            'minRspTime' => $responseTime,
+            'maxRspTime' => $responseTime,
+        ];
 
-        return new self($index, $head, $body);
+        return new self($index, $head, self::createMsgBody($count));
+    }
+
+    private static function createMsgBody(array $values = []): StatMicMsgBody
+    {
+        return new StatMicMsgBody(...$values + [
+                'count         ' => 0,
+                'timeoutCount  ' => 0,
+                'execCount     ' => 0,
+                'intervalCount ' => [],
+                'totalRspTime  ' => 0,
+                'maxRspTime    ' => 0,
+                'minRspTime    ' => 0,
+            ]);
     }
 }

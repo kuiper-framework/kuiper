@@ -18,53 +18,25 @@ namespace kuiper\rpc\registry\consul;
  */
 class Service
 {
-    /**
-     * @var string
-     */
     public ?string $ID = null;
 
-    /**
-     * @var string
-     */
-    public $Service;
+    public ?string $Service = null;
 
-    /**
-     * @var string[]
-     */
-    public $Tags;
+    public array $Tags = [];
 
-    /**
-     * @var Address[]
-     */
-    public $TaggedAddresses;
+    public array $TaggedAddresses = [];
 
-    /**
-     * @var string[]
-     */
-    public $Meta;
+    public array $Meta = [];
 
-    /**
-     * @var string
-     */
-    public $Namespace;
-    /**
-     * @var int
-     */
-    public $Port;
-    /**
-     * @var string
-     */
-    public $Address;
-    /**
-     * @var bool
-     */
-    public $EnableTagOverride;
-    /**
-     * @var string
-     */
-    public $Datacenter;
-    /**
-     * @var int[]
-     */
-    public $Weights;
+    public ?string $Namespace = null;
+
+    public ?int $Port = null;
+
+    public ?string $Address = null;
+
+    public bool $EnableTagOverride = false;
+
+    public ?string $Datacenter = null;
+
+    public array $Weights = [];
 }

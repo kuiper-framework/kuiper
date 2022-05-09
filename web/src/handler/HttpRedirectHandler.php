@@ -25,7 +25,7 @@ class HttpRedirectHandler extends AbstractErrorHandler
     protected function respondHtml(ServerRequestInterface $request, \Throwable $exception, bool $displayErrorDetails): ResponseInterface
     {
         if (!$exception instanceof RedirectException) {
-            return $this->defaultErrorHandler->__invoke($request, $exception, $displayErrorDetails, true, true);
+            return $this->getDefaultErrorHandler()->__invoke($request, $exception, $displayErrorDetails, true, true);
         }
         /* @var RedirectException $exception */
         $code = $exception->getCode();
@@ -33,7 +33,7 @@ class HttpRedirectHandler extends AbstractErrorHandler
             $code = 302;
         }
 
-        return $this->responseFactory->createResponse($code)
+        return $this->getResponseFactory()->createResponse($code)
             ->withHeader('Location', $exception->getUrl());
     }
 }

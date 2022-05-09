@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use kuiper\logger\Logger;
 use kuiper\swoole\exception\PoolClosedException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -43,7 +44,7 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
         private readonly PoolConfig $poolConfig)
     {
         $this->connectionFactory = $connectionFactory;
-        $this->setLogger(\kuiper\logger\Logger::nullLogger());
+        $this->setLogger(Logger::nullLogger());
     }
 
     /**
@@ -51,9 +52,6 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
      */
     public function take(): mixed
     {
-        if (!isset($this->connectionFactory)) {
-            throw new PoolClosedException();
-        }
         if (isset($this->connection)
             && $this->poolConfig->getAgedTimeout() > 0
             && $this->connection->getCreatedAt() + $this->poolConfig->getAgedTimeout() < time()) {

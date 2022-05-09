@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\helper;
 
-use JetBrains\PhpStorm\Deprecated;
-
 final class Text
 {
     /**
@@ -80,7 +78,6 @@ final class Text
      *
      * @deprecated
      */
-    #[Deprecated]
     public static function startsWith(string $haystack, string $needle, bool $ignoreCase = true): bool
     {
         if ('' === $needle) {
@@ -108,7 +105,6 @@ final class Text
      *
      * @deprecated
      */
-    #[Deprecated]
     public static function endsWith(string $haystack, string $needle, bool $ignoreCase = true): bool
     {
         if ('' === $needle) {

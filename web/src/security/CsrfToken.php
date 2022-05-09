@@ -91,6 +91,7 @@ class CsrfToken implements CsrfTokenInterface
             throw new \RuntimeException('openssl extension must be loaded');
         }
         $randBytes = openssl_random_pseudo_bytes($bytes, $strong);
+        /** @phpstan-ignore-next-line */
         if (!$strong || $randBytes === false) {
             return $this->generateRandomString($bytes);
         }

@@ -183,10 +183,10 @@ class WebConfiguration implements DefinitionConfiguration
         foreach ($errorHandlers as $type => $errorHandler) {
             $errorMiddleware->setErrorHandler($type, $container->get($errorHandler));
         }
-        foreach (ComponentCollection::getComponents(attribute\ErrorHandler::class) as $attributes) {
-            /** @var attribute\ErrorHandler $annotation */
-            $errorHandler = $container->get($annotation->getComponentId());
-            foreach ($annotation->getExceptions() as $type) {
+        foreach (ComponentCollection::getComponents(attribute\ErrorHandler::class) as $attribute) {
+            /** @var attribute\ErrorHandler $attribute */
+            $errorHandler = $container->get($attribute->getComponentId());
+            foreach ($attribute->getExceptions() as $type) {
                 $errorMiddleware->setErrorHandler($type, $errorHandler);
             }
         }
@@ -216,10 +216,9 @@ class WebConfiguration implements DefinitionConfiguration
         #[Inject('application.web.error.include_stacktrace')] ?string $includeStacktrace): ErrorHandlerInterface
     {
         $logger = $loggerFactory->create(ErrorHandler::class);
-        $errorHandler = new ErrorHandler($responseFactory, $errorRenderers, $logErrorRenderer, $logger);
-        $errorHandler->setIncludeStacktraceStrategy($includeStacktrace ?? IncludeStacktrace::NEVER);
-
-        return $errorHandler;
+        return new ErrorHandler(
+            $responseFactory, $errorRenderers, $logErrorRenderer, $logger,
+            includeStacktraceStrategy: $includeStacktrace ?? IncludeStacktrace::NEVER);
     }
 
     #[Bean]

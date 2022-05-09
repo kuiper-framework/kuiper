@@ -51,14 +51,6 @@ final class TarsParameter
     /**
      * @return bool
      */
-    public function isOut(): bool
-    {
-        return $this->out;
-    }
-
-    /**
-     * @return bool
-     */
     public function isRouteKey(): bool
     {
         return $this->routeKey;

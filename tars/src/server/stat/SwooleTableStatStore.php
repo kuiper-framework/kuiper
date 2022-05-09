@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\tars\server\stat;
 
 use Iterator;
+use kuiper\tars\integration\StatMicMsgBody;
 use Swoole\Table;
 
 class SwooleTableStatStore implements StatStore
@@ -87,12 +88,12 @@ class SwooleTableStatStore implements StatStore
             }
             $entry = StatEntry::fromString($data);
             if ($entry->getIndex() < $maxIndex) {
-                $body = $entry->getBody();
+                $body = get_object_vars($entry->getBody());
                 foreach ($row as $name => $value) {
-                    /** @phpstan-ignore-next-line */
-                    $body->{$name} = $value;
+                    $body[$name] = $value;
                 }
-                yield $entry;
+
+                yield $entry->withBody(new StatMicMsgBody(...$body));
             }
         }
     }

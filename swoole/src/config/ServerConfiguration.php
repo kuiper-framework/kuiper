@@ -99,7 +99,8 @@ class ServerConfiguration implements DefinitionConfiguration
         LoggerFactoryInterface $loggerFactory): ServerInterface
     {
         $config = Application::getInstance()->getConfig();
-        $serverFactory = new ServerFactory($loggerFactory->create(ServerFactory::class));
+        $serverFactory = new ServerFactory();
+        $serverFactory->setLogger($loggerFactory->create(ServerFactory::class));
         $serverFactory->setEventDispatcher($eventDispatcher);
         $serverFactory->enablePhpServer($config->getBool('application.server.enable_php_server'));
         if ($serverConfig->getPort()->isHttpProtocol()) {

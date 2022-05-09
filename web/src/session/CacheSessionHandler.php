@@ -110,8 +110,8 @@ class CacheSessionHandler implements \SessionHandlerInterface, \SessionIdInterfa
      *
      * @SuppressWarnings("ShortMethodName")
      */
-    public function gc(int $max_lifetime): bool
+    public function gc(int $max_lifetime): int|false
     {
-        return true;
+        return 0;
     }
 }

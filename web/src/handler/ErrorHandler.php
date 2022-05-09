@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\web\handler;
 
+use InvalidArgumentException;
+use kuiper\logger\Logger;
 use kuiper\web\http\MediaType;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -20,7 +22,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use Slim\Exception\HttpException;
 use Slim\Exception\HttpMethodNotAllowedException;
 use Slim\Interfaces\ErrorHandlerInterface;
@@ -31,46 +32,23 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
     /**
-     * @var ResponseFactoryInterface
-     */
-    private $responseFactory;
-    /**
-     * @var array
-     */
-    private $errorRenderers;
-
-    /**
-     * @var string
-     */
-    private $defaultContentType;
-
-    /**
      * @var ErrorRendererInterface|null
      */
-    private $logErrorRenderer;
-
-    /**
-     * @var string
-     */
-    private $includeStacktraceStrategy;
+    private readonly ?ErrorRendererInterface $logErrorRenderer;
 
     public function __construct(
         private readonly ResponseFactoryInterface $responseFactory,
         private readonly array $errorRenderers,
-        private readonly ?ErrorRendererInterface $logErrorRenderer,
-        private readonly ?LoggerInterface $logger,
-        string $defaultContentType = MediaType::TEXT_HTML,
-        string $includeStacktraceStrategy = IncludeStacktrace::NEVER)
+        ?ErrorRendererInterface $logErrorRenderer,
+        ?LoggerInterface $logger,
+        private readonly string $defaultContentType = MediaType::TEXT_HTML,
+        private readonly string $includeStacktraceStrategy = IncludeStacktrace::NEVER)
     {
-        $this->responseFactory = $responseFactory;
-        $this->errorRenderers = $errorRenderers;
-        $this->defaultContentType = $defaultContentType;
-        $this->includeStacktraceStrategy = $includeStacktraceStrategy;
         $this->logErrorRenderer = $logErrorRenderer ?? $errorRenderers[MediaType::TEXT_PLAIN] ?? null;
         if (!isset($errorRenderers[$this->defaultContentType])) {
-            throw new \InvalidArgumentException("error renderer for {$this->defaultContentType} not found");
+            throw new InvalidArgumentException("error renderer for $this->defaultContentType not found");
         }
-        $this->setLogger($logger ?? \kuiper\logger\Logger::nullLogger());
+        $this->setLogger($logger ?? Logger::nullLogger());
     }
 
     /**
@@ -121,14 +99,11 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
 
     protected function getIncludeStacktrace(ServerRequestInterface $request): bool
     {
-        switch ($this->includeStacktraceStrategy) {
-            case IncludeStacktrace::ALWAYS:
-                return true;
-            case IncludeStacktrace::NEVER:
-                return false;
-            default:
-                return isset($request->getQueryParams()['trace']);
-        }
+        return match ($this->includeStacktraceStrategy) {
+            IncludeStacktrace::ALWAYS => true,
+            IncludeStacktrace::NEVER => false,
+            default => isset($request->getQueryParams()['trace']),
+        };
     }
 
     protected function determineStatusCode(ServerRequestInterface $request, Throwable $exception): int
@@ -150,14 +125,12 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
      * Note: This method is a bare-bones implementation designed specifically for
      * Slim's error handling requirements. Consider a fully-feature solution such
      * as willdurand/negotiation for any other situation.
-     *
-     * @return string
      */
     public static function determineContentType(ServerRequestInterface $request, array $contentTypes): ?string
     {
         $acceptHeader = $request->getHeaderLine('Accept');
-        if (false !== strpos($acceptHeader, ';')) {
-            [$acceptHeader, $ignore] = explode(';', $acceptHeader, 2);
+        if (str_contains($acceptHeader, ';')) {
+            [$acceptHeader,] = explode(';', $acceptHeader, 2);
         }
         $selectedContentTypes = array_intersect(
             explode(',', $acceptHeader),
@@ -187,25 +160,5 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         }
 
         return null;
-    }
-
-    /**
-     * Set the renderer for the error logger.
-     *
-     * @param ErrorRendererInterface|string|callable $logErrorRenderer
-     */
-    public function setLogErrorRenderer($logErrorRenderer): void
-    {
-        $this->logErrorRenderer = $logErrorRenderer;
-    }
-
-    public function setDefaultContentType(string $defaultContentType): void
-    {
-        $this->defaultContentType = $defaultContentType;
-    }
-
-    public function setIncludeStacktraceStrategy(string $includeStacktraceStrategy): void
-    {
-        $this->includeStacktraceStrategy = $includeStacktraceStrategy;
     }
 }

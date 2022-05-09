@@ -48,6 +48,7 @@ class Connection implements ConnectionInterface
             foreach (['close', 'disconnect'] as $method) {
                 if (method_exists($this->resource, $method)) {
                     try {
+                        /** @phpstan-ignore-next-line */
                         $this->resource->$method();
                     } catch (\Exception $e) {
                         // noOps

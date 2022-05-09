@@ -40,7 +40,6 @@ class PreAuthorize extends AbstractMiddlewareFactory
      */
     public function create(ContainerInterface $container): MiddlewareInterface
     {
-        /** @phpstan-ignore-next-line */
         return new PreAuthorizeMiddleware($container->get(AclInterface::class), $this->requiredAuthorities, $this->anyAuthorities);
     }
 }

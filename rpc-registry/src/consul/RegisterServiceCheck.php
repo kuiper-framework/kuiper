@@ -61,5 +61,5 @@ class RegisterServiceCheck
      * Specifies this is a TTL check, and the TTL endpoint must be used periodically to update the state of the check.
      *
      */
-    private ?int $TTL = null;
+    public ?int $TTL = null;
 }

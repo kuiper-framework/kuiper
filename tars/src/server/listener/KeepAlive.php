@@ -29,11 +29,11 @@ class KeepAlive implements EventListenerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    protected const TAG = '['.__CLASS__.'] ';
+    protected const TAG = '[' . __CLASS__ . '] ';
 
     private readonly Atomic $lock;
 
-    private readonly int  $keepAliveInterval;
+    private readonly int $keepAliveInterval;
 
     private int $keepAliveTime;
 
@@ -41,9 +41,10 @@ class KeepAlive implements EventListenerInterface, LoggerAwareInterface
         private readonly ServerProperties $serverProperties,
         private readonly ServerInterface $server,
         private readonly ServerFServant $serverFServant
-    ) {
+    )
+    {
         $config = Application::getInstance()->getConfig();
-        $this->keepAliveInterval = (int) ($config->getInt('application.tars.server.keep_alive_interval', 10000) / 1000);
+        $this->keepAliveInterval = (int)($config->getInt('application.tars.server.keep_alive_interval', 10000) / 1000);
         $this->keepAliveTime = 0;
         $this->lock = new Atomic();
         $this->lock->set($this->keepAliveTime);
@@ -55,7 +56,7 @@ class KeepAlive implements EventListenerInterface, LoggerAwareInterface
         $server = $event->getServer();
         $config = Application::getInstance()->getConfig();
         if ('' === $config->getString('application.tars.server.node')) {
-            $this->logger->warning(static::TAG.'keep alive disabled.');
+            $this->logger->warning(static::TAG . 'keep alive disabled.');
 
             return;
         }
@@ -80,19 +81,20 @@ class KeepAlive implements EventListenerInterface, LoggerAwareInterface
             return;
         }
         try {
-            $serverInfo = new ServerInfo();
-            $serverInfo->serverName = $this->serverProperties->getServer();
-            $serverInfo->application = $this->serverProperties->getApp();
-            $serverInfo->pid = $pid;
+            $serverInfo = [
+                'serverName' => $this->serverProperties->getServer(),
+                'application' => $this->serverProperties->getApp(),
+                'pid' => $pid
+            ];
             foreach ($this->serverProperties->getAdapters() as $adapter) {
-                $serverInfo->adapter = $adapter->getAdapterName();
-                $this->logger->debug(static::TAG.'send keep alive message', ['server' => $serverInfo]);
-                $this->serverFServant->keepAlive($serverInfo);
+                $serverInfo['adapter'] = $adapter->getAdapterName();
+                $this->logger->debug(static::TAG . 'send keep alive message', ['server' => $serverInfo]);
+                $this->serverFServant->keepAlive(new ServerInfo(...$serverInfo));
             }
-            $serverInfo->adapter = 'AdminAdapter';
-            $this->serverFServant->keepAlive($serverInfo);
+            $serverInfo['adapter'] = 'AdminAdapter';
+            $this->serverFServant->keepAlive(new ServerInfo(...$serverInfo));
         } catch (Exception $e) {
-            $this->logger->error(static::TAG.'send server info fail', ['error' => $e]);
+            $this->logger->error(static::TAG . 'send server info fail', ['error' => $e]);
         }
     }
 
@@ -103,7 +105,7 @@ class KeepAlive implements EventListenerInterface, LoggerAwareInterface
                 return null;
             }
 
-            return (int) file_get_contents($this->serverProperties->getServerPidFile());
+            return (int)file_get_contents($this->serverProperties->getServerPidFile());
         }
 
         return $this->server->getMasterPid();

@@ -28,6 +28,8 @@ use kuiper\rpc\RpcRequest;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Http\Message\RequestInterface as HttpRequestInterface;
+use ReflectionMethod;
+use ReflectionParameter;
 
 class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 {
@@ -39,12 +41,12 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 
     /**
      * @template T
-     * @param \Reflector $reflector
+     * @param ReflectionMethod|ReflectionParameter $reflector
      * @param class-string<T> $name
      * @param int $flags
      * @return T|null
      */
-    private function getAttribute(\Reflector $reflector, string $name, int $flags = 0)
+    private function getAttribute(ReflectionMethod|ReflectionParameter $reflector, string $name, int $flags = 0)
     {
         $attributes = $reflector->getAttributes($name, $flags);
         if (count($attributes) > 0) {
@@ -56,7 +58,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
     public function createRequest(object $proxy, string $method, array $args): RpcRequestInterface
     {
         $invokingMethod = $this->rpcMethodFactory->create($proxy, $method, $args);
-        $reflectionMethod = new \ReflectionMethod(ProxyGenerator::getInterfaceName(get_class($proxy)), $method);
+        $reflectionMethod = new ReflectionMethod(ProxyGenerator::getInterfaceName(get_class($proxy)), $method);
         $headers = [];
         $parameters = [];
         foreach ($reflectionMethod->getParameters() as $i => $parameter) {
@@ -82,8 +84,8 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
         $placeholderRe = '/\{(\w+)(:.*)?\}/';
 
         foreach (array_merge($reflectionMethod->getDeclaringClass()->getAttributes(HttpHeader::class),
-            $reflectionMethod->getAttributes(RequestHeader::class)) as $attribute) {
-            /** @var RequestHeader $headerAttribute */
+            $reflectionMethod->getAttributes(HttpHeader::class)) as $attribute) {
+            /** @var HttpHeader $headerAttribute */
             $headerAttribute = $attribute->newInstance();
             $headers[strtolower($headerAttribute->getName())] = preg_replace_callback($placeholderRe, $replacePlaceholder, $headerAttribute->getValue());
         }

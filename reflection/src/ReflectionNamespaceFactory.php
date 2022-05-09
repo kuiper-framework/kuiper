@@ -92,9 +92,9 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      * @param string $namespace
      * @param string $dir
      *
-     * @return ReflectionNamespaceFactoryInterface
+     * @return static
      */
-    public function register(string $namespace, string $dir): self
+    public function register(string $namespace, string $dir): static
     {
         $namespace = $this->normalizeNamespace($namespace);
         $this->namespaceDirs[$namespace][$dir] = true;
@@ -106,7 +106,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      * Registers composer class loader.
      * Only psr4 namespace support.
      */
-    public function registerLoader(ClassLoader $loader): self
+    public function registerLoader(ClassLoader $loader): static
     {
         foreach ($loader->getPrefixesPsr4() as $namespace => $dirs) {
             foreach ($dirs as $dir) {
@@ -120,7 +120,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
     /**
      * Adds new php code file extension.
      */
-    public function addExtension(string $ext): self
+    public function addExtension(string $ext): static
     {
         if (!in_array($ext, $this->extensions, true)) {
             $this->extensions[] = $ext;
@@ -134,7 +134,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
      *
      * @param string[] $extensions
      */
-    public function setExtensions(array $extensions): self
+    public function setExtensions(array $extensions): static
     {
         $this->extensions = array_unique($extensions);
 
