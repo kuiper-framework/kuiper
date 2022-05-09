@@ -27,25 +27,17 @@ use Psr\Http\Message\StreamInterface;
 
 class TarsServerResponse extends RpcResponse implements TarsResponseInterface
 {
-    /**
-     * @var ResponsePacket
-     */
-    private $packet;
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
+    private readonly ResponsePacket $packet;
 
-    /**
-     * @var StreamInterface
-     */
-    private $body;
+    private ?StreamInterface $body = null;
 
-    public function __construct(TarsRequestInterface $request, ResponseInterface $response, StreamFactoryInterface $streamFactory)
+    public function __construct(
+        TarsRequestInterface $request,
+        ResponseInterface $response,
+        private readonly StreamFactoryInterface $streamFactory)
     {
         parent::__construct($request, $response);
         $this->packet = ResponsePacket::createFromRequest($request);
-        $this->streamFactory = $streamFactory;
     }
 
     public function getResponsePacket(): ResponsePacket

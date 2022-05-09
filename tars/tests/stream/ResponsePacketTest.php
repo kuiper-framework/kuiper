@@ -26,7 +26,7 @@ class ResponsePacketTest extends TestCase
         $packet = ResponsePacket::decode(file_get_contents(__DIR__.'/../fixtures/response.data'));
         $is = new TarsInputStream($packet->sBuffer);
         $ret = $is->readMap(0, true, MapType::byteArrayMap());
-        $typeParser = new TypeParser(AnnotationReader::getInstance());
+        $typeParser = new TypeParser();
         $type = $typeParser->parse('vector<EndpointF>', 'kuiper\\tars\\integration');
         $result = TarsInputStream::unpack($type, $ret['']);
         // print_r($result);
@@ -37,7 +37,7 @@ class ResponsePacketTest extends TestCase
     public function testData()
     {
         $data = file_get_contents(__DIR__.'/../fixtures/struct.data');
-        $typeParser = new TypeParser(AnnotationReader::getInstance());
+        $typeParser = new TypeParser();
         $type = $typeParser->parse('vector<User>', 'kuiper\\tars\\fixtures');
         $result = TarsInputStream::unpack($type, $data);
         $this->assertIsArray($result);

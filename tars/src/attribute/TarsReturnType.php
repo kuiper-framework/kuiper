@@ -11,18 +11,20 @@
 
 declare(strict_types=1);
 
-namespace kuiper\tars\annotation;
+namespace kuiper\tars\attribute;
 
-/**
- * @Annotation
- * @Target({"METHOD"})
- */
+#[\Attribute(\Attribute::TARGET_METHOD)]
 final class TarsReturnType
 {
+    public function __construct(private readonly string $name)
+    {
+    }
+
     /**
-     * @Required()
-     *
-     * @var string
+     * @return string
      */
-    public $value;
+    public function getName(): string
+    {
+        return $this->name;
+    }
 }

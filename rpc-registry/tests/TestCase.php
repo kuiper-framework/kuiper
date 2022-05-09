@@ -15,11 +15,15 @@ namespace kuiper\rpc\registry;
 
 use kuiper\annotations\AnnotationReader;
 use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\cache\CacheConfiguration;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\http\client\HttpClientConfiguration;
+use kuiper\logger\LoggerConfiguration;
+use kuiper\logger\LoggerFactory;
+use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionConfiguration;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
@@ -36,17 +40,16 @@ use Psr\Log\LoggerInterface;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
+    protected  ?ContainerInterface $container = null;
 
     protected function createContainer(array $configArr): ContainerInterface
     {
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new ReflectionConfiguration());
+        $builder->addConfiguration(new CacheConfiguration());
         $builder->addConfiguration(new SerializerConfiguration());
+        $builder->addConfiguration(new LoggerConfiguration());
         $builder->addConfiguration(new HttpClientConfiguration());
         $builder->addConfiguration(new RpcRegistryConfiguration());
         $builder->addConfiguration(new DiactorosHttpMessageFactoryConfiguration());
@@ -56,9 +59,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         $config = Application::getInstance()->getConfig();
         $config->merge($configArr);
         $builder->addDefinitions(new PropertiesDefinitionSource($config));
-        $builder->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class));
         $builder->addDefinitions([
-            LoggerInterface::class => new Logger('test', [new ErrorLogHandler()]),
             PoolFactoryInterface::class => new PoolFactory(false),
             PropertyResolverInterface::class => $config,
             ServiceResolverInterface::class => new InMemoryServiceResolver(),

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\tars\type;
 
 use kuiper\tars\exception\SyntaxErrorException;
+use OutOfBoundsException;
 
 class TypeTokenizer
 {
@@ -38,7 +39,7 @@ class TypeTokenizer
     /**
      * @var int[]
      */
-    private static $STOP_CHARS = [
+    private const STOP_CHARS = [
         self::LEFT_BRACKET => self::T_LEFT_BRACKET,
         self::RIGHT_BRACKET => self::T_RIGHT_BRACKET,
         self::COMMA => self::T_COMMA,
@@ -47,36 +48,25 @@ class TypeTokenizer
     /**
      * @var int[]
      */
-    private static $RESERVE_WORDS = [
+    private const RESERVE_WORDS = [
         self::VOID => self::T_VOID,
         self::VECTOR => self::T_VECTOR,
         self::MAP => self::T_MAP,
     ];
 
-    /**
-     * @var string
-     */
-    private $input;
-    /**
-     * @var int
-     */
-    private $pos;
-    /**
-     * @var int
-     */
-    private $length;
+    private readonly int $length;
 
-    public function __construct(string $input)
+    private int $pos = 0;
+
+    public function __construct(private readonly string $input)
     {
-        $this->input = $input;
         $this->length = strlen($input);
-        $this->pos = 0;
     }
 
     private function nextChar(): string
     {
         if ($this->pos >= $this->length) {
-            throw new \OutOfBoundsException('no more char');
+            throw new OutOfBoundsException('no more char');
         }
         $char = $this->input[$this->pos];
         ++$this->pos;
@@ -89,14 +79,14 @@ class TypeTokenizer
         --$this->pos;
     }
 
-    /**
-     * @param int|string|null $tokenValue
-     */
-    private function createToken(int $tokenType, $tokenValue = null): array
+    private function createToken(int $tokenType, int|string|null $tokenValue = null): array
     {
         return [$tokenType, $tokenValue];
     }
 
+    /**
+     * @throws SyntaxErrorException
+     */
     public function tokenize(): array
     {
         $tokens = [];
@@ -107,6 +97,9 @@ class TypeTokenizer
         return $tokens;
     }
 
+    /**
+     * @throws SyntaxErrorException
+     */
     private function nextToken(): ?array
     {
         $this->skipWhitespace();
@@ -114,14 +107,14 @@ class TypeTokenizer
             return null;
         }
         $char = $this->nextChar();
-        if (isset(self::$STOP_CHARS[$char])) {
-            return $this->createToken(self::$STOP_CHARS[$char]);
+        if (isset(self::STOP_CHARS[$char])) {
+            return $this->createToken(self::STOP_CHARS[$char]);
         }
 
         $this->putBack();
         $word = $this->readIdentifier();
-        if (isset(self::$RESERVE_WORDS[$word])) {
-            return $this->createToken(self::$RESERVE_WORDS[$word]);
+        if (isset(self::RESERVE_WORDS[$word])) {
+            return $this->createToken(self::RESERVE_WORDS[$word]);
         }
 
         if (self::UNSIGNED === $word) {
@@ -188,6 +181,9 @@ class TypeTokenizer
         return (bool) preg_match('/\w/', $char);
     }
 
+    /**
+     * @throws SyntaxErrorException
+     */
     private function raiseSyntaxError(string $message): void
     {
         throw new SyntaxErrorException($message.' at '.$this->pos.', type='.$this->input);

@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\tars\core;
 
+use InvalidArgumentException;
 use kuiper\helper\Arrays;
 use kuiper\rpc\servicediscovery\ServiceEndpoint;
-use kuiper\rpc\ServiceLocator;
+use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\tars\integration\EndpointF;
 
@@ -24,7 +25,7 @@ class EndpointParser
     /**
      * @var string[]
      */
-    private static $SHORT_OPTIONS = [
+    private const SHORT_OPTIONS = [
         'host' => 'h',
         'port' => 'p',
         'timeout' => 't',
@@ -35,7 +36,7 @@ class EndpointParser
     {
         $pos = strpos($str, '@');
         if (false === $pos) {
-            throw new \InvalidArgumentException("No servant name in '$str'");
+            throw new InvalidArgumentException("No servant name in '$str'");
         }
         $servantName = substr($str, 0, $pos);
         $endpointList = substr($str, $pos + 1);
@@ -46,7 +47,7 @@ class EndpointParser
             $endpoints[] = $endpoint;
         }
 
-        return new ServiceEndpoint(new ServiceLocator($servantName), $endpoints);
+        return new ServiceEndpoint(new ServiceLocatorImpl($servantName), $endpoints);
     }
 
     public static function fromEndpointF(EndpointF $endpointF): Endpoint
@@ -66,7 +67,6 @@ class EndpointParser
     public static function parse(string $str): Endpoint
     {
         $address = [
-            'protocol' => '',
             'host' => '',
             'port' => 0,
             'timeout' => 0,
@@ -77,8 +77,8 @@ class EndpointParser
         $address['protocol'] = array_shift($parts);
         while (!empty($parts)) {
             $opt = array_shift($parts);
-            if (0 === strpos($opt, '-')) {
-                $name = array_search(substr($opt, 1), self::$SHORT_OPTIONS, true);
+            if (str_starts_with($opt, '-')) {
+                $name = array_search(substr($opt, 1), self::SHORT_OPTIONS, true);
                 if (false === $name) {
                     continue;
                 }
@@ -96,13 +96,13 @@ class EndpointParser
         }
 
         if (!in_array($address['protocol'], ['tcp', 'udp'], true)) {
-            throw new \InvalidArgumentException("invalid address protocol: original text is '$str'");
+            throw new InvalidArgumentException("invalid address protocol: original text is '$str'");
         }
         if (empty($address['host'])) {
-            throw new \InvalidArgumentException("invalid address host: original text is '$str'");
+            throw new InvalidArgumentException("invalid address host: original text is '$str'");
         }
         if ($address['port'] < 1 || $address['port'] > 65536) {
-            throw new \InvalidArgumentException("invalid address port: original text is '$str'");
+            throw new InvalidArgumentException("invalid address port: original text is '$str'");
         }
 
         $timeout = $address['timeout'] > 0 ? $address['timeout'] / 1000 : null;

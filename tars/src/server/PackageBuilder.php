@@ -25,7 +25,7 @@ class PackageBuilder
     {
         $builder = new self();
         $serverName = $_SERVER['argv'][2] ?? '';
-        if (Text::startsWith($serverName, '-')) {
+        if (str_starts_with($serverName, '-')) {
             $serverName = null;
         }
         $builder->build($serverName);

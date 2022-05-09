@@ -30,28 +30,17 @@ class TarsServerRequestFactory implements RpcServerRequestFactoryInterface, Logg
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @var Service[]
+     * @param RpcMethodFactoryInterface $rpcMethodFactory
+     * @param Service[] $services
      */
-    private $services;
-
-    /**
-     * @var RpcMethodFactoryInterface
-     */
-    private $rpcMethodFactory;
-
-    /**
-     * TarsServerRequestFactory constructor.
-     */
-    public function __construct(RpcMethodFactoryInterface $rpcMethodFactory, array $services)
+    public function __construct(
+        private readonly RpcMethodFactoryInterface $rpcMethodFactory,
+        private readonly array $services)
     {
-        $this->rpcMethodFactory = $rpcMethodFactory;
-        $this->services = $services;
     }
 
     /**
      * {@inheritDoc}
-     *
-     * @throws TarsRequestException
      */
     public function createRequest(RequestInterface $request): RpcRequestInterface
     {

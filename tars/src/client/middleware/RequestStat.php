@@ -28,14 +28,9 @@ use Psr\Http\Message\ResponseInterface;
 class RequestStat implements MiddlewareInterface
 {
     /**
-     * @var StatInterface
-     */
-    private $stat;
-
-    /**
      * @var ResponseInterface
      */
-    private $response;
+    private readonly ResponseInterface $response;
 
     /**
      * Stat constructor.
@@ -43,9 +38,8 @@ class RequestStat implements MiddlewareInterface
      * @param StatInterface            $stat
      * @param ResponseFactoryInterface $responseFactory
      */
-    public function __construct(StatInterface $stat, ResponseFactoryInterface $responseFactory)
+    public function __construct(private readonly StatInterface $stat, ResponseFactoryInterface $responseFactory)
     {
-        $this->stat = $stat;
         $this->response = $responseFactory->createResponse();
     }
 

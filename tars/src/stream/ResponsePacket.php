@@ -20,50 +20,30 @@ use kuiper\tars\type\VectorType;
 
 final class ResponsePacket
 {
-    /**
-     * @var int|null
-     */
-    public $iVersion = TarsConst::VERSION;
+    public int $iVersion = TarsConst::VERSION;
+
+    public int $cPacketType = TarsConst::PACKET_TYPE;
+
+    public int $iRequestId = 0;
+
+    public int $iMessageType = TarsConst::MESSAGE_TYPE;
+
+    public int $iRet = ErrorCode::SERVER_SUCCESS;
+
+    public string $sBuffer = '';
+
+
+    public string $sResultDesc = '';
 
     /**
-     * @var int|null
+     * @var string[]
      */
-    public $cPacketType = TarsConst::PACKET_TYPE;
+    public array $status = [];
 
     /**
-     * @var int|null
+     * @var string[]
      */
-    public $iRequestId = 0;
-
-    /**
-     * @var int|null
-     */
-    public $iMessageType = TarsConst::MESSAGE_TYPE;
-
-    /**
-     * @var int|null
-     */
-    public $iRet = ErrorCode::SERVER_SUCCESS;
-
-    /**
-     * @var string
-     */
-    public $sBuffer;
-
-    /**
-     * @var string[]|null
-     */
-    public $status = [];
-
-    /**
-     * @var string|null
-     */
-    public $sResultDesc;
-
-    /**
-     * @var string[]|null
-     */
-    public $context = [];
+    public array $context = [];
 
     public static function createFromRequest(TarsRequestInterface $request): self
     {

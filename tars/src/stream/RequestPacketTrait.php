@@ -15,10 +15,7 @@ namespace kuiper\tars\stream;
 
 trait RequestPacketTrait
 {
-    /**
-     * @var RequestPacket
-     */
-    private $packet;
+    private readonly RequestPacket $packet;
 
     public function getVersion(): int
     {
@@ -68,6 +65,11 @@ trait RequestPacketTrait
         $this->packet->context = $context;
     }
 
+    public function addContext(string $key, string $value): void
+    {
+        $this->packet->context[$key] = $value;
+    }
+
     /**
      * @return string[]
      */
@@ -79,5 +81,10 @@ trait RequestPacketTrait
     public function setStatus(array $status): void
     {
         $this->packet->status = $status;
+    }
+
+    public function addStatus(string $key, string $value): void
+    {
+        $this->packet->status[$key] = $value;
     }
 }

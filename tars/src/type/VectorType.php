@@ -15,17 +15,8 @@ namespace kuiper\tars\type;
 
 class VectorType extends AbstractType
 {
-    /**
-     * @var Type
-     */
-    private $subType;
-
-    /**
-     * VectorType constructor.
-     */
-    public function __construct(Type $subType)
+    public function __construct(private readonly Type $subType)
     {
-        $this->subType = $subType;
     }
 
     public function getSubType(): Type
@@ -50,7 +41,7 @@ class VectorType extends AbstractType
 
     public function __toString(): string
     {
-        return sprintf('vector<%s>', (string) $this->subType);
+        return sprintf('vector<%s>', $this->subType);
     }
 
     public static function byteVector(): self

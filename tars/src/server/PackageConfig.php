@@ -22,24 +22,24 @@ class PackageConfig
     /**
      * @var string
      */
-    private $serverName;
+    private readonly string $serverName;
     /**
      * @var array
      */
-    private $finders;
+    private array $finders;
     /**
      * @var array<string,bool>
      */
-    private $files;
+    private array $files;
     /**
      * @var string
      */
-    private $basePath;
+    private string $basePath;
 
     /**
      * @var array
      */
-    private static $DEFAULTS = [
+    private const DEFAULTS = [
         'src' => [],
         'resources' => [],
         'vendor' => [
@@ -64,7 +64,7 @@ class PackageConfig
         $this->serverName = $options['server_name'] ?? '';
         $this->finders[0] = [];
         $this->addFile('composer.json');
-        $defaults = self::$DEFAULTS;
+        $defaults = self::DEFAULTS;
         foreach ($options['manifest'] ?? [] as $item) {
             if (is_string($item)) {
                 $this->addFile($item);

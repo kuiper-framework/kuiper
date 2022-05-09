@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\type;
 
-interface Type
+interface Type extends \Stringable
 {
     public const ZERO = 12;
     public const STRING4 = 7;
@@ -53,6 +53,4 @@ interface Type
     public function asStructType(): StructType;
 
     public function getTarsType(): int;
-
-    public function __toString(): string;
 }

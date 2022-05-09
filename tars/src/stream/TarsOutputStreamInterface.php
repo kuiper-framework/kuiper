@@ -52,23 +52,17 @@ interface TarsOutputStreamInterface
     public function writeStruct(int $tag, object $value, StructType $structType): void;
 
     /**
-     * @param array|string $value
-     *
      * @throws TarsStreamException
      */
-    public function writeVector(int $tag, $value, VectorType $vectorType): void;
+    public function writeVector(int $tag, array|string $value, VectorType $vectorType): void;
 
     /**
-     * @param array|StructMap $value
-     *
      * @throws TarsStreamException
      */
-    public function writeMap(int $tag, $value, MapType $mapType): void;
+    public function writeMap(int $tag, StructMap|array $value, MapType $mapType): void;
 
     /**
-     * @param mixed $value
-     *
      * @throws TarsStreamException
      */
-    public function write(int $tag, $value, Type $type): void;
+    public function write(int $tag, mixed $value, Type $type): void;
 }

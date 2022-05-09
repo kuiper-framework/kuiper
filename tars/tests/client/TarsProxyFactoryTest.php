@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 
 class TarsProxyFactoryMockHelper extends TarsProxyFactory
 {
-    public static $transporter;
+    public static ?TransporterInterface $transporter = null;
 
     protected function createRpcClient(string $className, array $options): RpcRequestHandlerInterface
     {

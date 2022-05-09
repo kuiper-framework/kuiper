@@ -13,49 +13,41 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\registry\consul;
 
-use kuiper\http\client\annotation\GetMapping;
-use kuiper\http\client\annotation\HttpClient;
-use kuiper\http\client\annotation\PutMapping;
-use kuiper\http\client\annotation\RequestHeader;
+use kuiper\http\client\attribute\GetMapping;
+use kuiper\http\client\attribute\HttpClient;
+use kuiper\http\client\attribute\HttpHeader;
+use kuiper\http\client\attribute\PutMapping;
+use kuiper\http\client\attribute\QueryParam;
 
-/**
- * @HttpClient(path="/v1/agent")
- * @RequestHeader("content-type: application/json")
- */
+#[HttpClient(path: "/v1/agent")]
+#[HttpHeader("content-type", "application/json")]
 interface ConsulAgent
 {
     /**
-     * @GetMapping("/services")
-     *
      * @return Service[]
      */
+    #[GetMapping("/services")]
     public function getServices(string $filter = null, string $ns = null): array;
 
     /**
-     * @GetMapping("/service/{service}")
-     *
-     * @param string $service
-     *
-     * @return Service
+     * Gets the service
      */
+    #[GetMapping("/service/{service}")]
     public function getService(string $service): Service;
 
-    /**
-     * @PutMapping("/service/register", queryParams={"replace-existing-checks": "replaceExistingChecks"})
-     */
-    public function registerService(RegisterServiceRequest $request, bool $replaceExistingChecks = null): void;
+    #[PutMapping("/service/register")]
+    public function registerService(
+        RegisterServiceRequest                        $request,
+        #[QueryParam("replace-existing-checks")] bool $replaceExistingChecks = null): void;
 
-    /**
-     * @PutMapping("/service/deregister/{service}")
-     */
+    #[PutMapping("/service/deregister/{service}")]
     public function deregisterService(string $service): void;
 
     /**
-     * @GetMapping("/health/service/name/{service}")
-     *
      * @param string $service
      *
      * @return ServiceHealth[]
      */
+    #[GetMapping("/health/service/name/{service}")]
     public function getServiceHealth(string $service): array;
 }

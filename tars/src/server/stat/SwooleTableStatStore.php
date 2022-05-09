@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server\stat;
 
+use Iterator;
 use Swoole\Table;
 
 class SwooleTableStatStore implements StatStore
@@ -24,15 +25,10 @@ class SwooleTableStatStore implements StatStore
     public const KEY_MAX_RSP_TIME = 'maxRspTime';
     public const KEY_MIN_RSP_TIME = 'minRspTime';
     public const KEY_ENTRY = 'entry';
-    /**
-     * @var Table
-     */
-    protected $statTable;
 
-    /**
-     * @var Table
-     */
-    protected $keyTable;
+    protected readonly Table $statTable;
+
+    protected readonly Table $keyTable;
 
     public function __construct(int $size = 4096)
     {
@@ -82,7 +78,7 @@ class SwooleTableStatStore implements StatStore
     /**
      * {@inheritdoc}
      */
-    public function getEntries(int $maxIndex): \Iterator
+    public function getEntries(int $maxIndex): Iterator
     {
         foreach ($this->statTable as $key => $row) {
             $data = $this->getEntry($key);

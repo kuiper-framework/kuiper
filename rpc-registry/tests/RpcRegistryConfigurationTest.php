@@ -30,7 +30,7 @@ class RpcRegistryConfigurationTest extends TestCase
         ];
     }
 
-    public function testServiceDiscovery()
+    public function testServiceDiscovery(): void
     {
         $middleware = $this->getContainer()->get(ServiceDiscovery::class);
         // print_r($middleware);

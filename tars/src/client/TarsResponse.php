@@ -21,15 +21,12 @@ use Psr\Http\Message\ResponseInterface;
 
 class TarsResponse extends RpcResponse implements TarsResponseInterface
 {
-    /**
-     * @var ResponsePacket
-     */
-    private $packet;
-
-    public function __construct(RpcRequestInterface $request, ResponseInterface $response, ResponsePacket $packet)
+    public function __construct(
+        RpcRequestInterface $request,
+        ResponseInterface   $response,
+        private             readonly ResponsePacket $packet)
     {
         parent::__construct($request, $response);
-        $this->packet = $packet;
     }
 
     public function getResponsePacket(): ResponsePacket

@@ -20,42 +20,19 @@ declare(strict_types=1);
 
 namespace kuiper\tars\fixtures;
 
-use kuiper\tars\annotation\TarsClient;
-use kuiper\tars\annotation\TarsParameter;
-use kuiper\tars\annotation\TarsReturnType;
+use kuiper\tars\attribute\TarsClient;
+use kuiper\tars\attribute\TarsReturnType;
 
-/**
- * @TarsClient("PHPDemo.PHPTcpServer.UserObj")
- */
+#[TarsClient("PHPDemo.PHPTcpServer.UserObj")]
 interface UserServant
 {
-    /**
-     * @TarsParameter(name="id", type="int")
-     * @TarsReturnType("User")
-     *
-     * @param int $id
-     *
-     * @return User
-     */
     public function findUser(int $id): User;
 
-    /**
-     * @TarsParameter(name="user", type="User")
-     * @TarsReturnType("void")
-     *
-     * @param User $user
-     *
-     * @return void
-     */
     public function saveUser(User $user): void;
 
     /**
-     * @TarsParameter(name="total", type="int", out=true)
-     * @TarsReturnType("vector<User>")
-     *
-     * @param int $total
-     *
      * @return User[]
      */
+    #[TarsReturnType("vector<User>")]
     public function findAllUser(?int &$total): array;
 }

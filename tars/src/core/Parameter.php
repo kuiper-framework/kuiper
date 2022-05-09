@@ -17,39 +17,13 @@ use kuiper\tars\type\Type;
 
 class Parameter implements ParameterInterface
 {
-    /**
-     * @var int
-     */
-    private $order;
-    /**
-     * @var string
-     */
-    private $name;
-    /**
-     * @var bool
-     */
-    private $out;
-    /**
-     * @var mixed
-     */
-    private $data;
-    /**
-     * @var Type
-     */
-    private $type;
-
-    /**
-     * Parameter constructor.
-     *
-     * @param mixed $data
-     */
-    public function __construct(int $order, string $name, bool $out, Type $type, $data)
+    public function __construct(
+        private readonly int $order,
+        private readonly string $name,
+        private readonly bool $out,
+        private readonly Type $type,
+        private mixed $data)
     {
-        $this->order = $order;
-        $this->name = $name;
-        $this->out = $out;
-        $this->data = $data;
-        $this->type = $type;
     }
 
     public function getOrder(): int

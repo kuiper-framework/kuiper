@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server\listener;
 
+use Exception;
 use kuiper\event\EventListenerInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\event\WorkerStartEvent;
@@ -30,42 +31,17 @@ class KeepAlive implements EventListenerInterface, LoggerAwareInterface
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @var ServerProperties
-     */
-    private $serverProperties;
-    /**
-     * @var ServerInterface
-     */
-    private $server;
-    /**
-     * @var ServerFServant
-     */
-    private $serverFServant;
+    private readonly Atomic $lock;
 
-    /**
-     * @var Atomic
-     */
-    private $lock;
+    private readonly int  $keepAliveInterval;
 
-    /**
-     * @var int
-     */
-    private $keepAliveInterval;
-
-    /**
-     * @var int
-     */
-    private $keepAliveTime;
+    private int $keepAliveTime;
 
     public function __construct(
-        ServerProperties $serverProperties,
-        ServerInterface $server,
-        ServerFServant $serverFServant
+        private readonly ServerProperties $serverProperties,
+        private readonly ServerInterface $server,
+        private readonly ServerFServant $serverFServant
     ) {
-        $this->serverProperties = $serverProperties;
-        $this->server = $server;
-        $this->serverFServant = $serverFServant;
         $config = Application::getInstance()->getConfig();
         $this->keepAliveInterval = (int) ($config->getInt('application.tars.server.keep_alive_interval', 10000) / 1000);
         $this->keepAliveTime = 0;
@@ -115,7 +91,7 @@ class KeepAlive implements EventListenerInterface, LoggerAwareInterface
             }
             $serverInfo->adapter = 'AdminAdapter';
             $this->serverFServant->keepAlive($serverInfo);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error(static::TAG.'send server info fail', ['error' => $e]);
         }
     }

@@ -18,14 +18,8 @@ use kuiper\tars\server\ServerProperties;
 
 abstract class AbstractCollector implements CollectorInterface
 {
-    /**
-     * @var ServerProperties
-     */
-    private $serverProperties;
-
-    public function __construct(ServerProperties $serverProperties)
+    public function __construct(private readonly ServerProperties $serverProperties)
     {
-        $this->serverProperties = $serverProperties;
     }
 
     public function getServerProperties(): ServerProperties

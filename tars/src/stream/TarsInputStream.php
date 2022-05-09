@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\stream;
 
+use InvalidArgumentException;
 use kuiper\tars\exception\TarsStreamException;
 use kuiper\tars\type\MapType;
 use kuiper\tars\type\PrimitiveType;
@@ -20,6 +21,7 @@ use kuiper\tars\type\StructMap;
 use kuiper\tars\type\StructType;
 use kuiper\tars\type\Type;
 use kuiper\tars\type\VectorType;
+use ReflectionClass;
 
 class TarsInputStream implements TarsInputStreamInterface
 {
@@ -44,7 +46,7 @@ class TarsInputStream implements TarsInputStreamInterface
      *
      * @param string|resource|mixed $buffer
      */
-    public function __construct($buffer)
+    public function __construct(mixed $buffer)
     {
         if (is_resource($buffer)) {
             $this->buffer = $buffer;
@@ -54,10 +56,13 @@ class TarsInputStream implements TarsInputStreamInterface
             rewind($resource);
             $this->buffer = $resource;
         } else {
-            throw new \InvalidArgumentException('buffer should be string or resource, got '.gettype($buffer));
+            throw new InvalidArgumentException('buffer should be string or resource, got '.gettype($buffer));
         }
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     private function readInternal(int $length): string
     {
         $char = fread($this->buffer, $length);
@@ -68,15 +73,18 @@ class TarsInputStream implements TarsInputStreamInterface
         return $char;
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     private function readHead(?int &$tag, ?int &$type, bool $require): bool
     {
         $header = fread($this->buffer, 1);
         if (false === $header || '' === $header) {
             if ($require) {
                 throw TarsStreamException::streamLenError();
-            } else {
-                return false;
             }
+
+            return false;
         }
         $tagAndType = ord($header);
         $type = $tagAndType & 0xF;
@@ -89,6 +97,9 @@ class TarsInputStream implements TarsInputStreamInterface
         return true;
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     private function matchTag(?int $tag): int
     {
         if (!$this->readHead($nextTag, $nextType, true)) {
@@ -146,11 +157,11 @@ class TarsInputStream implements TarsInputStreamInterface
             if ($nextTag > $tag) {
                 if ($require) {
                     throw TarsStreamException::tagNotMatch();
-                } else {
-                    $this->pushHeadBack($nextTag);
-
-                    return null;
                 }
+
+                $this->pushHeadBack($nextTag);
+
+                return null;
             }
         }
         $this->skipField($nextType);
@@ -158,6 +169,9 @@ class TarsInputStream implements TarsInputStreamInterface
         return $this->match($tag, $type, $require);
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     private function skipField(int $type): void
     {
         switch ($type) {
@@ -320,7 +334,7 @@ class TarsInputStream implements TarsInputStreamInterface
     /**
      * {@inheritDoc}
      */
-    public function read(int $tag, bool $require, Type $type)
+    public function read(int $tag, bool $require, Type $type): mixed
     {
         if ($type->isPrimitive()) {
             switch ($type->asPrimitiveType()->getTarsType()) {
@@ -500,12 +514,19 @@ class TarsInputStream implements TarsInputStreamInterface
         }
         $className = $structType->getClassName();
 
-        $obj = new $className();
+        $props = [];
         foreach ($structType->getFields() as $field) {
             $value = $this->read($field->getTag(), $field->isRequired(), $field->getType());
             if (null !== $value) {
-                /* @phpstan-ignore-next-line */
-                $obj->{$field->getName()} = $value;
+                $props[$field->getName()] = $value;
+            }
+        }
+        if ($structType->isConstructorBased()) {
+            $obj = new $className(...$props);
+        } else {
+            $obj = new $className;
+            foreach ($props as $key => $value) {
+                $obj->{$key} = $value;
             }
         }
         $this->match(0, Type::STRUCT_END, true);
@@ -516,7 +537,7 @@ class TarsInputStream implements TarsInputStreamInterface
     /**
      * {@inheritDoc}
      */
-    public function readVector(int $tag, bool $require, VectorType $vectorType)
+    public function readVector(int $tag, bool $require, VectorType $vectorType): array|string|null
     {
         $type = $this->match($tag, Type::VECTOR, $require);
         if (null === $type) {
@@ -544,7 +565,7 @@ class TarsInputStream implements TarsInputStreamInterface
     /**
      * {@inheritDoc}
      */
-    public function readMap(int $tag, bool $require, MapType $mapType)
+    public function readMap(int $tag, bool $require, MapType $mapType): StructMap|array|null
     {
         $type = $this->match($tag, Type::MAP, $require);
         if (null === $type) {
@@ -571,15 +592,16 @@ class TarsInputStream implements TarsInputStreamInterface
     }
 
     /**
-     * @return mixed
+     * @throws TarsStreamException
      */
-    public static function unpack(Type $type, string $data)
+    public static function unpack(Type $type, string $data): mixed
     {
-        $is = new TarsInputStream($data);
-
-        return $is->read(0, true, $type);
+        return (new TarsInputStream($data))->read(0, true, $type);
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     public function tokenize(): array
     {
         $tokens = [];
@@ -598,7 +620,7 @@ class TarsInputStream implements TarsInputStreamInterface
     {
         static $typeNames;
         if (null === $typeNames) {
-            $reflectionClass = new \ReflectionClass(Type::class);
+            $reflectionClass = new ReflectionClass(Type::class);
             foreach ($reflectionClass->getConstants() as $name => $value) {
                 $typeNames[$value] = $name;
             }
@@ -607,6 +629,9 @@ class TarsInputStream implements TarsInputStreamInterface
         return $typeNames[$type] ?? '';
     }
 
+    /**
+     * @throws TarsStreamException
+     */
     private function nextToken(): ?array
     {
         if (!$this->readHead($tag, $type, false)) {

@@ -16,22 +16,18 @@ namespace kuiper\tars\type;
 class StructType extends AbstractType
 {
     /**
-     * @var string
+     * @param StructField[] $fields
      */
-    private $className;
-
-    /**
-     * @var StructField[]
-     */
-    private $fields;
-
-    /**
-     * StructType constructor.
-     */
-    public function __construct(string $className, array $fields)
+    public function __construct(private readonly string $className, private array $fields, private readonly bool $constructorBased)
     {
-        $this->className = $className;
-        $this->fields = $fields;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isConstructorBased(): bool
+    {
+        return $this->constructorBased;
     }
 
     /**

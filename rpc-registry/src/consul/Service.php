@@ -21,7 +21,7 @@ class Service
     /**
      * @var string
      */
-    public $ID;
+    public ?string $ID = null;
 
     /**
      * @var string

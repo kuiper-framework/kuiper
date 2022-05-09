@@ -15,17 +15,13 @@ namespace kuiper\rpc\registry\consul;
 
 class ServiceHealth
 {
-    /**
-     * @var string
-     */
-    public $AggregatedStatus;
-    /**
-     * @var Service
-     */
-    public $Service;
+
+    public ?string $AggregatedStatus = null;
+
+    public ?Service $Service = null;
 
     /**
      * @var ServiceHealthCheck[]
      */
-    public $Checks;
+    public ?array $Checks = null;
 }

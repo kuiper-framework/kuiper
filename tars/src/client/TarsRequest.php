@@ -25,24 +25,17 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 
-/**
- * @property TarsMethodInterface $rpcMethod
- */
 class TarsRequest extends RpcRequest implements TarsRequestInterface
 {
     use RequestPacketTrait;
 
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
+    private ?StreamInterface $body = null;
 
-    /**
-     * @var StreamInterface
-     */
-    private $body;
-
-    public function __construct(RequestInterface $request, TarsMethodInterface $rpcMethod, StreamFactoryInterface $streamFactory, int $requestId)
+    public function __construct(
+        RequestInterface $request,
+        TarsMethodInterface $rpcMethod,
+        private readonly StreamFactoryInterface $streamFactory,
+        int $requestId)
     {
         parent::__construct($request, $rpcMethod);
 
@@ -51,7 +44,6 @@ class TarsRequest extends RpcRequest implements TarsRequestInterface
         $packet->sServantName = $rpcMethod->getServiceLocator()->getName();
         $packet->sFuncName = $rpcMethod->getMethodName();
         $this->packet = $packet;
-        $this->streamFactory = $streamFactory;
     }
 
     public function withBody(StreamInterface $body)
@@ -72,13 +64,13 @@ class TarsRequest extends RpcRequest implements TarsRequestInterface
             $packet = $this->packet;
             if (TarsConst::VERSION === $packet->iVersion) {
                 $params = [];
-                foreach ($this->rpcMethod->getParameters() as $i => $parameter) {
+                foreach ($this->getRpcMethod()->getParameters() as $i => $parameter) {
                     $params[$parameter->getName()] = TarsOutputStream::pack($parameter->getType(), $args[$i] ?? null);
                 }
                 $packet->sBuffer = TarsOutputStream::pack(MapType::byteArrayMap(), $params);
             } else {
                 $os = new TarsOutputStream();
-                foreach ($this->rpcMethod->getParameters() as $i => $parameter) {
+                foreach ($this->getRpcMethod()->getParameters() as $i => $parameter) {
                     $os->write(0, $args[$i] ?? null, $parameter->getType());
                 }
                 $packet->sBuffer = (string) $os;

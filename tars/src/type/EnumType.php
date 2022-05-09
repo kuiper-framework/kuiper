@@ -13,21 +13,16 @@ declare(strict_types=1);
 
 namespace kuiper\tars\type;
 
-use kuiper\helper\Enum;
-
+/**
+ * @template T
+ */
 class EnumType extends AbstractType
 {
     /**
-     * @var string
+     * @param class-string<T> $className
      */
-    private $className;
-
-    /**
-     * StructType constructor.
-     */
-    public function __construct(string $className)
+    public function __construct(private readonly string $className)
     {
-        $this->className = $className;
     }
 
     public function getClassName(): string
@@ -50,22 +45,19 @@ class EnumType extends AbstractType
         return $this->className;
     }
 
-    /**
-     * @param mixed $enumObj
-     */
-    public function getEnumValue($enumObj): ?int
+    public function getEnumValue(\BackedEnum|int $enumObj): ?int
     {
         return is_object($enumObj) ? $enumObj->value : $enumObj;
     }
 
     /**
-     * @param mixed $value
-     *
-     * @return Enum
+     * @param int $value
+     * @return T
      */
-    public function createEnum($value)
+    public function createEnum(int $value)
     {
-        return call_user_func([$this->className, 'fromValue'], $value);
+        $enumClass = $this->className;
+        return $enumClass::from($value);
     }
 
     public function getTarsType(): int

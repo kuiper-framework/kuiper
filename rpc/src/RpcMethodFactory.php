@@ -18,7 +18,7 @@ class RpcMethodFactory implements RpcMethodFactoryInterface
     /**
      * {@inheritDoc}
      */
-    public function create($service, string $method, array $args): RpcMethodInterface
+    public function create(object|string $service, string $method, array $args): RpcMethodInterface
     {
         $serviceName = is_string($service) ? $service : get_class($service);
 

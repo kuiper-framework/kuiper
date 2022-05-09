@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\tars\config;
 
-use DI\Annotation\Inject;
+use DI\Attribute\Inject;
+use kuiper\rpc\servicediscovery\InMemoryCache;
+use ReflectionException;
 use function DI\autowire;
 use function DI\factory;
-use kuiper\di\annotation\Bean;
+use kuiper\di\attribute\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -44,7 +46,7 @@ use kuiper\swoole\Application;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\swoole\pool\ConnectionProxyGenerator;
 use kuiper\swoole\pool\PoolFactoryInterface;
-use kuiper\tars\annotation\TarsClient;
+use kuiper\tars\attribute\TarsClient;
 use kuiper\tars\client\middleware\AddRequestReferer;
 use kuiper\tars\client\middleware\RequestStat;
 use kuiper\tars\client\TarsProxyFactory;
@@ -105,19 +107,16 @@ class TarsClientConfiguration implements DefinitionConfiguration
         ]);
     }
 
-    /**
-     * @Bean
-     */
+    #[Bean]
     public function requestIdGenerator(): RequestIdGeneratorInterface
     {
         return new RequestIdGenerator(new SwooleAtomicCounter());
     }
 
-    /**
-     * @Bean("tarsClientRequestLog")
-     * @Inject({"requestLogFormatter": "tarsClientRequestLogFormatter"})
-     */
-    public function tarsRequestLog(RequestLogFormatterInterface $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
+    #[Bean("tarsClientRequestLog")]
+    public function tarsRequestLog(
+        #[Inject("tarsClientRequestLogFormatter")] RequestLogFormatterInterface $requestLogFormatter,
+        LoggerFactoryInterface $loggerFactory): AccessLog
     {
         $excludeRegexp = Application::getInstance()->getConfig()->getString('application.tars.client.log_excludes', '#^tars.tarsnode#');
         $middleware = new AccessLog($requestLogFormatter, static function (RpcRequestInterface $request) use ($excludeRegexp) {
@@ -128,7 +127,10 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return $middleware;
     }
 
-    public function createTarsClient(TarsProxyFactory $factory, string $clientClass, string $name = null, array $options = [])
+    /**
+     * @throws ReflectionException
+     */
+    public function createTarsClient(TarsProxyFactory $factory, string $clientClass, string $name = null, array $options = []): object
     {
         $config = Application::getInstance()->getConfig();
         $clientOptions = $config->get('application.tars.client.options', []);
@@ -168,18 +170,13 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return $definitions;
     }
 
-    /**
-     * @Bean
-     * @Inject({"middlewares": "tarsClientMiddlewares"})
-     */
-    public function tarsProxyFactory(ContainerInterface $container, array $middlewares): TarsProxyFactory
+    #[Bean]
+    public function tarsProxyFactory(ContainerInterface $container, #[Inject("tarsClientMiddlewares")] array $middlewares): TarsProxyFactory
     {
         return TarsProxyFactory::createFromContainer($container, $middlewares);
     }
 
-    /**
-     * @Bean("tarsClientMiddlewares")
-     */
+    #[Bean("tarsClientMiddlewares")]
     public function tarsClientMiddlewares(ContainerInterface $container): array
     {
         $middlewares = [];
@@ -193,21 +190,16 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return $middlewares;
     }
 
-    /**
-     * @Bean("tarsServiceDiscovery")
-     * @Inject({
-     *     "serviceResolver": "tarsServiceResolver",
-     *     "loadBalance": "application.client.service_discovery.load_balance"
-     * })
-     */
-    public function tarsServiceDiscovery(ServiceResolverInterface $serviceResolver, ?string $loadBalance): ServiceDiscovery
+    #[Bean("tarsServiceDiscovery")]
+    public function tarsServiceDiscovery(
+        #[Inject("tarsServiceResolver")] ServiceResolverInterface $serviceResolver,
+        #[Inject("application.client.service_discovery.load_balance")] ?string $loadBalance): ServiceDiscovery
     {
-        return new ServiceDiscovery($serviceResolver, null, $loadBalance ?? LoadBalanceAlgorithm::ROUND_ROBIN);
+        $lb = $loadBalance === null ? LoadBalanceAlgorithm::ROUND_ROBIN : LoadBalanceAlgorithm::from($loadBalance);
+        return new ServiceDiscovery($serviceResolver, new InMemoryCache(), $lb);
     }
 
-    /**
-     * @Bean("tarsServiceResolver")
-     */
+    #[Bean("tarsServiceResolver")]
     public function tarsServiceResolver(ContainerInterface $container): ServiceResolverInterface
     {
         $resolvers = [
@@ -223,9 +215,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return new ChainedServiceResolver($resolvers);
     }
 
-    /**
-     * @Bean
-     */
+    #[Bean]
     public function dnsResolver(PoolFactoryInterface $poolFactory): DnsResolverInterface
     {
         if (!class_exists(\Net_DNS2::class)) {
@@ -239,24 +229,20 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return new NetDns2Resolver($resolver);
     }
 
-    /**
-     * @Bean
-     */
+    #[Bean]
     public function tarsRegistryResolver(ContainerInterface $container): TarsRegistryResolver
     {
         /** @var QueryFServant $queryClient */
         $queryClient = TarsProxyFactory::createFromContainer($container, [
             $container->get(Retry::class),
-            new ServiceDiscovery($container->get(InMemoryServiceResolver::class)),
+            new ServiceDiscovery($container->get(InMemoryServiceResolver::class), new InMemoryCache(), LoadBalanceAlgorithm::ROUND_ROBIN),
             $container->get('tarsClientRequestLog'),
         ])->create(QueryFServant::class);
 
         return new TarsRegistryResolver($queryClient);
     }
 
-    /**
-     * @Bean
-     */
+    #[Bean]
     public function inMemoryServiceResolver(): InMemoryServiceResolver
     {
         $config = Application::getInstance()->getConfig();
@@ -274,11 +260,9 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return InMemoryServiceResolver::create($serviceEndpoints);
     }
 
-    /**
-     * @Bean("tarsRetryOnRetryRemoveEndpointListener")
-     * @Inject({"serviceDiscovery": "tarsServiceDiscovery"})
-     */
-    public function retryOnRetryRemoveEndpointListener(ServiceDiscovery $serviceDiscovery): RetryOnRetryRemoveEndpointListener
+    #[Bean("tarsRetryOnRetryRemoveEndpointListener")]
+    public function retryOnRetryRemoveEndpointListener(
+        #[Inject("tarsServiceDiscovery")] ServiceDiscovery $serviceDiscovery): RetryOnRetryRemoveEndpointListener
     {
         return new RetryOnRetryRemoveEndpointListener($serviceDiscovery);
     }

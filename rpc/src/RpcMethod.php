@@ -22,24 +22,17 @@ class RpcMethod implements RpcMethodInterface
      */
     private ?array $result = null;
 
-    private readonly object|string $target;
-
     /**
      * InvokingMethod constructor.
      *
      * @param object|string|mixed $target
      */
     public function __construct(
-        mixed $target,
-        private readonly ServiceLocator $serviceLocator,
-        private readonly string $methodName,
-        private readonly array $arguments)
+        private       readonly object|string $target,
+        private       readonly ServiceLocator $serviceLocator,
+        private       readonly string $methodName,
+        private array $arguments)
     {
-        if (is_object($target) || is_string($target)) {
-            $this->target = $target;
-        } else {
-            throw new InvalidArgumentException('expect target is an object or class name, got '.gettype($target));
-        }
     }
 
     public function getTarget(): object|string
@@ -96,7 +89,9 @@ class RpcMethod implements RpcMethodInterface
      */
     public function withArguments(array $args)
     {
-        return new self($this->target, $this->serviceLocator, $this->methodName, $args);
+        $new = clone $this;
+        $new->arguments = $args;
+        return $new;
     }
 
     public function getResult(): array
@@ -117,6 +112,6 @@ class RpcMethod implements RpcMethodInterface
 
     public function __toString(): string
     {
-        return $this->getServiceName().'::'.$this->methodName;
+        return $this->getServiceName() . '::' . $this->methodName;
     }
 }

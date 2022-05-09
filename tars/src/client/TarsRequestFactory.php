@@ -23,38 +23,13 @@ use Psr\Http\Message\StreamFactoryInterface;
 
 class TarsRequestFactory implements RpcRequestFactoryInterface
 {
-    /**
-     * @var RequestFactoryInterface
-     */
-    private $httpRequestFactory;
-
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
-
-    /**
-     * @var string|null
-     */
-    private $baseUri;
-
-    /**
-     * @var RpcMethodFactoryInterface
-     */
-    private $rpcMethodFactory;
-
-    /**
-     * @var RequestIdGeneratorInterface
-     */
-    private $requestIdGenerator;
-
-    public function __construct(RequestFactoryInterface $httpRequestFactory, StreamFactoryInterface $streamFactory, RpcMethodFactoryInterface $rpcMethodFactory, RequestIdGeneratorInterface $requestIdGenerator, string $baseUri = null)
+    public function __construct(
+        private readonly RequestFactoryInterface $httpRequestFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly RpcMethodFactoryInterface $rpcMethodFactory,
+        private readonly RequestIdGeneratorInterface $requestIdGenerator,
+        private readonly ?string $baseUri = null)
     {
-        $this->httpRequestFactory = $httpRequestFactory;
-        $this->streamFactory = $streamFactory;
-        $this->rpcMethodFactory = $rpcMethodFactory;
-        $this->baseUri = $baseUri;
-        $this->requestIdGenerator = $requestIdGenerator;
     }
 
     public function createRequest(object $proxy, string $method, array $args): RpcRequestInterface

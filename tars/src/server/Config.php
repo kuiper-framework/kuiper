@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace kuiper\tars\server;
 
 use kuiper\helper\Properties;
-use kuiper\helper\Text;
 use kuiper\reflection\ReflectionType;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\tars\core\EndpointParser;
@@ -30,7 +29,7 @@ class Config
     {
         $content = file_get_contents($fileName);
         if (false === $content) {
-            throw new ConfigException("cannot read config file '{$fileName}'");
+            throw new ConfigException("cannot read config file '$fileName'");
         }
 
         return self::parse($content);
@@ -45,13 +44,13 @@ class Config
         $current = $config = Properties::create();
         foreach (explode("\n", $content) as $lineNum => $line) {
             $line = trim($line);
-            if (empty($line) || 0 === strpos($line, '#')) {
+            if (empty($line) || str_starts_with($line, '#')) {
                 continue;
             }
             if (preg_match("/<(\/?)(\S+)>/", $line, $matches)) {
                 if ($matches[1]) {
                     if (empty($stack)) {
-                        throw new ConfigException("Unexpect close tag '{$line}' at line {$lineNum}");
+                        throw new ConfigException("Unexpect close tag '$line' at line $lineNum");
                     }
                     $current = array_pop($stack);
                 } else {
@@ -75,12 +74,12 @@ class Config
         if (isset($arr['server'])) {
             $adapters = [];
             foreach ($arr['server'] as $key => $value) {
-                if (false !== strpos($key, '.') && Text::endsWith($key, 'Adapter')) {
+                if (str_contains($key, '.') && str_ends_with($key, 'Adapter')) {
                     $adapter = $arr['server'][$key];
                     if (isset($adapter['endpoint'])) {
                         $endpoint = EndpointParser::parse($adapter['endpoint']);
                         $ports[$endpoint->getPort()] = [
-                            'protocol' => TarsProtocol::fromValue($adapter['protocol'] ?? 'tars')->serverType,
+                            'protocol' => TarsProtocol::from($adapter['protocol'] ?? 'tars')->getServerType(),
                             'host' => $endpoint->getHost(),
                         ];
                     }

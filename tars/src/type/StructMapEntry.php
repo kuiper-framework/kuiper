@@ -15,25 +15,8 @@ namespace kuiper\tars\type;
 
 class StructMapEntry implements \JsonSerializable
 {
-    /**
-     * @var object
-     */
-    private $key;
-    /**
-     * @var object
-     */
-    private $value;
-
-    /**
-     * StructMapEntry constructor.
-     *
-     * @param object $key
-     * @param object $value
-     */
-    public function __construct($key, $value)
+    public function __construct(private readonly mixed $key, private readonly mixed $value)
     {
-        $this->key = $key;
-        $this->value = $value;
     }
 
     /**

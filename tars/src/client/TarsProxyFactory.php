@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace kuiper\tars\client;
 
 use GuzzleHttp\Psr7\HttpFactory;
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
+use kuiper\cache\SimpleCache;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
+use kuiper\logger\Logger;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
@@ -33,7 +33,9 @@ use kuiper\rpc\client\RpcRequestFactoryInterface;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\servicediscovery\ChainedServiceResolver;
+use kuiper\rpc\servicediscovery\InMemoryCache;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
+use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\rpc\transporter\Endpoint;
@@ -44,7 +46,7 @@ use kuiper\rpc\transporter\TransporterInterface;
 use kuiper\swoole\coroutine\Coroutine;
 use kuiper\swoole\pool\PoolFactory;
 use kuiper\swoole\pool\PoolFactoryInterface;
-use kuiper\tars\annotation\TarsClient;
+use kuiper\tars\attribute\TarsClient;
 use kuiper\tars\core\EndpointParser;
 use kuiper\tars\core\TarsMethodFactory;
 use kuiper\tars\integration\QueryFServant;
@@ -55,88 +57,24 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use Psr\Log\NullLogger;
 
 class TarsProxyFactory implements ContainerAwareInterface
 {
     use ContainerAwareTrait;
 
     /**
-     * @var RequestFactoryInterface
-     */
-    private $httpRequestFactory;
-
-    /**
-     * @var ResponseFactoryInterface
-     */
-    private $httpResponseFactory;
-
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
-
-    /**
-     * @var AnnotationReaderInterface
-     */
-    private $annotationReader;
-
-    /**
-     * @var ReflectionDocBlockFactoryInterface
-     */
-    private $reflectionDocBlockFactory;
-
-    /**
-     * @var PoolFactoryInterface|null
-     */
-    private $poolFactory;
-
-    /**
-     * @var LoggerFactoryInterface|null
-     */
-    private $loggerFactory;
-
-    /**
-     * @var MiddlewareInterface[]
-     */
-    private $middlewares;
-    /**
-     * @var RequestIdGeneratorInterface
-     */
-    private $requestIdGenerator;
-
-    /**
-     * TarsProxyFactory constructor.
-     *
-     * @param RequestFactoryInterface            $httpRequestFactory
-     * @param ResponseFactoryInterface           $httpResponseFactory
-     * @param StreamFactoryInterface             $streamFactory
-     * @param AnnotationReaderInterface          $annotationReader
-     * @param ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory
-     * @param PoolFactoryInterface               $poolFactory
-     * @param LoggerFactoryInterface|null        $loggerFactory
-     * @param MiddlewareInterface[]              $middlewares
+     * @param MiddlewareInterface[] $middlewares
      */
     final public function __construct(
-        RequestFactoryInterface $httpRequestFactory,
-        ResponseFactoryInterface $httpResponseFactory,
-        StreamFactoryInterface $streamFactory,
-        AnnotationReaderInterface $annotationReader,
-        ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory,
-        PoolFactoryInterface $poolFactory,
-        RequestIdGeneratorInterface $requestIdGenerator,
-        ?LoggerFactoryInterface $loggerFactory,
-        array $middlewares = []
+        private readonly RequestFactoryInterface $httpRequestFactory,
+        private readonly ResponseFactoryInterface $httpResponseFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory,
+        private readonly PoolFactoryInterface $poolFactory,
+        private readonly RequestIdGeneratorInterface $requestIdGenerator,
+        private readonly ?LoggerFactoryInterface $loggerFactory,
+        private readonly array $middlewares = []
     ) {
-        $this->httpRequestFactory = $httpRequestFactory;
-        $this->httpResponseFactory = $httpResponseFactory;
-        $this->streamFactory = $streamFactory;
-        $this->annotationReader = $annotationReader;
-        $this->reflectionDocBlockFactory = $reflectionDocBlockFactory;
-        $this->poolFactory = $poolFactory;
-        $this->requestIdGenerator = $requestIdGenerator;
-        $this->loggerFactory = $loggerFactory;
-        $this->middlewares = $middlewares;
     }
 
     public static function createFromContainer(ContainerInterface $container, array $middlewares): self
@@ -145,7 +83,6 @@ class TarsProxyFactory implements ContainerAwareInterface
             $container->get(RequestFactoryInterface::class),
             $container->get(ResponseFactoryInterface::class),
             $container->get(StreamFactoryInterface::class),
-            $container->get(AnnotationReaderInterface::class),
             $container->get(ReflectionDocBlockFactoryInterface::class),
             $container->get(PoolFactoryInterface::class),
             $container->get(RequestIdGeneratorInterface::class),
@@ -197,12 +134,11 @@ class TarsProxyFactory implements ContainerAwareInterface
             $httpRequestFactory,
             $httpResponseFactory,
             $streamFactory,
-            AnnotationReader::getInstance(),
             ReflectionDocBlockFactory::getInstance(),
             new PoolFactory(),
             new RequestIdGenerator(new SimpleCounter()),
             null,
-            [new ServiceDiscovery($serviceResolver)]
+            [new ServiceDiscovery($serviceResolver, new InMemoryCache(), LoadBalanceAlgorithm::ROUND_ROBIN)]
         );
     }
 
@@ -216,7 +152,7 @@ class TarsProxyFactory implements ContainerAwareInterface
         return new TarsRequestFactory(
             $this->httpRequestFactory,
             $this->streamFactory,
-            new TarsMethodFactory($this->annotationReader, $options),
+            new TarsMethodFactory($options),
             $this->requestIdGenerator,
             $options['endpoint'] ?? '/'
         );
@@ -230,9 +166,7 @@ class TarsProxyFactory implements ContainerAwareInterface
             } else {
                 $transporter = new SwooleTcpTransporter($this->httpResponseFactory, $options);
             }
-            $logger = null !== $this->loggerFactory
-                ? $this->loggerFactory->create($className)
-                : \kuiper\logger\Logger::nullLogger();
+            $logger = null !== $this->loggerFactory ? $this->loggerFactory->create($className) : Logger::nullLogger();
             $transporter->setLogger($logger);
 
             return $transporter;
@@ -276,10 +210,11 @@ class TarsProxyFactory implements ContainerAwareInterface
             }
         }
         if (empty($options['service'])) {
-            /** @var TarsClient|null $tarsClient */
-            $tarsClient = $this->annotationReader->getClassAnnotation($class, TarsClient::class);
-            if (null !== $tarsClient) {
-                $options['service'] = $tarsClient->service;
+            $attributes = $class->getAttributes(TarsClient::class);
+            if (count($attributes) > 0) {
+                /** @var TarsClient $tarsClient */
+                $tarsClient = $attributes[0]->newInstance();
+                $options['service'] = $tarsClient->getService();
             } else {
                 throw new \InvalidArgumentException('Cannot resolver service name');
             }

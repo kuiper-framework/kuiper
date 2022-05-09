@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 /*
  * This file is part of the Kuiper package.
@@ -19,60 +19,32 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class ClientProperties
 {
-    /**
-     * @var int
-     */
-    private $asyncThread = 3;
-    /**
-     * @var ServiceEndpoint|null
-     */
-    private $locator;
-    /**
-     * @var int
-     */
-    private $syncInvokeTimeout = 20000;
-    /**
-     * @var int
-     */
-    private $asyncInvokeTimeout = 20000;
-    /**
-     * @var int
-     */
-    private $refreshEndpointInterval = 60000;
-    /**
-     * @Assert\Range(min=1000)
-     *
-     * @var int
-     */
-    private $keepAliveInterval = 20000;
-    /**
-     * @Assert\Range(min=1000)
-     *
-     * @var int
-     */
-    private $reportInterval = 60000;
-    /**
-     * @var string
-     */
-    private $statServantName = 'tars.tarsstat.StatObj';
-    /**
-     * @var string
-     */
-    private $propertyServantName = 'tars.tarsproperty.PropertyObj';
-    /**
-     * @Assert\NotBlank()
-     *
-     * @var string|null
-     */
-    private $moduleName;
-    /**
-     * @var int
-     */
-    private $sampleRate = 100000;
-    /**
-     * @var int
-     */
-    private $maxSampleCount = 50;
+    private int $asyncThread = 3;
+
+    private ?ServiceEndpoint $locator = null;
+
+    private int $syncInvokeTimeout = 20000;
+
+    private int $asyncInvokeTimeout = 20000;
+
+    private int $refreshEndpointInterval = 60000;
+
+    #[Assert\Range(min: 1000)]
+    private int $keepAliveInterval = 20000;
+
+    #[Assert\Range(min: 1000)]
+    private int $reportInterval = 60000;
+
+    private string $statServantName = 'tars.tarsstat.StatObj';
+
+    private string $propertyServantName = 'tars.tarsproperty.PropertyObj';
+
+    #[Assert\NotBlank]
+    private ?string $moduleName = null;
+
+    private int $sampleRate = 100000;
+
+    private int $maxSampleCount = 50;
 
     public function getAsyncThread(): int
     {
@@ -92,7 +64,7 @@ class ClientProperties
     /**
      * @param string|ServiceEndpoint $locator
      */
-    public function setLocator($locator): void
+    public function setLocator(ServiceEndpoint|string $locator): void
     {
         if (is_string($locator)) {
             $locator = EndpointParser::parseServiceEndpoint($locator);

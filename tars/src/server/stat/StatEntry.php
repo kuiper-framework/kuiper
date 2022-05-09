@@ -23,27 +23,13 @@ use kuiper\tars\server\ServerProperties;
 class StatEntry
 {
     /**
-     * @var int
-     */
-    private $index;
-    /**
-     * @var StatMicMsgHead
-     */
-    private $head;
-
-    /**
-     * @var StatMicMsgBody
-     */
-    private $body;
-
-    /**
      * StatEntry constructor.
      */
-    private function __construct(int $index, StatMicMsgHead $head, StatMicMsgBody $body)
+    private function __construct(
+        private readonly int $index,
+        private readonly StatMicMsgHead $head,
+        private readonly StatMicMsgBody $body)
     {
-        $this->index = $index;
-        $this->head = $head;
-        $this->body = $body;
     }
 
     private static function removeObj(string $servantName): string

@@ -18,50 +18,27 @@ namespace kuiper\rpc\registry\consul;
  */
 class ServiceHealthCheck
 {
-    /**
-     * @var string
-     */
-    public $Node;
+    public ?string $Node = null;
 
-    /**
-     * @var string
-     */
-    public $CheckID;
-    /**
-     * @var string
-     */
-    public $Name;
-    /**
-     * @var string
-     */
-    public $Status;
-    /**
-     * @var string
-     */
-    public $Notes;
-    /**
-     * @var string
-     */
-    public $Output;
-    /**
-     * @var string
-     */
-    public $ServiceID;
-    /**
-     * @var string
-     */
-    public $ServiceName;
-    /**
-     * @var string
-     */
-    public $Type;
+    public ?string $CheckID = null;
+
+    public ?string $Name = null;
+
+    public ?string $Status = null;
+
+    public ?string $Notes = null;
+
+    public ?string $Output = null;
+
+    public ?string $ServiceID = null;
+
+    public ?string $ServiceName = null;
+
+    public ?string $Type = null;
     /**
      * @var string[]
      */
-    public $ServiceTags;
+    public ?array $ServiceTags = null;
 
-    /**
-     * @var int
-     */
-    public $CreateIndex;
+    public ?int $CreateIndex = null;
 }

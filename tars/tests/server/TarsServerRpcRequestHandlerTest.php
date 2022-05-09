@@ -14,10 +14,11 @@ declare(strict_types=1);
 namespace kuiper\tars\server;
 
 use GuzzleHttp\Psr7\HttpFactory;
-use kuiper\annotations\AnnotationReader;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
+use kuiper\rpc\ServiceLocatorImpl;
+use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\ServerPort;
 use kuiper\tars\core\EndpointParser;
 use kuiper\tars\fixtures\User;
@@ -32,8 +33,7 @@ class TarsServerRpcRequestHandlerTest extends TestCase
 {
     public function testName()
     {
-        $user = new User();
-        $user->name = 'john';
+        $user = new User(name: 'john');
         $userServant = \Mockery::mock(UserServant::class);
         $userServant->shouldReceive('findAllUser')
             ->andReturnUsing(function (&$total) use ($user) {
@@ -54,7 +54,7 @@ class TarsServerRpcRequestHandlerTest extends TestCase
         $httpFactory = new HttpFactory();
         $responseFactory = new TarsServerResponseFactory($httpFactory, $httpFactory);
         $handler = new RpcServerRpcRequestHandler($services, $responseFactory, new ErrorHandler($httpFactory), []);
-        $rpcMethodFactory = new TarsServerMethodFactory($serverProperties->getServerName(), $services, AnnotationReader::getInstance());
+        $rpcMethodFactory = new TarsServerMethodFactory($serverProperties->getServerName(), $services);
         $requestFactory = new TarsServerRequestFactory($rpcMethodFactory, $services);
         $httpRequest = $httpFactory->createRequest('GET', 'tcp://localhost:8003');
         $requestPacket = new RequestPacket();
@@ -75,10 +75,10 @@ class TarsServerRpcRequestHandlerTest extends TestCase
         $ret = [];
         foreach ($services as $name => $impl) {
             $ret[$name] = new Service(
-                new ServiceLocator($name),
+                new ServiceLocatorImpl($name),
                 $impl,
                 [],
-                new ServerPort('', 8003, 'tcp')
+                new ServerPort('', 8003, ServerType::TCP)
             );
         }
 

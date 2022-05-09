@@ -28,19 +28,8 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    /**
-     * @var ResponseFactoryInterface
-     */
-    private $responseFactory;
-
-    /**
-     * ErrorHandler constructor.
-     *
-     * @param ResponseFactoryInterface $responseFactory
-     */
-    public function __construct(ResponseFactoryInterface $responseFactory)
+    public function __construct(private readonly ResponseFactoryInterface $responseFactory)
     {
-        $this->responseFactory = $responseFactory;
     }
 
     public function handle(RpcRequestInterface $request, \Throwable $error): RpcResponseInterface

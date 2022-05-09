@@ -21,6 +21,7 @@ use kuiper\tars\type\StructMapEntry;
 use kuiper\tars\type\StructType;
 use kuiper\tars\type\Type;
 use kuiper\tars\type\VectorType;
+use phpDocumentor\Reflection\Types\Integer;
 use Webmozart\Assert\Assert;
 
 class TarsOutputStream implements TarsOutputStreamInterface
@@ -30,15 +31,9 @@ class TarsOutputStream implements TarsOutputStreamInterface
      */
     private $buffer;
 
-    /**
-     * @var int
-     */
-    private $length = 0;
+    private int $length = 0;
 
-    /**
-     * @var bool
-     */
-    private $hasLengthHead = false;
+    private readonly bool $hasLengthHead;
 
     /**
      * TarsOutputStream constructor.
@@ -50,6 +45,8 @@ class TarsOutputStream implements TarsOutputStreamInterface
             $this->hasLengthHead = true;
             fwrite($this->buffer, pack('N', 0));
             $this->length = 4;
+        } else {
+            $this->hasLengthHead = false;
         }
     }
 
@@ -249,7 +246,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
     /**
      * {@inheritDoc}
      */
-    public function writeVector(int $tag, $value, VectorType $vectorType): void
+    public function writeVector(int $tag, array|string $value, VectorType $vectorType): void
     {
         if ($vectorType->getSubType()->isPrimitive()
             && Type::INT8 === $vectorType->getSubType()->getTarsType()) {
@@ -278,7 +275,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
     /**
      * {@inheritDoc}
      */
-    public function writeMap(int $tag, $value, MapType $mapType): void
+    public function writeMap(int $tag, StructMap|array $value, MapType $mapType): void
     {
         /** @var mixed $value */
         if (!is_array($value) && !($value instanceof StructMap)) {
@@ -305,7 +302,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
     /**
      * {@inheritDoc}
      */
-    public function write(int $tag, $value, Type $type): void
+    public function write(int $tag, mixed $value, Type $type): void
     {
         if ($type->isPrimitive()) {
             // todo 检查类型

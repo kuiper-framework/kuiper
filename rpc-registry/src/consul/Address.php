@@ -15,13 +15,8 @@ namespace kuiper\rpc\registry\consul;
 
 class Address
 {
-    /**
-     * @var string
-     */
-    public $address;
 
-    /**
-     * @var int
-     */
-    public $port;
+    public ?string $address = null;
+
+    public ?int $port = null;
 }

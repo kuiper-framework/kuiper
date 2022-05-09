@@ -15,22 +15,8 @@ namespace kuiper\tars\type;
 
 class MapType extends AbstractType
 {
-    /**
-     * @var Type
-     */
-    private $keyType;
-    /**
-     * @var Type
-     */
-    private $valueType;
-
-    /**
-     * MapType constructor.
-     */
-    public function __construct(Type $keyType, Type $valueType)
+    public function __construct(private readonly Type $keyType, private readonly Type $valueType)
     {
-        $this->keyType = $keyType;
-        $this->valueType = $valueType;
     }
 
     public function getKeyType(): Type
@@ -55,7 +41,7 @@ class MapType extends AbstractType
 
     public function __toString(): string
     {
-        return sprintf('map<%s, %s>', (string) $this->keyType, (string) $this->valueType);
+        return sprintf('map<%s, %s>', $this->keyType, $this->valueType);
     }
 
     public function getTarsType(): int

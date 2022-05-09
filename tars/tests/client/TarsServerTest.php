@@ -14,11 +14,12 @@ declare(strict_types=1);
 namespace kuiper\tars\client;
 
 use GuzzleHttp\Psr7\HttpFactory;
-use kuiper\annotations\AnnotationReader;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocator;
+use kuiper\rpc\ServiceLocatorImpl;
+use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\ServerPort;
 use kuiper\tars\core\TarsRequestLogFormatter;
 use kuiper\tars\fixtures\HelloService;
@@ -44,10 +45,10 @@ class TarsServerTest extends TestCase
         // ->andReturn('hello world');
 
         $services['app.hello.HelloObj'] = new Service(
-            new ServiceLocator('app.hello.HelloObj'),
+            new ServiceLocatorImpl('app.hello.HelloObj'),
             $mockService,
             ['hello'],
-            new ServerPort('localhost', 7000, 'tcp')
+            new ServerPort('localhost', 7000, ServerType::TCP)
         );
         $httpFactory = new HttpFactory();
 
@@ -61,7 +62,7 @@ class TarsServerTest extends TestCase
         $accessLog->setLogger($logger);
         $requestHandler = new RpcServerRpcRequestHandler($services, $serverResponseFactory, $errorHandler, [$accessLog]);
 
-        $rpcMethodFactory = new TarsServerMethodFactory('app.hello', $services, AnnotationReader::getInstance());
+        $rpcMethodFactory = new TarsServerMethodFactory('app.hello', $services);
         $serverRequestFactory = new TarsServerRequestFactory($rpcMethodFactory, $services);
         $serverRequestFactory->setLogger($logger);
 

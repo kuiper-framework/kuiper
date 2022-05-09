@@ -45,7 +45,7 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
     /**
      * {@inheritDoc}
      */
-    public function create($service, string $method, array $args): RpcMethodInterface
+    public function create(object|string $service, string $method, array $args): RpcMethodInterface
     {
         $serviceName = $service;
         if (!isset($this->services[$serviceName])) {

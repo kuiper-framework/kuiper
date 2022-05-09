@@ -35,7 +35,7 @@ final class PrimitiveType extends AbstractType
     /**
      * @var int[]
      */
-    private static $PRIMITIVES = [
+    private const PRIMITIVES = [
         self::BOOL => Type::INT8,
         'boolean' => Type::INT8,
         'byte' => Type::INT8,
@@ -55,21 +55,21 @@ final class PrimitiveType extends AbstractType
     /**
      * @var string[]
      */
-    private static $ALIAS = [
+    private const ALIAS = [
         'boolean' => self::BOOL,
         'byte' => self::CHAR,
         'unsigned byte' => 'unsigned char',
     ];
 
     /**
-     * @var array
+     * @var PrimitiveType[]
      */
-    private static $INSTANCES = [];
+    private static array $INSTANCES = [];
 
     /**
      * @var string
      */
-    private $type;
+    private readonly string $type;
 
     /**
      * PrimitiveType constructor.
@@ -89,14 +89,14 @@ final class PrimitiveType extends AbstractType
 
     public static function has(string $name): bool
     {
-        return isset(self::$PRIMITIVES[strtolower($name)]);
+        return isset(self::PRIMITIVES[strtolower($name)]);
     }
 
     public static function of(string $name): self
     {
         $name = strtolower($name);
-        if (isset(self::$ALIAS[$name])) {
-            $name = self::$ALIAS[$name];
+        if (isset(self::ALIAS[$name])) {
+            $name = self::ALIAS[$name];
         }
         if (!isset(self::$INSTANCES[$name])) {
             self::$INSTANCES[$name] = new self($name);
@@ -107,7 +107,7 @@ final class PrimitiveType extends AbstractType
 
     public function getTarsType(): int
     {
-        return self::$PRIMITIVES[$this->type];
+        return self::PRIMITIVES[$this->type];
     }
 
     public function getPhpType(): string

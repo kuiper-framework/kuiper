@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use Exception;
 use kuiper\event\EventListenerInterface;
 use kuiper\rpc\exception\InvalidRequestException;
 use kuiper\rpc\RpcRequestHandlerInterface;
@@ -28,29 +29,11 @@ use Webmozart\Assert\Assert;
 
 class TarsTcpReceiveEventListener implements EventListenerInterface
 {
-    /**
-     * @var RequestFactoryInterface
-     */
-    private $httpRequestFactory;
-
-    /**
-     * @var RpcServerRequestFactoryInterface
-     */
-    private $serverRequestFactory;
-
-    /**
-     * @var RpcRequestHandlerInterface
-     */
-    private $requestHandler;
-
-    /**
-     * TcpReceiveEventListener constructor.
-     */
-    public function __construct(RequestFactoryInterface $httpRequestFactory, RpcServerRequestFactoryInterface $serverRequestFactory, RpcRequestHandlerInterface $requestHandler)
+    public function __construct(
+        private readonly RequestFactoryInterface $httpRequestFactory,
+        private readonly RpcServerRequestFactoryInterface $serverRequestFactory,
+        private readonly RpcRequestHandlerInterface $requestHandler)
     {
-        $this->httpRequestFactory = $httpRequestFactory;
-        $this->serverRequestFactory = $serverRequestFactory;
-        $this->requestHandler = $requestHandler;
     }
 
     /**
@@ -82,7 +65,7 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
             ServerRequestHolder::setRequest($serverRequest);
             $response = $this->requestHandler->handle($serverRequest);
             $server->send($event->getClientId(), (string) $response->getBody());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             /** @var TarsRequestInterface $serverRequest */
             $server->send($event->getClientId(), (string) $this->createErrorResponse($serverRequest, $e)->encode());
         }
@@ -109,7 +92,7 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
         return $packet;
     }
 
-    private function createErrorResponse(TarsRequestInterface $request, \Exception $e): ResponsePacket
+    private function createErrorResponse(TarsRequestInterface $request, Exception $e): ResponsePacket
     {
         $packet = ResponsePacket::createFromRequest($request);
         $packet->iRet = $e->getCode();

@@ -13,19 +13,20 @@ declare(strict_types=1);
 
 namespace kuiper\tars\core;
 
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\exception\InvalidMethodException;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
-use kuiper\tars\annotation\TarsParameter;
-use kuiper\tars\annotation\TarsReturnType;
-use kuiper\tars\annotation\TarsServant;
+use kuiper\tars\attribute\TarsParameter;
+use kuiper\tars\attribute\TarsReturnType;
+use kuiper\tars\attribute\TarsServant;
 use kuiper\tars\exception\SyntaxErrorException;
 use kuiper\tars\type\TypeParser;
 use kuiper\tars\type\VoidType;
+use ReflectionClass;
 use ReflectionException;
+use ReflectionMethod;
+use ReflectionNamedType;
 
 /**
  * 读取调用方法 rpc ServantName, 参数，返回值等信息.
@@ -35,43 +36,32 @@ use ReflectionException;
 class TarsMethodFactory implements RpcMethodFactoryInterface
 {
     /**
-     * @var AnnotationReaderInterface
-     */
-    private $annotationReader;
-
-    /**
      * @var TypeParser
      */
-    private $typeParser;
+    private readonly TypeParser $typeParser;
 
     /**
      * @var TarsMethodInterface[]
      */
-    private $cache;
-    /**
-     * @var array|null
-     */
-    private $options;
+    private array $cache = [];
 
-    public function __construct(?AnnotationReaderInterface $annotationReader = null, array $options = null)
+    public function __construct(private readonly array $options = [])
     {
-        $this->annotationReader = $annotationReader ?? AnnotationReader::getInstance();
-        $this->typeParser = new TypeParser($this->annotationReader);
-        $this->options = $options;
+        $this->typeParser = new TypeParser();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function create($service, string $method, array $args): RpcMethodInterface
+    public function create(object|string $service, string $method, array $args): RpcMethodInterface
     {
         $serviceName = $this->options['service'] ?? (is_string($service) ? $service : get_class($service));
-        $key = $serviceName.'::'.$method;
+        $key = $serviceName . '::' . $method;
         if (!isset($this->cache[$key])) {
             try {
                 $this->cache[$key] = $this->extractMethod($service, $method);
             } catch (ReflectionException|SyntaxErrorException $e) {
-                throw new InvalidMethodException('read method metadata failed: '.$e->getMessage(), $e->getCode(), $e);
+                throw new InvalidMethodException('read method metadata failed: ' . $e->getMessage(), $e->getCode(), $e);
             }
         }
 
@@ -80,31 +70,34 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
 
     /**
      * @param object|string $servant
-     *
+     * @param string $method
+     * @return TarsMethodInterface
+     * @throws InvalidMethodException
      * @throws ReflectionException
      * @throws SyntaxErrorException
      */
-    protected function extractMethod($servant, string $method): TarsMethodInterface
+    protected function extractMethod(object|string $servant, string $method): TarsMethodInterface
     {
-        $reflectionClass = new \ReflectionClass($servant);
+        $reflectionClass = new ReflectionClass($servant);
         $servantAnnotation = $this->getTarsServantAnnotation($reflectionClass);
         [$parameters, $returnValue] = $this->getParameters($servant, $method);
 
-        return new TarsMethod($servant, $this->options['service'] ?? $servantAnnotation->service ?? '', $method, [], $parameters, $returnValue);
+        return new TarsMethod($servant, $this->options['service'] ?? $servantAnnotation->getService() ?? '', $method, [], $parameters, $returnValue);
     }
 
     /**
      * @param object|string $servant
-     * @param string        $method
+     * @param string $method
      *
      * @return array
      *
      * @throws InvalidMethodException
      * @throws SyntaxErrorException
+     * @throws ReflectionException
      */
-    protected function getParameters($servant, string $method): array
+    protected function getParameters(object|string $servant, string $method): array
     {
-        $reflectionClass = new \ReflectionClass($servant);
+        $reflectionClass = new ReflectionClass($servant);
         if (!$reflectionClass->hasMethod($method)) {
             throw new InvalidMethodException(sprintf("%s does not contain method '$method'", $reflectionClass->getName()));
         }
@@ -112,50 +105,78 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
         $reflectionMethod = $this->getMethod($reflectionClass, $method);
         $namespace = $reflectionMethod->getDeclaringClass()->getNamespaceName();
         $parameters = [];
-        $returnType = null;
-        foreach ($this->annotationReader->getMethodAnnotations($reflectionMethod) as $methodAnnotation) {
-            if ($methodAnnotation instanceof TarsParameter) {
+        foreach ($reflectionMethod->getParameters() as $i => $parameter) {
+            $attributes = $parameter->getAttributes(TarsParameter::class);
+            $paramAttribute = null;
+            if (count($attributes) > 0) {
+                /** @var TarsParameter $paramAttribute */
+                $paramAttribute = $attributes[0]->newInstance();
+            }
+            if ($paramAttribute !== null) {
                 $parameters[] = new Parameter(
-                    $methodAnnotation->order ?? count($parameters) + 1,
-                    $methodAnnotation->name,
-                    $methodAnnotation->out ?? false,
-                    $this->typeParser->parse($methodAnnotation->type, $namespace),
+                    $paramAttribute->getOrder() ?? $i + 1,
+                    $parameter->getName(),
+                    $parameter->isPassedByReference(),
+                    $this->typeParser->parse($paramAttribute->getType(), $namespace),
                     null
                 );
-            } elseif ($methodAnnotation instanceof TarsReturnType) {
-                $returnType = $this->typeParser->parse($methodAnnotation->value, $namespace);
+            } else {
+                $parameters[] = new Parameter(
+                    $i + 1,
+                    $parameter->getName(),
+                    $parameter->isPassedByReference(),
+                    $this->typeParser->fromPhpType($parameter->getType()),
+                    null
+                );
             }
+        }
+
+        $returnType = null;
+        $attributes = $reflectionMethod->getAttributes(TarsReturnType::class);
+        if (count($attributes) > 0)  {
+            /** @var TarsReturnType $attribute */
+            $attribute = $attributes[0]->newInstance();
+            $returnType = $this->typeParser->parse($attribute->getName(), $namespace);
+        } elseif ($reflectionMethod->getReturnType() instanceof ReflectionNamedType) {
+            $returnType = $this->typeParser->fromPhpType($reflectionMethod->getReturnType());
         }
         $returnValue = Parameter::asReturnValue($returnType ?? VoidType::instance());
 
         return [$parameters, $returnValue];
     }
 
-    protected function getTarsServantAnnotation(\ReflectionClass $reflectionClass): TarsServant
+    /**
+     * @throws ReflectionException
+     * @throws InvalidMethodException
+     */
+    protected function getTarsServantAnnotation(ReflectionClass $reflectionClass): TarsServant
     {
-        /** @var TarsServant|null $annotation */
-        $annotation = $this->annotationReader->getClassAnnotation($reflectionClass, TarsServant::class);
-        if (null === $annotation) {
+        $attributes = $reflectionClass->getAttributes(TarsServant::class);
+        if (count($attributes) === 0) {
             $interfaceName = ProxyGenerator::getInterfaceName($reflectionClass->getName());
             if (null !== $interfaceName) {
-                $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($interfaceName), TarsServant::class);
+                $attributes = (new ReflectionClass($interfaceName))->getAttributes(TarsServant::class);
             } else {
                 foreach ($reflectionClass->getInterfaceNames() as $servantInterface) {
-                    $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($servantInterface), TarsServant::class);
-                    if (null !== $annotation) {
+                    $attributes = (new ReflectionClass($servantInterface))->getAttributes(TarsServant::class);
+                    if (count($attributes) > 0) {
                         break;
                     }
                 }
             }
         }
-        if (null !== $annotation) {
-            return $annotation;
+        if (count($attributes) > 0) {
+            return $attributes[0]->newInstance();
         }
 
-        throw new InvalidMethodException(sprintf('%s does not contain valid method definition, '."check it's interfaces should annotated with @TarsServant", $reflectionClass->getName()));
+        throw new InvalidMethodException(sprintf('%s does not contain valid method definition, ' . "check it's interfaces should annotated with @TarsServant", $reflectionClass->getName()));
     }
 
-    protected function getMethod(\ReflectionClass $reflectionClass, string $method): \ReflectionMethod
+    /**
+     * @throws ReflectionException
+     * @throws InvalidMethodException
+     */
+    protected function getMethod(ReflectionClass $reflectionClass, string $method): ReflectionMethod
     {
         $reflectionMethod = null;
         if ($reflectionClass->isInterface()) {
@@ -163,12 +184,12 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
         } else {
             $proxyClass = ProxyGenerator::getInterfaceName($reflectionClass->getName());
             if (null !== $proxyClass) {
-                $reflectionMethod = new \ReflectionMethod($proxyClass, $method);
+                $reflectionMethod = new ReflectionMethod($proxyClass, $method);
             } else {
                 foreach ($reflectionClass->getInterfaceNames() as $interfaceName) {
-                    $annotation = $this->annotationReader->getClassAnnotation(new \ReflectionClass($interfaceName), TarsServant::class);
-                    if (null !== $annotation) {
-                        $reflectionMethod = new \ReflectionMethod($interfaceName, $method);
+                    $attributes = (new ReflectionClass($interfaceName))->getAttributes(TarsServant::class, \ReflectionAttribute::IS_INSTANCEOF);
+                    if (count($attributes) > 0) {
+                        $reflectionMethod = new ReflectionMethod($interfaceName, $method);
                         break;
                     }
                 }

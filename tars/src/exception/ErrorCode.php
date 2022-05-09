@@ -13,14 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\tars\exception;
 
-use kuiper\helper\Enum;
-
 /**
  * Class ErrorCode.
  *
  * @property string $message
  */
-class ErrorCode extends Enum
+class ErrorCode
 {
     // 错误码定义（需要从扩展开始规划）
     public const TARS_SOCKET_SET_NONBLOCK_FAILED = -1002; // socket设置非阻塞失败
@@ -80,11 +78,9 @@ class ErrorCode extends Enum
     public const UNKNOWN = 99999;
     public const INVALID_ARGUMENT = 100000;
 
-    /**
-     * @var array
-     */
-    protected static $PROPERTIES = [
-        'message' => [
+    public static function getMessage(int $errorCode): string
+    {
+        return match ($errorCode) {
             self::SERVER_SUCCESS => '服务器端处理成功',
             self::SERVER_DECODE_ERR => '服务器端解码异常',
             self::SERVER_ENCODE_ERR => '服务器端编码异常',
@@ -107,10 +103,10 @@ class ErrorCode extends Enum
             self::TARS_PUT_FLOAT_FAILED => 'float类型打包失败，请检查是否传入了正确值',
             self::TARS_PUT_CHAR_FAILED => 'char类型打包失败，请检查是否传入了正确值',
             self::TARS_PUT_UINT8_FAILED => 'uint8类型打包失败，请检查是否传入了正确值',
-            self::TARS_PUT_SHORT_FAILED => 'uint8类型打包失败，请检查是否传入了正确值',
-            self::TARS_PUT_UINT16_FAILED => 'uint8类型打包失败，请检查是否传入了正确值',
-            self::TARS_PUT_UINT32_FAILED => 'uint8类型打包失败，请检查是否传入了正确值',
-            self::TARS_PUT_DOUBLE_FAILED => 'uint8类型打包失败，请检查是否传入了正确值',
+            self::TARS_PUT_SHORT_FAILED => 'shoort类型打包失败，请检查是否传入了正确值',
+            self::TARS_PUT_UINT16_FAILED => 'uint16类型打包失败，请检查是否传入了正确值',
+            self::TARS_PUT_UINT32_FAILED => 'uint32类型打包失败，请检查是否传入了正确值',
+            self::TARS_PUT_DOUBLE_FAILED => 'double类型打包失败，请检查是否传入了正确值',
 
             self::TARS_ENCODE_FAILED => 'taf编码失败，请检查数据类型，传入字段长度',
             self::TARS_DECODE_FAILED => 'taf解码失败，请检查传入的数据类型，是否从服务端接收到了正确的结果',
@@ -125,10 +121,10 @@ class ErrorCode extends Enum
             self::TARS_GET_FLOAT_FAILED => 'float类型解包失败，请检查是否传入了正确值',
             self::TARS_GET_CHAR_FAILED => 'char类型解包失败，请检查是否传入了正确值',
             self::TARS_GET_UINT8_FAILED => 'uint8类型解包失败，请检查是否传入了正确值',
-            self::TARS_GET_SHORT_FAILED => 'uint8类型解包失败，请检查是否传入了正确值',
-            self::TARS_GET_UINT16_FAILED => 'uint8类型解包失败，请检查是否传入了正确值',
-            self::TARS_GET_UINT32_FAILED => 'uint8类型解包失败，请检查是否传入了正确值',
-            self::TARS_GET_DOUBLE_FAILED => 'uint8类型解包失败，请检查是否传入了正确值',
+            self::TARS_GET_SHORT_FAILED => 'short类型解包失败，请检查是否传入了正确值',
+            self::TARS_GET_UINT16_FAILED => 'uint16类型解包失败，请检查是否传入了正确值',
+            self::TARS_GET_UINT32_FAILED => 'uint32类型解包失败，请检查是否传入了正确值',
+            self::TARS_GET_DOUBLE_FAILED => 'double类型解包失败，请检查是否传入了正确值',
 
             self::TARS_SOCKET_SET_NONBLOCK_FAILED => 'socket设置非阻塞失败',
             self::TARS_SOCKET_SEND_FAILED => 'socket发送失败',
@@ -139,8 +135,8 @@ class ErrorCode extends Enum
             self::TARS_SOCKET_CLOSED => 'socket tcp 服务端连接关闭',
             self::TARS_SOCKET_CREATE_FAILED => 'socket 创建失败',
 
-            self::UNKNOWN => '未定义异常',
             self::INVALID_ARGUMENT => '参数不正确',
-        ],
-    ];
+            default => '未定义异常',
+        };
+    }
 }

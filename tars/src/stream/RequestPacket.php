@@ -18,55 +18,33 @@ use kuiper\tars\type\VectorType;
 
 final class RequestPacket
 {
-    /**
-     * @var int|null
-     */
-    public $iVersion = TarsConst::VERSION;
+    public int $iVersion = TarsConst::VERSION;
+
+    public int $cPacketType = TarsConst::PACKET_TYPE;
+
+    public int $iMessageType = TarsConst::MESSAGE_TYPE;
+
+    public int $iRequestId = 0;
+
+    public string $sServantName = '';
+
+    public string $sFuncName = '';
+
+    public string $sBuffer;
+
+    public int $iTimeout = TarsConst::TIMEOUT;
 
     /**
-     * @var int|null
+     * 请求响应结果
+     * @var string[]
      */
-    public $cPacketType = TarsConst::PACKET_TYPE;
+    public array $status = [];
 
     /**
-     * @var int|null
+     * 请求上下文
+     * @var string[]
      */
-    public $iMessageType = TarsConst::MESSAGE_TYPE;
-
-    /**
-     * @var int|null
-     */
-    public $iRequestId = 0;
-
-    /**
-     * @var string|null
-     */
-    public $sServantName = '';
-
-    /**
-     * @var string|null
-     */
-    public $sFuncName = '';
-
-    /**
-     * @var string|null
-     */
-    public $sBuffer;
-
-    /**
-     * @var int|null
-     */
-    public $iTimeout = TarsConst::TIMEOUT;
-
-    /**
-     * @var string[]|null
-     */
-    public $context = [];
-
-    /**
-     * @var string[]|null
-     */
-    public $status = [];
+    public array $context = [];
 
     /**
      * @throws \kuiper\tars\exception\TarsStreamException

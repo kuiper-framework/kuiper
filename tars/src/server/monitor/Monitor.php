@@ -30,23 +30,15 @@ class Monitor implements MonitorInterface, LoggerAwareInterface
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @var PropertyFServant
+     * @param ServerProperties $serverProperties
+     * @param PropertyFServant $propertyFClient
+     * @param CollectorInterface[] $collectors
      */
-    private $propertyFClient;
-    /**
-     * @var CollectorInterface[]
-     */
-    private $collectors;
-    /**
-     * @var ServerProperties
-     */
-    private $serverProperties;
-
-    public function __construct(ServerProperties $serverProperties, PropertyFServant $propertyFClient, array $collectors)
+    public function __construct(
+        private readonly ServerProperties $serverProperties,
+        private readonly PropertyFServant $propertyFClient,
+        private readonly array $collectors)
     {
-        $this->propertyFClient = $propertyFClient;
-        $this->collectors = $collectors;
-        $this->serverProperties = $serverProperties;
     }
 
     /**

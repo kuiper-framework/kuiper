@@ -15,54 +15,35 @@ namespace kuiper\rpc\registry\consul;
 
 class RegisterServiceRequest
 {
-    /**
-     * @var string|null
-     */
-    public $ID;
+    public ?string $ID = null;
 
-    /**
-     * @var string
-     */
-    public $Name;
+    public ?string $Name = null;
     /**
      * @var string[]
      */
-    public $Tags;
-    /**
-     * @var string
-     */
-    public $Address;
-    /**
-     * @var int
-     */
-    public $Port;
+    public ?array $Tags = [];
+
+    public ?string $Address = null;
+
+    public ?int $Port = null;
     /**
      * @var string|string[]
      */
-    public $TaggedAddresses;
+    public string|array|null $TaggedAddresses = null;
     /**
      * @var string[]
      */
-    public $Meta;
-    /**
-     * @var string
-     */
-    public $Kind = '';
-    /**
-     * @var bool
-     */
-    public $EnableTagOverride;
-    /**
-     * @var RegisterServiceCheck
-     */
-    public $Check;
+    public ?array $Meta = null;
+
+    public string $Kind = '';
+
+    public bool $EnableTagOverride = false;
+
+    public ?RegisterServiceCheck $Check = null;
     /**
      * @var RegisterServiceCheck[]
      */
-    public $Checks;
+    public ?array $Checks = null;
 
-    /**
-     * @var ServiceWeight
-     */
-    public $Weights;
+    public ?ServiceWeight $Weights = null;
 }

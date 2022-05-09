@@ -29,36 +29,15 @@ class AdminServantImpl implements AdminServant, LoggerAwareInterface
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
-
-    /**
-     * @var ServerInterface
-     */
-    private $server;
-
-    /**
-     * @var string|null
-     */
-    private $tarsFilePath;
-
-    /**
      * @var TarsFile[]|null
      */
-    private $tarsFiles;
+    private array $tarsFiles;
 
-    /**
-     * AdminServantImpl constructor.
-     *
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param ServerInterface          $server
-     */
-    public function __construct(EventDispatcherInterface $eventDispatcher, ServerInterface $server, ?string $tarsFilePath)
+    public function __construct(
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly ServerInterface $server,
+        private readonly ?string $tarsFilePath)
     {
-        $this->eventDispatcher = $eventDispatcher;
-        $this->server = $server;
-        $this->tarsFilePath = $tarsFilePath;
     }
 
     public function ping(): string

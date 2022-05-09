@@ -22,26 +22,10 @@ use kuiper\tars\type\StructMap;
 
 class RequestStat implements EventListenerInterface
 {
-    /**
-     * @var StatInterface
-     */
-    private $stat;
-
-    /**
-     * @var StatFServant
-     */
-    private $statFServant;
-
-    /**
-     * RequestStat constructor.
-     *
-     * @param StatInterface $stat
-     * @param StatFServant  $statFServant
-     */
-    public function __construct(StatInterface $stat, StatFServant $statFServant)
+    public function __construct(
+        private readonly StatInterface $stat,
+        private readonly StatFServant $statFServant)
     {
-        $this->stat = $stat;
-        $this->statFServant = $statFServant;
     }
 
     public function __invoke(object $event): void

@@ -17,22 +17,12 @@ use kuiper\event\EventListenerInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\event\WorkerStartEvent;
 use kuiper\tars\server\monitor\MonitorInterface;
+use kuiper\web\middleware\RemoteAddress;
 
 class ServiceMonitor implements EventListenerInterface
 {
-    /**
-     * @var MonitorInterface
-     */
-    private $monitor;
-
-    /**
-     * ServiceMonitor constructor.
-     *
-     * @param MonitorInterface $monitor
-     */
-    public function __construct(MonitorInterface $monitor)
+    public function __construct(private readonly MonitorInterface $monitor)
     {
-        $this->monitor = $monitor;
     }
 
     public function __invoke(object $event): void

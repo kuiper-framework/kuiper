@@ -88,23 +88,17 @@ interface TarsInputStreamInterface
     public function readStruct(int $tag, bool $require, StructType $structType): ?object;
 
     /**
-     * @return array|string|null
-     *
      * @throws TarsStreamException
      */
-    public function readVector(int $tag, bool $require, VectorType $vectorType);
+    public function readVector(int $tag, bool $require, VectorType $vectorType): array|string|null;
 
     /**
-     * @return array|StructMap|null
-     *
      * @throws TarsStreamException
      */
-    public function readMap(int $tag, bool $require, MapType $mapType);
+    public function readMap(int $tag, bool $require, MapType $mapType): StructMap|array|null;
 
     /**
-     * @return mixed
-     *
      * @throws TarsStreamException
      */
-    public function read(int $tag, bool $require, Type $type);
+    public function read(int $tag, bool $require, Type $type): mixed;
 }

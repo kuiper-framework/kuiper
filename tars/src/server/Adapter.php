@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 /*
  * This file is part of the Kuiper package.
@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use InvalidArgumentException;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\swoole\constants\ServerType;
 use kuiper\tars\core\EndpointParser;
@@ -23,54 +24,30 @@ class Adapter
     /**
      * @var array
      */
-    private static $PROTOCOL_ALIAS = [
-        'not_tars' => Protocol::HTTP,
+    private const PROTOCOL_ALIAS = [
+        'not_tars' => 'http',
     ];
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @var string|null
-     */
-    private $name;
+    #[Assert\NotBlank]
+    private ?string $name = null;
 
-    /**
-     * @Assert\NotNull()
-     *
-     * @var Endpoint|null
-     */
-    private $endpoint;
-    /**
-     * @var int
-     */
-    private $maxConns = 10000;
-    /**
-     * @Assert\Choice(callback="protocols")
-     * @Assert\NotBlank()
-     *
-     * @var string|null
-     *
-     * @see Protocol
-     */
-    private $protocol;
-    /**
-     * @var int
-     */
-    private $queueCap = 50000;
-    /**
-     * @var int
-     */
-    private $queueTimeout = 20000;
-    /**
-     * @Assert\NotBlank()
-     *
-     * @var string|null
-     */
-    private $servant;
-    /**
-     * @var int
-     */
-    private $threads = 1;
+    #[Assert\NotNull]
+    private ?Endpoint $endpoint = null;
+
+    private int $maxConns = 10000;
+
+    #[Assert\Choice(callback: 'protocols')]
+    #[Assert\NotBlank]
+    private ?string $protocol = null;
+
+    private int $queueCap = 50000;
+
+    private int $queueTimeout = 20000;
+
+    #[Assert\NotBlank]
+    private ?string $servant = null;
+
+    private int $threads = 1;
 
     public function getName(): ?string
     {
@@ -87,10 +64,7 @@ class Adapter
         return $this->endpoint;
     }
 
-    /**
-     * @param Endpoint|string|null $endpoint
-     */
-    public function setEndpoint($endpoint): void
+    public function setEndpoint(Endpoint|string|null $endpoint): void
     {
         if (is_string($endpoint)) {
             $this->endpoint = EndpointParser::parse($endpoint);
@@ -156,10 +130,7 @@ class Adapter
 
     public function setProtocol(string $protocol): void
     {
-        if (isset(self::$PROTOCOL_ALIAS[$protocol])) {
-            $protocol = self::$PROTOCOL_ALIAS[$protocol];
-        }
-        $this->protocol = $protocol;
+        $this->protocol = self::PROTOCOL_ALIAS[$protocol] ?? $protocol;
     }
 
     public function getAdapterName(): string
@@ -167,16 +138,17 @@ class Adapter
         return $this->servant.'Adapter';
     }
 
-    public function getServerType(): string
+    public function getServerType(): ServerType
     {
-        $protocol = Protocol::fromValue($this->protocol);
-        if (null !== $protocol->serverType) {
-            return $protocol->serverType;
+        $protocol = Protocol::from($this->protocol);
+        if (null !== $protocol->getServerType()) {
+            return $protocol->getServerType();
         }
-        if (ServerType::hasValue($this->endpoint->getProtocol())) {
-            return $this->endpoint->getProtocol();
+        $serverType = ServerType::tryFrom($this->endpoint->getProtocol());
+        if ($serverType !== null) {
+            return $serverType;
         }
-        throw new \InvalidArgumentException('Cannot determine server type from protocol '.$this->protocol);
+        throw new InvalidArgumentException('Cannot determine server type from protocol '.$this->protocol);
     }
 
     public function getSwooleSockType(): int
@@ -184,8 +156,13 @@ class Adapter
         return ServerType::UDP === $this->getServerType() ? SWOOLE_SOCK_UDP : SWOOLE_SOCK_TCP;
     }
 
+    /**
+     * @return string[]
+     */
     public function protocols(): array
     {
-        return Protocol::values();
+        return array_map(static function (Protocol $protocol) {
+            return $protocol->value;
+        }, Protocol::cases());
     }
 }

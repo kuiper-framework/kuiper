@@ -23,22 +23,10 @@ use Webmozart\Assert\Assert;
 
 class TarsServerResponseFactory implements RpcServerResponseFactoryInterface
 {
-    /**
-     * @var ResponseFactoryInterface
-     */
-    private $httpResponseFactory;
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
-
-    /**
-     * JsonRpcServerResponseFactory constructor.
-     */
-    public function __construct(ResponseFactoryInterface $httpResponseFactory, StreamFactoryInterface $streamFactory)
+    public function __construct(
+        private readonly ResponseFactoryInterface $httpResponseFactory,
+        private readonly StreamFactoryInterface $streamFactory)
     {
-        $this->httpResponseFactory = $httpResponseFactory;
-        $this->streamFactory = $streamFactory;
     }
 
     public function createResponse(RpcRequestInterface $request): RpcResponseInterface

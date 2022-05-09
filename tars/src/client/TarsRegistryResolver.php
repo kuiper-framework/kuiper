@@ -22,16 +22,10 @@ use kuiper\tars\integration\QueryFServant;
 class TarsRegistryResolver implements ServiceResolverInterface
 {
     /**
-     * @var QueryFServant
-     */
-    private $queryFClient;
-
-    /**
      * RegistryConnectionFactory constructor.
      */
-    public function __construct(QueryFServant $queryFClient)
+    public function __construct(private readonly QueryFServant $queryFClient)
     {
-        $this->queryFClient = $queryFClient;
     }
 
     /**

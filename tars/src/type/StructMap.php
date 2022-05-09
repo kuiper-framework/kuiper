@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\tars\type;
 
+use phpDocumentor\Reflection\Types\Integer;
+
 /**
  * @extends \ArrayIterator<int, StructMapEntry>
  */

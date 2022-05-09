@@ -18,31 +18,19 @@ namespace kuiper\rpc\registry\consul;
  */
 class ServiceCheck
 {
-    /**
-     * @var string
-     */
-    public $Name;
+    public ?string $Name = null;
 
-    /**
-     * @var string
-     */
-    public $ID;
-    /**
-     * @var string
-     */
-    public $DeregisterCriticalServiceAfter;
+    public ?string $ID = null;
+
+    public ?string $DeregisterCriticalServiceAfter = null;
     /**
      * @var string[]
      */
-    public $Args;
-    /**
-     * @var string
-     */
-    public $Interval;
-    /**
-     * @var string
-     */
-    public $Timeout;
+    public ?array $Args = null;
+
+    public ?string $Interval = null;
+
+    public ?string $Timeout = null;
 
     /**
      * A URL to perform http check.
@@ -54,35 +42,24 @@ class ServiceCheck
      * check is critical. HTTP checks also support SSL. By default, a
      * valid SSL certificate is expected. Certificate verification can
      * be controlled using the TLSSkipVerify.
-     *
-     * @var string
      */
-    public $HTTP;
+    public ?string $HTTP = null;
 
-    /**
-     * @var string
-     */
-    public $Method;
-    /**
-     * @var string
-     */
-    public $Body;
+    public ?string $Method = null;
+
+    public ?string $Body = null;
     /**
      * @var string[]
      */
-    public $Header;
+    public ?array $Header = null;
 
     /**
      * Specifies a TCP to connect against the value of TCP (expected to be an IP or hostname plus port combination).
-     *
-     * @var string
      */
-    public $TCP;
+    public ?string $TCP = null;
 
     /**
      * Specifies this is a TTL check, and the TTL endpoint must be used periodically to update the state of the check.
-     *
-     * @var int
      */
-    private $TTL;
+    private ?int $TTL = null;
 }

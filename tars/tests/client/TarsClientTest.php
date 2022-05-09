@@ -27,6 +27,8 @@ use kuiper\rpc\exception\ConnectFailedException;
 use kuiper\rpc\exception\ServerException;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\server\middleware\AccessLog;
+use kuiper\rpc\servicediscovery\InMemoryCache;
+use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\rpc\ServiceLocator;
@@ -51,20 +53,11 @@ use PHPUnit\Framework\TestCase;
 
 class TarsClientTest extends TestCase
 {
-    /**
-     * @var string
-     */
-    private $serviceClass;
+    private ?string $serviceClass = null;
 
-    /**
-     * @var array
-     */
-    private $responses;
+    private array $responses = [];
 
-    /**
-     * @var array
-     */
-    private $requests;
+    private array $requests = [];
 
     protected function setUp(): void
     {
@@ -218,7 +211,7 @@ class TarsClientTest extends TestCase
 
         $proxy = $this->createClient([
             new Retry(new RetryFactoryImpl(new PoolFactory(), new SimpleCounterFactory(), new NullEventDispatcher())),
-            new ServiceDiscovery($serviceResolver),
+            new ServiceDiscovery($serviceResolver, new InMemoryCache(), LoadBalanceAlgorithm::ROUND_ROBIN),
         ]);
         $result = $proxy->hello('world');
         $this->assertEquals($result, 'hello world');

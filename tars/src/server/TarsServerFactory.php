@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\MiddlewareInterface;
@@ -31,65 +30,28 @@ use Psr\Http\Message\StreamFactoryInterface;
 class TarsServerFactory
 {
     /**
-     * @var AnnotationReaderInterface
+     * @param RequestFactoryInterface $httpRequestFactory
+     * @param ResponseFactoryInterface $httpResponseFactory
+     * @param StreamFactoryInterface $streamFactory
+     * @param ServerProperties $serverProperties
+     * @param LoggerFactoryInterface $loggerFactory
+     * @param Service[] $services
+     * @param MiddlewareInterface[] $middlewares
      */
-    private $annotationReader;
-
-    /**
-     * @var RequestFactoryInterface
-     */
-    private $httpRequestFactory;
-    /**
-     * @var ResponseFactoryInterface
-     */
-    private $httpResponseFactory;
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
-
-    /**
-     * @var ServerProperties
-     */
-    private $serverProperties;
-
-    /**
-     * @var LoggerFactoryInterface
-     */
-    private $loggerFactory;
-
-    /**
-     * @var Service[]
-     */
-    private $services;
-    /**
-     * @var MiddlewareInterface[]
-     */
-    private $middlewares;
-
     public function __construct(
-        AnnotationReaderInterface $annotationReader,
-        RequestFactoryInterface $httpRequestFactory,
-        ResponseFactoryInterface $httpResponseFactory,
-        StreamFactoryInterface $streamFactory,
-        ServerProperties $serverProperties,
-        LoggerFactoryInterface $loggerFactory,
-        array $services,
-        array $middlewares
+        private readonly RequestFactoryInterface $httpRequestFactory,
+        private readonly ResponseFactoryInterface $httpResponseFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly ServerProperties $serverProperties,
+        private readonly LoggerFactoryInterface $loggerFactory,
+        private readonly array $services,
+        private readonly array $middlewares
     ) {
-        $this->annotationReader = $annotationReader;
-        $this->httpRequestFactory = $httpRequestFactory;
-        $this->httpResponseFactory = $httpResponseFactory;
-        $this->streamFactory = $streamFactory;
-        $this->serverProperties = $serverProperties;
-        $this->loggerFactory = $loggerFactory;
-        $this->services = $services;
-        $this->middlewares = $middlewares;
     }
 
     public function createRpcMethodFactory(): RpcMethodFactoryInterface
     {
-        return new TarsServerMethodFactory($this->serverProperties->getServerName(), $this->services, $this->annotationReader);
+        return new TarsServerMethodFactory($this->serverProperties->getServerName(), $this->services);
     }
 
     public function createServerResponseFactory(): RpcServerResponseFactoryInterface
@@ -121,7 +83,6 @@ class TarsServerFactory
     public static function createFromContainer(ContainerInterface $container): self
     {
         return new self(
-            $container->get(AnnotationReaderInterface::class),
             $container->get(RequestFactoryInterface::class),
             $container->get(ResponseFactoryInterface::class),
             $container->get(StreamFactoryInterface::class),

@@ -20,19 +20,8 @@ use kuiper\rpc\transporter\Endpoint;
 
 class ConsulServiceResolver implements ServiceResolverInterface
 {
-    /**
-     * @var ConsulAgent
-     */
-    private $consulAgent;
-
-    /**
-     * ConsulServiceResolver constructor.
-     *
-     * @param ConsulAgent $consulAgent
-     */
-    public function __construct(ConsulAgent $consulAgent)
+    public function __construct(private readonly ConsulAgent $consulAgent)
     {
-        $this->consulAgent = $consulAgent;
     }
 
     public function resolve(ServiceLocator $serviceLocator): ?ServiceEndpoint

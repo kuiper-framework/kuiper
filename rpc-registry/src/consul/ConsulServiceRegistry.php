@@ -19,25 +19,10 @@ use kuiper\swoole\constants\ServerType;
 
 class ConsulServiceRegistry implements ServiceRegistryInterface
 {
-    /**
-     * @var ConsulAgent
-     */
-    private $consulAgent;
-
-    /**
-     * @var array
-     */
-    private $options;
-
-    /**
-     * ConsulServiceRegistry constructor.
-     *
-     * @param ConsulAgent $consulAgent
-     */
-    public function __construct(ConsulAgent $consulAgent, array $options = [])
+    public function __construct(
+        private readonly ConsulAgent $consulAgent,
+        private readonly array $options = [])
     {
-        $this->consulAgent = $consulAgent;
-        $this->options = $options;
     }
 
     public function register(Service $service): void
@@ -60,7 +45,7 @@ class ConsulServiceRegistry implements ServiceRegistryInterface
         $request->Port = $serverPort->getPort();
         $serviceCheck = new RegisterServiceCheck();
         $serviceCheck->Interval = $this->options['healthy_check_interval'] ?? '5s';
-        if (ServerType::fromValue($serverPort->getServerType())->isHttpProtocol()) {
+        if ($serverPort->getServerType()->isHttpProtocol()) {
             $serviceCheck->HTTP = sprintf('http://%s:%d%s', $serverPort->getHost(), $serverPort->getPort(), $this->options['healthy_check_path'] ?? '/');
         } else {
             $serviceCheck->TCP = sprintf('%s:%d', $serverPort->getHost(), $serverPort->getPort());

@@ -13,15 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\registry;
 
-use DI\Annotation\Inject;
+use DI\Attribute\Inject;
+use kuiper\di\attribute\AllConditions;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\ConditionalOnProperty;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
 use GuzzleHttp\ClientInterface;
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\annotation\AllConditions;
-use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\ConditionalOnProperty;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\http\client\HttpClientFactoryInterface;
@@ -58,11 +57,9 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
         ];
     }
 
-    /**
-     * @Bean("consulHttpClient")
-     * @Inject({"options": "application.consul"})
-     */
-    public function consulHttpClient(HttpClientFactoryInterface $httpClientFactory, ?array $options): ClientInterface
+    #[Bean("consulHttpClient")]
+    public function consulHttpClient(HttpClientFactoryInterface $httpClientFactory,
+                                     #[Inject("application.consul")] ?array $options): ClientInterface
     {
         return $httpClientFactory->create(array_merge([
             'base_uri' => 'http://localhost:8500',
@@ -70,26 +67,22 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
         ], $options ?? []));
     }
 
-    /**
-     * @Bean()
-     * @AllConditions({
-     *     @ConditionalOnProperty("application.consul"),
-     *     @ConditionalOnProperty("application.server.service_discovery.type", hasValue="consul", matchIfMissing=true)
-     * })
-     * @Inject({"options": "application.server.service_discovery"})
-     */
-    public function consulServerRegistry(ConsulAgent $consulAgent, ?array $options): ServiceRegistryInterface
+    #[Bean]
+    #[AllConditions(
+        new ConditionalOnProperty("application.consul"),
+        new ConditionalOnProperty("application.server.service_discovery.type", hasValue: "consul", matchIfMissing: true)
+    )]
+    public function consulServerRegistry(ConsulAgent $consulAgent,
+                                         #[Inject("application.server.service_discovery")] ?array $options): ServiceRegistryInterface
     {
         return new ConsulServiceRegistry($consulAgent, $options ?? []);
     }
 
-    /**
-     * @Bean()
-     * @AllConditions({
-     *     @ConditionalOnProperty("application.consul"),
-     *     @ConditionalOnProperty("application.client.service_discovery.type", hasValue="consul", matchIfMissing=true)
-     * })
-     */
+    #[Bean]
+    #[AllConditions(
+        new ConditionalOnProperty("application.consul"),
+        new ConditionalOnProperty("application.server.service_discovery.type", hasValue: "consul", matchIfMissing: true)
+    )]
     public function consulServerResolver(ConsulAgent $consulAgent): ServiceResolverInterface
     {
         return new ConsulServiceResolver($consulAgent);

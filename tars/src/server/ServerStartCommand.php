@@ -18,6 +18,7 @@ use kuiper\swoole\coroutine\Coroutine;
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\server\SwooleServer;
 use kuiper\tars\TarsApplication;
+use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -28,27 +29,9 @@ class ServerStartCommand extends AbstractServerCommand
 
     public const COMMAND_NAME = 'start';
 
-    /**
-     * @var ServerInterface
-     */
-    private $server;
-
-    /**
-     * @var ServerProperties
-     */
-    private $serverProperties;
-
-    /**
-     * ServerStartCommand constructor.
-     *
-     * @param ServerInterface  $server
-     * @param ServerProperties $serverProperties
-     */
-    public function __construct(ServerInterface $server, ServerProperties $serverProperties)
+    public function __construct(private readonly ServerInterface $server, private readonly ServerProperties $serverProperties)
     {
         parent::__construct(self::COMMAND_NAME);
-        $this->server = $server;
-        $this->serverProperties = $serverProperties;
     }
 
     protected function configure(): void
@@ -66,7 +49,7 @@ class ServerStartCommand extends AbstractServerCommand
             $this->server->start();
         } else {
             $this->writePidFile();
-            $this->startService($input);
+            $this->startService();
         }
 
         return 0;
@@ -77,11 +60,11 @@ class ServerStartCommand extends AbstractServerCommand
         file_put_contents($this->serverProperties->getServerPidFile(), getmypid());
     }
 
-    private function startService(InputInterface $input): void
+    private function startService(): void
     {
         $confPath = $this->serverProperties->getSupervisorConfPath();
         if (null === $confPath || !is_dir($confPath)) {
-            throw new \RuntimeException('tars.application.server.supervisor_conf_path cannot be empty when start_mode is external');
+            throw new RuntimeException('tars.application.server.supervisor_conf_path cannot be empty when start_mode is external');
         }
         $serviceName = $this->serverProperties->getServerName();
         $configFile = $confPath.'/'.$serviceName.$this->serverProperties->getSupervisorConfExtension();
@@ -116,11 +99,10 @@ redirect_stderr=true
                 system("$supervisorctl reread", $ret);
                 $this->logger->info(static::TAG."reload $configFile with exit code $ret");
                 system("$supervisorctl add $serviceName", $ret);
-                $this->logger->info(static::TAG."start $serviceName with exit code $ret");
             } else {
                 system("$supervisorctl start ".$serviceName, $ret);
-                $this->logger->info(static::TAG."start $serviceName with exit code $ret");
             }
+            $this->logger->info(static::TAG."start $serviceName with exit code $ret");
         });
         if ($success) {
             pcntl_exec('/bin/sleep', [2147000000 + $this->server->getServerConfig()->getPort()->getPort()]);

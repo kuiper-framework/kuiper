@@ -20,21 +20,19 @@ declare(strict_types=1);
 
 namespace kuiper\tars\fixtures;
 
-use kuiper\tars\annotation\TarsProperty;
+use kuiper\tars\attribute\TarsProperty;
 
 final class User
 {
-    /**
-     * @TarsProperty(order=0, required=true, type="int")
-     *
-     * @var int|null
-     */
-    public $id;
+    #[TarsProperty(type: "int", order: 0)]
+    public readonly int $id;
 
-    /**
-     * @TarsProperty(order=1, required=true, type="string")
-     *
-     * @var string|null
-     */
-    public $name;
+    #[TarsProperty(type: "string", order: 1)]
+    public readonly string $name;
+
+    public function __construct(int $id = 0, string $name = '')
+    {
+        $this->id = $id;
+        $this->name = $name;
+    }
 }

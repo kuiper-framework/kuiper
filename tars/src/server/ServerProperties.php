@@ -16,7 +16,7 @@ namespace kuiper\tars\server;
 use InvalidArgumentException;
 use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\rpc\transporter\Endpoint;
-use kuiper\serializer\annotation\SerializeName;
+use kuiper\serializer\attribute\SerializeName;
 use kuiper\swoole\constants\ServerType;
 use kuiper\tars\core\EndpointParser;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -25,140 +25,83 @@ class ServerProperties
 {
     /**
      * The App namespace.
-     *
-     * @Assert\NotBlank()
-     *
-     * @var string|null
      */
-    private $app;
+    #[Assert\NotBlank]
+    private ?string $app = null;
 
     /**
      * The server name.
-     *
-     * @Assert\NotBlank()
-     *
-     * @var string|null
      */
-    private $server;
+    #[Assert\NotBlank]
+    private ?string $server = null;
 
     /**
      * The swoole server settings.
-     *
-     * @var array
      */
-    private $serverSettings = [];
+    private array $serverSettings = [];
 
     /**
      * The basepath config value, equal to "$TARSPATH/tarsnode/data/$app.$server/bin".
-     *
-     * @Assert\NotBlank()
-     * @SerializeName("basepath")
-     *
-     * @var string|null
      */
-    private $basePath;
+    #[Assert\NotBlank]
+    #[SerializeName("basepath")]
+    private ?string $basePath = null;
+
     /**
      * The datapath config value, equal to "$TARSPATH/tarsnode/data/$app.$server/data".
-     *
-     * @Assert\NotBlank()
-     * @SerializeName("datapath")
-     *
-     * @var string|null
      */
-    private $dataPath;
+    #[Assert\NotBlank]
+    #[SerializeName("datapath")]
+    private ?string $dataPath = null;
+
     /**
      * The logpath config value, equal to "$TARSPATH/app_log".
-     *
-     * @Assert\NotBlank()
-     * @SerializeName("logpath")
-     *
-     * @var string|null
      */
-    private $logPath;
-    /**
-     * @Assert\NotBlank()
-     *
-     * @var string|null
-     */
-    private $logLevel = 'DEBUG';
-    /**
-     * @var int
-     */
-    private $logSize = 15728640;  // 15M
+    #[Assert\NotBlank]
+    #[SerializeName("logpath")]
+    private ?string $logPath = null;
+
+    #[Assert\NotBlank]
+    private string $logLevel = 'DEBUG';
+
+    private int $logSize = 15728640;  // 15M
+
+    private ?ServiceEndpoint $node = null;
+
+    private ?Endpoint $local = null;
+
+    #[SerializeName("localip")]
+    private ?string $localIp = null;
+
+    private string $logServantName = 'tars.tarslog.LogObj';
+
+    private string $configServantName = 'tars.tarsconfig.ConfigObj';
+
+    private string $notifyServantName = 'tars.tarsnotify.NotifyObj';
+
+    private bool $daemonize = false;
+
+    private ?int $reloadInterval = null;
+
+    private ?string $env = null;
+
+    private ?string $emalloc = null;
+
+    private ?string $startMode = null;
+
+    private ?string $supervisorConfPath = null;
+
+    private string $supervisorConfExtension = '.conf';
+
+    private ?string $supervisorctl = null;
+
+    private ?string $php = null;
 
     /**
-     * @var ServiceEndpoint|null
-     */
-    private $node;
-    /**
-     * @var Endpoint|null
-     */
-    private $local;
-
-    /**
-     * @SerializeName("localip")
-     *
-     * @var string|null
-     */
-    private $localIp;
-
-    /**
-     * @var string
-     */
-    private $logServantName = 'tars.tarslog.LogObj';
-    /**
-     * @var string
-     */
-    private $configServantName = 'tars.tarsconfig.ConfigObj';
-    /**
-     * @var string
-     */
-    private $notifyServantName = 'tars.tarsnotify.NotifyObj';
-
-    /**
-     * @var bool
-     */
-    private $daemonize;
-
-    /**
-     * @var int|null
-     */
-    private $reloadInterval;
-    /**
-     * @var string|null
-     */
-    private $env;
-    /**
-     * @var string|null
-     */
-    private $emalloc;
-    /**
-     * @var string|null
-     */
-    private $startMode;
-    /**
-     * @var string|null
-     */
-    private $supervisorConfPath;
-    /**
-     * @var string
-     */
-    private $supervisorConfExtension = '.conf';
-    /**
-     * @var string|null
-     */
-    private $supervisorctl;
-
-    /**
-     * @var string|null
-     */
-    private $php;
-    /**
-     * @Assert\Count(min=1)
-     *
      * @var Adapter[]
      */
-    private $adapters = [];
+    #[Assert\Count(min: 1)]
+    private array $adapters = [];
 
     public function getApp(): ?string
     {
@@ -216,9 +159,9 @@ class ServerProperties
     }
 
     /**
-     * @param string|int|null $reloadInterval
+     * @param int|string|null $reloadInterval
      */
-    public function setReloadInterval($reloadInterval): void
+    public function setReloadInterval(int|string|null $reloadInterval): void
     {
         if (isset($reloadInterval)) {
             $this->reloadInterval = (int) $reloadInterval;
@@ -233,7 +176,7 @@ class ServerProperties
     /**
      * @param string|ServiceEndpoint $node
      */
-    public function setNode($node): void
+    public function setNode(ServiceEndpoint|string $node): void
     {
         if (is_string($node)) {
             $node = EndpointParser::parseServiceEndpoint($node);
@@ -249,7 +192,7 @@ class ServerProperties
     /**
      * @param string|Endpoint $local
      */
-    public function setLocal($local): void
+    public function setLocal(Endpoint|string $local): void
     {
         if (is_string($local)) {
             $local = EndpointParser::parse($local);
@@ -383,10 +326,7 @@ class ServerProperties
         return $this->app.'.'.$this->server;
     }
 
-    /**
-     * @return mixed|null
-     */
-    public function getServerSetting(string $name)
+    public function getServerSetting(string $name): mixed
     {
         return $this->serverSettings[$name] ?? null;
     }
@@ -473,7 +413,7 @@ class ServerProperties
             if ($b->getServerType() === $a->getServerType()) {
                 return 0;
             }
-            if (ServerType::fromValue($a->getServerType())->isHttpProtocol()) {
+            if ($a->getServerType()->isHttpProtocol()) {
                 return -1;
             }
 

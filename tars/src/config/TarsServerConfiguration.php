@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 /*
  * This file is part of the Kuiper package.
@@ -13,12 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\tars\config;
 
-use DI\Annotation\Inject;
+use DI\Attribute\Inject;
+use kuiper\rpc\ServiceLocatorImpl;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
-use kuiper\di\annotation\Bean;
-use kuiper\di\annotation\Configuration;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -35,7 +36,7 @@ use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\swoole\ServerPort;
-use kuiper\tars\annotation\TarsServant;
+use kuiper\tars\attribute\TarsServant;
 use kuiper\tars\core\TarsRequestLogFormatter;
 use kuiper\tars\server\Adapter;
 use kuiper\tars\server\AdminServantImpl;
@@ -58,9 +59,7 @@ use kuiper\tars\server\TarsTcpReceiveEventListener;
 use Psr\Container\ContainerInterface;
 use Webmozart\Assert\Assert;
 
-/**
- * @Configuration(dependOn={ServerConfiguration::class})
- */
+#[Configuration(dependOn: [ServerConfiguration::class])]
 class TarsServerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
@@ -111,11 +110,10 @@ class TarsServerConfiguration implements DefinitionConfiguration
         ];
     }
 
-    /**
-     * @Bean("tarsServerRequestLog")
-     * @Inject({"requestLogFormatter": "tarsServerRequestLogFormatter"})
-     */
-    public function tarsServerRequestLog(RequestLogFormatterInterface $requestLogFormatter, LoggerFactoryInterface $loggerFactory): AccessLog
+    #[Bean("tarsServerRequestLog")]
+    public function tarsServerRequestLog(
+        #[Inject("tarsServerRequestLogFormatter")] RequestLogFormatterInterface $requestLogFormatter,
+        LoggerFactoryInterface $loggerFactory): AccessLog
     {
         $middleware = new AccessLog($requestLogFormatter);
         $middleware->setLogger($loggerFactory->create('TarsServerRequestLogger'));
@@ -123,11 +121,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
         return $middleware;
     }
 
-    /**
-     * @Bean("tarsServices")
-     *
-     * @return Service[]
-     */
+    #[Bean("tarsServices")]
     public function tarsServices(ContainerInterface $container, ServerProperties $serverProperties): array
     {
         $services = [];
@@ -144,10 +138,10 @@ class TarsServerConfiguration implements DefinitionConfiguration
         /** @var TarsServant $annotation */
         foreach (ComponentCollection::getComponents(TarsServant::class) as $annotation) {
             $serviceImpl = $container->get($annotation->getComponentId());
-            if (false !== strpos($annotation->service, '.')) {
-                $servantName = $annotation->service;
+            if (str_contains($annotation->getService(), '.')) {
+                $servantName = $annotation->getService();
             } else {
-                $servantName = $serverProperties->getServerName().'.'.$annotation->service;
+                $servantName = $serverProperties->getServerName().'.'.$annotation->getService();
             }
             if (!isset($adapters[$servantName])) {
                 $logger->warning(self::TAG."servant $servantName not defined in conf");
@@ -160,12 +154,12 @@ class TarsServerConfiguration implements DefinitionConfiguration
 
             $methods = Arrays::pull($annotation->getTarget()->getMethods(\ReflectionMethod::IS_PUBLIC), 'name');
             $services[$servantName] = new Service(
-                new ServiceLocator($servantName),
+                new ServiceLocatorImpl($servantName),
                 $serviceImpl,
                 $methods,
                 $serverPort
             );
-            $logger->info(self::TAG."register servant $servantName listen on {$endpoint}");
+            $logger->info(self::TAG."register servant $servantName listen on $endpoint");
         }
 
         return $services;
@@ -178,24 +172,19 @@ class TarsServerConfiguration implements DefinitionConfiguration
                 return;
             }
         }
-        $annotation = new TarsServant();
-        $annotation->service = 'AdminObj';
+        $annotation = new TarsServant('AdminObj');
         $annotation->setTarget(new \ReflectionClass(AdminServant::class));
         ComponentCollection::register($annotation);
     }
 
-    /**
-     * @Bean("monitorCollectors")
-     */
+    #[Bean("monitorCollectors")]
     public function monitorCollectors(ContainerInterface $container): array
     {
         return array_map([$container, 'get'],
             Application::getInstance()->getConfig()->get('application.tars.server.monitors', []));
     }
 
-    /**
-     * @Bean("tarsServerMiddlewares")
-     */
+    #[Bean("tarsServerMiddlewares")]
     public function tarsServerMiddlewares(ContainerInterface $container): array
     {
         $middlewares = [];
@@ -206,17 +195,13 @@ class TarsServerConfiguration implements DefinitionConfiguration
         return $middlewares;
     }
 
-    /**
-     * @Bean
-     */
+    #[Bean]
     public function serverProperties(NormalizerInterface $normalizer, PropertyResolverInterface $config): ServerProperties
     {
         return $normalizer->denormalize($config->get('application.tars.server'), ServerProperties::class);
     }
 
-    /**
-     * @Bean
-     */
+    #[Bean]
     public function clientProperties(NormalizerInterface $normalizer, PropertyResolverInterface $config): ClientProperties
     {
         return $normalizer->denormalize($config->get('application.tars.client'), ClientProperties::class);

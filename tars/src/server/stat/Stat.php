@@ -13,13 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server\stat;
 
+use kuiper\logger\Logger;
 use kuiper\rpc\RpcResponseInterface;
 use kuiper\tars\server\ClientProperties;
 use kuiper\tars\server\ServerProperties;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 class Stat implements StatInterface, LoggerAwareInterface
 {
@@ -27,34 +26,15 @@ class Stat implements StatInterface, LoggerAwareInterface
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    /**
-     * @var StatStore
-     */
-    private $store;
+    private readonly  int $reportInterval;
 
-    /**
-     * @var int
-     */
-    private $reportInterval;
-
-    /**
-     * @var ServerProperties
-     */
-    private $serverProperties;
-
-    /**
-     * Stat constructor.
-     */
     public function __construct(
-        StatStore $store,
+        private readonly StatStore $store,
         ClientProperties $clientProperties,
-        ServerProperties $serverProperties,
-        ?LoggerInterface $logger
+        private readonly ServerProperties $serverProperties
     ) {
-        $this->store = $store;
         $this->reportInterval = $clientProperties->getReportInterval();
-        $this->serverProperties = $serverProperties;
-        $this->setLogger($logger ?? \kuiper\logger\Logger::nullLogger());
+        $this->setLogger(Logger::nullLogger());
     }
 
     public function success(RpcResponseInterface $response, int $responseTime): void

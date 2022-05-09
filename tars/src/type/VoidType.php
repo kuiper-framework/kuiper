@@ -15,10 +15,7 @@ namespace kuiper\tars\type;
 
 class VoidType extends AbstractType
 {
-    /**
-     * @var VoidType
-     */
-    private static $INSTANCE;
+    private static ?VoidType $INSTANCE = null;
 
     public static function instance(): self
     {

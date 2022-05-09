@@ -11,12 +11,9 @@
 
 declare(strict_types=1);
 
-namespace kuiper\tars\annotation;
+namespace kuiper\tars\attribute;
 
-/**
- * @Annotation
- * @Target({"CLASS"})
- */
+#[\Attribute(\Attribute::TARGET_CLASS)]
 class TarsClient extends TarsServant
 {
 }
