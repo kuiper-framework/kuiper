@@ -79,7 +79,7 @@ class Config
                     if (isset($adapter['endpoint'])) {
                         $endpoint = EndpointParser::parse($adapter['endpoint']);
                         $ports[$endpoint->getPort()] = [
-                            'protocol' => TarsProtocol::from($adapter['protocol'] ?? 'tars')->getServerType(),
+                            'protocol' => TarsProtocol::from($adapter['protocol'] ?? 'tars')->getServerType()->value,
                             'host' => $endpoint->getHost(),
                         ];
                     }

@@ -22,7 +22,7 @@ class DateTimeNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize(mixed $object): array|string
+    public function normalize(mixed $object): mixed
     {
         if ($object instanceof \DateTimeInterface) {
             return $object->format(\DateTimeInterface::RFC3339);

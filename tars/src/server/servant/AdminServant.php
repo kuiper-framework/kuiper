@@ -20,39 +20,34 @@ interface AdminServant
 {
     /**
      * For healthy check
-     *
-     * @TarsReturnType("string")
      */
+    #[TarsReturnType("string")]
     public function ping(): string;
 
     /**
      * Get server stat
-     *
-     * @TarsReturnType("Stat")
      */
+    #[TarsReturnType("Stat")]
     public function stats(): Stat;
 
     /**
      * receive notification
-     *
-     * @TarsReturnType("void")
      */
+    #[TarsReturnType("void")]
     public function notify(
         #[TarsParameter(type: "Notification")] Notification $notification
     ): void;
 
     /**
      * Gets servant files
-     *
-     * @TarsReturnType("vector<TarsFile>")
      */
+    #[TarsReturnType("vector<TarsFile>")]
     public function getTarsFiles(): array;
 
     /**
      * Gets servant file with content
-     *
-     * @TarsReturnType("vector<TarsFile>")
      */
+    #[TarsReturnType("vector<TarsFile>")]
     public function getTarsFileContents(): array;
 
 }

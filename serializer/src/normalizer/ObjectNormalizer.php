@@ -34,7 +34,7 @@ class ObjectNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize(mixed $object): array|string
+    public function normalize(mixed $object): mixed
     {
         $metadata = $this->classMetadataFactory->create(get_class($object));
         $data = [];

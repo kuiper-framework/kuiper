@@ -57,7 +57,6 @@
         "twig/twig": "Required to use twig template"
     },
     "replace": {
-        "kuiper/annotations": "self.version",
         "kuiper/db": "self.version",
         "kuiper/cache": "self.version",
         "kuiper/di": "self.version",
@@ -77,7 +76,6 @@
     },
     "autoload": {
         "psr-4": {
-            "kuiper\\annotations\\": "annotations/src/",
             "kuiper\\cache\\": "cache/src/",
             "kuiper\\db\\": "db/src/",
             "kuiper\\di\\": "di/src/",
@@ -102,7 +100,6 @@
     "autoload-dev": {
         "psr-4": {
             "kuiper\\cache\\": "cache/tests/",
-            "kuiper\\annotations\\": "annotations/tests/",
             "kuiper\\db\\": "db/tests/",
             "kuiper\\di\\": "di/tests/",
             "kuiper\\event\\": "event/tests/",
@@ -126,7 +123,6 @@
     "extra": {
         "kuiper": {
             "configuration": [
-                "kuiper\\annotations\\AnnotationConfiguration",
                 "kuiper\\cache\\CacheConfiguration",
                 "kuiper\\db\\DbConfiguration",
                 "kuiper\\event\\EventConfiguration",

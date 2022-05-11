@@ -75,7 +75,7 @@ class AttributeProcessor implements AttributeProcessorInterface
             $attributes = $reflectionMethod->getAttributes(RequestMapping::class, \ReflectionAttribute::IS_INSTANCEOF);
             if (count($attributes) > 0) {
                 /** @var RequestMapping $requestMapping */
-                $requestMapping = $attributes[0];
+                $requestMapping = $attributes[0]->newInstance();
                 foreach ($requestMapping->getMapping() as $pattern) {
                     if (count($requestMapping->getMethod()) > 0) {
                         $route = $routeCollector->map($requestMapping->getMethod(), $pattern, [$controller, $reflectionMethod->getName()]);

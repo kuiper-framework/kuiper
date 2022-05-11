@@ -23,9 +23,8 @@ interface QueryFServant
      * @tars-param id 对象名称
      * 
      * @tars-return 返回所有该对象的活动endpoint列表
-     *
-     * @TarsReturnType("vector<EndpointF>")
      */
+    #[TarsReturnType("vector<EndpointF>")]
     public function findObjectById(
         #[TarsParameter(type: "string")] string $id
     ): array;
@@ -36,9 +35,8 @@ interface QueryFServant
      * @tars-param activeEp   存活endpoint列表
      * @tars-param inactiveEp 非存活endpoint列表
      * @tars-return 0-成功  others-失败
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function findObjectById4Any(
         #[TarsParameter(type: "string")] string $id,
         #[TarsParameter(type: "vector<EndpointF>")] ?array &$activeEp,
@@ -51,9 +49,8 @@ interface QueryFServant
      * @tars-param activeEp   存活endpoint列表
      * @tars-param inactiveEp 非存活endpoint列表
      * @tars-return 0-成功  others-失败
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function findObjectById4All(
         #[TarsParameter(type: "string")] string $id,
         #[TarsParameter(type: "vector<EndpointF>")] ?array &$activeEp,
@@ -66,9 +63,8 @@ interface QueryFServant
      * @tars-param activeEp   存活endpoint列表
      * @tars-param inactiveEp 非存活endpoint列表
      * @tars-return 0-成功  others-失败
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function findObjectByIdInSameGroup(
         #[TarsParameter(type: "string")] string $id,
         #[TarsParameter(type: "vector<EndpointF>")] ?array &$activeEp,
@@ -81,9 +77,8 @@ interface QueryFServant
      * @tars-param activeEp   存活endpoint列表
      * @tars-param inactiveEp 非存活endpoint列表
      * @tars-return 0-成功  others-失败
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function findObjectByIdInSameStation(
         #[TarsParameter(type: "string")] string $id,
         #[TarsParameter(type: "string")] string $sStation,
@@ -98,9 +93,8 @@ interface QueryFServant
      * @tars-param activeEp   存活endpoint列表
      * @tars-param inactiveEp 非存活endpoint列表
      * @tars-return 0-成功  others-失败
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function findObjectByIdInSameSet(
         #[TarsParameter(type: "string")] string $id,
         #[TarsParameter(type: "string")] string $setId,

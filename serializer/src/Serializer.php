@@ -72,7 +72,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     /**
      * {@inheritdoc}
      */
-    public function normalize(mixed $object): array|string
+    public function normalize(mixed $object): mixed
     {
         if (is_array($object)) {
             $ret = [];

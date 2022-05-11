@@ -25,9 +25,8 @@ interface LogServant
      * @tars-param file, 文件名称
      * @tars-param format, 日志时间格式(%Y%m%d)
      * @tars-param buffer, 日志内容
-     *
-     * @TarsReturnType("void")
      */
+    #[TarsReturnType("void")]
     public function logger(
         #[TarsParameter(type: "string")] string $app,
         #[TarsParameter(type: "string")] string $server,
@@ -40,9 +39,8 @@ interface LogServant
      * 记录远程日志
      * @tars-param info, LogInfo
      * @tars-param buffer, 日志内容
-     *
-     * @TarsReturnType("void")
      */
+    #[TarsReturnType("void")]
     public function loggerbyInfo(
         #[TarsParameter(type: "LogInfo")] LogInfo $info,
         #[TarsParameter(type: "vector<string>")] array $buffer

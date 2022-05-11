@@ -22,7 +22,7 @@ class EnumNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize(mixed $object): array|string
+    public function normalize(mixed $object): mixed
     {
         if ($object instanceof Enum) {
             return $object->name();

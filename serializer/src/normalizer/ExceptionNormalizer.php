@@ -22,7 +22,7 @@ class ExceptionNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize(mixed $object): array|string
+    public function normalize(mixed $object): mixed
     {
         $exception = $object;
         /** @var \Exception $exception */

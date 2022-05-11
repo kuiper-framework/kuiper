@@ -17,6 +17,8 @@ use DI\Attribute\Inject;
 use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\ConditionalOnProperty;
+use kuiper\rpc\servicediscovery\InMemoryCache;
+use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
@@ -50,15 +52,25 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
 
                 return $clientFactory->create(ConsulAgent::class);
             }),
-            ServiceDiscovery::class => autowire(ServiceDiscovery::class)
-                ->constructorParameter('loadBalance', get('application.client.service_discovery.load_balance')),
             ServiceDiscoveryListener::class => autowire(ServiceDiscoveryListener::class)
                 ->constructorParameter('services', get('registerServices')),
         ];
     }
 
+    #[Bean]
+    public function serviceDiscovery(
+        ServiceResolverInterface                                               $serviceResolver,
+        #[Inject("application.client.service_discovery.load_balance")] ?string $lb): ServiceDiscovery
+    {
+        return new ServiceDiscovery(
+            $serviceResolver,
+            new InMemoryCache(),
+            $lb === null ? LoadBalanceAlgorithm::ROUND_ROBIN : LoadBalanceAlgorithm::from($lb)
+        );
+    }
+
     #[Bean("consulHttpClient")]
-    public function consulHttpClient(HttpClientFactoryInterface $httpClientFactory,
+    public function consulHttpClient(HttpClientFactoryInterface             $httpClientFactory,
                                      #[Inject("application.consul")] ?array $options): ClientInterface
     {
         return $httpClientFactory->create(array_merge([
@@ -72,7 +84,7 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
         new ConditionalOnProperty("application.consul"),
         new ConditionalOnProperty("application.server.service_discovery.type", hasValue: "consul", matchIfMissing: true)
     )]
-    public function consulServerRegistry(ConsulAgent $consulAgent,
+    public function consulServerRegistry(ConsulAgent                                              $consulAgent,
                                          #[Inject("application.server.service_discovery")] ?array $options): ServiceRegistryInterface
     {
         return new ConsulServiceRegistry($consulAgent, $options ?? []);

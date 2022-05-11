@@ -22,11 +22,11 @@ interface NormalizerInterface
      *
      * @param object|array $object
      *
-     * @return array|string
+     * @return mixed
      *
      * @throws exception\SerializeException
      */
-    public function normalize(mixed $object): array|string;
+    public function normalize(mixed $object): mixed;
 
     /**
      * Turn data back into an object of the given class.

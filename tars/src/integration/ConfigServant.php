@@ -24,9 +24,8 @@ interface ConfigServant
      * @tars-param server, server name
      * @tars-param vf, config file name
      * /
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function ListConfig(
         #[TarsParameter(type: "string")] string $app,
         #[TarsParameter(type: "string")] string $server,
@@ -40,9 +39,8 @@ interface ConfigServant
      * @tars-param filename, config file name
      * @tars-param config, 配置文件内容
      * /
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function loadConfig(
         #[TarsParameter(type: "string")] string $app,
         #[TarsParameter(type: "string")] string $server,
@@ -57,9 +55,8 @@ interface ConfigServant
      * @tars-param host, ip
      * @tars-param config, 配置文件内容
      * /
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function loadConfigByHost(
         #[TarsParameter(type: "string")] string $appServerName,
         #[TarsParameter(type: "string")] string $filename,
@@ -75,9 +72,8 @@ interface ConfigServant
      * @tars-param result, 提示
      * @tars-return int 0: 合法, -1:非法
      * /
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function checkConfig(
         #[TarsParameter(type: "string")] string $appServerName,
         #[TarsParameter(type: "string")] string $filename,
@@ -92,9 +88,8 @@ interface ConfigServant
      * @tars-param vf, config file name
      * @tars-return int 0: 成功, -1:失败
      * /
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function ListConfigByInfo(
         #[TarsParameter(type: "ConfigInfo")] ConfigInfo $configInfo,
         #[TarsParameter(type: "vector<string>")] ?array &$vf
@@ -106,9 +101,8 @@ interface ConfigServant
      * @tars-param config, 配置文件内容
      * @tars-return int 0: 成功, -1:失败
      * /
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function loadConfigByInfo(
         #[TarsParameter(type: "ConfigInfo")] ConfigInfo $configInfo,
         #[TarsParameter(type: "string")] ?string &$config
@@ -120,9 +114,8 @@ interface ConfigServant
      * @tars-param result, 提示
      * @tars-return int 0: 合法, -1:非法
      * /
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function checkConfigByInfo(
         #[TarsParameter(type: "ConfigInfo")] ConfigInfo $configInfo,
         #[TarsParameter(type: "string")] ?string &$result
@@ -134,9 +127,8 @@ interface ConfigServant
      * @tars-param [out] vf  获取到的文件名称列表
      * @tars-return int 0: 成功, -1:失败
      * /
-     *
-     * @TarsReturnType("int")
      */
+    #[TarsReturnType("int")]
     public function ListAllConfigByInfo(
         #[TarsParameter(type: "GetConfigListInfo")] GetConfigListInfo $configInfo,
         #[TarsParameter(type: "vector<string>")] ?array &$vf
