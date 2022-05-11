@@ -13,6 +13,7 @@ chdir(__DIR__.'/..');
 
 $finder = Finder::create()
     ->in($dirs)
+     ->notPath(['tests'])
     ->name('*.php');
 $docreader = file_get_contents('.docreader');
 foreach ($finder->files() as $file) {
