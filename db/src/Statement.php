@@ -492,6 +492,9 @@ class Statement implements StatementInterface
             if (is_int($value)) {
                 $this->pdoStatement->bindValue(':'.$key, $value, \PDO::PARAM_INT);
             } else {
+                if ($value instanceof \DateTimeInterface) {
+                    $value = $value->format('Y-m-d H:i:s');
+                }
                 $this->pdoStatement->bindValue(':'.$key, $value);
             }
         }
