@@ -54,8 +54,8 @@ FROM
     `article`
 WHERE
     id IN (:_1_)', $query->getStatement());
-        //$bindValues = $query->getBindValues();
-        //var_export($bindValues);
+        // $bindValues = $query->getBindValues();
+        // var_export($bindValues);
     }
 
     public function testWhereMultipleFields(): void
@@ -97,6 +97,25 @@ WHERE
                 ['scope_id' => 'a1', 'name' => 'amount', 'tags' => ''],
             ], ['scope_id', 'name', 'tags'])
             ->buildStatement($this->statement);
+        $this->assertEquals('SELECT
+    *
+FROM
+    `article`
+WHERE
+    (tags = :_1_) AND (((scope_id = :_2_) AND (name IN (:_3_,:_4_))) OR ((scope_id = :_5_) AND (name = :_6_)))',
+            $query->getStatement());
+    }
+
+    public function testMatchesValueType(): void
+    {
+        $criteria = Criteria::create()
+            ->matches([
+                ['scope_id' => '1', 'name' => 'count', 'tags' => ''],
+                ['scope_id' => '2', 'name' => 'count', 'tags' => ''],
+                ['scope_id' => '1', 'name' => 'amount', 'tags' => ''],
+            ], ['scope_id', 'name', 'tags']);
+        // var_export($criteria);
+        $query = $criteria->buildStatement($this->statement);
         $this->assertEquals('SELECT
     *
 FROM

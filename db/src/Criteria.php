@@ -241,7 +241,8 @@ class Criteria
         $column = array_shift($columns);
         $match = self::create();
         foreach (Arrays::groupBy($naturalIds, $column) as $columnValue => $group) {
-            $criteria = self::create([$column => $columnValue]);
+            // $columnValue type may change to int, should use original value
+            $criteria = self::create([$column => $group[0][$column]]);
             if (1 === count($columns)) {
                 if (1 === count($group)) {
                     $criteria->where($columns[0], $group[0][$columns[0]]);
