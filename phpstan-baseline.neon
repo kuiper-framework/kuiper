@@ -1,6 +1,11 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Call to an undefined method kuiper\\\\db\\\\StatementInterface\\:\\:getLastInsertId\\(\\)\\.$#"
+			count: 2
+			path: db/src/AbstractCrudRepository.php
+
+		-
 			message: "#^Parameter \\#1 \\$attribute \\(int\\) of method kuiper\\\\db\\\\Connection\\:\\:getAttribute\\(\\) should be contravariant with parameter \\$attribute \\(mixed\\) of method kuiper\\\\db\\\\PdoInterface\\:\\:getAttribute\\(\\)$#"
 			count: 2
 			path: db/src/Connection.php
@@ -41,14 +46,14 @@ parameters:
 			path: db/src/Statement.php
 
 		-
-			message: "#^Property kuiper\\\\db\\\\metadata\\\\Column\\:\\:\\$generateStrategy is never read, only written\\.$#"
-			count: 1
-			path: db/src/metadata/Column.php
-
-		-
 			message: "#^Property kuiper\\\\di\\\\annotation\\\\ComponentScan\\:\\:\\$basePackages \\(array\\<string\\>\\) on left side of \\?\\? is not nullable\\.$#"
 			count: 1
 			path: di/src/ComponentScanner.php
+
+		-
+			message: "#^Parameter \\#1 \\$callable \\(callable\\(\\)\\: mixed\\) of method kuiper\\\\di\\\\Container\\:\\:call\\(\\) should be contravariant with parameter \\$callable \\(array\\|\\(callable\\(\\)\\: mixed\\)\\|string\\) of method Invoker\\\\InvokerInterface\\:\\:call\\(\\)$#"
+			count: 1
+			path: di/src/Container.php
 
 		-
 			message: "#^Instanceof between mixed and ArrayAccess will always evaluate to false\\.$#"
@@ -101,12 +106,12 @@ parameters:
 			path: jsonrpc/src/server/JsonRpcTcpReceiveEventListener.php
 
 		-
-			message: "#^Parameter \\#2 \\$level of class Monolog\\\\Handler\\\\StreamHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'error'\\|'ERROR'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
+			message: "#^Parameter \\#2 \\$level of class Monolog\\\\Handler\\\\StreamHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'alert'\\|'ALERT'\\|'critical'\\|'CRITICAL'\\|'debug'\\|'DEBUG'\\|'EMERGENCY'\\|'emergency'\\|'error'\\|'ERROR'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
 			count: 1
 			path: logger/src/LoggerFactory.php
 
 		-
-			message: "#^Parameter \\#3 \\$level of class Monolog\\\\Handler\\\\RotatingFileHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'error'\\|'ERROR'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
+			message: "#^Parameter \\#3 \\$level of class Monolog\\\\Handler\\\\RotatingFileHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'alert'\\|'ALERT'\\|'critical'\\|'CRITICAL'\\|'debug'\\|'DEBUG'\\|'EMERGENCY'\\|'emergency'\\|'error'\\|'ERROR'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
 			count: 1
 			path: logger/src/LoggerFactory.php
 
@@ -126,6 +131,11 @@ parameters:
 			path: reflection/src/ReflectionDocBlockFactory.php
 
 		-
+			message: "#^Call to method Redis\\:\\:mSet\\(\\) with incorrect case\\: mset$#"
+			count: 1
+			path: resilience/src/circuitbreaker/RedisStateStore.php
+
+		-
 			message: "#^Property kuiper\\\\rpc\\\\registry\\\\consul\\\\RegisterServiceCheck\\:\\:\\$TTL is unused\\.$#"
 			count: 1
 			path: rpc-registry/src/consul/RegisterServiceCheck.php
@@ -134,6 +144,26 @@ parameters:
 			message: "#^Property kuiper\\\\rpc\\\\registry\\\\consul\\\\ServiceCheck\\:\\:\\$TTL is unused\\.$#"
 			count: 1
 			path: rpc-registry/src/consul/ServiceCheck.php
+
+		-
+			message: "#^Method kuiper\\\\rpc\\\\client\\\\RpcClient\\:\\:createResponse\\(\\) has parameter \\$request with no type specified\\.$#"
+			count: 1
+			path: rpc/src/client/RpcClient.php
+
+		-
+			message: "#^Only booleans are allowed in &&, mixed given on the right side\\.$#"
+			count: 1
+			path: rpc/src/transporter/SwooleTcpTransporter.php
+
+		-
+			message: "#^Only booleans are allowed in a negated boolean, mixed given\\.$#"
+			count: 1
+			path: rpc/src/transporter/SwooleTcpTransporter.php
+
+		-
+			message: "#^Only booleans are allowed in an if condition, mixed given\\.$#"
+			count: 1
+			path: rpc/src/transporter/SwooleTcpTransporter.php
 
 		-
 			message: "#^Property kuiper\\\\swoole\\\\annotation\\\\KuiperApplication\\:\\:\\$exclude \\(array\\) on left side of \\?\\? is not nullable\\.$#"
@@ -149,6 +179,11 @@ parameters:
 			message: "#^Call to an undefined method kuiper\\\\logger\\\\LoggerFactoryInterface\\:\\:getLoggers\\(\\)\\.$#"
 			count: 1
 			path: swoole/src/listener/ReopenLogFile.php
+
+		-
+			message: "#^Method kuiper\\\\swoole\\\\pool\\\\Connection\\:\\:__construct\\(\\) has parameter \\$resource with no type specified\\.$#"
+			count: 1
+			path: swoole/src/pool/Connection.php
 
 		-
 			message: "#^Property kuiper\\\\swoole\\\\pool\\\\PoolConfig\\:\\:\\$connectTimeout is never read, only written\\.$#"
@@ -169,6 +204,26 @@ parameters:
 			message: "#^Property kuiper\\\\swoole\\\\pool\\\\PoolConfig\\:\\:\\$minConnections is never read, only written\\.$#"
 			count: 1
 			path: swoole/src/pool/PoolConfig.php
+
+		-
+			message: "#^Method kuiper\\\\swoole\\\\pool\\\\PoolHelper\\:\\:call\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: swoole/src/pool/PoolHelper.php
+
+		-
+			message: "#^Method kuiper\\\\swoole\\\\pool\\\\SimplePool\\:\\:deferReleaseConnection\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: swoole/src/pool/SimplePool.php
+
+		-
+			message: "#^Variable \\$resource in isset\\(\\) always exists and is always null\\.$#"
+			count: 1
+			path: swoole/src/pool/SimplePool.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between null and null will always evaluate to true\\.$#"
+			count: 1
+			path: swoole/src/pool/SingleConnectionPool.php
 
 		-
 			message: "#^Negated boolean expression is always true\\.$#"

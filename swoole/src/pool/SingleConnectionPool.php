@@ -30,7 +30,7 @@ class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
      */
     private $poolName;
     /**
-     * @var callable
+     * @var callable|null
      */
     private $connectionFactory;
     /**

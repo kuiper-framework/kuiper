@@ -97,15 +97,17 @@ class StatEntry
             $head->slaveName,
             $head->interfaceName,
             $head->slaveIp,
-            $head->slavePort,
+            $slavePort,
             $head->slaveSetName,
             $head->slaveSetID,
             $head->slaveSetArea,
             $head->masterName,
             $head->masterIp,
-            $head->returnValue,
+            $returnValue,
             $head->tarsVersion
         ] = explode('|', $key);
+        $head->slavePort = (int) $slavePort;
+        $head->returnValue = (int) $returnValue;
 
         return new self((int) $index, $head, new StatMicMsgBody());
     }

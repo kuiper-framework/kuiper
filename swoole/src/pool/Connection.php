@@ -30,8 +30,6 @@ class Connection implements ConnectionInterface
      */
     private $createdAt;
 
-    private $coroutineId;
-
     public function __construct(int $id, $resource)
     {
         $this->id = $id;
@@ -63,6 +61,7 @@ class Connection implements ConnectionInterface
             foreach (['close', 'disconnect'] as $method) {
                 if (method_exists($this->resource, $method)) {
                     try {
+                        /** @phpstan-ignore-next-line */
                         $this->resource->$method();
                     } catch (\Exception $e) {
                         // noOps
