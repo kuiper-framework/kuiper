@@ -191,6 +191,8 @@ class LoggerFactory implements LoggerFactoryInterface
     private function createLogger(array $settings): LoggerInterface
     {
         $logger = new \Monolog\Logger($settings['name'] ?? 'unnamed');
+        // disable infinite logging loops, because coroutine reenter addRecord function
+        $logger->useLoggingLoopDetection(false);
         $logLevel = constant(\Monolog\Logger::class.'::'.strtoupper($settings['level'] ?? 'error'));
 
         if (!empty($settings['console'])) {
