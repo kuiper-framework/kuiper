@@ -19,10 +19,10 @@ class FileHandler extends AbstractProcessingHandler
      */
     private $dirCreated;
 
-    public function __construct(string $fileName, $level = Logger::DEBUG, bool $bubble = true)
+    public function __construct(string $stream, $level = Logger::DEBUG, bool $bubble = true)
     {
         parent::__construct($level, $bubble);
-        $this->fileName = Utils::canonicalizePath($fileName);
+        $this->fileName = Utils::canonicalizePath($stream);
     }
 
     /**
