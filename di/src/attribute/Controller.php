@@ -15,9 +15,6 @@ namespace kuiper\di\attribute;
 
 use Attribute;
 
-/**
- * #[Controller] Attribute
- */
 #[Attribute(Attribute::TARGET_CLASS)]
 class Controller extends Component
 {

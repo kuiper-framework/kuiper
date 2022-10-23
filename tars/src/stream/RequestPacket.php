@@ -35,13 +35,15 @@ final class RequestPacket
     public int $iTimeout = TarsConst::TIMEOUT;
 
     /**
-     * 请求响应结果
+     * 请求响应结果.
+     *
      * @var string[]
      */
     public array $status = [];
 
     /**
-     * 请求上下文
+     * 请求上下文.
+     *
      * @var string[]
      */
     public array $context = [];

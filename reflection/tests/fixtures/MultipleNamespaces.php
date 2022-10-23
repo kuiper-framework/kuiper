@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 declare(encoding='UTF-8');
 
 namespace NamespaceA
@@ -14,8 +16,6 @@ namespace NamespaceA
 
 namespace NamespaceB
 {
-    use NamespaceA\ClassA;
-
     class ClassB
     {
     }
@@ -25,8 +25,7 @@ namespace NamespaceB
     }
 }
 
-namespace
-{
+namespace {
     class ClassC
     {
         public static $classA;

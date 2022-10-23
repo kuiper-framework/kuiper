@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\cache;
 
 use DI\Attribute\Inject;
+use function DI\factory;
 use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\ConditionalOnClass;
@@ -30,7 +31,6 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\ChainAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\RedisTagAwareAdapter;
-use function DI\factory;
 
 class CacheConfiguration implements DefinitionConfiguration
 {
@@ -39,19 +39,19 @@ class CacheConfiguration implements DefinitionConfiguration
     public function getDefinitions(): array
     {
         return [
-            \Symfony\Contracts\Cache\CacheInterface::class => factory([$this, 'symfonyCacheItemPool'])
+            \Symfony\Contracts\Cache\CacheInterface::class => factory([$this, 'symfonyCacheItemPool']),
         ];
     }
 
     public static function buildDsn(array $options): string
     {
         $dsn = sprintf('redis://%s%s:%d',
-            isset($options['password']) ? $options['password'] . '@' : '',
+            isset($options['password']) ? $options['password'].'@' : '',
             $options['host'] ?? 'localhost',
             $options['port'] ?? 6379);
-        $database = (int)($options['database'] ?? 0);
+        $database = (int) ($options['database'] ?? 0);
         if (0 !== $database) {
-            $dsn .= '/' . $database;
+            $dsn .= '/'.$database;
         }
 
         return $dsn;
@@ -63,6 +63,7 @@ class CacheConfiguration implements DefinitionConfiguration
         if (!isset($redisConfig)) {
             $redisConfig = [];
         }
+
         return ConnectionProxyGenerator::create($poolFactory, \Redis::class, static function () use ($redisConfig) {
             return RedisAdapter::createConnection(self::buildDsn($redisConfig), $redisConfig);
         });
@@ -76,17 +77,17 @@ class CacheConfiguration implements DefinitionConfiguration
         return new ArrayAdapter(
             $defaultLifetime,
             $config['serialize'] ?? true,
-            (int)($config['max_lifetime'] ?? 2 * $defaultLifetime),
-            (int)($config['max_items'] ?? 618)
+            (int) ($config['max_lifetime'] ?? 2 * $defaultLifetime),
+            (int) ($config['max_items'] ?? 618)
         );
     }
 
-    #[Bean("symfonyRedisCache")]
+    #[Bean('symfonyRedisCache')]
     public function symfonyRedisCache(ContainerInterface $container): \Symfony\Contracts\Cache\CacheInterface
     {
-        $config = $container->get("application.cache");
+        $config = $container->get('application.cache');
         $namespace = $config['namespace'] ?? '';
-        $defaultLifeTime = (int)($config['lifetime'] ?? 0);
+        $defaultLifeTime = (int) ($config['lifetime'] ?? 0);
 
         $redisAdapter = new RedisTagAwareAdapter($container->get(\Redis::class), $namespace, $defaultLifeTime);
         $redisAdapter->setLogger($container->get(LoggerFactoryInterface::class)->create(__CLASS__));
@@ -97,13 +98,13 @@ class CacheConfiguration implements DefinitionConfiguration
     #[Bean]
     #[AllConditions(
         new ConditionalOnClass(ChainAdapter::class),
-        new ConditionalOnProperty("application.cache.implementation", "symfony", true)
+        new ConditionalOnProperty('application.cache.implementation', 'symfony', true)
     )]
     public function symfonyCacheItemPool(ContainerInterface $container): CacheItemPoolInterface
     {
         return new ChainAdapter([
             $container->get(ArrayAdapter::class),
-            $container->get('symfonyRedisCache')
+            $container->get('symfonyRedisCache'),
         ]);
     }
 

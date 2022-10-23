@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\db\attribute;
 
-
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final class Embeddable implements Attribute
 {

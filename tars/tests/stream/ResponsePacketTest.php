@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\tars\stream;
 
-use kuiper\annotations\AnnotationReader;
 use kuiper\tars\integration\EndpointF;
 use kuiper\tars\type\MapType;
 use kuiper\tars\type\TypeParser;

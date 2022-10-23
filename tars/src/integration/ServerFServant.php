@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -25,29 +24,30 @@ use kuiper\tars\attribute\TarsClient;
 use kuiper\tars\attribute\TarsParameter;
 use kuiper\tars\attribute\TarsReturnType;
 
-#[TarsClient("tars.tarsnode.ServerObj")]
+#[TarsClient('tars.tarsnode.ServerObj')]
 interface ServerFServant
 {
     /**
-     * 向node定时上报serverInfo
+     * 向node定时上报serverInfo.
+     *
      * @tars-param serverInfo  服务状态
      * @tars-return int
      */
-    #[TarsReturnType("int")]
+    #[TarsReturnType('int')]
     public function keepAlive(
-        #[TarsParameter(type: "ServerInfo")] ServerInfo $serverInfo
+        #[TarsParameter(type: 'ServerInfo')] ServerInfo $serverInfo
     ): int;
 
     /**
-     * 向node上报TARS版本信息
+     * 向node上报TARS版本信息.
+     *
      * @tars-param string  版本信息
      * @tars-return int
      */
-    #[TarsReturnType("int")]
+    #[TarsReturnType('int')]
     public function reportVersion(
-        #[TarsParameter(type: "string")] string $app,
-        #[TarsParameter(type: "string")] string $serverName,
-        #[TarsParameter(type: "string")] string $version
+        #[TarsParameter(type: 'string')] string $app,
+        #[TarsParameter(type: 'string')] string $serverName,
+        #[TarsParameter(type: 'string')] string $version
     ): int;
-
 }

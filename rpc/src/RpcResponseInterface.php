@@ -19,6 +19,7 @@ interface RpcResponseInterface extends ResponseInterface
 {
     /**
      * Gets the rpc request object.
+     *
      * @return RpcRequestInterface
      */
     public function getRequest(): RpcRequestInterface;

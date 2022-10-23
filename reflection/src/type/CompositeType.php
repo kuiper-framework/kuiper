@@ -21,7 +21,7 @@ class CompositeType extends ReflectionType
     /**
      * @param ReflectionTypeInterface[] $types
      */
-    public function __construct(private array $types)
+    public function __construct(private readonly array $types)
     {
         parent::__construct(false);
     }

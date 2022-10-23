@@ -44,7 +44,7 @@ class TarsServerMethodFactory extends TarsMethodFactory
             try {
                 $tarsServant = $this->getTarsServantAnnotation(new ReflectionClass($service));
             } catch (ReflectionException $e) {
-                throw new InvalidMethodException("Cannot resolve method " . get_class($service) . "::$method", 0, $e);
+                throw new InvalidMethodException('Cannot resolve method '.get_class($service)."::$method", 0, $e);
             }
             if (!str_contains($tarsServant->getService(), '.')) {
                 $serviceName = $this->serverName.'.'.$tarsServant->getService();
@@ -62,14 +62,15 @@ class TarsServerMethodFactory extends TarsMethodFactory
         try {
             [$parameters, $returnValue] = $this->getParameters($serviceImpl, $method);
         } catch (ReflectionException|SyntaxErrorException $e) {
-            throw new InvalidMethodException("Cannot resolve method parameters", 0, $e);
+            throw new InvalidMethodException('Cannot resolve method parameters', 0, $e);
         }
 
         try {
             $arguments = $this->resolveParams($parameters, $args[0]);
         } catch (TarsStreamException $e) {
-            throw new InvalidArgumentException("Unmarshal method parameters failed", 0, $e);
+            throw new InvalidArgumentException('Unmarshal method parameters failed', 0, $e);
         }
+
         return new TarsMethod($serviceImpl, $serviceName, $method, $arguments, $parameters, $returnValue);
     }
 

@@ -127,12 +127,12 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
                     return $this->toType($value, $subtype);
                 }
             }
-            throw new UnexpectedValueException("Expects '$type', got " . ReflectionType::describe($value));
+            throw new UnexpectedValueException("Expects '$type', got ".ReflectionType::describe($value));
         }
 
         if ($type->isArray()) {
             if (!is_array($value)) {
-                throw new UnexpectedValueException('Expects array, got ' . ReflectionType::describe($value));
+                throw new UnexpectedValueException('Expects array, got '.ReflectionType::describe($value));
             }
 
             return $this->toArrayType($value, $type->getValueType(), $type->getDimension());
@@ -142,7 +142,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
             return $type->sanitize($value);
         }
 
-        throw new UnexpectedValueException("Expects '$type', got " . ReflectionType::describe($value));
+        throw new UnexpectedValueException("Expects '$type', got ".ReflectionType::describe($value));
     }
 
     private function toArrayType(array $value, ReflectionTypeInterface $valueType, int $dimension): array

@@ -69,6 +69,7 @@ class Logger extends AbstractLogger
         if (!isset(self::$NULL_LOGGER)) {
             self::$NULL_LOGGER = new NullLogger();
         }
+
         return self::$NULL_LOGGER;
     }
 }

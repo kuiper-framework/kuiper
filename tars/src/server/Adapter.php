@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 /*
  * This file is part of the Kuiper package.
@@ -145,7 +147,7 @@ class Adapter
             return $protocol->getServerType();
         }
         $serverType = ServerType::tryFrom($this->endpoint->getProtocol());
-        if ($serverType !== null) {
+        if (null !== $serverType) {
             return $serverType;
         }
         throw new InvalidArgumentException('Cannot determine server type from protocol '.$this->protocol);

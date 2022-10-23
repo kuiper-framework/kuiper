@@ -17,8 +17,6 @@ use kuiper\rpc\client\ProxyGenerator;
 use kuiper\tars\attribute\TarsServant;
 use kuiper\tars\core\AttributeGenerator;
 use Laminas\Code\Generator\ClassGenerator;
-use Laminas\Code\Generator\DocBlockGenerator;
-use Laminas\Code\Reflection\DocBlockReflection;
 
 class TarsProxyGenerator extends ProxyGenerator
 {

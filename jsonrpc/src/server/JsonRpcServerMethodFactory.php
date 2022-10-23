@@ -16,14 +16,10 @@ namespace kuiper\jsonrpc\server;
 use Exception;
 use kuiper\reflection\exception\ClassNotFoundException;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
-use kuiper\reflection\ReflectionType;
-use kuiper\reflection\ReflectionTypeInterface;
-use kuiper\reflection\type\VoidType;
 use kuiper\rpc\exception\InvalidMethodException;
 use kuiper\rpc\RpcMethod;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
-use kuiper\rpc\server\Service;
 use kuiper\serializer\NormalizerInterface;
 use ReflectionException;
 use ReflectionMethod;
@@ -95,6 +91,7 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
 
         $reflectionMethod = new ReflectionMethod($target, $methodName);
         $reflectionMethodDocBlock = $this->reflectionDocBlockFactory->createMethodDocBlock($reflectionMethod);
+
         return $this->cachedTypes[$key] = array_values($reflectionMethodDocBlock->getParameterTypes());
     }
 

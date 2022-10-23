@@ -40,21 +40,25 @@ final class TokenStream
     {
     }
 
-    public static function createFromFile(string $file): self
+    /**
+     * @throws FileNotFoundException
+     */
+    public static function fromFile(string $file): self
     {
         $code = file_get_contents($file);
         if (false === $code) {
             throw new FileNotFoundException("Cannot read file '{$file}'");
         }
-        return self::createFromCode($code);
+
+        return self::fromCode($code);
     }
 
-    public static function createFromCode(string $code): self
+    public static function fromCode(string $code): self
     {
-        return self::create(token_get_all($code));
+        return self::fromTokens(token_get_all($code));
     }
 
-    public static function create(array $tokens): self
+    public static function fromTokens(array $tokens): self
     {
         return new self(new \ArrayIterator($tokens));
     }
@@ -261,26 +265,26 @@ final class TokenStream
     /**
      * match begin and end of parentheses.
      *
-     * @throws TokenStoppedException
      * @throws InvalidTokenException
      */
     public function matchParentheses(): void
     {
         $stack = [];
-        while (true) {
-            $this->next();
-            if (is_array($this->current) && T_CURLY_OPEN === $this->current[0]) {
-                $stack[] = '{';
-            } elseif ('{' === $this->current) {
-                $stack[] = '{';
-            } elseif ('}' === $this->current) {
-                array_pop($stack);
-                if (empty($stack)) {
-                    break;
+        try {
+            while (true) {
+                $this->next();
+                if (is_array($this->current) && T_CURLY_OPEN === $this->current[0]) {
+                    $stack[] = '{';
+                } elseif ('{' === $this->current) {
+                    $stack[] = '{';
+                } elseif ('}' === $this->current) {
+                    array_pop($stack);
+                    if (empty($stack)) {
+                        break;
+                    }
                 }
             }
-        }
-        if (!empty($stack)) {
+        } catch (TokenStoppedException $e) {
             throw new InvalidTokenException('parentheses not match');
         }
     }

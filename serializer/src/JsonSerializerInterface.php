@@ -30,7 +30,7 @@ interface JsonSerializerInterface
     /**
      * Converts json to object.
      *
-     * @param string $jsonString
+     * @param string        $jsonString
      * @param string|object $type
      *
      * @return mixed

@@ -14,16 +14,15 @@ declare(strict_types=1);
 namespace kuiper\http\client;
 
 use DI\Attribute\Inject;
-use kuiper\di\attribute\Bean;
-use kuiper\di\attribute\ConditionalOnClass;
-use kuiper\di\attribute\Configuration;
 use function DI\autowire;
 use function DI\factory;
 use GuzzleHttp\ClientInterface;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\ConditionalOnClass;
+use kuiper\di\attribute\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
-use kuiper\helper\Text;
 use kuiper\http\client\attribute\HttpClient;
 use kuiper\serializer\NormalizerInterface;
 use kuiper\swoole\Application;
@@ -46,7 +45,7 @@ class HttpClientConfiguration implements DefinitionConfiguration
     public function httpClient(
         ContainerInterface $container,
         HttpClientFactoryInterface $httpClientFactory,
-        #[Inject("application.http_client.default")] ?array $options): ClientInterface
+        #[Inject('application.http_client.default')] ?array $options): ClientInterface
     {
         if (isset($options['middleware'])) {
             foreach ($options['middleware'] as $i => $middleware) {

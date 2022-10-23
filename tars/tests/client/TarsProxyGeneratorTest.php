@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\tars\client;
 
 use kuiper\tars\fixtures\HelloService;
@@ -11,10 +13,9 @@ class TarsProxyGeneratorTest extends TestCase
     {
         $generator = new TarsProxyGenerator();
         $class = $generator->generate(HelloService::class, [
-            'service' => 'demo.app.HelloObj'
+            'service' => 'demo.app.HelloObj',
         ]);
         // echo $class->getCode();
-        $this->assertStringEqualsFile(__DIR__ . '/../fixtures/HelloServiceProxy.txt', trim($class->getCode()));
+        $this->assertStringEqualsFile(__DIR__.'/../fixtures/HelloServiceProxy.txt', trim($class->getCode()));
     }
-
 }

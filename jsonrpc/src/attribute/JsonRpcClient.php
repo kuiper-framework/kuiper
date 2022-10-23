@@ -19,11 +19,11 @@ use kuiper\rpc\attribute\RpcClient;
 class JsonRpcClient extends RpcClient
 {
     public function __construct(
-        string  $service = '',
-        string  $version = '',
-        string  $namespace = '',
-        string  $protocol = '',
-        string  $endpoint = '',
+        string $service = '',
+        string $version = '',
+        string $namespace = '',
+        string $protocol = '',
+        string $endpoint = '',
         private readonly bool $outParams = false)
     {
         parent::__construct($service, $version, $namespace, $protocol, $endpoint);

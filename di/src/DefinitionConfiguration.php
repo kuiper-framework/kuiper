@@ -18,5 +18,10 @@ interface DefinitionConfiguration extends ContainerBuilderAwareInterface
     public const HIGH_PRIORITY = 128;
     public const LOW_PRIORITY = 1024;
 
+    /**
+     * Creates php-di definitions.
+     *
+     * @return array
+     */
     public function getDefinitions(): array;
 }

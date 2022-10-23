@@ -21,7 +21,6 @@ use PHPUnit\Framework\TestCase;
 
 class TarsInputStreamTest extends TestCase
 {
-
     public function testOptional(): void
     {
         $request = new Request(

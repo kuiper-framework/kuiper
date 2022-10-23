@@ -74,7 +74,7 @@ class Snapshot
     {
         static $dummy;
         if (null === $dummy) {
-            $dummy = new self(0,0,0,0,0);
+            $dummy = new self(0, 0, 0, 0, 0);
         }
 
         return $dummy;

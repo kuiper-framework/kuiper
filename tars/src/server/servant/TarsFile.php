@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,19 +27,19 @@ final class TarsFile
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $name;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 1)]
+    #[TarsProperty(type: 'string', order: 1)]
     public readonly string $md5;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 2)]
+    #[TarsProperty(type: 'string', order: 2)]
     public readonly ?string $content;
 
     public function __construct(
@@ -48,8 +47,8 @@ final class TarsFile
         string $md5,
         ?string $content = null
     ) {
-          $this->name = $name;
-          $this->md5 = $md5;
-          $this->content = $content;
+        $this->name = $name;
+        $this->md5 = $md5;
+        $this->content = $content;
     }
 }

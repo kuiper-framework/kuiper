@@ -162,8 +162,10 @@ interface CrudRepositoryInterface
     public function deleteAllById(array $ids): void;
 
     /**
-     * Deletes all entities
+     * Deletes all entities.
+     *
      * @param object[] $entities
+     *
      * @return void
      */
     public function deleteAll(array $entities): void;

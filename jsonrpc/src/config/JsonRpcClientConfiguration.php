@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
+use function DI\autowire;
+use function DI\factory;
+use function DI\get;
 use kuiper\di\attribute\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -35,9 +38,6 @@ use kuiper\rpc\transporter\Endpoint;
 use kuiper\swoole\Application;
 use kuiper\swoole\constants\ServerType;
 use Psr\Container\ContainerInterface;
-use function DI\autowire;
-use function DI\factory;
-use function DI\get;
 
 class JsonRpcClientConfiguration implements DefinitionConfiguration
 {
@@ -67,7 +67,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                     return $container->has(HttpClientFactoryInterface::class) ? $container->get(HttpClientFactoryInterface::class) : null;
                 })),
             'jsonrpcRequestLog' => autowire(AccessLog::class)
-                ->constructorParameter(0, get('jsonrpcClientRequestLogFormatter'))
+                ->constructorParameter(0, get('jsonrpcClientRequestLogFormatter')),
         ]);
     }
 
@@ -164,7 +164,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         return ServerType::TCP->value;
     }
 
-    #[Bean("jsonrpcClientMiddlewares")]
+    #[Bean('jsonrpcClientMiddlewares')]
     public function jsonrpcClientMiddlewares(ContainerInterface $container): array
     {
         $middlewares = [];
@@ -187,7 +187,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 'logging' => [
                     'loggers' => [
                         'JsonRpcRequestLogger' => LoggerConfiguration::createJsonLogger(
-                            $config->getString('application.logging.jsonrpc_client_log_file', $path . '/jsonrpc-client.log')),
+                            $config->getString('application.logging.jsonrpc_client_log_file', $path.'/jsonrpc-client.log')),
                     ],
                     'logger' => [
                         'JsonRpcRequestLogger' => 'JsonRpcRequestLogger',

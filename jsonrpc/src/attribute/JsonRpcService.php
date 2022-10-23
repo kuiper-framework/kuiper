@@ -41,5 +41,4 @@ class JsonRpcService extends Service
     {
         return $this->version;
     }
-
 }

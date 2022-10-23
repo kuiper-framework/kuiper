@@ -15,7 +15,6 @@ namespace kuiper\rpc\registry\consul;
 
 use kuiper\rpc\server\Service;
 use kuiper\rpc\server\ServiceRegistryInterface;
-use kuiper\swoole\constants\ServerType;
 
 class ConsulServiceRegistry implements ServiceRegistryInterface
 {

@@ -43,7 +43,7 @@ class SwooleServer extends AbstractServer
         return $this->httpMessageFactoryHolder;
     }
 
-    public function setHttpMessageFactoryHolder(HttpMessageFactoryHolder $httpMessageFactoryHolder): void
+    public function setHttpMessageFactoryHolder(?HttpMessageFactoryHolder $httpMessageFactoryHolder): void
     {
         $this->httpMessageFactoryHolder = $httpMessageFactoryHolder;
     }
@@ -179,13 +179,14 @@ class SwooleServer extends AbstractServer
         if (empty($clientInfo)) {
             return null;
         }
+
         return new ConnectionInfo(
             remoteIp: (string) ($clientInfo['remote_ip'] ?? ''),
             remotePort: (int) ($clientInfo['remote_port'] ?? 0),
             serverPort: (int) ($clientInfo['server_port'] ?? 0),
             serverFd: (int) ($clientInfo['server_fd'] ?? 0),
             connectTime: (int) ($clientInfo['connect_time'] ?? 0),
-            lastTime:(int) ($clientInfo['last_time'] ?? 0)
+            lastTime: (int) ($clientInfo['last_time'] ?? 0)
         );
     }
 

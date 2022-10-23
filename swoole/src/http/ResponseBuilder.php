@@ -22,8 +22,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 class ResponseBuilder implements LoggerAwareInterface
 {
@@ -84,7 +82,7 @@ class ResponseBuilder implements LoggerAwareInterface
         $headers[HttpHeaderName::CONNECTION] = [$isKeepAlive ? 'keep-alive' : 'close'];
 
         $head = sprintf('HTTP/1.1 %d %s', $response->getStatusCode(), $response->getReasonPhrase()).self::END_OF_LINE;
-        //Headers
+        // Headers
         foreach ($headers as $name => $values) {
             foreach ($values as $value) {
                 $head .= HttpHeaderName::getDisplayName($name).': '.$value.self::END_OF_LINE;

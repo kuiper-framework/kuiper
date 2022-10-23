@@ -24,10 +24,10 @@ use kuiper\tars\attribute\TarsProperty;
 
 final class User
 {
-    #[TarsProperty(type: "int", order: 0)]
+    #[TarsProperty(type: 'int', order: 0)]
     public readonly int $id;
 
-    #[TarsProperty(type: "string", order: 1)]
+    #[TarsProperty(type: 'string', order: 1)]
     public readonly string $name;
 
     public function __construct(int $id = 0, string $name = '')

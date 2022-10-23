@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,49 +27,49 @@ final class StatPropMsgHead
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $moduleName;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 1)]
+    #[TarsProperty(type: 'string', order: 1)]
     public readonly string $ip;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 2)]
+    #[TarsProperty(type: 'string', order: 2)]
     public readonly string $propertyName;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 3)]
+    #[TarsProperty(type: 'string', order: 3)]
     public readonly ?string $setName;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 4)]
+    #[TarsProperty(type: 'string', order: 4)]
     public readonly ?string $setArea;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 5)]
+    #[TarsProperty(type: 'string', order: 5)]
     public readonly ?string $setID;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 6)]
+    #[TarsProperty(type: 'string', order: 6)]
     public readonly ?string $sContainer;
 
     /**
      * @var int|null
      */
-    #[TarsProperty(type: "int", order: 7)]
+    #[TarsProperty(type: 'int', order: 7)]
     public readonly ?int $iPropertyVer;
 
     public function __construct(
@@ -83,13 +82,13 @@ final class StatPropMsgHead
         ?string $sContainer = null,
         ?int $iPropertyVer = null
     ) {
-          $this->moduleName = $moduleName;
-          $this->ip = $ip;
-          $this->propertyName = $propertyName;
-          $this->setName = $setName;
-          $this->setArea = $setArea;
-          $this->setID = $setID;
-          $this->sContainer = $sContainer;
-          $this->iPropertyVer = $iPropertyVer;
+        $this->moduleName = $moduleName;
+        $this->ip = $ip;
+        $this->propertyName = $propertyName;
+        $this->setName = $setName;
+        $this->setArea = $setArea;
+        $this->setID = $setID;
+        $this->sContainer = $sContainer;
+        $this->iPropertyVer = $iPropertyVer;
     }
 }

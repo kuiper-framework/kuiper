@@ -26,7 +26,6 @@ use PHPUnit\Framework\TestCase;
 
 class CircuitBreakerImplTest extends TestCase
 {
-
     private InMemoryEventDispatcher $eventDispatcher;
 
     private CircuitBreaker $circuitBreaker;

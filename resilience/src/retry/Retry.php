@@ -16,16 +16,17 @@ namespace kuiper\resilience\retry;
 interface Retry
 {
     /**
-     * Creates a callable with retry
+     * Creates a callable with retry.
      *
      * @param callable $call
+     *
      * @return callable
      */
     public function decorate(callable $call): callable;
 
     /**
      * @param callable $call
-     * @param mixed ...$args
+     * @param mixed    ...$args
      *
      * @return mixed
      */

@@ -18,10 +18,10 @@ use kuiper\serializer\attribute\SerializeName;
 
 class Company
 {
-    #[SerializeName("org_name")]
+    #[SerializeName('org_name')]
     public $name;
 
-    #[SerializeName("org_address")]
+    #[SerializeName('org_address')]
     public $address;
 
     #[SerializeIgnore]

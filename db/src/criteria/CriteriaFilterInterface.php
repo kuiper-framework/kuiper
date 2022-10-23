@@ -17,6 +17,7 @@ interface CriteriaFilterInterface
 {
     /**
      * @param CriteriaClauseInterface $clause
+     *
      * @return CriteriaClauseInterface
      */
     public function filter(CriteriaClauseInterface $clause): CriteriaClauseInterface;

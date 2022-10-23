@@ -18,7 +18,7 @@ use kuiper\db\metadata\Column;
 class JsonConverter implements AttributeConverterInterface
 {
     public function __construct(private readonly bool $assoc = true,
-                                private readonly int $options = (JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+                                private readonly int $options = (JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES))
     {
     }
 

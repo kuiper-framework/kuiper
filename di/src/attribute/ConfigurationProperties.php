@@ -14,13 +14,13 @@ declare(strict_types=1);
 namespace kuiper\di\attribute;
 
 use Attribute;
+use function DI\factory;
 use kuiper\di\Component;
 use kuiper\di\ContainerBuilderAwareInterface;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Container\ContainerInterface;
-use function DI\factory;
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class ConfigurationProperties implements Component, ContainerBuilderAwareInterface

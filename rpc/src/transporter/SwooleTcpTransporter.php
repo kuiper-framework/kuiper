@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpComposerExtensionStubsInspection */
+<?php
+
+/** @noinspection PhpComposerExtensionStubsInspection */
 
 /*
  * This file is part of the Kuiper package.
@@ -13,7 +15,6 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
-use _PHPStan_7bd9fb728\Symfony\Component\Console\Exception\LogicException;
 use kuiper\rpc\exception\ErrorCode;
 use kuiper\swoole\constants\ClientSettings;
 use Psr\Http\Message\ResponseInterface;

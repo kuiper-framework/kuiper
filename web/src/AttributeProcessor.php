@@ -85,8 +85,7 @@ class AttributeProcessor implements AttributeProcessorInterface
                     $this->addRouteMiddleware($route, $reflectionMethod);
                     if (Text::isNotEmpty($requestMapping->getName())) {
                         if (count($requestMapping->getMapping()) > 1) {
-                            throw new \InvalidArgumentException('Cannot set route name when there multiple routes for method '
-                                . $reflectionMethod->getDeclaringClass() . '::' . $reflectionMethod->getName());
+                            throw new \InvalidArgumentException('Cannot set route name when there multiple routes for method '.$reflectionMethod->getDeclaringClass().'::'.$reflectionMethod->getName());
                         }
                         $route->setName($requestMapping->getName());
                     }

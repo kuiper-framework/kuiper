@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Kuiper package.
  *
@@ -8,7 +10,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 
 namespace kuiper\swoole\logger;
 
@@ -59,7 +60,7 @@ class LogContextImpl implements LogContext
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getRequest(): RequestInterface
     {
@@ -67,7 +68,7 @@ class LogContextImpl implements LogContext
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getResponse(): ?ResponseInterface
     {
@@ -75,7 +76,7 @@ class LogContextImpl implements LogContext
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getError(): ?Throwable
     {
@@ -83,7 +84,7 @@ class LogContextImpl implements LogContext
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getStartTime(): float
     {
@@ -91,7 +92,7 @@ class LogContextImpl implements LogContext
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getEndTime(): float
     {
@@ -100,12 +101,12 @@ class LogContextImpl implements LogContext
 
     public function hasResponse(): bool
     {
-        return $this->response !== null;
+        return null !== $this->response;
     }
 
     public function hasError(): bool
     {
-        return $this->error !== null;
+        return null !== $this->error;
     }
 
     public function getRequestTime(): float

@@ -59,7 +59,7 @@ final class StatEntry
 
     public function getUniqueId(): string
     {
-        return (string)$this;
+        return (string) $this;
     }
 
     public function __toString(): string
@@ -88,17 +88,17 @@ final class StatEntry
             slaveName: $parts[1],
             interfaceName: $parts[2],
             slaveIp: $parts[3],
-            slavePort: (int)$parts[4],
+            slavePort: (int) $parts[4],
             slaveSetName: $parts[5],
             slaveSetID: $parts[6],
             slaveSetArea: $parts[7],
             masterName: $parts[8],
             masterIp: $parts[9],
-            returnValue: (int)$parts[10],
+            returnValue: (int) $parts[10],
             tarsVersion: $parts[11],
         );
 
-        return new self((int)$parts[0], $head, self::createMsgBody());
+        return new self((int) $parts[0], $head, self::createMsgBody());
     }
 
     public static function success(int $index, ServerProperties $serverProperties, RpcResponseInterface $response, int $responseTime): StatEntry
@@ -132,7 +132,7 @@ final class StatEntry
             slaveSetName: '',
             slaveSetArea: '',
             slaveSetID: '',
-            tarsVersion: (string)$request->getVersion(),
+            tarsVersion: (string) $request->getVersion(),
         );
         $count += [
             'totalRspTime' => $responseTime,

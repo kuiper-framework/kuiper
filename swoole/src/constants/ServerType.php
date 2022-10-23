@@ -13,17 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\constants;
 
-use kuiper\helper\Enum;
 use Swoole\Http\Server as HttpServer;
 use Swoole\Server;
 
-/**
- * Class SwooleServerType.
- *
- * @property string $server
- * @property array  $settings
- * @property array  $events
- */
 enum ServerType: string
 {
     case HTTP = 'http';
@@ -31,7 +23,6 @@ enum ServerType: string
     case WEBSOCKET = 'websocket';
     case TCP = 'tcp';
     case UDP = 'udp';
-
     public function isHttpProtocol(): bool
     {
         return in_array(Event::REQUEST, $this->handledEvents(), true);

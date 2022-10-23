@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,43 +27,43 @@ final class StatMicMsgBody
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 0)]
+    #[TarsProperty(type: 'int', order: 0)]
     public readonly int $count;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 1)]
+    #[TarsProperty(type: 'int', order: 1)]
     public readonly int $timeoutCount;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 2)]
+    #[TarsProperty(type: 'int', order: 2)]
     public readonly int $execCount;
 
     /**
      * @var int[]
      */
-    #[TarsProperty(type: "map<int,int>", order: 3)]
+    #[TarsProperty(type: 'map<int,int>', order: 3)]
     public readonly array $intervalCount;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "long", order: 4)]
+    #[TarsProperty(type: 'long', order: 4)]
     public readonly int $totalRspTime;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 5)]
+    #[TarsProperty(type: 'int', order: 5)]
     public readonly int $maxRspTime;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 6)]
+    #[TarsProperty(type: 'int', order: 6)]
     public readonly int $minRspTime;
 
     public function __construct(
@@ -76,12 +75,12 @@ final class StatMicMsgBody
         int $maxRspTime,
         int $minRspTime
     ) {
-          $this->count = $count;
-          $this->timeoutCount = $timeoutCount;
-          $this->execCount = $execCount;
-          $this->intervalCount = $intervalCount;
-          $this->totalRspTime = $totalRspTime;
-          $this->maxRspTime = $maxRspTime;
-          $this->minRspTime = $minRspTime;
+        $this->count = $count;
+        $this->timeoutCount = $timeoutCount;
+        $this->execCount = $execCount;
+        $this->intervalCount = $intervalCount;
+        $this->totalRspTime = $totalRspTime;
+        $this->maxRspTime = $maxRspTime;
+        $this->minRspTime = $minRspTime;
     }
 }

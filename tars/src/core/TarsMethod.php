@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace kuiper\tars\core;
 
 use kuiper\rpc\RpcMethod;
-use kuiper\rpc\ServiceLocator;
 use kuiper\rpc\ServiceLocatorImpl;
 
 class TarsMethod extends RpcMethod implements TarsMethodInterface

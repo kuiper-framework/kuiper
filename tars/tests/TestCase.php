@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\tars;
 
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\di\ContainerBuilder;
 use kuiper\event\EventConfiguration;
 use kuiper\helper\PropertyResolverInterface;

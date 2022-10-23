@@ -210,6 +210,7 @@ abstract class AbstractTcpTransporter implements TransporterInterface, LoggerAwa
 
     /**
      * @return ResponseInterface
+     *
      * @throws ConnectionException
      */
     abstract public function recv(): ResponseInterface;

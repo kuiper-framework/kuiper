@@ -53,8 +53,8 @@ FROM
     `article`
 WHERE
     id IN (:_1_)', $query->getStatement());
-        //$bindValues = $query->getBindValues();
-        //var_export($bindValues);
+        // $bindValues = $query->getBindValues();
+        // var_export($bindValues);
     }
 
     public function testWhereMultipleFields(): void

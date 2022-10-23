@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
-use kuiper\di\ContainerAwareInterface;
 use function DI\autowire;
 use function DI\factory;
 use kuiper\di\AwareInjection;
+use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerBuilder;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;

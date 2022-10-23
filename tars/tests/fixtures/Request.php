@@ -13,14 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\tars\fixtures;
 
-
 use kuiper\tars\attribute\TarsProperty;
 
 final class Request
 {
-
     public function __construct(
-
         #[TarsProperty(type: 'int', order: 0)]
         public readonly int $intRequired = 0,
 
@@ -41,7 +38,6 @@ final class Request
 
         #[TarsProperty(type: 'long', order: 6)]
         public readonly int $longRequired = 0,
-    )
-    {
+    ) {
     }
 }

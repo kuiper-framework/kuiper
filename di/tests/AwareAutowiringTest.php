@@ -34,11 +34,11 @@ class AwareAutowiringTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $builder->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class));
-        $logger = \kuiper\logger\Logger::nullLogger();
+        $logger = new NullLogger();
         $builder->addDefinitions([
             LoggerInterface::class => $logger,
             'fooWithLogger' => autowire(FooLoggerAware::class)
-                ->method('setLogger', \kuiper\logger\Logger::nullLogger()),
+                ->method('setLogger', new NullLogger()),
         ]);
         $container = $builder->build();
         $foo = $container->get(FooLoggerAware::class);

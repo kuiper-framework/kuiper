@@ -32,7 +32,6 @@ final class ResponsePacket
 
     public string $sBuffer = '';
 
-
     public string $sResultDesc = '';
 
     /**
@@ -101,7 +100,7 @@ final class ResponsePacket
             $is->readInt32(8, true);
             $packet->context = $is->readMap(9, true, MapType::stringMap());
             $packet->status = $is->readMap(10, true, MapType::stringMap());
-            $packet->iRet = (int)($packet->context[TarsConst::RESULT_CODE] ?? ErrorCode::SERVER_SUCCESS);
+            $packet->iRet = (int) ($packet->context[TarsConst::RESULT_CODE] ?? ErrorCode::SERVER_SUCCESS);
             $packet->sResultDesc = $packet->context[TarsConst::RESULT_DESC] ?? '';
         } else {
             $packet->cPacketType = $is->readInt8(2, true);

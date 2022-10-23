@@ -22,6 +22,7 @@ class RedisStateStore implements StateStore
     public function getState(string $name): State
     {
         $value = (int) $this->redis->get($this->keyPrefix.$name);
+
         return State::tryFrom($value) ?? State::CLOSED;
     }
 

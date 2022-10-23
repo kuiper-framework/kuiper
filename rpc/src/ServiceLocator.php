@@ -15,7 +15,6 @@ namespace kuiper\rpc;
 
 interface ServiceLocator extends \Stringable
 {
-
     /**
      * @return string
      */
@@ -33,6 +32,7 @@ interface ServiceLocator extends \Stringable
 
     /**
      * @param ServiceLocator $other
+     *
      * @return bool
      */
     public function equals(ServiceLocator $other): bool;

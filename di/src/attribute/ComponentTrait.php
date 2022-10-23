@@ -23,12 +23,12 @@ trait ComponentTrait
     protected ?string $componentId;
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function setTarget(\Reflector $class): void
     {
         if (!$class instanceof \ReflectionClass) {
-            throw new \InvalidArgumentException(sprintf("Attribute %s only target class", get_class($this)));
+            throw new \InvalidArgumentException(sprintf('Attribute %s only target class', get_class($this)));
         }
         $this->class = $class;
     }

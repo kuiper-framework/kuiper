@@ -22,16 +22,17 @@ use Laminas\Code\Generator\AbstractMemberGenerator;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\ParameterGenerator;
-use Laminas\Code\Generator\PropertyGenerator;
 use Laminas\Code\Reflection\ParameterReflection;
 
 class ConnectionProxyGenerator
 {
     /**
      * @template T
+     *
      * @param PoolFactoryInterface $poolFactory
-     * @param class-string<T> $className
-     * @param callable $connectionFactory
+     * @param class-string<T>      $className
+     * @param callable             $connectionFactory
+     *
      * @return T
      */
     public static function create(PoolFactoryInterface $poolFactory, string $className, callable $connectionFactory): object

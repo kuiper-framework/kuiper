@@ -58,6 +58,7 @@ class CircuitBreakerConfig
      * return true if the result should count as a failure.
      *
      * @param mixed $result
+     *
      * @return bool
      */
     public function isFailureResult(mixed $result): bool

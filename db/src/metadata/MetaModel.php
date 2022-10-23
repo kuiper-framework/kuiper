@@ -26,7 +26,6 @@ use ReflectionClass;
 
 class MetaModel implements MetaModelInterface
 {
-
     /**
      * @var MetaModelProperty[]
      */
@@ -48,7 +47,7 @@ class MetaModel implements MetaModelInterface
 
     private ?array $columnAlias = null;
 
-    private ?string $naturalIdIndex  = null;
+    private ?string $naturalIdIndex = null;
 
     public function __construct(
         private readonly string $table,

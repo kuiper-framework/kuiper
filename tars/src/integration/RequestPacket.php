@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,61 +27,61 @@ final class RequestPacket
     /**
      * @var int
      */
-    #[TarsProperty(type: "short", order: 1)]
+    #[TarsProperty(type: 'short', order: 1)]
     public readonly int $iVersion;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "byte", order: 2)]
+    #[TarsProperty(type: 'byte', order: 2)]
     public readonly int $cPacketType;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 3)]
+    #[TarsProperty(type: 'int', order: 3)]
     public readonly int $iMessageType;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 4)]
+    #[TarsProperty(type: 'int', order: 4)]
     public readonly int $iRequestId;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 5)]
+    #[TarsProperty(type: 'string', order: 5)]
     public readonly string $sServantName;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 6)]
+    #[TarsProperty(type: 'string', order: 6)]
     public readonly string $sFuncName;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "vector<byte>", order: 7)]
+    #[TarsProperty(type: 'vector<byte>', order: 7)]
     public readonly string $sBuffer;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 8)]
+    #[TarsProperty(type: 'int', order: 8)]
     public readonly int $iTimeout;
 
     /**
      * @var string[]
      */
-    #[TarsProperty(type: "map<string,string>", order: 9)]
+    #[TarsProperty(type: 'map<string,string>', order: 9)]
     public readonly array $context;
 
     /**
      * @var string[]
      */
-    #[TarsProperty(type: "map<string,string>", order: 10)]
+    #[TarsProperty(type: 'map<string,string>', order: 10)]
     public readonly array $status;
 
     public function __construct(
@@ -97,15 +96,15 @@ final class RequestPacket
         array $context,
         array $status
     ) {
-          $this->iVersion = $iVersion;
-          $this->cPacketType = $cPacketType;
-          $this->iMessageType = $iMessageType;
-          $this->iRequestId = $iRequestId;
-          $this->sServantName = $sServantName;
-          $this->sFuncName = $sFuncName;
-          $this->sBuffer = $sBuffer;
-          $this->iTimeout = $iTimeout;
-          $this->context = $context;
-          $this->status = $status;
+        $this->iVersion = $iVersion;
+        $this->cPacketType = $cPacketType;
+        $this->iMessageType = $iMessageType;
+        $this->iRequestId = $iRequestId;
+        $this->sServantName = $sServantName;
+        $this->sFuncName = $sFuncName;
+        $this->sBuffer = $sBuffer;
+        $this->iTimeout = $iTimeout;
+        $this->context = $context;
+        $this->status = $status;
     }
 }

@@ -17,7 +17,6 @@ use kuiper\rpc\server\ServerRequestHolder;
 use kuiper\swoole\logger\LineRequestLogFormatter;
 use kuiper\swoole\logger\LogContext;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
 class RpcRequestLogFormatter extends LineRequestLogFormatter
 {

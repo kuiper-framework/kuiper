@@ -13,13 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\attribute;
 
-
 use Attribute;
 
 /**
  * Mark field not serialize.
  */
-#[Attribute(Attribute::TARGET_METHOD| Attribute::TARGET_PROPERTY)]
+#[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_PROPERTY)]
 final class SerializeIgnore
 {
 }

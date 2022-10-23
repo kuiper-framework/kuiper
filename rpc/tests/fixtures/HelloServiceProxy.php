@@ -22,11 +22,12 @@ class HelloServiceProxy implements HelloService
     {
     }
 
-    #[AbstractMiddlewareFactory] #[AbstractMiddlewareFactory] public function hello(string $name): string
-    {
-        [$ret] = $this->rpcExecutorFactory->createExecutor($this, __METHOD__, [$name])
+    #[AbstractMiddlewareFactory] #[AbstractMiddlewareFactory]
+ public function hello(string $name): string
+ {
+     [$ret] = $this->rpcExecutorFactory->createExecutor($this, __METHOD__, [$name])
             ->execute();
 
-        return $ret;
-    }
+     return $ret;
+ }
 }

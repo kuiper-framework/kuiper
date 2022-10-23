@@ -19,8 +19,6 @@ use kuiper\swoole\event\RequestEvent;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use Webmozart\Assert\Assert;
 
 class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInterface

@@ -131,7 +131,7 @@ class ReflectionFile implements ReflectionFileInterface
         if (!defined('T_NAME_FULLY_QUALIFIED')) {
             define('T_NAME_FULLY_QUALIFIED', 24002);
         }
-        $tokens = TokenStream::createFromFile($this->file);
+        $tokens = TokenStream::fromFile($this->file);
 
         $this->namespaces = [];
         $this->classes = [];

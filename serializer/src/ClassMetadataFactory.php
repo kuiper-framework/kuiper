@@ -37,6 +37,7 @@ class ClassMetadataFactory
 
     /**
      * gets class properties metadata.
+     *
      * @throws ReflectionException
      */
     public function create(string $className): ClassMetadata
@@ -86,8 +87,7 @@ class ClassMetadataFactory
             $docBlock = $this->reflectionDocBlockFactory->createMethodDocBlock($method);
             $types = array_values($docBlock->getParameterTypes());
             if (!$this->validateType($types[0])) {
-                throw new NotSerializableException(sprintf('Cannot serialize class %s for method %s',
-                    $method->getDeclaringClass()->getName(), $method->getName()));
+                throw new NotSerializableException(sprintf('Cannot serialize class %s for method %s', $method->getDeclaringClass()->getName(), $method->getName()));
             }
             $field = new Field($metadata->getClassName(), lcfirst(substr($name, 3)));
             $field->setType($types[0]);
@@ -108,8 +108,7 @@ class ClassMetadataFactory
             && !$this->isIgnore($method)) {
             $type = $this->reflectionDocBlockFactory->createMethodDocBlock($method)->getReturnType();
             if (!$this->validateType($type)) {
-                throw new NotSerializableException(sprintf('Cannot serialize class %s for method %s',
-                    $method->getDeclaringClass()->getName(), $method->getName()));
+                throw new NotSerializableException(sprintf('Cannot serialize class %s for method %s', $method->getDeclaringClass()->getName(), $method->getName()));
             }
             $field = new Field($metadata->getClassName(), lcfirst($matches[2]));
             $field->setType($type);
@@ -130,8 +129,7 @@ class ClassMetadataFactory
             }
             $type = $this->reflectionDocBlockFactory->createPropertyDocBlock($property)->getType();
             if (!$this->validateType($type)) {
-                throw new NotSerializableException(sprintf('Cannot serialize class %s for property %s',
-                    $property->getDeclaringClass()->getName(), $property->getName()));
+                throw new NotSerializableException(sprintf('Cannot serialize class %s for property %s', $property->getDeclaringClass()->getName(), $property->getName()));
             }
             $field = new Field($metadata->getClassName(), $property->getName());
             $field->setPublic($property->isPublic());
@@ -172,8 +170,10 @@ class ClassMetadataFactory
         if (count($attributes) > 0) {
             /** @var SerializeName $attribute */
             $attribute = $attributes[0]->newInstance();
+
             return $attribute->getName();
         }
+
         return null;
     }
 

@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,37 +27,37 @@ final class GetConfigListInfo
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $appname;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 1)]
+    #[TarsProperty(type: 'string', order: 1)]
     public readonly ?string $servername;
 
     /**
      * @var bool|null
      */
-    #[TarsProperty(type: "bool", order: 2)]
+    #[TarsProperty(type: 'bool', order: 2)]
     public readonly ?bool $bAppOnly;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 3)]
+    #[TarsProperty(type: 'string', order: 3)]
     public readonly ?string $host;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 4)]
+    #[TarsProperty(type: 'string', order: 4)]
     public readonly ?string $setdivision;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 5)]
+    #[TarsProperty(type: 'string', order: 5)]
     public readonly ?string $containername;
 
     public function __construct(
@@ -69,11 +68,11 @@ final class GetConfigListInfo
         ?string $setdivision = null,
         ?string $containername = null
     ) {
-          $this->appname = $appname;
-          $this->servername = $servername;
-          $this->bAppOnly = $bAppOnly;
-          $this->host = $host;
-          $this->setdivision = $setdivision;
-          $this->containername = $containername;
+        $this->appname = $appname;
+        $this->servername = $servername;
+        $this->bAppOnly = $bAppOnly;
+        $this->host = $host;
+        $this->setdivision = $setdivision;
+        $this->containername = $containername;
     }
 }

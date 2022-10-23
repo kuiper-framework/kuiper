@@ -15,8 +15,8 @@ namespace kuiper\logger;
 
 use DI\Definition\FactoryDefinition;
 use DI\Definition\ObjectDefinition;
-use kuiper\di\attribute\Bean;
 use function DI\factory;
+use kuiper\di\attribute\Bean;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;

@@ -42,9 +42,10 @@ class RpcResponseNormalizer
 
     /**
      * @param RpcMethodInterface $method
-     * @param array $result
+     * @param array              $result
      *
      * @return array
+     *
      * @throws ReflectionException
      * @throws ClassNotFoundException
      */
@@ -112,8 +113,9 @@ class RpcResponseNormalizer
     }
 
     /**
-     * @param \ReflectionType|null $phpType
+     * @param \ReflectionType|null    $phpType
      * @param ReflectionTypeInterface $docType
+     *
      * @return ReflectionTypeInterface|null
      */
     private function createType(?\ReflectionType $phpType, ReflectionTypeInterface $docType): ?ReflectionTypeInterface

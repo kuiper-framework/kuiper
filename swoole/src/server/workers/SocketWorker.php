@@ -103,7 +103,7 @@ class SocketWorker extends AbstractWorker
     private function accept(): bool|int
     {
         $socket = stream_socket_accept($this->resource, 0);
-        //惊群
+        // 惊群
         if (false === $socket) {
             return false;
         }
@@ -171,13 +171,14 @@ class SocketWorker extends AbstractWorker
         }
         $name = stream_socket_get_name($this->sockets[$clientId], true);
         [$ip, $port] = explode(':', $name);
+
         return new ConnectionInfo(
             remoteIp: $ip,
             remotePort: (int) $port,
             serverPort: $this->getServerConfig()->getPort()->getPort(),
             serverFd: (int) $this->resource,
             connectTime: (int) ($this->clients[$clientId]['connect_time'] ?? 0),
-            lastTime:(int) ($this->clients[$clientId]['last_time'] ?? 0)
+            lastTime: (int) ($this->clients[$clientId]['last_time'] ?? 0)
         );
     }
 

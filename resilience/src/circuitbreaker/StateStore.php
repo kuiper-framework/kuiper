@@ -30,6 +30,7 @@ interface StateStore
 
     /**
      * @param string $name
+     *
      * @return int
      */
     public function getOpenAt(string $name): int;

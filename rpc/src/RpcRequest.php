@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpMissingReturnTypeInspection */
+<?php
+
+/** @noinspection PhpMissingReturnTypeInspection */
 
 /*
  * This file is part of the Kuiper package.
@@ -35,6 +37,7 @@ class RpcRequest implements RpcRequestInterface
     {
         $new = clone $this;
         $new->httpRequest = $httpRequest;
+
         return $new;
     }
 
@@ -165,6 +168,7 @@ class RpcRequest implements RpcRequestInterface
     {
         $new = clone $this;
         $new->rpcMethod = $rpcMethod;
+
         return $new;
     }
 }

@@ -101,6 +101,7 @@ class HttpProxyClientFactory
         $rpcClient = new RpcClient(new HttpTransporter($this->httpClient), $this->getRpcResponseFactory());
         $requestFactory = new HttpRpcRequestFactory($this->normalizer, new RpcMethodFactory());
         $rpcExecutorFactory = new RpcExecutorFactory($requestFactory, $rpcClient);
+
         return new $class($rpcExecutorFactory);
     }
 }

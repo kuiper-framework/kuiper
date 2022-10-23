@@ -17,7 +17,7 @@ use kuiper\reflection\ReflectionType;
 
 class ClassType extends ReflectionType
 {
-    public function __construct(private string $className, bool $allowsNull = false)
+    public function __construct(private readonly string $className, bool $allowsNull = false)
     {
         parent::__construct($allowsNull);
     }

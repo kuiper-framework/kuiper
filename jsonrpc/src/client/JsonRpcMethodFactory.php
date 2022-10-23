@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
-use kuiper\helper\Text;
 use kuiper\jsonrpc\attribute\JsonRpcClient;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\rpc\client\ProxyGenerator;
@@ -55,12 +54,12 @@ class JsonRpcMethodFactory implements RpcMethodFactoryInterface
                 $attribute = $attributes[0]->newInstance();
             }
             if (!isset($options['service'])) {
-                $options['service'] = (null !== $attribute) && $attribute->getService() !== ''
+                $options['service'] = (null !== $attribute) && '' !== $attribute->getService()
                     ? $attribute->getService()
                     : str_replace('\\', '.', $interfaceName);
             }
             if (!isset($options['version'])) {
-                $options['version'] = (null !== $attribute) && $attribute->getVersion() !== ''
+                $options['version'] = (null !== $attribute) && '' !== $attribute->getVersion()
                     ? $attribute->getVersion()
                     : '1.0';
             }

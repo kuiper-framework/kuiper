@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc;
 
+use function DI\factory;
 use kuiper\di\ContainerBuilder;
 use kuiper\event\EventConfiguration;
 use kuiper\helper\PropertyResolverInterface;
@@ -37,7 +38,6 @@ use Monolog\Logger;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
-use function DI\factory;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {

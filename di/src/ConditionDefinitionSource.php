@@ -24,9 +24,9 @@ class ConditionDefinitionSource implements DefinitionSource, ContainerAwareInter
 {
     use ContainerAwareTrait;
 
-    private DefinitionArray $source;
+    private readonly DefinitionArray $source;
 
-    private array $resolving;
+    private array $resolving = [];
 
     public function __construct(private readonly array $definitions, Autowiring $autowiring = null)
     {
@@ -49,6 +49,7 @@ class ConditionDefinitionSource implements DefinitionSource, ContainerAwareInter
             throw new InvalidDefinition("Circular dependency detected while trying to resolve entry '$name'");
         }
         $this->resolving[$name] = true;
+        // there maybe multiple definitions, the last one which matches win
         $conditionDefs = $this->definitions[$name];
         foreach (array_reverse($conditionDefs) as $conditionDef) {
             if (!$conditionDef instanceof ConditionDefinition) {

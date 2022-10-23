@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 /*
  * This file is part of the Kuiper package.
@@ -65,11 +67,11 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     /**
      * Constructor connection.
      *
-     * @param string $dsn        The data source name for a lazy PDO connection,
+     * @param string      $dsn        The data source name for a lazy PDO connection,
      * @param string|null $username   the username for a lazy connection
      * @param string|null $password   the password for a lazy connection
-     * @param array  $options    driver-specific options for a lazy connection
-     * @param array  $attributes attributes to set after a lazy connection
+     * @param array       $options    driver-specific options for a lazy connection
+     * @param array       $attributes attributes to set after a lazy connection
      *
      * @see http://php.net/manual/en/pdo.construct.php
      * @noinspection MagicMethodsValidityInspection

@@ -16,8 +16,6 @@ namespace kuiper\rpc;
 use kuiper\helper\Arrays;
 use kuiper\swoole\logger\JsonRequestLogFormatter;
 use kuiper\swoole\logger\LogContext;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
 class JsonRpcRequestLogFormatter extends RpcRequestLogFormatter
 {

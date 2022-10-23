@@ -23,13 +23,13 @@ class Item
 {
     #[Id]
     #[GeneratedValue]
-    #[Column("id")]
+    #[Column('id')]
     private ?int $itemId = null;
 
     #[ShardKey]
     private ?int $sharding = null;
 
-    #[NaturalId("uk_item")]
+    #[NaturalId('uk_item')]
     private ?string $itemNo = null;
 
     public function getItemId(): int

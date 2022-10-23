@@ -18,7 +18,7 @@ use kuiper\reflection\TypeFilterInterface;
 
 class ClassTypeFilter implements TypeFilterInterface
 {
-    public function __construct(private ClassType $type)
+    public function __construct(private readonly ClassType $type)
     {
     }
 

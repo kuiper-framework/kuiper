@@ -16,8 +16,9 @@ namespace kuiper\swoole\coroutine;
 interface ChannelInterface
 {
     /**
-     * @param mixed $data
+     * @param mixed      $data
      * @param float|null $timeout
+     *
      * @return bool
      */
     public function push(mixed $data, float $timeout = null): bool;
@@ -30,7 +31,8 @@ interface ChannelInterface
     public function pop(float $timeout = null): mixed;
 
     /**
-     * Gets the number of elements in the channel
+     * Gets the number of elements in the channel.
+     *
      * @return int
      */
     public function size(): int;

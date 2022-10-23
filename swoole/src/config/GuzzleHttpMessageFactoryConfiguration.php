@@ -13,13 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\config;
 
+use function DI\autowire;
+use function DI\get;
+use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\ConditionalOnClass;
 use kuiper\di\attribute\ConditionalOnProperty;
 use kuiper\di\attribute\Configuration;
-use function DI\autowire;
-use function DI\get;
-use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\swoole\http\GuzzleSwooleRequestBridge;
@@ -34,7 +34,7 @@ use Psr\Http\Message\UriFactoryInterface;
 #[Configuration]
 #[AllConditions(
     new ConditionalOnClass(HttpFactory::class),
-    new ConditionalOnProperty("application.server.http_factory", hasValue: "guzzle", matchIfMissing: true)
+    new ConditionalOnProperty('application.server.http_factory', hasValue: 'guzzle', matchIfMissing: true)
 )]
 class GuzzleHttpMessageFactoryConfiguration implements DefinitionConfiguration
 {

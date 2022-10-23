@@ -26,6 +26,7 @@ class Configuration implements Component, ContainerBuilderAwareInterface
 
     /**
      * Configuration constructor.
+     *
      * @param string[] $dependOn
      */
     public function __construct(private readonly array $dependOn = [])

@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
+use function kuiper\helper\env;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
-use function kuiper\helper\env;
 
 class CacheConfigurationTest extends CacheTestCase
 {
@@ -44,7 +44,7 @@ class CacheConfigurationTest extends CacheTestCase
         $this->assertInstanceOf(\Redis::class, $redis);
         $ret = $redis->set('foo', 'bar');
         $this->assertTrue($ret);
-        $this->assertTrue((bool)$redis->exists('foo'));
+        $this->assertTrue((bool) $redis->exists('foo'));
     }
 
     public function testCacheUsingSymfony(): void
@@ -91,5 +91,4 @@ class CacheConfigurationTest extends CacheTestCase
         $cache->delete('foo');
         $this->assertInstanceOf(SimpleCache::class, $cache);
     }
-
 }

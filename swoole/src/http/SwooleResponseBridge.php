@@ -21,8 +21,8 @@ use Swoole\Timer;
 class SwooleResponseBridge implements SwooleResponseBridgeInterface
 {
     /**
-     * @param int $bufferOutputSize swoole default buffer_output_size.
-     * @param int $tempFileDelay Delay milliseconds to delete template response body file.
+     * @param int $bufferOutputSize swoole default buffer_output_size
+     * @param int $tempFileDelay    delay milliseconds to delete template response body file
      */
     public function __construct(private readonly int $bufferOutputSize = 2097152, private readonly int $tempFileDelay = 5000)
     {

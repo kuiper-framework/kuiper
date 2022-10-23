@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\task;
 
-use kuiper\swoole\event\TaskEvent;
 use kuiper\swoole\server\ServerInterface;
 
 interface TaskInterface

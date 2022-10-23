@@ -13,13 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\tars\fixtures;
 
-
 use kuiper\tars\attribute\TarsProperty;
 
 final class RequestWithDefault
 {
     public function __construct(
-
         #[TarsProperty(type: 'int', order: 0)]
         public readonly int $intRequired = 0,
 
@@ -43,7 +41,6 @@ final class RequestWithDefault
 
         #[TarsProperty(type: 'vector<string>', order: 7)]
         public readonly ?array $arrayOpt = null,
-    )
-    {
+    ) {
     }
 }

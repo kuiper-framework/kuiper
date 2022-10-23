@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\attribute;
 
-#[\Attribute(\Attribute::TARGET_PROPERTY|\Attribute::TARGET_PARAMETER)]
+#[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_PARAMETER)]
 final class TarsProperty
 {
     public function __construct(

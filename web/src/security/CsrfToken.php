@@ -92,7 +92,7 @@ class CsrfToken implements CsrfTokenInterface
         }
         $randBytes = openssl_random_pseudo_bytes($bytes, $strong);
         /** @phpstan-ignore-next-line */
-        if (!$strong || $randBytes === false) {
+        if (!$strong || false === $randBytes) {
             return $this->generateRandomString($bytes);
         }
         $string = base64_encode($randBytes);

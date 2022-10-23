@@ -31,7 +31,7 @@ class TarsServerRequestFactory implements RpcServerRequestFactoryInterface, Logg
 
     /**
      * @param RpcMethodFactoryInterface $rpcMethodFactory
-     * @param Service[] $services
+     * @param Service[]                 $services
      */
     public function __construct(
         private readonly RpcMethodFactoryInterface $rpcMethodFactory,

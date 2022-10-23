@@ -17,7 +17,6 @@ use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponse;
 use kuiper\rpc\RpcResponseInterface;
-use phpDocumentor\Reflection\Types\Integer;
 use Psr\Http\Message\ResponseInterface;
 
 class RpcResponseFactory implements RpcResponseFactoryInterface

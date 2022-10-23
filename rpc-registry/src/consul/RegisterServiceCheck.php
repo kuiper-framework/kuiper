@@ -53,13 +53,11 @@ class RegisterServiceCheck
 
     /**
      * Specifies a TCP to connect against the value of TCP (expected to be an IP or hostname plus port combination).
-     *
      */
     public ?string $TCP = null;
 
     /**
      * Specifies this is a TTL check, and the TTL endpoint must be used periodically to update the state of the check.
-     *
      */
     public ?int $TTL = null;
 }

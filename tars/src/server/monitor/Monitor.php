@@ -30,8 +30,8 @@ class Monitor implements MonitorInterface, LoggerAwareInterface
     protected const TAG = '['.__CLASS__.'] ';
 
     /**
-     * @param ServerProperties $serverProperties
-     * @param PropertyFServant $propertyFClient
+     * @param ServerProperties     $serverProperties
+     * @param PropertyFServant     $propertyFClient
      * @param CollectorInterface[] $collectors
      */
     public function __construct(
@@ -59,7 +59,7 @@ class Monitor implements MonitorInterface, LoggerAwareInterface
     public function createHead(string $propertyName): StatPropMsgHead
     {
         return new StatPropMsgHead(
-            moduleName:  $this->serverProperties->getServerName(),
+            moduleName: $this->serverProperties->getServerName(),
             ip: $this->serverProperties->getLocalIp(),
             propertyName: $propertyName,
             iPropertyVer: 1
@@ -75,6 +75,7 @@ class Monitor implements MonitorInterface, LoggerAwareInterface
     private function createBody(string $policy, string $value): StatPropMsgBody
     {
         $propInfo = new StatPropInfo($policy, $value);
+
         return new StatPropMsgBody([$propInfo]);
     }
 }

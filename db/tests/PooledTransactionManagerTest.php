@@ -9,13 +9,12 @@ use kuiper\db\fixtures\ItemRepository;
 use kuiper\db\metadata\MetaModelFactory;
 use kuiper\db\metadata\NamingStrategy;
 use kuiper\event\NullEventDispatcher;
+use function kuiper\helper\env;
 use kuiper\logger\Logger;
 use kuiper\reflection\ReflectionDocBlockFactory;
-use function kuiper\helper\env;
 use kuiper\swoole\pool\PoolConfig;
 use kuiper\swoole\pool\SimplePool;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class PooledTransactionManagerTest extends AbstractRepositoryTestCase

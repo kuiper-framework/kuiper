@@ -19,28 +19,28 @@ use kuiper\http\client\attribute\HttpHeader;
 use kuiper\http\client\attribute\PutMapping;
 use kuiper\http\client\attribute\QueryParam;
 
-#[HttpClient(path: "/v1/agent")]
-#[HttpHeader("content-type", "application/json")]
+#[HttpClient(path: '/v1/agent')]
+#[HttpHeader('content-type', 'application/json')]
 interface ConsulAgent
 {
     /**
      * @return Service[]
      */
-    #[GetMapping("/services")]
+    #[GetMapping('/services')]
     public function getServices(string $filter = null, string $ns = null): array;
 
     /**
-     * Gets the service
+     * Gets the service.
      */
-    #[GetMapping("/service/{service}")]
+    #[GetMapping('/service/{service}')]
     public function getService(string $service): Service;
 
-    #[PutMapping("/service/register")]
+    #[PutMapping('/service/register')]
     public function registerService(
-        RegisterServiceRequest                        $request,
-        #[QueryParam("replace-existing-checks")] bool $replaceExistingChecks = null): void;
+        RegisterServiceRequest $request,
+        #[QueryParam('replace-existing-checks')] bool $replaceExistingChecks = null): void;
 
-    #[PutMapping("/service/deregister/{service}")]
+    #[PutMapping('/service/deregister/{service}')]
     public function deregisterService(string $service): void;
 
     /**
@@ -48,6 +48,6 @@ interface ConsulAgent
      *
      * @return ServiceHealth[]
      */
-    #[GetMapping("/health/service/name/{service}")]
+    #[GetMapping('/health/service/name/{service}')]
     public function getServiceHealth(string $service): array;
 }

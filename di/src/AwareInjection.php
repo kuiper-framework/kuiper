@@ -26,8 +26,8 @@ class AwareInjection
     private $methodInjectionFactory;
 
     public function __construct(
-        private  readonly string $awareInterfaceName,
-        private  readonly string $setter,
+        private readonly string $awareInterfaceName,
+        private readonly string $setter,
         callable $methodInjectionFactory)
     {
         $this->methodInjectionFactory = $methodInjectionFactory;
@@ -50,7 +50,8 @@ class AwareInjection
                 return;
             }
         }
-        $definition->addMethodInjection(new MethodInjection($this->setter, call_user_func($this->methodInjectionFactory, $definition)));
+        $parameters = call_user_func($this->methodInjectionFactory, $definition);
+        $definition->addMethodInjection(new MethodInjection($this->setter, $parameters));
     }
 
     public static function create(string $awareInterfaceName): AwareInjection

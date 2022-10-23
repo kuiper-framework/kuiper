@@ -52,11 +52,13 @@ class EnumType extends AbstractType
 
     /**
      * @param int $value
+     *
      * @return T
      */
     public function createEnum(int $value)
     {
         $enumClass = $this->className;
+
         return $enumClass::from($value);
     }
 

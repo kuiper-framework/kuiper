@@ -18,6 +18,7 @@ namespace kuiper\helper;
  *
  * @property string $name
  * @property mixed  $value
+ *
  * @deprecated
  */
 abstract class Enum implements \JsonSerializable, \Stringable
@@ -91,11 +92,11 @@ abstract class Enum implements \JsonSerializable, \Stringable
             return static::$PROPERTIES[$name][$this->value] ?? null;
         }
 
-        if ($name === 'name') {
+        if ('name' === $name) {
             return $this->name;
         }
 
-        if ($name === 'value') {
+        if ('value' === $name) {
             return $this->value;
         }
 
@@ -150,6 +151,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
      * Checks whether the enum value exists.
      *
      * @param mixed $value
+     *
      * @return bool
      */
     public static function hasValue(mixed $value): bool
@@ -161,6 +163,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
      * Gets the name for the enum value.
      *
      * @param mixed $value
+     *
      * @return string|null
      */
     public static function nameOf(mixed $value): ?string
@@ -193,7 +196,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
     /**
      * Gets the enum instance for the name.
      *
-     * @param string $name
+     * @param string      $name
      * @param static|null $default
      *
      * @return static
@@ -214,7 +217,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
     /**
      * Gets the enum instance for the value.
      *
-     * @param mixed $value
+     * @param mixed       $value
      * @param static|null $default
      *
      * @return static
@@ -235,7 +238,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
     /**
      * Gets the enum instance by ordinal.
      *
-     * @param int $ordinal
+     * @param int       $ordinal
      * @param Enum|null $default
      *
      * @return static

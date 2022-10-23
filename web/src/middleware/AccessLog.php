@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\web\middleware;
 
-use kuiper\swoole\logger\LogContext;
 use kuiper\swoole\logger\LogContextImpl;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use Psr\Http\Message\ResponseInterface;

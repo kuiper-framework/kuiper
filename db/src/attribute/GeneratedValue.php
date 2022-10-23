@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\db\attribute;
 
-
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
 final class GeneratedValue implements Attribute
 {
@@ -28,5 +27,4 @@ final class GeneratedValue implements Attribute
     {
         return $this->type;
     }
-
 }

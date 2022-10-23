@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 /*
  * This file is part of the Kuiper package.
@@ -14,9 +16,6 @@ declare(strict_types=1);
 namespace kuiper\tars\config;
 
 use DI\Attribute\Inject;
-use kuiper\rpc\ServiceLocatorImpl;
-use ReflectionClass;
-use ReflectionMethod;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
@@ -31,7 +30,7 @@ use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\Service;
-use kuiper\rpc\ServiceLocator;
+use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\serializer\NormalizerInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\ServerConfiguration;
@@ -59,6 +58,8 @@ use kuiper\tars\server\stat\SwooleTableStatStore;
 use kuiper\tars\server\TarsServerFactory;
 use kuiper\tars\server\TarsTcpReceiveEventListener;
 use Psr\Container\ContainerInterface;
+use ReflectionClass;
+use ReflectionMethod;
 use Webmozart\Assert\Assert;
 
 #[Configuration(dependOn: [ServerConfiguration::class])]
@@ -112,9 +113,9 @@ class TarsServerConfiguration implements DefinitionConfiguration
         ];
     }
 
-    #[Bean("tarsServerRequestLog")]
+    #[Bean('tarsServerRequestLog')]
     public function tarsServerRequestLog(
-        #[Inject("tarsServerRequestLogFormatter")] RequestLogFormatterInterface $requestLogFormatter,
+        #[Inject('tarsServerRequestLogFormatter')] RequestLogFormatterInterface $requestLogFormatter,
         LoggerFactoryInterface $loggerFactory): AccessLog
     {
         $middleware = new AccessLog($requestLogFormatter);
@@ -123,7 +124,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
         return $middleware;
     }
 
-    #[Bean("tarsServices")]
+    #[Bean('tarsServices')]
     public function tarsServices(ContainerInterface $container, ServerProperties $serverProperties): array
     {
         $services = [];
@@ -182,14 +183,14 @@ class TarsServerConfiguration implements DefinitionConfiguration
         ComponentCollection::register($annotation);
     }
 
-    #[Bean("monitorCollectors")]
+    #[Bean('monitorCollectors')]
     public function monitorCollectors(ContainerInterface $container): array
     {
         return array_map([$container, 'get'],
             Application::getInstance()->getConfig()->get('application.tars.server.monitors', []));
     }
 
-    #[Bean("tarsServerMiddlewares")]
+    #[Bean('tarsServerMiddlewares')]
     public function tarsServerMiddlewares(ContainerInterface $container): array
     {
         $middlewares = [];

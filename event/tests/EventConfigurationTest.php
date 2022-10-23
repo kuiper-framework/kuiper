@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\event;
 
+use function DI\factory;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\event\fixtures\FooEvent;
@@ -29,7 +30,6 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use function DI\factory;
 
 class EventConfigurationTest extends TestCase
 {

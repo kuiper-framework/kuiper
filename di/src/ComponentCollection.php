@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
-use kuiper\jsonrpc\attribute\JsonRpcService;
-
 final class ComponentCollection
 {
     /**
@@ -41,7 +39,9 @@ final class ComponentCollection
 
     /**
      * @template T
+     *
      * @param class-string<T> $componentClass
+     *
      * @return T[] all annotation objects
      */
     public static function getComponents(string $componentClass): array

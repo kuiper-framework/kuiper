@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\constants;
 
-final class ServerSetting 
+final class ServerSetting
 {
     public const REACTOR_NUM = 'reactor_num';
     public const WORKER_NUM = 'worker_num';
@@ -78,30 +78,64 @@ final class ServerSetting
     public static function type(string $name): string
     {
         return match ($name) {
-            self::REACTOR_NUM, self::WORKER_NUM, self::MAX_REQUEST,
-            self::MAX_CONN, self::MAX_CONNECTION, self::TASK_WORKER_NUM,
-            self::TASK_IPC_MODE, self::TASK_MAX_REQUEST, self::DISPATCH_MODE,
-            self::BACKLOG, self::LOG_LEVEL, self::HEARTBEAT_CHECK_INTERVAL,
-            self::HEARTBEAT_IDLE_TIME, self::PACKAGE_MAX_LENGTH, self::OPEN_CPU_AFFINITY,
-            self::TCP_DEFER_ACCEPT, self::PIPE_BUFFER_SIZE, self::BUFFER_OUTPUT_SIZE,
-            self::SOCKET_BUFFER_SIZE, self::MAX_COROUTINE, self::MAX_WAIT_TIME,
-            self::PACKAGE_BODY_OFFSET, self::PACKAGE_LENGTH_OFFSET => 'int',
-            self::TASK_ENABLE_COROUTINE, self::TASK_USE_OBJECT,
-            self::DAEMONIZE, self::OPEN_EOF_CHECK, self::OPEN_EOF_SPLIT,
-            self::OPEN_LENGTH_CHECK, self::OPEN_TCP_NODELAY, self::ENABLE_UNSAFE_EVENT,
-            self::DISCARD_TIMEOUT_REQUEST, self::ENABLE_REUSE_PORT, self::ENABLE_DELAY_RECEIVE,
-            self::OPEN_HTTP_PROTOCOL, self::OPEN_HTTP2_PROTOCOL, self::OPEN_WEBSOCKET_PROTOCOL,
-            self::OPEN_MQTT_PROTOCOL, self::OPEN_WEBSOCKET_CLOSE_FRAME, self::RELOAD_ASYNC,
-            self::TCP_FASTOPEN, self::ENABLE_COROUTINE, self::SSL_VERIFY_PEER => 'bool',
-            self::DISPATCH_FUNC, self::PACKAGE_LENGTH_FUNC => 'callable',
+            self::REACTOR_NUM,
+            self::WORKER_NUM,
+            self::MAX_REQUEST,
+            self::MAX_CONN,
+            self::MAX_CONNECTION,
+            self::TASK_WORKER_NUM,
+            self::TASK_IPC_MODE,
+            self::TASK_MAX_REQUEST,
+            self::DISPATCH_MODE,
+            self::BACKLOG,
+            self::LOG_LEVEL,
+            self::HEARTBEAT_CHECK_INTERVAL,
+            self::HEARTBEAT_IDLE_TIME,
+            self::PACKAGE_MAX_LENGTH,
+            self::OPEN_CPU_AFFINITY,
+            self::TCP_DEFER_ACCEPT,
+            self::PIPE_BUFFER_SIZE,
+            self::BUFFER_OUTPUT_SIZE,
+            self::SOCKET_BUFFER_SIZE,
+            self::MAX_COROUTINE,
+            self::MAX_WAIT_TIME,
+            self::PACKAGE_BODY_OFFSET,
+            self::PACKAGE_LENGTH_OFFSET => 'int',
+
+            self::TASK_ENABLE_COROUTINE,
+            self::TASK_USE_OBJECT,
+            self::DAEMONIZE,
+            self::OPEN_EOF_CHECK,
+            self::OPEN_EOF_SPLIT,
+            self::OPEN_LENGTH_CHECK,
+            self::OPEN_TCP_NODELAY,
+            self::ENABLE_UNSAFE_EVENT,
+            self::DISCARD_TIMEOUT_REQUEST,
+            self::ENABLE_REUSE_PORT,
+            self::ENABLE_DELAY_RECEIVE,
+            self::OPEN_HTTP_PROTOCOL,
+            self::OPEN_HTTP2_PROTOCOL,
+            self::OPEN_WEBSOCKET_PROTOCOL,
+            self::OPEN_MQTT_PROTOCOL,
+            self::OPEN_WEBSOCKET_CLOSE_FRAME,
+            self::RELOAD_ASYNC,
+            self::TCP_FASTOPEN,
+            self::ENABLE_COROUTINE,
+            self::SSL_VERIFY_PEER => 'bool',
+
+            self::DISPATCH_FUNC,
+            self::PACKAGE_LENGTH_FUNC => 'callable',
+
             self::CPU_AFFINITY_IGNORE => 'array',
+
             default => 'string'
         };
     }
 
     public static function has(string $name): bool
     {
-        $constantName = __CLASS__ . "::" . strtoupper($name);
+        $constantName = __CLASS__.'::'.strtoupper($name);
+
         return defined($constantName) && constant($constantName) === $name;
     }
 }

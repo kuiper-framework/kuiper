@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace kuiper\tars\client;
 
 use GuzzleHttp\Psr7\HttpFactory;
-use kuiper\cache\SimpleCache;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
 use kuiper\logger\Logger;

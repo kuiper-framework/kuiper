@@ -24,11 +24,9 @@ use kuiper\db\SingleConnectionPool;
 use kuiper\db\StatementInterface;
 use kuiper\event\NullEventDispatcher;
 use kuiper\reflection\ReflectionDocBlockFactory;
-use kuiper\tars\server\stat\StatInterface;
 
 class MetaModelCriteriaFilterTest extends AbstractRepositoryTestCase
 {
-
     private ?MetaModelInterface $metaModel = null;
 
     private ?StatementInterface $statement = null;

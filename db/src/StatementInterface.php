@@ -34,21 +34,21 @@ interface StatementInterface
     public function tableAlias(string $alias);
 
     /**
-     * Sets selected columns
+     * Sets selected columns.
      *
      * @return static
      */
     public function select(...$columns);
 
     /**
-     * Sets where statement
+     * Sets where statement.
      *
      * @return static
      */
     public function where(mixed $condition, ...$args);
 
     /**
-     * Sets the binding parameter
+     * Sets the binding parameter.
      *
      * @return static
      */
@@ -63,21 +63,20 @@ interface StatementInterface
     public function orWhere(mixed $condition, ...$args);
 
     /**
-     * Sets like statement
+     * Sets like statement.
      *
      * @return static
      */
     public function like(string $column, string $value);
 
     /**
-     * Sets in statement
+     * Sets in statement.
      *
      * @return static
      */
     public function in(string $column, array $values);
 
     /**
-     *
      * @return static
      */
     public function orIn(string $column, array $values);
@@ -161,6 +160,7 @@ interface StatementInterface
 
     /**
      * @param int|null $fetchStyle
+     *
      * @return array
      */
     public function fetchAll(int $fetchStyle = null): array;

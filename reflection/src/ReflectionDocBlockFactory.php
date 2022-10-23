@@ -59,8 +59,9 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
             $type = ReflectionType::fromPhpType($property->getType());
             if ($type->isUnknown()) {
                 $type = $this->parseTypeFromDocBlock(
-                    (string)$property->getDocComment(), $this->getPropertyDeclaringClass($property), 'var');
+                    (string) $property->getDocComment(), $this->getPropertyDeclaringClass($property), 'var');
             }
+
             return new ReflectionPropertyDocBlock($property, $type);
         }, 'property:');
     }
@@ -80,7 +81,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
             $parameterTypes[$parameter->getName()] = ReflectionType::fromPhpType($parameter->getType());
         }
         [$docBlock, $declaringClass] = $this->getMethodDocComment($method);
-        if ($docBlock !== '' && preg_match_all(self::METHOD_PARAM_REGEX, $docBlock, $matches)) {
+        if ('' !== $docBlock && preg_match_all(self::METHOD_PARAM_REGEX, $docBlock, $matches)) {
             foreach ($matches[2] as $index => $name) {
                 if (!isset($parameterTypes[$name])) {
                     continue;
@@ -102,7 +103,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
             return $type;
         }
         [$docBlock, $declaringClass] = $this->getMethodDocComment($method);
-        if ($docBlock !== '' && preg_match(self::getDocTagRegexp('return'), $docBlock)) {
+        if ('' !== $docBlock && preg_match(self::getDocTagRegexp('return'), $docBlock)) {
             return $this->parseTypeFromDocBlock($docBlock, $declaringClass, 'return');
         }
 
@@ -112,7 +113,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
     private function getCached(ReflectionMethod|ReflectionProperty $reflection, callable $callback, string $prefix): mixed
     {
         $className = $reflection->getDeclaringClass()->getName();
-        $key = $prefix . $reflection->getName();
+        $key = $prefix.$reflection->getName();
         if (!isset(self::$CACHE[$className][$key])) {
             self::$CACHE[$className][$key] = $callback();
         }
@@ -122,15 +123,16 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
 
     private function parseTypeFromDocBlock(string $docBlock, ReflectionClass $declaringClass, string $annotationTag): ReflectionTypeInterface
     {
-        if ($docBlock !== '' && preg_match(self::getDocTagRegexp($annotationTag), $docBlock, $matches)) {
+        if ('' !== $docBlock && preg_match(self::getDocTagRegexp($annotationTag), $docBlock, $matches)) {
             return $this->parseType($matches[1], $declaringClass);
         }
+
         return ReflectionType::forName('mixed');
     }
 
     private static function getDocTagRegexp(string $annotationTag): string
     {
-        return '/@' . $annotationTag . '\s+(\S+)/';
+        return '/@'.$annotationTag.'\s+(\S+)/';
     }
 
     /**
@@ -148,7 +150,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
         try {
             return $this->resolveFqcn($reflectionType, $declaringClass);
         } catch (ReflectionException $e) {
-            trigger_error('Parse type error: ' . $e->getMessage());
+            trigger_error('Parse type error: '.$e->getMessage());
 
             return ReflectionType::forName('mixed');
         }
@@ -195,7 +197,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
 
     private function getMethodDocComment(ReflectionMethod $method): array
     {
-        $doc = (string)$method->getDocComment();
+        $doc = (string) $method->getDocComment();
         if (false !== stripos($doc, '@inheritdoc')) {
             $name = $method->getName();
             $class = $method->getDeclaringClass();
@@ -206,7 +208,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
                 if ($interface->hasMethod($name)) {
                     $method = $interface->getMethod($name);
 
-                    return [(string)$method->getDocComment(), $method->getDeclaringClass()];
+                    return [(string) $method->getDocComment(), $method->getDeclaringClass()];
                 }
             }
         }

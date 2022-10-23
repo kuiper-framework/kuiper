@@ -23,8 +23,8 @@ class TarsResponse extends RpcResponse implements TarsResponseInterface
 {
     public function __construct(
         RpcRequestInterface $request,
-        ResponseInterface   $response,
-        private             readonly ResponsePacket $packet)
+        ResponseInterface $response,
+        private readonly ResponsePacket $packet)
     {
         parent::__construct($request, $response);
     }

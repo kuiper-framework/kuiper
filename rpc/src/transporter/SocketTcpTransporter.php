@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpComposerExtensionStubsInspection */
+<?php
+
+/** @noinspection PhpComposerExtensionStubsInspection */
 
 /*
  * This file is part of the Kuiper package.
@@ -80,7 +82,7 @@ class SocketTcpTransporter extends AbstractTcpTransporter
             if (1000 * (microtime(true) - $time) > $timeout) {
                 $this->onConnectionError(ErrorCode::SOCKET_SELECT_TIMEOUT);
             }
-            //读取最多32M的数据
+            // 读取最多32M的数据
             $data = socket_read($socket, 65536, PHP_BINARY_READ);
 
             if (empty($data)) {
@@ -88,17 +90,17 @@ class SocketTcpTransporter extends AbstractTcpTransporter
                 $this->onConnectionError(ErrorCode::SOCKET_CLOSED);
             }
 
-            //第一个包
+            // 第一个包
             if (null === $response) {
                 $response = $data;
-                //在这里从第一个包中获取总包长
+                // 在这里从第一个包中获取总包长
                 $list = unpack('Nlen', substr($data, 0, 4));
                 $responseLength = $list['len'];
             } else {
                 $response .= $data;
             }
 
-            //check if all package is received
+            // check if all package is received
             if (strlen($response) >= $responseLength) {
                 break;
             }

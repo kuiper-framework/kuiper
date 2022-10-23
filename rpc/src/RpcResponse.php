@@ -19,7 +19,7 @@ use Psr\Http\Message\StreamInterface;
 class RpcResponse implements RpcResponseInterface
 {
     public function __construct(
-        private                   readonly RpcRequestInterface $request,
+        private readonly RpcRequestInterface $request,
         private ResponseInterface $httpResponse)
     {
     }
@@ -33,6 +33,7 @@ class RpcResponse implements RpcResponseInterface
     {
         $new = clone $this;
         $new->httpResponse = $response;
+
         return $new;
     }
 

@@ -72,7 +72,7 @@ class CircuitBreakerMiddlewareTest extends TestCase
                         HelloService::class => [
                             'minimum_number_of_calls' => 2,
                         ],
-                    ]
+                    ],
                 ],
             ],
         ]);

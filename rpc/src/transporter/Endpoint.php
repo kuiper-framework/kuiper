@@ -23,11 +23,11 @@ final class Endpoint
      * Endpoint constructor.
      */
     public function __construct(
-        private readonly string $protocol, 
-        private readonly string $host, 
-        private readonly int $port, 
-        private readonly ?float $connectTimeout, 
-        private readonly ?float $receiveTimeout, 
+        private readonly string $protocol,
+        private readonly string $host,
+        private readonly int $port,
+        private readonly ?float $connectTimeout,
+        private readonly ?float $receiveTimeout,
         private readonly array $options = [])
     {
     }

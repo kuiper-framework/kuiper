@@ -15,16 +15,14 @@ namespace kuiper\swoole\logger;
 
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
-use kuiper\reflection\ReflectionType;
 use kuiper\web\middleware\RemoteAddress;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class LineRequestLogFormatter implements RequestLogFormatterInterface
 {
     public const MAIN = '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" '
-    . '"$http_user_agent" "$http_x_forwarded_for" rt=$request_time';
+    .'"$http_user_agent" "$http_x_forwarded_for" rt=$request_time';
 
     /**
      * @var string|callable
@@ -44,14 +42,14 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
     /**
      * AccessLog constructor.
      *
-     * @param string|callable $template
-     * @param string[] $extra 放到 extra 中变量，可选值 query, body, jwt, cookies, headers, header.{name}.
+     * @param string|callable               $template
+     * @param string[]                      $extra      放到 extra 中变量，可选值 query, body, jwt, cookies, headers, header.{name}.
      * @param string|DateFormatterInterface $dateFormat
      */
     public function __construct(
-        string|callable               $template = self::MAIN,
-        private                       readonly array $extra = ['query', 'body'],
-        private                       readonly int $bodyMaxSize = 4096,
+        string|callable $template = self::MAIN,
+        private readonly array $extra = ['query', 'body'],
+        private readonly int $bodyMaxSize = 4096,
         string|DateFormatterInterface $dateFormat = 'd/M/Y:H:i:s O')
     {
         $this->template = $template;
@@ -76,11 +74,11 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
         $messageContext = $this->prepareMessageContext($context);
         if (is_string($this->template)) {
             return [\strtr($this->template, Arrays::mapKeys($messageContext, static function ($key) {
-                return '$' . $key;
+                return '$'.$key;
             })), $messageContext['extra'] ?? []];
         }
 
-        return (array)call_user_func($this->template, $messageContext);
+        return (array) call_user_func($this->template, $messageContext);
     }
 
     protected function getJwtPayload(?string $tokenHeader): ?array
@@ -99,6 +97,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
      * Extract message context.
      *
      * @param LogContext $context
+     *
      * @return array
      */
     protected function prepareMessageContext(LogContext $context): array
@@ -124,11 +123,11 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
             'remote_user' => $request->getUri()->getUserInfo(),
             'time_local' => $this->dateFormatter->format($context->getStartTime()),
             'request_method' => $request->getMethod(),
-            'request_uri' => (string)$request->getUri(),
-            'request' => strtoupper($request->getMethod()) . ' '
-                . $request->getUri()->getHost() . ($request->getUri()->getPort() > 0 ? ':' . $request->getUri()->getPort() : '')
-                . $request->getUri()->getPath() . ' '
-                . strtoupper('' !== $request->getUri()->getScheme() ? $request->getUri()->getScheme() : 'tcp') . '/' . $request->getProtocolVersion(),
+            'request_uri' => (string) $request->getUri(),
+            'request' => strtoupper($request->getMethod()).' '
+                .$request->getUri()->getHost().($request->getUri()->getPort() > 0 ? ':'.$request->getUri()->getPort() : '')
+                .$request->getUri()->getPath().' '
+                .strtoupper('' !== $request->getUri()->getScheme() ? $request->getUri()->getScheme() : 'tcp').'/'.$request->getProtocolVersion(),
             'status' => $statusCode,
             'body_bytes_sent' => $responseBodySize,
             'body_bytes_recv' => $requestBodySize,
@@ -144,13 +143,13 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
             } elseif ('body' === $name) {
                 $bodySize = $request->getBody()->getSize();
                 if ($bodySize > $this->bodyMaxSize) {
-                    $extra['body'] = 'body with ' . $bodySize . ' bytes';
+                    $extra['body'] = 'body with '.$bodySize.' bytes';
                 } else {
-                    $body = (string)$request->getBody();
+                    $body = (string) $request->getBody();
                     if (\mb_check_encoding($body, 'utf-8')) {
                         $extra['body'] = $body;
                     } else {
-                        $extra['body'] = 'binary data with ' . $bodySize . 'bytes';
+                        $extra['body'] = 'binary data with '.$bodySize.'bytes';
                     }
                 }
             } elseif ('headers' === $name) {

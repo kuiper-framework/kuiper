@@ -33,6 +33,7 @@ class SwooleTableStateStore implements StateStore
     public function getState(string $name): State
     {
         $value = (int) $this->table->get($name, self::STATE);
+
         return State::tryFrom($value) ?? State::CLOSED;
     }
 

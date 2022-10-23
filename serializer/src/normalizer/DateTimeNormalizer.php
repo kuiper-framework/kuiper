@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace kuiper\serializer\normalizer;
 
 use kuiper\helper\Text;
-use kuiper\serializer\NormalizerInterface;
 use kuiper\reflection\ReflectionTypeInterface;
+use kuiper\serializer\NormalizerInterface;
 
 class DateTimeNormalizer implements NormalizerInterface
 {

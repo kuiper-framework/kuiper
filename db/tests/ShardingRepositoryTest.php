@@ -29,8 +29,8 @@ use kuiper\db\sharding\rule\EqualToRule;
 use kuiper\db\sharding\rule\IdentityRule;
 use kuiper\db\sharding\rule\RuleInterface;
 use kuiper\db\sharding\Strategy;
-use kuiper\reflection\ReflectionDocBlockFactory;
 use function kuiper\helper\env;
+use kuiper\reflection\ReflectionDocBlockFactory;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 

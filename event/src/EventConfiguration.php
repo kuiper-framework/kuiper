@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\event;
 
-use kuiper\event\attribute\EventListener;
 use function DI\autowire;
 use function DI\get;
 use kuiper\di\AwareInjection;
@@ -21,6 +20,7 @@ use kuiper\di\Bootstrap;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\event\attribute\EventListener;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\server\ServerInterface;

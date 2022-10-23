@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\tars\type;
 
-use kuiper\web\middleware\RemoteAddress;
-
 class StructField
 {
     public function __construct(

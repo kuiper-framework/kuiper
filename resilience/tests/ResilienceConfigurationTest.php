@@ -21,7 +21,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ResilienceConfigurationTest extends TestCase
 {
-    private array $events  = [];
+    private array $events = [];
 
     public function testRetry(): void
     {

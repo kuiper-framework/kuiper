@@ -64,8 +64,8 @@ interface ServerInterface
     /**
      * Send task.
      *
-     * @param mixed $data
-     * @param int $taskWorkerId
+     * @param mixed         $data
+     * @param int           $taskWorkerId
      * @param callable|null $onFinish
      *
      * @return mixed
@@ -97,6 +97,7 @@ interface ServerInterface
 
     /**
      * @param int $clientId
+     *
      * @return ConnectionInfo|null
      */
     public function getConnectionInfo(int $clientId): ?ConnectionInfo;
@@ -113,7 +114,8 @@ interface ServerInterface
     public function sendMessageToAll(MessageInterface $message): void;
 
     /**
-     * Gets the server stats
+     * Gets the server stats.
+     *
      * @return array
      */
     public function stats(): array;

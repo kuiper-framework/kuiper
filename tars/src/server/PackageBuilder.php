@@ -65,7 +65,7 @@ class PackageBuilder
             throw new \RuntimeException("the entrance file $basePath/src/index.php does not exist: $dir");
         }
 
-        //打包
+        // 打包
         $tgzFile = $basePath.'/'.sprintf('%s_%s.tar.gz', $config->getServerName(), date('YmdHis'));
         $phar = new \PharData($tgzFile);
         $phar->compress(\Phar::GZ);

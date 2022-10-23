@@ -22,8 +22,6 @@ use kuiper\swoole\exception\PoolTimeoutException;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 class SimplePool implements PoolInterface, LoggerAwareInterface
 {

@@ -17,7 +17,6 @@ use Aura\SqlQuery\QueryFactory;
 use Aura\SqlQuery\QueryInterface;
 use kuiper\event\EventDispatcherAwareInterface;
 use kuiper\event\EventDispatcherAwareTrait;
-use kuiper\event\NullEventDispatcher;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 class QueryBuilder implements QueryBuilderInterface, EventDispatcherAwareInterface

@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace kuiper\swoole\config;
 
 use DI\Attribute\Inject;
-use kuiper\di\attribute\Bean;
 use function DI\autowire;
 use function DI\get;
 use function DI\value;
+use kuiper\di\attribute\Bean;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -54,7 +54,7 @@ class FoundationConfiguration implements DefinitionConfiguration
         ];
     }
 
-    #[Bean("coroutineEnabled")]
+    #[Bean('coroutineEnabled')]
     public function coroutineEnabled(): bool
     {
         $config = Application::getInstance()->getConfig();
@@ -75,13 +75,14 @@ class FoundationConfiguration implements DefinitionConfiguration
 
     #[Bean]
     public function poolFactory(
-        #[Inject("application.pool")] ?array $poolConfig,
+        #[Inject('application.pool')] ?array $poolConfig,
         LoggerFactoryInterface $loggerFactory,
         EventDispatcherInterface $eventDispatcher): PoolFactoryInterface
     {
         $poolFactory = new PoolFactory($this->coroutineEnabled(), $poolConfig ?? []);
         $poolFactory->setLogger($loggerFactory->create(PoolFactory::class));
         $poolFactory->setEventDispatcher($eventDispatcher);
+
         return $poolFactory;
     }
 }

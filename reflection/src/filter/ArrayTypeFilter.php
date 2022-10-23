@@ -19,10 +19,7 @@ use kuiper\reflection\TypeFilterInterface;
 
 class ArrayTypeFilter implements TypeFilterInterface
 {
-    /**
-     * ArrayTypeFilter constructor.
-     */
-    public function __construct(private ArrayType $type)
+    public function __construct(private readonly ArrayType $type)
     {
     }
 

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\web\view;
 
-use kuiper\helper\Text;
 use kuiper\web\exception\ViewException;
 use Twig\Environment;
 use Twig\Error\Error;

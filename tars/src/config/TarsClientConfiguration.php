@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace kuiper\tars\config;
 
 use DI\Attribute\Inject;
-use kuiper\rpc\servicediscovery\InMemoryCache;
-use ReflectionException;
 use function DI\autowire;
 use function DI\factory;
 use kuiper\di\attribute\Bean;
@@ -39,6 +37,7 @@ use kuiper\rpc\servicediscovery\ChainedServiceResolver;
 use kuiper\rpc\servicediscovery\dns\DnsResolverInterface;
 use kuiper\rpc\servicediscovery\dns\NetDns2Resolver;
 use kuiper\rpc\servicediscovery\DnsServiceResolver;
+use kuiper\rpc\servicediscovery\InMemoryCache;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
 use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
@@ -61,6 +60,7 @@ use kuiper\tars\integration\ServerFServant;
 use kuiper\tars\integration\StatFServant;
 use Net_DNS2_Resolver;
 use Psr\Container\ContainerInterface;
+use ReflectionException;
 
 class TarsClientConfiguration implements DefinitionConfiguration
 {
@@ -113,9 +113,9 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return new RequestIdGenerator(new SwooleAtomicCounter());
     }
 
-    #[Bean("tarsClientRequestLog")]
+    #[Bean('tarsClientRequestLog')]
     public function tarsRequestLog(
-        #[Inject("tarsClientRequestLogFormatter")] RequestLogFormatterInterface $requestLogFormatter,
+        #[Inject('tarsClientRequestLogFormatter')] RequestLogFormatterInterface $requestLogFormatter,
         LoggerFactoryInterface $loggerFactory): AccessLog
     {
         $excludeRegexp = Application::getInstance()->getConfig()->getString('application.tars.client.log_excludes', '#^tars.tarsnode#');
@@ -171,12 +171,12 @@ class TarsClientConfiguration implements DefinitionConfiguration
     }
 
     #[Bean]
-    public function tarsProxyFactory(ContainerInterface $container, #[Inject("tarsClientMiddlewares")] array $middlewares): TarsProxyFactory
+    public function tarsProxyFactory(ContainerInterface $container, #[Inject('tarsClientMiddlewares')] array $middlewares): TarsProxyFactory
     {
         return TarsProxyFactory::createFromContainer($container, $middlewares);
     }
 
-    #[Bean("tarsClientMiddlewares")]
+    #[Bean('tarsClientMiddlewares')]
     public function tarsClientMiddlewares(ContainerInterface $container): array
     {
         $middlewares = [];
@@ -190,16 +190,17 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return $middlewares;
     }
 
-    #[Bean("tarsServiceDiscovery")]
+    #[Bean('tarsServiceDiscovery')]
     public function tarsServiceDiscovery(
-        #[Inject("tarsServiceResolver")] ServiceResolverInterface $serviceResolver,
-        #[Inject("application.client.service_discovery.load_balance")] ?string $loadBalance): ServiceDiscovery
+        #[Inject('tarsServiceResolver')] ServiceResolverInterface $serviceResolver,
+        #[Inject('application.client.service_discovery.load_balance')] ?string $loadBalance): ServiceDiscovery
     {
-        $lb = $loadBalance === null ? LoadBalanceAlgorithm::ROUND_ROBIN : LoadBalanceAlgorithm::from($loadBalance);
+        $lb = null === $loadBalance ? LoadBalanceAlgorithm::ROUND_ROBIN : LoadBalanceAlgorithm::from($loadBalance);
+
         return new ServiceDiscovery($serviceResolver, new InMemoryCache(), $lb);
     }
 
-    #[Bean("tarsServiceResolver")]
+    #[Bean('tarsServiceResolver')]
     public function tarsServiceResolver(ContainerInterface $container): ServiceResolverInterface
     {
         $resolvers = [
@@ -260,9 +261,9 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return InMemoryServiceResolver::create($serviceEndpoints);
     }
 
-    #[Bean("tarsRetryOnRetryRemoveEndpointListener")]
+    #[Bean('tarsRetryOnRetryRemoveEndpointListener')]
     public function retryOnRetryRemoveEndpointListener(
-        #[Inject("tarsServiceDiscovery")] ServiceDiscovery $serviceDiscovery): RetryOnRetryRemoveEndpointListener
+        #[Inject('tarsServiceDiscovery')] ServiceDiscovery $serviceDiscovery): RetryOnRetryRemoveEndpointListener
     {
         return new RetryOnRetryRemoveEndpointListener($serviceDiscovery);
     }

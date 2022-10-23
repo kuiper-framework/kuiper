@@ -56,12 +56,12 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
     public function create(object|string $service, string $method, array $args): RpcMethodInterface
     {
         $serviceName = $this->options['service'] ?? (is_string($service) ? $service : get_class($service));
-        $key = $serviceName . '::' . $method;
+        $key = $serviceName.'::'.$method;
         if (!isset($this->cache[$key])) {
             try {
                 $this->cache[$key] = $this->extractMethod($service, $method);
             } catch (ReflectionException|SyntaxErrorException $e) {
-                throw new InvalidMethodException('read method metadata failed: ' . $e->getMessage(), $e->getCode(), $e);
+                throw new InvalidMethodException('read method metadata failed: '.$e->getMessage(), $e->getCode(), $e);
             }
         }
 
@@ -70,8 +70,10 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
 
     /**
      * @param object|string $servant
-     * @param string $method
+     * @param string        $method
+     *
      * @return TarsMethodInterface
+     *
      * @throws InvalidMethodException
      * @throws ReflectionException
      * @throws SyntaxErrorException
@@ -87,7 +89,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
 
     /**
      * @param object|string $servant
-     * @param string $method
+     * @param string        $method
      *
      * @return array
      *
@@ -112,7 +114,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
                 /** @var TarsParameter $paramAttribute */
                 $paramAttribute = $attributes[0]->newInstance();
             }
-            if ($paramAttribute !== null) {
+            if (null !== $paramAttribute) {
                 $parameters[] = new Parameter(
                     $paramAttribute->getOrder() ?? $i + 1,
                     $parameter->getName(),
@@ -133,7 +135,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
 
         $returnType = null;
         $attributes = $reflectionMethod->getAttributes(TarsReturnType::class);
-        if (count($attributes) > 0)  {
+        if (count($attributes) > 0) {
             /** @var TarsReturnType $attribute */
             $attribute = $attributes[0]->newInstance();
             $returnType = $this->typeParser->parse($attribute->getName(), $namespace);
@@ -152,7 +154,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
     protected function getTarsServantAnnotation(ReflectionClass $reflectionClass): TarsServant
     {
         $attributes = $reflectionClass->getAttributes(TarsServant::class);
-        if (count($attributes) === 0) {
+        if (0 === count($attributes)) {
             $interfaceName = ProxyGenerator::getInterfaceName($reflectionClass->getName());
             if (null !== $interfaceName) {
                 $attributes = (new ReflectionClass($interfaceName))->getAttributes(TarsServant::class);
@@ -169,7 +171,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
             return $attributes[0]->newInstance();
         }
 
-        throw new InvalidMethodException(sprintf('%s does not contain valid method definition, ' . "check it's interfaces should annotated with @TarsServant", $reflectionClass->getName()));
+        throw new InvalidMethodException(sprintf('%s does not contain valid method definition, '."check it's interfaces should annotated with @TarsServant", $reflectionClass->getName()));
     }
 
     /**

@@ -32,7 +32,7 @@ class RpcExecutor implements RpcExecutorInterface
 
     public function mapRequest(callable $callback): self
     {
-        return new self($this->requestHandler,  $callback($this->request), $this->middlewares);
+        return new self($this->requestHandler, $callback($this->request), $this->middlewares);
     }
 
     /**

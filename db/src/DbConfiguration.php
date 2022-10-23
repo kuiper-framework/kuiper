@@ -62,14 +62,14 @@ class DbConfiguration implements DefinitionConfiguration
     }
 
     #[Bean]
-    public function namingStrategy(#[Inject("application.database.table_prefix")] ?string $tablePrefix): NamingStrategyInterface
+    public function namingStrategy(#[Inject('application.database.table_prefix')] ?string $tablePrefix): NamingStrategyInterface
     {
         return new NamingStrategy($tablePrefix ?? '');
     }
 
     #[Bean]
     public function connection(EventDispatcherInterface $eventDispatcher,
-                               #[Inject("application.database")] array $config): ConnectionInterface
+                               #[Inject('application.database')] array $config): ConnectionInterface
     {
         $connection = new Connection(
             $this->buildDsn($config),
@@ -93,7 +93,7 @@ class DbConfiguration implements DefinitionConfiguration
     public function swooleConnectionPool(
         PoolFactoryInterface $poolFactory,
         EventDispatcherInterface $eventDispatcher,
-        #[Inject("application.database")] array $config): ConnectionPoolInterface
+        #[Inject('application.database')] array $config): ConnectionPoolInterface
     {
         return new ConnectionPool($poolFactory->create('db', function () use ($eventDispatcher, $config): ConnectionInterface {
             return $this->connection($eventDispatcher, $config);
@@ -138,7 +138,7 @@ class DbConfiguration implements DefinitionConfiguration
     }
 
     #[Bean]
-    #[ConditionalOnProperty("application.database.logging", hasValue: true)]
+    #[ConditionalOnProperty('application.database.logging', hasValue: true)]
     public function logQueryEventListener(LoggerFactoryInterface $loggerFactory): LogStatementQuery
     {
         $listener = new LogStatementQuery();

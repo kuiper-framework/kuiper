@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,67 +27,67 @@ final class StatMicMsgHead
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $masterName;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 1)]
+    #[TarsProperty(type: 'string', order: 1)]
     public readonly string $slaveName;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 2)]
+    #[TarsProperty(type: 'string', order: 2)]
     public readonly string $interfaceName;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 3)]
+    #[TarsProperty(type: 'string', order: 3)]
     public readonly string $masterIp;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 4)]
+    #[TarsProperty(type: 'string', order: 4)]
     public readonly string $slaveIp;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 5)]
+    #[TarsProperty(type: 'int', order: 5)]
     public readonly int $slavePort;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 6)]
+    #[TarsProperty(type: 'int', order: 6)]
     public readonly int $returnValue;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 7)]
+    #[TarsProperty(type: 'string', order: 7)]
     public readonly ?string $slaveSetName;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 8)]
+    #[TarsProperty(type: 'string', order: 8)]
     public readonly ?string $slaveSetArea;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 9)]
+    #[TarsProperty(type: 'string', order: 9)]
     public readonly ?string $slaveSetID;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 10)]
+    #[TarsProperty(type: 'string', order: 10)]
     public readonly ?string $tarsVersion;
 
     public function __construct(
@@ -104,16 +103,16 @@ final class StatMicMsgHead
         ?string $slaveSetID = null,
         ?string $tarsVersion = null
     ) {
-          $this->masterName = $masterName;
-          $this->slaveName = $slaveName;
-          $this->interfaceName = $interfaceName;
-          $this->masterIp = $masterIp;
-          $this->slaveIp = $slaveIp;
-          $this->slavePort = $slavePort;
-          $this->returnValue = $returnValue;
-          $this->slaveSetName = $slaveSetName;
-          $this->slaveSetArea = $slaveSetArea;
-          $this->slaveSetID = $slaveSetID;
-          $this->tarsVersion = $tarsVersion;
+        $this->masterName = $masterName;
+        $this->slaveName = $slaveName;
+        $this->interfaceName = $interfaceName;
+        $this->masterIp = $masterIp;
+        $this->slaveIp = $slaveIp;
+        $this->slavePort = $slavePort;
+        $this->returnValue = $returnValue;
+        $this->slaveSetName = $slaveSetName;
+        $this->slaveSetArea = $slaveSetArea;
+        $this->slaveSetID = $slaveSetID;
+        $this->tarsVersion = $tarsVersion;
     }
 }

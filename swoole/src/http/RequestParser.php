@@ -70,10 +70,10 @@ class RequestParser
     {
         $buffer = $this->head.$data;
 
-        //HTTP结束符
+        // HTTP结束符
         $ret = strpos($buffer, self::END_OF_HEAD);
         if (false !== $ret) {
-            //没有找到EOF，继续等待数据
+            // 没有找到EOF，继续等待数据
             [$this->head, $this->body] = explode(self::END_OF_HEAD, $buffer, 2);
             $this->parseHeader();
         } else {
@@ -245,7 +245,7 @@ class RequestParser
             }
             $params = self::parseParams($headers[HttpHeaderName::CONTENT_DISPOSITION]);
             $name = $params['name'] ?? '';
-            //filename字段表示它是一个文件
+            // filename字段表示它是一个文件
             if (isset($params['filename'])) {
                 $files[$name] = $this->httpServer->getUploadFileFactory()
                     ->createUploadedFile(
@@ -256,7 +256,7 @@ class RequestParser
                         $headers[HttpHeaderName::CONTENT_TYPE] ?? null
                     );
             } else {
-                //支持checkbox
+                // 支持checkbox
                 if ('[]' === substr($name, -2)) {
                     $formData[substr($name, 0, -2)][] = trim($parts[1]);
                 } else {

@@ -82,7 +82,7 @@ class SocketChannel
         while (true) {
             $sent = fwrite($this->socket, $buffer);
             if (empty($sent)) {
-                //$error = socket_strerror(socket_last_error());
+                // $error = socket_strerror(socket_last_error());
                 break;
             }
             if ($sent >= $total) {
@@ -155,7 +155,7 @@ class SocketChannel
         $write = $except = null;
         if (!empty($read)) {
             $ret = stream_select($read, $write, $except, $timeout);
-            if ($ret !== false && !empty($read)) {
+            if (false !== $ret && !empty($read)) {
                 $ready = [];
                 foreach ($read as $i => $fd) {
                     $ready[] = $channels[$i];

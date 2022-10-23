@@ -18,7 +18,6 @@ use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\event\NullEventDispatcher;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\NullLogger;
 
 class PoolFactory implements PoolFactoryInterface, LoggerAwareInterface, EventDispatcherAwareInterface
 {

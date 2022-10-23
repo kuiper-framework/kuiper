@@ -20,10 +20,9 @@ use kuiper\helper\PropertyResolverInterface;
 
 class PropertiesDefinitionSource implements DefinitionSource
 {
-    /**
-     * PropertiesDefinitionSource constructor.
-     */
-    public function __construct(private PropertyResolverInterface $properties, private string $prefix = 'application.')
+    public function __construct(
+        private readonly PropertyResolverInterface $properties,
+        private readonly string $prefix = 'application.')
     {
     }
 

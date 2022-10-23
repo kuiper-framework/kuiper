@@ -18,13 +18,13 @@ use kuiper\di\attribute\Command;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\ContainerFactoryInterface;
+use function kuiper\helper\env;
 use kuiper\helper\Properties;
 use kuiper\helper\Text;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Command\Command as ConsoleCommand;
 use Symfony\Component\Console\CommandLoader\FactoryCommandLoader;
-use function kuiper\helper\env;
 
 class Application
 {
@@ -278,13 +278,12 @@ class Application
                 $commandMap[$name] = $factory($id);
             }
         }
-        foreach (ComponentCollection::getComponents(Command::class) as $annotation) {
-            /** @var Command $annotation */
-            $commandMap[$annotation->getName()] = static function () use ($container, $annotation): ConsoleCommand {
+        foreach (ComponentCollection::getComponents(Command::class) as $attribute) {
+            $commandMap[$attribute->getName()] = static function () use ($container, $attribute): ConsoleCommand {
                 /** @var ConsoleCommand $command */
-                $command = $container->get($annotation->getComponentId());
+                $command = $container->get($attribute->getComponentId());
                 if (Text::isEmpty($command->getName())) {
-                    $command->setName($annotation->getName());
+                    $command->setName($attribute->getName());
                 }
 
                 return $command;

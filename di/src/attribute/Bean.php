@@ -15,13 +15,10 @@ namespace kuiper\di\attribute;
 
 use Attribute;
 
-/**
- * #[Bean]
- */
 #[Attribute(Attribute::TARGET_METHOD)]
 final class Bean
 {
-    public function __construct(private ?string $name = null)
+    public function __construct(private readonly ?string $name = null)
     {
     }
 

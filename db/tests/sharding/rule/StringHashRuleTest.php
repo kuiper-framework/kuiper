@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\db\sharding\rule;
 
-use kuiper\db\sharding\rule\StringHashRule;
 use PHPUnit\Framework\TestCase;
 
 class StringHashRuleTest extends TestCase

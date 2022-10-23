@@ -73,6 +73,7 @@ class ReflectionNamespaceFactory implements ReflectionNamespaceFactoryInterface
         }
 
         $namespaceTrimmed = trim($namespace, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR);
+
         return $this->namespaces[$namespace]
             = new ReflectionNamespace($namespaceTrimmed, $dirs, $this->extensions, $this->reflectionFileFactory);
     }

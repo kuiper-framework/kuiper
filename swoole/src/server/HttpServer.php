@@ -22,6 +22,7 @@ use kuiper\swoole\exception\BadHttpRequestException;
 use kuiper\swoole\http\HttpMessageFactoryHolder;
 use kuiper\swoole\http\RequestParser;
 use kuiper\swoole\http\ResponseBuilder;
+use kuiper\swoole\ServerConfig;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
@@ -36,8 +37,6 @@ class HttpServer extends SelectTcpServer
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    private ?HttpMessageFactoryHolder $httpMessageFactoryHolder = null;
-
     private ?ResponseBuilder $responseBuilder = null;
 
     /**
@@ -45,14 +44,16 @@ class HttpServer extends SelectTcpServer
      */
     private array $requestParsers = [];
 
+    public function __construct(
+        ServerConfig $serverConfig,
+        private readonly HttpMessageFactoryHolder $httpMessageFactoryHolder)
+    {
+        parent::__construct($serverConfig);
+    }
+
     public function getHttpMessageFactoryHolder(): HttpMessageFactoryHolder
     {
         return $this->httpMessageFactoryHolder;
-    }
-
-    public function setHttpMessageFactoryHolder(HttpMessageFactoryHolder $httpMessageFactoryHolder): void
-    {
-        $this->httpMessageFactoryHolder = $httpMessageFactoryHolder;
     }
 
     public function getServerRequestFactory(): ServerRequestFactoryInterface
@@ -139,7 +140,7 @@ class HttpServer extends SelectTcpServer
         if (!$this->getSettings()->getBool(HttpServerSetting::KEEPALIVE) || 0 === strcasecmp($response->getHeaderLine(HttpHeaderName::CONNECTION), 'close')) {
             $this->close($clientId);
         }
-        //清空request缓存区
+        // 清空request缓存区
         unset($this->requestParsers[$clientId]);
     }
 }

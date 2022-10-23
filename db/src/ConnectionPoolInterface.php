@@ -22,6 +22,7 @@ interface ConnectionPoolInterface
 
     /**
      * @param ConnectionInterface $connection
+     *
      * @return void
      */
     public function release(ConnectionInterface $connection): void;

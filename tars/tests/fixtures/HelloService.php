@@ -15,7 +15,7 @@ namespace kuiper\tars\fixtures;
 
 use kuiper\tars\attribute\TarsServant;
 
-#[TarsServant("app.hello.HelloObj")]
+#[TarsServant('app.hello.HelloObj')]
 interface HelloService
 {
     public function hello(string $name): string;

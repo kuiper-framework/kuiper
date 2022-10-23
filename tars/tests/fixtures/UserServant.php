@@ -23,7 +23,7 @@ namespace kuiper\tars\fixtures;
 use kuiper\tars\attribute\TarsClient;
 use kuiper\tars\attribute\TarsReturnType;
 
-#[TarsClient("PHPDemo.PHPTcpServer.UserObj")]
+#[TarsClient('PHPDemo.PHPTcpServer.UserObj')]
 interface UserServant
 {
     public function findUser(int $id): User;
@@ -33,6 +33,6 @@ interface UserServant
     /**
      * @return User[]
      */
-    #[TarsReturnType("vector<User>")]
+    #[TarsReturnType('vector<User>')]
     public function findAllUser(?int &$total): array;
 }

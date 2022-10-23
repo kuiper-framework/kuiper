@@ -15,7 +15,6 @@ namespace kuiper\swoole\pool;
 
 use kuiper\event\InMemoryEventDispatcher;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
 
 class SimplePoolTest extends TestCase
 {

@@ -19,6 +19,7 @@ class ChainedServiceResolver implements ServiceResolverInterface
 {
     /**
      * ChainRouteResolver constructor.
+     *
      * @param ServiceResolverInterface[] $resolvers
      */
     public function __construct(private readonly array $resolvers)

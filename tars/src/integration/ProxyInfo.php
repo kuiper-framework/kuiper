@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,12 +27,12 @@ final class ProxyInfo
     /**
      * @var bool
      */
-    #[TarsProperty(type: "bool", order: 0)]
+    #[TarsProperty(type: 'bool', order: 0)]
     public readonly bool $bFromClient;
 
     public function __construct(
         bool $bFromClient
     ) {
-          $this->bFromClient = $bFromClient;
+        $this->bFromClient = $bFromClient;
     }
 }

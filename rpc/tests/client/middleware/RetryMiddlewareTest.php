@@ -19,7 +19,6 @@ use kuiper\di\PropertiesDefinitionSource;
 use kuiper\event\InMemoryEventDispatcher;
 use kuiper\helper\Properties;
 use kuiper\helper\PropertyResolverInterface;
-use kuiper\resilience\circuitbreaker\exception\CallNotPermittedException;
 use kuiper\resilience\ResilienceConfiguration;
 use kuiper\resilience\retry\RetryFactory;
 use kuiper\rpc\client\ProxyGenerator;
@@ -59,7 +58,7 @@ class RetryMiddlewareTest extends TestCase
         $executorFactory = new RpcExecutorFactory(new RpcRequestFactory(), $rpcClient);
         $builder = new ContainerBuilder();
         $builder->addConfiguration(new ResilienceConfiguration());
-        //$ignoreErrors = [\InvalidArgumentException::class];
+        // $ignoreErrors = [\InvalidArgumentException::class];
         $ignoreErrors = [];
         $config = Properties::create([
             'application' => [

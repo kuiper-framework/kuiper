@@ -13,17 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\registry;
 
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
 use kuiper\cache\CacheConfiguration;
-use kuiper\di\AwareInjection;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\http\client\HttpClientConfiguration;
 use kuiper\logger\LoggerConfiguration;
-use kuiper\logger\LoggerFactory;
-use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionConfiguration;
 use kuiper\rpc\servicediscovery\InMemoryServiceResolver;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
@@ -32,15 +27,11 @@ use kuiper\swoole\Application;
 use kuiper\swoole\config\DiactorosHttpMessageFactoryConfiguration;
 use kuiper\swoole\pool\PoolFactory;
 use kuiper\swoole\pool\PoolFactoryInterface;
-use Monolog\Handler\ErrorLogHandler;
-use Monolog\Logger;
 use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerInterface;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
-    protected  ?ContainerInterface $container = null;
+    protected ?ContainerInterface $container = null;
 
     protected function createContainer(array $configArr): ContainerInterface
     {

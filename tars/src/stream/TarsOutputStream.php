@@ -21,7 +21,6 @@ use kuiper\tars\type\StructMapEntry;
 use kuiper\tars\type\StructType;
 use kuiper\tars\type\Type;
 use kuiper\tars\type\VectorType;
-use phpDocumentor\Reflection\Types\Integer;
 use Webmozart\Assert\Assert;
 
 class TarsOutputStream implements TarsOutputStreamInterface
@@ -61,7 +60,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
 
     private function writeHead(int $tag, int $tarsType): void
     {
-        //tag大于15 pack方式不一样
+        // tag大于15 pack方式不一样
         if ($tag < 15) {
             /* tag first , type second */
             //	tag小于15的 只需要一个字节
@@ -70,7 +69,7 @@ class TarsOutputStream implements TarsOutputStreamInterface
             ++$this->length;
         } else {
             /* tag first , type second */
-            //把tag放到高4位，type对应的类型数字放到低四位
+            // 把tag放到高4位，type对应的类型数字放到低四位
             $header = (TarsConst::MAX_TAG_VALUE << 4) | $tarsType;
             fwrite($this->buffer, chr($header).chr($tag));
             $this->length += 2;

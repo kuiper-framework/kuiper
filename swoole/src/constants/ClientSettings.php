@@ -38,7 +38,8 @@ final class ClientSettings
 
     public static function has(string $name): bool
     {
-        $constantName = __CLASS__ . "::" . strtoupper($name);
+        $constantName = __CLASS__.'::'.strtoupper($name);
+
         return defined($constantName) && constant($constantName) === $name;
     }
 }

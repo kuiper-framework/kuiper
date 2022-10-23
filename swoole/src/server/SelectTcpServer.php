@@ -107,7 +107,7 @@ class SelectTcpServer extends AbstractServer
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getMasterPid(): int
     {
@@ -115,7 +115,7 @@ class SelectTcpServer extends AbstractServer
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function isTaskWorker(): bool
     {

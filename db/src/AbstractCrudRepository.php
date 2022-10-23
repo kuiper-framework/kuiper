@@ -30,10 +30,10 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     private ?StatementInterface $lastStatement = null;
 
     public function __construct(
-        private                   readonly QueryBuilderInterface $queryBuilder,
+        private readonly QueryBuilderInterface $queryBuilder,
         MetaModelFactoryInterface $metaModelFactory,
-        private                   readonly DateTimeFactoryInterface $dateTimeFactory,
-        private                   readonly EventDispatcherInterface $eventDispatcher)
+        private readonly DateTimeFactoryInterface $dateTimeFactory,
+        private readonly EventDispatcherInterface $eventDispatcher)
     {
         $this->metaModel = $metaModelFactory->createFromRepository(get_class($this));
     }
@@ -189,7 +189,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         } elseif (is_callable($update)) {
             $stmt = $update($stmt);
         } else {
-            throw new InvalidArgumentException('Expected array or callable, got ' . gettype($update));
+            throw new InvalidArgumentException('Expected array or callable, got '.gettype($update));
         }
         $this->doExecute($stmt);
     }
@@ -302,7 +302,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
             ->offset(0)
             ->orderBy([]);
 
-        return (int)$this->doQuery($stmt)->fetchColumn();
+        return (int) $this->doQuery($stmt)->fetchColumn();
     }
 
     /**
@@ -432,7 +432,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         } elseif (is_callable($condition)) {
             $stmt = $condition($stmt);
         } else {
-            throw new InvalidArgumentException('Expected primary key, Got ' . gettype($condition));
+            throw new InvalidArgumentException('Expected primary key, Got '.gettype($condition));
         }
 
         return $stmt;
@@ -545,7 +545,7 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
     protected function checkEntityClassMatch(object $entity): void
     {
         if (!$this->metaModel->getEntityClass()->isInstance($entity)) {
-            throw new InvalidArgumentException('Expected entity instance of ' . $this->metaModel->getEntityClass()->getName() . ', got ' . get_class($entity));
+            throw new InvalidArgumentException('Expected entity instance of '.$this->metaModel->getEntityClass()->getName().', got '.get_class($entity));
         }
     }
 
@@ -570,13 +570,13 @@ abstract class AbstractCrudRepository implements CrudRepositoryInterface
         foreach ($fields as $field) {
             $caseExp = ["case `$idColumn`"];
             foreach ($idValues as $idValue) {
-                $v1 = 'i' . ($i++);
-                $v2 = 'i' . ($i++);
+                $v1 = 'i'.($i++);
+                $v2 = 'i'.($i++);
                 $caseExp[] = sprintf('when :%s then :%s', $v1, $v2);
                 $bindValues[$v1] = $idValue;
                 $bindValues[$v2] = $rows[$idValue][$field] ?? null;
             }
-            $stmt->set($field, implode(' ', $caseExp) . ' end');
+            $stmt->set($field, implode(' ', $caseExp).' end');
         }
         $stmt->bindValues($bindValues);
         $stmt->in($idColumn, $idValues);

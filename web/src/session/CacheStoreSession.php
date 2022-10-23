@@ -150,7 +150,7 @@ class CacheStoreSession implements SessionInterface
      *
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         $this->checkStart();
 
@@ -172,7 +172,7 @@ class CacheStoreSession implements SessionInterface
      *
      * @return mixed
      */
-    public function key()
+    public function key(): mixed
     {
         $this->checkStart();
 

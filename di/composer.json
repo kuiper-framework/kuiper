@@ -13,7 +13,8 @@
     "require": {
         "php": ">=8.1",
         "php-di/php-di": "v7.x-dev",
-        "kuiper/helper": "^0.8"
+        "kuiper/helper": "^0.8",
+        "kuiper/reflection": "^0.8"
     },
     "autoload": {
         "psr-4": {

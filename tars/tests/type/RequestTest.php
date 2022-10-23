@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\tars\type;
 
 use kuiper\tars\fixtures\Request;
@@ -13,7 +15,7 @@ class RequestTest extends TestCase
             intRequired: 1,
             boolRequired: false,
             boolOpt: false,
-            stringRequired: "abc",
+            stringRequired: 'abc',
             longRequired: 2
         );
         // var_export($obj);
@@ -26,5 +28,4 @@ class RequestTest extends TestCase
         $type = $parser->parse('Request', 'kuiper\tars\fixtures');
         $this->assertInstanceOf(StructType::class, $type);
     }
-
 }

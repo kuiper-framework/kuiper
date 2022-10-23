@@ -51,7 +51,7 @@ class RpcExecutorFactory implements RpcExecutorFactoryInterface, ContainerAwareI
 
     private function getMethodAnnotationMiddlewares(object $proxy, string $method): array
     {
-        $key = get_class($proxy) . '::' . $method;
+        $key = get_class($proxy).'::'.$method;
         if (isset($this->methodMiddlewares[$key])) {
             return $this->methodMiddlewares[$key];
         }

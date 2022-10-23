@@ -13,13 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\web\attribute;
 
+use Attribute;
 use kuiper\web\middleware\AbstractMiddlewareFactory;
 use kuiper\web\middleware\PreAuthorize as PreAuthorizeMiddleware;
 use kuiper\web\security\AclInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\MiddlewareInterface;
-
-use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class PreAuthorize extends AbstractMiddlewareFactory

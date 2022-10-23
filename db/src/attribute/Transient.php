@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\db\attribute;
 
-
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
 final class Transient implements Attribute
 {

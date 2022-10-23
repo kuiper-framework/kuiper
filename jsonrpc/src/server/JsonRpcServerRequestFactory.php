@@ -46,7 +46,7 @@ class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
             throw new JsonRpcRequestException(null, "Json RPC version {$requestData['jsonrpc']} is invalid", ErrorCode::ERROR_INVALID_REQUEST);
         }
         $id = $requestData['id'] ?? null;
-        if (null === $id || !is_int($id)) {
+        if (!is_int($id)) {
             throw new JsonRpcRequestException(null, "Json RPC id '{$id}' is invalid", ErrorCode::ERROR_INVALID_REQUEST);
         }
         $method = $requestData['method'] ?? null;

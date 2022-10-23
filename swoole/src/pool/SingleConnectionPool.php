@@ -14,11 +14,8 @@ declare(strict_types=1);
 namespace kuiper\swoole\pool;
 
 use kuiper\logger\Logger;
-use kuiper\swoole\exception\PoolClosedException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 class SingleConnectionPool implements PoolInterface, LoggerAwareInterface
 {

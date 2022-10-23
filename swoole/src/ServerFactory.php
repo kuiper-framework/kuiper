@@ -138,6 +138,7 @@ class ServerFactory implements LoggerAwareInterface, EventDispatcherAwareInterfa
         if (!$this->isPhpServerEnabled()) {
             return $this->createSwooleServer($serverConfig);
         }
+
         return match ($serverConfig->getPort()->getServerType()) {
             ServerType::TCP => $this->createTcpServer($serverConfig),
             ServerType::HTTP => $this->createHttpServer($serverConfig),
@@ -150,15 +151,15 @@ class ServerFactory implements LoggerAwareInterface, EventDispatcherAwareInterfa
         $server = new SelectTcpServer($serverConfig);
         $server->setLogger($this->logger);
         $server->setEventDispatcher($this->getEventDispatcher());
+
         return $server;
     }
 
     private function createHttpServer(ServerConfig $serverConfig): HttpServer
     {
-        $server = new HttpServer($serverConfig);
+        $server = new HttpServer($serverConfig, $this->getHttpMessageFactoryHolder());
         $server->setLogger($this->logger);
         $server->setEventDispatcher($this->getEventDispatcher());
-        $server->setHttpMessageFactoryHolder($this->getHttpMessageFactoryHolder());
 
         return $server;
     }

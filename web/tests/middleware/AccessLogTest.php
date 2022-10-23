@@ -88,7 +88,7 @@ class AccessLogTest extends TestCase
         $body->write("\x01\x02");
 
         $accessLog->process($request->withBody($body), $this->createHandler());
-        //var_export($this->logger->records);
+        // var_export($this->logger->records);
         $this->assertEquals('body with 2 bytes', $this->logger->records[0]['context']['body']);
         $this->assertCount(1, $this->logger->records);
         Carbon::setTestNow();

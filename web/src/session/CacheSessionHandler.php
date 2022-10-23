@@ -32,7 +32,7 @@ class CacheSessionHandler implements \SessionHandlerInterface, \SessionIdInterfa
 
     public function __construct(
         private readonly CacheItemPoolInterface $cache,
-        array   $options = [])
+        array $options = [])
     {
         $this->prefix = $options['prefix'] ?? 'session_';
         $this->lifetime = $options['lifetime'] ?? 3600;
@@ -55,7 +55,7 @@ class CacheSessionHandler implements \SessionHandlerInterface, \SessionIdInterfa
      */
     public function create_sid(): string
     {
-        $len = (int)ini_get('session.sid_length');
+        $len = (int) ini_get('session.sid_length');
         if (empty($len)) {
             $len = 48;
         }
@@ -80,7 +80,7 @@ class CacheSessionHandler implements \SessionHandlerInterface, \SessionIdInterfa
      */
     public function read(string $id): string|false
     {
-        return $this->cache->getItem($this->prefix . $id)->get() ?? '';
+        return $this->cache->getItem($this->prefix.$id)->get() ?? '';
     }
 
     /**
@@ -88,7 +88,7 @@ class CacheSessionHandler implements \SessionHandlerInterface, \SessionIdInterfa
      */
     public function write(string $id, string $data): bool
     {
-        $item = $this->cache->getItem($this->prefix . $id);
+        $item = $this->cache->getItem($this->prefix.$id);
         $item->expiresAfter($this->lifetime);
         $this->cache->save($item->set($data));
 
@@ -100,7 +100,7 @@ class CacheSessionHandler implements \SessionHandlerInterface, \SessionIdInterfa
      */
     public function destroy(string $id): bool
     {
-        $this->cache->deleteItem($this->prefix . $id);
+        $this->cache->deleteItem($this->prefix.$id);
 
         return true;
     }

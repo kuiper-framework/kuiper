@@ -16,7 +16,7 @@ namespace kuiper\helper\fixtures;
 use kuiper\helper\Enum;
 
 /**
- * @method static Gender MALE() : static
+ * @method static Gender MALE()   : static
  * @method static Gender FEMALE() : static
  *
  * @property string $description

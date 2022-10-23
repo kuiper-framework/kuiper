@@ -21,7 +21,6 @@ use kuiper\resilience\retry\Retry;
  */
 class RetryOnIgnoredError
 {
-
     /**
      * RetryOnIgnoredError constructor.
      */

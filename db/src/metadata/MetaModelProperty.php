@@ -39,10 +39,11 @@ class MetaModelProperty
     private readonly array $ancestors;
 
     /**
-     * @param \ReflectionProperty $property
+     * @param \ReflectionProperty     $property
      * @param ReflectionTypeInterface $type
-     * @param MetaModelProperty|null $parent
-     * @param Attribute[] $attributes
+     * @param MetaModelProperty|null  $parent
+     * @param Attribute[]             $attributes
+     *
      * @throws MetaModelException|\ReflectionException
      */
     public function __construct(
@@ -154,7 +155,9 @@ class MetaModelProperty
 
     /**
      * @template T
+     *
      * @param class-string<T> $attributeName
+     *
      * @return T|null
      */
     public function getAttribute(string $attributeName)
@@ -170,7 +173,7 @@ class MetaModelProperty
 
     public function hasAttribute(string $annotationName): bool
     {
-        return $this->getAttribute($annotationName) !== null;
+        return null !== $this->getAttribute($annotationName);
     }
 
     public function getEntityClass(): \ReflectionClass

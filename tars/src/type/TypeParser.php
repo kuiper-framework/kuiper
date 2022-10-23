@@ -37,7 +37,8 @@ class TypeParser
             return $this->parse($type->getName());
         }
 
-        $pos = strrpos($type->getName(), "\\");
+        $pos = strrpos($type->getName(), '\\');
+
         return $this->parse(substr($type->getName(), $pos + 1), substr($type->getName(), 0, $pos));
     }
 
@@ -65,7 +66,7 @@ class TypeParser
         }
 
         if (TypeTokenizer::T_STRUCT === $token[0]) {
-            $className = $namespace . '\\' . $token[1];
+            $className = $namespace.'\\'.$token[1];
             if (is_a($className, \UnitEnum::class, true)) {
                 return new EnumType($className);
             }
@@ -120,13 +121,13 @@ class TypeParser
         }
         $constructor = $reflectionClass->getConstructor();
         // 防止递归类型错误
-        $this->cache[$className] = $structType = new StructType($className, [], $constructor !== null);
+        $this->cache[$className] = $structType = new StructType($className, [], null !== $constructor);
 
         $namespace = $reflectionClass->getNamespaceName();
         $fields = [];
         $addField = function ($i, $property) use ($namespace, &$fields) {
             $attributes = $property->getAttributes(TarsProperty::class);
-            if (count($attributes) > 0 && $property->getType() !== null) {
+            if (count($attributes) > 0 && null !== $property->getType()) {
                 /** @var TarsProperty $attribute */
                 $attribute = $attributes[0]->newInstance();
                 $type = $this->parse($attribute->getType(), $namespace);
@@ -134,7 +135,7 @@ class TypeParser
                 $fields[$property->getName()] = new StructField($tag, $property->getName(), $type, !$property->getType()->allowsNull());
             }
         };
-        if ($constructor !== null) {
+        if (null !== $constructor) {
             foreach ($constructor->getParameters() as $i => $parameter) {
                 $addField($i, $parameter);
             }
@@ -145,7 +146,7 @@ class TypeParser
                 continue;
             }
             $addField($i, $property);
-            $i++;
+            ++$i;
         }
         $structType->setFields($fields);
 

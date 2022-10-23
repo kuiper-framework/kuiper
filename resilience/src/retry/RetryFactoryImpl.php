@@ -108,6 +108,7 @@ class RetryFactoryImpl implements RetryFactory
             $this->counterFactory
         );
         $retry->setEventDispatcher($this->eventDispatcher);
+
         return $retry;
     }
 }

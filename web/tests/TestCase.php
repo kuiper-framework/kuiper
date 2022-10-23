@@ -27,7 +27,6 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {

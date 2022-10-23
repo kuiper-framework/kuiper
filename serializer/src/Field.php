@@ -37,7 +37,6 @@ final class Field implements \Serializable
      */
     private $setFunction;
 
-
     /**
      * Field constructor.
      */
@@ -170,6 +169,7 @@ final class Field implements \Serializable
     {
         $data = get_object_vars($this);
         unset($data['getFunction'], $data['setFunction']);
+
         return $data;
     }
 

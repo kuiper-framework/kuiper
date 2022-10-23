@@ -20,11 +20,11 @@ use kuiper\rpc\attribute\RpcClient;
 class HttpClient extends RpcClient
 {
     public function __construct(
-        string  $service = '',
-        string  $version = '',
-        string  $namespace = '',
-        string  $protocol = '',
-        string  $endpoint = '',
+        string $service = '',
+        string $version = '',
+        string $namespace = '',
+        string $protocol = '',
+        string $endpoint = '',
         private readonly string $url = '',
         private readonly string $path = '',
         private readonly string $responseParser = '')

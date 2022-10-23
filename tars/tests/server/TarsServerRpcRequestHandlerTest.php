@@ -16,7 +16,6 @@ namespace kuiper\tars\server;
 use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\rpc\server\Service;
-use kuiper\rpc\ServiceLocator;
 use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\ServerPort;

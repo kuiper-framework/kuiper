@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,20 +27,20 @@ final class StatPropInfo
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $policy;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 1)]
+    #[TarsProperty(type: 'string', order: 1)]
     public readonly string $value;
 
     public function __construct(
         string $policy,
         string $value
     ) {
-          $this->policy = $policy;
-          $this->value = $value;
+        $this->policy = $policy;
+        $this->value = $value;
     }
 }

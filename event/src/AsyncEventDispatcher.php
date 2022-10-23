@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\event;
 
-use kuiper\event\attribute\Async;
 use kuiper\event\async\AsyncEventTask;
+use kuiper\event\attribute\Async;
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\task\QueueInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -46,7 +46,7 @@ class AsyncEventDispatcher implements AsyncEventDispatcherInterface
     {
         if ($this->hasTaskWorker()) {
             $reflectionClass = new \ReflectionClass($event);
-            if(count($reflectionClass->getAttributes(Async::class)) > 0 ) {
+            if (count($reflectionClass->getAttributes(Async::class)) > 0) {
                 $this->dispatchAsync($event);
 
                 return $event;

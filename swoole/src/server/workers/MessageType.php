@@ -18,5 +18,5 @@ enum MessageType
     case TASK;
     case TASK_RESULT;
     case TASK_FINISH;
-    case TICK ;
+    case TICK;
 }

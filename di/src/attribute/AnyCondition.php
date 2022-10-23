@@ -17,7 +17,7 @@ use Attribute;
 use kuiper\di\Condition;
 use Psr\Container\ContainerInterface;
 
-#[Attribute(Attribute::TARGET_CLASS| Attribute::TARGET_METHOD)]
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class AnyCondition implements Condition
 {
     /**

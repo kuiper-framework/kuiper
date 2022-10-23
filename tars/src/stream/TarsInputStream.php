@@ -524,7 +524,7 @@ class TarsInputStream implements TarsInputStreamInterface
         if ($structType->isConstructorBased()) {
             $obj = new $className(...$props);
         } else {
-            $obj = new $className;
+            $obj = new $className();
             foreach ($props as $key => $value) {
                 /** @phpstan-ignore-next-line */
                 $obj->{$key} = $value;

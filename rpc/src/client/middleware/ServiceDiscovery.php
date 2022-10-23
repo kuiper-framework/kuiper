@@ -54,7 +54,7 @@ class ServiceDiscovery implements MiddlewareInterface
             return $handler->handle($request);
         }
         $serviceEndpoint = $this->getServiceEndpoint($serviceLocator);
-        $endpoint = $serviceEndpoint->getEndpoint($this->lb[(string)$serviceLocator]->select());
+        $endpoint = $serviceEndpoint->getEndpoint($this->lb[(string) $serviceLocator]->select());
         Assert::notNull($endpoint);
 
         return $handler->handle($request->withUri(
@@ -71,7 +71,7 @@ class ServiceDiscovery implements MiddlewareInterface
             return;
         }
         $serviceEndpoint = $serviceEndpoint->remove($endpoint);
-        $key = (string)$serviceLocator;
+        $key = (string) $serviceLocator;
         if ($serviceEndpoint->isEmpty()) {
             $this->cache->delete($key);
         } else {
@@ -82,7 +82,7 @@ class ServiceDiscovery implements MiddlewareInterface
 
     private function resolve(ServiceLocator $serviceLocator): ServiceEndpoint
     {
-        $key = (string)$serviceLocator;
+        $key = (string) $serviceLocator;
         $serviceEndpoint = $this->serviceResolver->resolve($serviceLocator);
         if (null === $serviceEndpoint || $serviceEndpoint->isEmpty()) {
             throw new InvalidArgumentException("Cannot resolve service $key");
@@ -98,8 +98,9 @@ class ServiceDiscovery implements MiddlewareInterface
         $endpoints = $serviceEndpoint->getEndpoints();
         $addresses = Arrays::pull($endpoints, 'address');
         $weights = array_map(static function (Endpoint $endpoint): int {
-            return (int)($endpoint->getOption('weight') ?? 100);
+            return (int) ($endpoint->getOption('weight') ?? 100);
         }, $endpoints);
+
         return match ($this->loadBalance) {
             LoadBalanceAlgorithm::ROUND_ROBIN => new RoundRobin($addresses, $weights),
             LoadBalanceAlgorithm::RANDOM => new Random($addresses),
@@ -109,7 +110,7 @@ class ServiceDiscovery implements MiddlewareInterface
 
     private function getServiceEndpoint(ServiceLocator $serviceLocator): ServiceEndpoint
     {
-        $key = (string)$serviceLocator;
+        $key = (string) $serviceLocator;
         $serviceEndpoint = $this->cache->get($key);
         if (null === $serviceEndpoint) {
             $serviceEndpoint = $this->resolve($serviceLocator);

@@ -30,13 +30,13 @@ use Psr\Http\Message\StreamFactoryInterface;
 class TarsServerFactory
 {
     /**
-     * @param RequestFactoryInterface $httpRequestFactory
+     * @param RequestFactoryInterface  $httpRequestFactory
      * @param ResponseFactoryInterface $httpResponseFactory
-     * @param StreamFactoryInterface $streamFactory
-     * @param ServerProperties $serverProperties
-     * @param LoggerFactoryInterface $loggerFactory
-     * @param Service[] $services
-     * @param MiddlewareInterface[] $middlewares
+     * @param StreamFactoryInterface   $streamFactory
+     * @param ServerProperties         $serverProperties
+     * @param LoggerFactoryInterface   $loggerFactory
+     * @param Service[]                $services
+     * @param MiddlewareInterface[]    $middlewares
      */
     public function __construct(
         private readonly RequestFactoryInterface $httpRequestFactory,

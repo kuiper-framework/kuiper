@@ -114,6 +114,7 @@ class CircuitBreakerFactoryImpl implements CircuitBreakerFactory
             $this->metricFactory
         );
         $circuitBreaker->setEventDispatcher($this->eventDispatcher);
+
         return $circuitBreaker;
     }
 }

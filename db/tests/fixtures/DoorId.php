@@ -19,7 +19,7 @@ use kuiper\db\attribute\Embeddable;
 #[Embeddable]
 class DoorId
 {
-    #[Column("door_code")]
+    #[Column('door_code')]
     private readonly string $value;
 
     /**

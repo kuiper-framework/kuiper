@@ -15,9 +15,6 @@ namespace kuiper\di\attribute;
 
 use Attribute;
 
-/**
- * #[Service] Attribute
- */
 #[Attribute(Attribute::TARGET_CLASS)]
 class Service extends Component
 {

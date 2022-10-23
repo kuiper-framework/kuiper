@@ -33,8 +33,9 @@ class ClusterConnectionPool implements ConnectionPoolInterface
     public function getConnectionId(): int
     {
         if ($this->connectionId < 0) {
-            throw new InvalidArgumentException("Connection id not set yet");
+            throw new InvalidArgumentException('Connection id not set yet');
         }
+
         return $this->connectionId;
     }
 

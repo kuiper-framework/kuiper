@@ -71,8 +71,8 @@ class SessionFlash implements FlashInterface
     public function has(string $type = null): bool
     {
         $messages = $this->getMessages();
-        return !empty($messages);
 
+        return !empty($messages);
     }
 
     /**

@@ -191,6 +191,7 @@ class CircuitBreakerConfigBuilder
 
     /**
      * @param float $slowCallRateThreshold
+     *
      * @return CircuitBreakerConfigBuilder
      */
     public function setSlowCallRateThreshold(float $slowCallRateThreshold): self

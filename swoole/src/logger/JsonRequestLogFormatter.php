@@ -14,14 +14,11 @@ declare(strict_types=1);
 namespace kuiper\swoole\logger;
 
 use kuiper\helper\Arrays;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
 class JsonRequestLogFormatter extends LineRequestLogFormatter
 {
     public const MAIN = ['remote_addr', 'remote_user', 'time_local', 'request', 'status', 'body_bytes_sent', 'http_referer',
         'http_user_agent', 'http_x_forwarded_for', 'request_time', 'extra', ];
-
 
     public function __construct(
         private readonly array $fields = self::MAIN,

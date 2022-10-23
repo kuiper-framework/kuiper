@@ -16,8 +16,8 @@ namespace kuiper\http\client;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Utils;
 use kuiper\http\client\attribute\HttpClient;
-use kuiper\http\client\attribute\QueryParam;
 use kuiper\http\client\attribute\HttpHeader;
+use kuiper\http\client\attribute\QueryParam;
 use kuiper\http\client\attribute\RequestMapping;
 use kuiper\http\client\request\File;
 use kuiper\http\client\request\Request;
@@ -41,9 +41,11 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 
     /**
      * @template T
+     *
      * @param ReflectionMethod|ReflectionParameter $reflector
-     * @param class-string<T> $name
-     * @param int $flags
+     * @param class-string<T>                      $name
+     * @param int                                  $flags
+     *
      * @return T|null
      */
     private function getAttribute(ReflectionMethod|ReflectionParameter $reflector, string $name, int $flags = 0)
@@ -52,6 +54,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
         if (count($attributes) > 0) {
             return $attributes[0]->newInstance();
         }
+
         return null;
     }
 
@@ -67,7 +70,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
                 'parameter' => $parameter,
             ];
             $headerAttribute = $this->getAttribute($parameter, HttpHeader::class);
-            if ($headerAttribute !== null) {
+            if (null !== $headerAttribute) {
                 $headers[$headerAttribute->getName()] = $args[$i] ?? null;
             }
         }
@@ -79,7 +82,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
                 return urlencode($value['value']);
             }
 
-            throw new \InvalidArgumentException($invokingMethod . " should have parameter \${$matches[1]}");
+            throw new \InvalidArgumentException($invokingMethod." should have parameter \${$matches[1]}");
         };
         $placeholderRe = '/\{(\w+)(:.*)?\}/';
 
@@ -95,7 +98,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 
         $httpClientAttribute = $this->getAttribute($reflectionMethod, HttpClient::class);
         if (null !== $httpClientAttribute) {
-            $uri = $httpClientAttribute->getUrl() . $httpClientAttribute->getPath() . $uri;
+            $uri = $httpClientAttribute->getUrl().$httpClientAttribute->getPath().$uri;
         }
         $request = new Psr7\Request($mapping->getMethod(), $uri, $headers);
         if (!empty($parameters)) {
@@ -122,7 +125,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
                 continue;
             }
             $queryParam = $this->getAttribute($parameter['parameter'], QueryParam::class);
-            if ($queryParam !== null) {
+            if (null !== $queryParam) {
                 if (is_object($value)) {
                     $query[$queryParam->getName()] = $this->normalizer->normalize($value);
                 } else {
@@ -184,7 +187,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 
         if (isset($options['form_params'])) {
             if (isset($options['multipart'])) {
-                throw new \InvalidArgumentException('You cannot use ' . 'form_params and multipart at the same time. Use the ' . 'form_params option if you want to send application/' . 'x-www-form-urlencoded requests, and the multipart ' . 'option to send multipart/form-data requests.');
+                throw new \InvalidArgumentException('You cannot use '.'form_params and multipart at the same time. Use the '.'form_params option if you want to send application/'.'x-www-form-urlencoded requests, and the multipart '.'option to send multipart/form-data requests.');
             }
             $options['body'] = \http_build_query($options['form_params'], '', '&');
             unset($options['form_params']);
@@ -216,7 +219,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 
         if (isset($options['body'])) {
             if (\is_array($options['body'])) {
-                throw new \InvalidArgumentException('Passing in the "body" request ' . 'option as an array to send a request is not supported. ' . 'Please use the "form_params" request option to send a ' . 'application/x-www-form-urlencoded request, or the "multipart" ' . 'request option to send a multipart/form-data request.');
+                throw new \InvalidArgumentException('Passing in the "body" request '.'option as an array to send a request is not supported. '.'Please use the "form_params" request option to send a '.'application/x-www-form-urlencoded request, or the "multipart" '.'request option to send a multipart/form-data request.');
             }
             $modify['body'] = Psr7\Utils::streamFor($options['body']);
             unset($options['body']);
@@ -226,10 +229,10 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
             $value = $options['auth'];
             $type = isset($value[2]) ? \strtolower($value[2]) : 'basic';
             // Ensure that we don't have the header in different case and set the new value.
-            if ($type === 'basic') {
+            if ('basic' === $type) {
                 $modify['set_headers'] = Psr7\Utils::caselessRemove(['Authorization'], $modify['set_headers']);
                 $modify['set_headers']['Authorization'] = 'Basic '
-                    . \base64_encode("$value[0]:$value[1]");
+                    .\base64_encode("$value[0]:$value[1]");
             }
         }
 
@@ -259,7 +262,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
             // Ensure that we don't have the header in different case and set the new value.
             $options['_conditional'] = Psr7\Utils::caselessRemove(['Content-Type'], $options['_conditional']);
             $options['_conditional']['Content-Type'] = 'multipart/form-data; boundary='
-                . $request->getBody()->getBoundary();
+                .$request->getBody()->getBoundary();
         }
 
         // Merge in conditional headers if they are not present.

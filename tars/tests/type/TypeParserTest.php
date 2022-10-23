@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\tars\type;
 
 use kuiper\tars\exception\SyntaxErrorException;

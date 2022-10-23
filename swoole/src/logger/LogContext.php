@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Kuiper package.
  *
@@ -9,7 +11,6 @@
  * file that was distributed with this source code.
  */
 
-
 namespace kuiper\swoole\logger;
 
 use Psr\Http\Message\RequestInterface;
@@ -18,15 +19,16 @@ use Throwable;
 
 interface LogContext
 {
-
     /**
-     * Gets the request
+     * Gets the request.
+     *
      * @return RequestInterface
      */
     public function getRequest(): RequestInterface;
 
     /**
-     * Gets the response
+     * Gets the response.
+     *
      * @return ResponseInterface|null
      */
     public function getResponse(): ?ResponseInterface;
@@ -37,7 +39,8 @@ interface LogContext
     public function hasResponse(): bool;
 
     /**
-     * Gets the error
+     * Gets the error.
+     *
      * @return Throwable|null
      */
     public function getError(): ?Throwable;

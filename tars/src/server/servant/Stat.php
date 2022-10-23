@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,43 +27,43 @@ final class Stat
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $startTime;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 1)]
+    #[TarsProperty(type: 'int', order: 1)]
     public readonly int $connections;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 2)]
+    #[TarsProperty(type: 'int', order: 2)]
     public readonly int $acceptCount;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 3)]
+    #[TarsProperty(type: 'int', order: 3)]
     public readonly int $closeCount;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 4)]
+    #[TarsProperty(type: 'int', order: 4)]
     public readonly int $requestCount;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 5)]
+    #[TarsProperty(type: 'int', order: 5)]
     public readonly int $dispatchCount;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 6)]
+    #[TarsProperty(type: 'int', order: 6)]
     public readonly int $pendingTasks;
 
     public function __construct(
@@ -76,12 +75,12 @@ final class Stat
         int $dispatchCount,
         int $pendingTasks
     ) {
-          $this->startTime = $startTime;
-          $this->connections = $connections;
-          $this->acceptCount = $acceptCount;
-          $this->closeCount = $closeCount;
-          $this->requestCount = $requestCount;
-          $this->dispatchCount = $dispatchCount;
-          $this->pendingTasks = $pendingTasks;
+        $this->startTime = $startTime;
+        $this->connections = $connections;
+        $this->acceptCount = $acceptCount;
+        $this->closeCount = $closeCount;
+        $this->requestCount = $requestCount;
+        $this->dispatchCount = $dispatchCount;
+        $this->pendingTasks = $pendingTasks;
     }
 }

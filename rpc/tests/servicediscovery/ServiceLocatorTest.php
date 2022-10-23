@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\servicediscovery;
 
-use kuiper\rpc\ServiceLocator;
 use kuiper\rpc\ServiceLocatorImpl;
 use PHPUnit\Framework\TestCase;
 

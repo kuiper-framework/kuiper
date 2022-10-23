@@ -17,13 +17,14 @@ interface CircuitBreaker
 {
     /**
      * @param callable $call
+     *
      * @return callable
      */
     public function decorate(callable $call): callable;
 
     /**
      * @param callable $call
-     * @param mixed ...$args
+     * @param mixed    ...$args
      *
      * @return mixed
      */

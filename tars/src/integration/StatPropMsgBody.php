@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,12 +27,12 @@ final class StatPropMsgBody
     /**
      * @var StatPropInfo[]
      */
-    #[TarsProperty(type: "vector<StatPropInfo>", order: 0)]
+    #[TarsProperty(type: 'vector<StatPropInfo>', order: 0)]
     public readonly array $vInfo;
 
     public function __construct(
         array $vInfo
     ) {
-          $this->vInfo = $vInfo;
+        $this->vInfo = $vInfo;
     }
 }

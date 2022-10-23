@@ -18,7 +18,7 @@ use kuiper\reflection\TypeFilterInterface;
 
 class CompositeTypeFilter implements TypeFilterInterface
 {
-    public function __construct(private CompositeType $type)
+    public function __construct(private readonly CompositeType $type)
     {
     }
 

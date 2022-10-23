@@ -23,4 +23,3 @@ final class PostMapping extends RequestMapping
         parent::__construct($path, 'POST');
     }
 }
-

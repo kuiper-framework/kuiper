@@ -13,14 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\logger;
 
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Throwable;
-
 interface RequestLogFormatterInterface
 {
     /**
      * @param LogContext $context
+     *
      * @return array formatted message and extra info
      */
     public function format(LogContext $context): array;

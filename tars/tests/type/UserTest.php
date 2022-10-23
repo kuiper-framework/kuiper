@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\tars\type;
 
 use kuiper\tars\fixtures\User;
@@ -20,5 +22,4 @@ class UserTest extends TestCase
         $type = $parser->parse('User', 'kuiper\tars\fixtures');
         $this->assertInstanceOf(StructType::class, $type);
     }
-
 }

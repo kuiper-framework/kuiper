@@ -17,7 +17,6 @@ use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
-use kuiper\swoole\logger\LogContext;
 use kuiper\swoole\logger\LogContextImpl;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use Psr\Log\LoggerAwareInterface;

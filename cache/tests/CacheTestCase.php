@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
 
 namespace kuiper\cache;
 
-
+use function DI\factory;
 use Dotenv\Dotenv;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
@@ -16,11 +17,9 @@ use kuiper\swoole\pool\PoolFactoryInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
-use function DI\factory;
 
 abstract class CacheTestCase extends TestCase
 {
-
     /**
      * {@inheritDoc}
      */

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\fixtures\service;
 
-
 use kuiper\jsonrpc\attribute\JsonRpcService;
 
 #[JsonRpcService]

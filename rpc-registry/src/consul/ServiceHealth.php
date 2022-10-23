@@ -15,7 +15,6 @@ namespace kuiper\rpc\registry\consul;
 
 class ServiceHealth
 {
-
     public ?string $AggregatedStatus = null;
 
     public ?Service $Service = null;

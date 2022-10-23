@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -21,43 +20,42 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server\servant;
 
-use kuiper\tars\attribute\TarsServant;
 use kuiper\tars\attribute\TarsParameter;
 use kuiper\tars\attribute\TarsReturnType;
+use kuiper\tars\attribute\TarsServant;
 
-#[TarsServant("AdminObj")]
+#[TarsServant('AdminObj')]
 interface AdminServant
 {
     /**
-     * For healthy check
+     * For healthy check.
      */
-    #[TarsReturnType("string")]
+    #[TarsReturnType('string')]
     public function ping(): string;
 
     /**
-     * Get server stat
+     * Get server stat.
      */
-    #[TarsReturnType("Stat")]
+    #[TarsReturnType('Stat')]
     public function stats(): Stat;
 
     /**
-     * receive notification
+     * receive notification.
      */
-    #[TarsReturnType("void")]
+    #[TarsReturnType('void')]
     public function notify(
-        #[TarsParameter(type: "Notification")] Notification $notification
+        #[TarsParameter(type: 'Notification')] Notification $notification
     ): void;
 
     /**
-     * Gets servant files
+     * Gets servant files.
      */
-    #[TarsReturnType("vector<TarsFile>")]
+    #[TarsReturnType('vector<TarsFile>')]
     public function getTarsFiles(): array;
 
     /**
-     * Gets servant file with content
+     * Gets servant file with content.
      */
-    #[TarsReturnType("vector<TarsFile>")]
+    #[TarsReturnType('vector<TarsFile>')]
     public function getTarsFileContents(): array;
-
 }

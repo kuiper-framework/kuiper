@@ -31,7 +31,6 @@ use DI\FactoryInterface;
 use DI\Invoker\DefinitionParameterResolver;
 use DI\NotFoundException;
 use DI\Proxy\ProxyFactory;
-use InvalidArgumentException;
 use Invoker\Invoker;
 use Invoker\InvokerInterface;
 use Invoker\ParameterResolver\AssociativeArrayResolver;
@@ -206,11 +205,12 @@ class Container implements ContainerInterface, FactoryInterface, InvokerInterfac
      * Missing parameters will be resolved from the container.
      *
      * @param callable|array|string $callable   function to call
-     * @param array    $parameters Parameters to use. Can be indexed by the parameter names
-     *                             or not indexed (same order as the parameters).
-     *                             The array can also contain DI definitions, e.g. DI\get().
+     * @param array                 $parameters Parameters to use. Can be indexed by the parameter names
+     *                                          or not indexed (same order as the parameters).
+     *                                          The array can also contain DI definitions, e.g. DI\get().
      *
      * @return mixed result of the function
+     *
      * @throws \Exception
      */
     public function call($callable, array $parameters = []): mixed

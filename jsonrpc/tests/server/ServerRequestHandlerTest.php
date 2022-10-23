@@ -21,7 +21,6 @@ use kuiper\rpc\fixtures\User;
 use kuiper\rpc\fixtures\UserService;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\rpc\server\Service;
-use kuiper\rpc\ServiceLocator;
 use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\serializer\Serializer;
@@ -94,7 +93,7 @@ class ServerRequestHandlerTest extends TestCase
             ->with(\Mockery::capture($savedUser));
 
         $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
-        $normalizer = new Serializer( $reflectionDocBlockFactory);
+        $normalizer = new Serializer($reflectionDocBlockFactory);
 
         $services = $this->buildServices([UserService::class => $userService]);
         $rpcMethodFactory = new JsonRpcServerMethodFactory($services, $normalizer, $reflectionDocBlockFactory);

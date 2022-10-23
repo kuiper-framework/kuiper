@@ -42,6 +42,7 @@ class Channel implements ChannelInterface
         }
 
         $this->queue->push($data);
+
         return true;
     }
 

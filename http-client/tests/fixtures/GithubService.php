@@ -24,6 +24,6 @@ interface GithubService
     /**
      * @return GitRepository[]
      */
-    #[GetMapping("/users/{user}/list")]
+    #[GetMapping('/users/{user}/list')]
     public function listRepos(string $user): array;
 }

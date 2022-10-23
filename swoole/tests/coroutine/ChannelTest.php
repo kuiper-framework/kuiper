@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\swoole\coroutine;
 
 use PHPUnit\Framework\TestCase;
@@ -15,5 +17,4 @@ class ChannelTest extends TestCase
         $this->assertEquals(1, $data);
         $this->assertEquals(0, $channel->size());
     }
-
 }

@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,73 +27,73 @@ final class EndpointF
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $host;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 1)]
+    #[TarsProperty(type: 'int', order: 1)]
     public readonly int $port;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 2)]
+    #[TarsProperty(type: 'int', order: 2)]
     public readonly int $timeout;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 3)]
+    #[TarsProperty(type: 'int', order: 3)]
     public readonly int $istcp;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 4)]
+    #[TarsProperty(type: 'int', order: 4)]
     public readonly int $grid;
 
     /**
      * @var int|null
      */
-    #[TarsProperty(type: "int", order: 5)]
+    #[TarsProperty(type: 'int', order: 5)]
     public readonly ?int $groupworkid;
 
     /**
      * @var int|null
      */
-    #[TarsProperty(type: "int", order: 6)]
+    #[TarsProperty(type: 'int', order: 6)]
     public readonly ?int $grouprealid;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 7)]
+    #[TarsProperty(type: 'string', order: 7)]
     public readonly ?string $setId;
 
     /**
      * @var int|null
      */
-    #[TarsProperty(type: "int", order: 8)]
+    #[TarsProperty(type: 'int', order: 8)]
     public readonly ?int $qos;
 
     /**
      * @var int|null
      */
-    #[TarsProperty(type: "int", order: 9)]
+    #[TarsProperty(type: 'int', order: 9)]
     public readonly ?int $bakFlag;
 
     /**
      * @var int|null
      */
-    #[TarsProperty(type: "int", order: 11)]
+    #[TarsProperty(type: 'int', order: 11)]
     public readonly ?int $weight;
 
     /**
      * @var int|null
      */
-    #[TarsProperty(type: "int", order: 12)]
+    #[TarsProperty(type: 'int', order: 12)]
     public readonly ?int $weightType;
 
     public function __construct(
@@ -111,17 +110,17 @@ final class EndpointF
         ?int $weight = null,
         ?int $weightType = null
     ) {
-          $this->host = $host;
-          $this->port = $port;
-          $this->timeout = $timeout;
-          $this->istcp = $istcp;
-          $this->grid = $grid;
-          $this->groupworkid = $groupworkid;
-          $this->grouprealid = $grouprealid;
-          $this->setId = $setId;
-          $this->qos = $qos;
-          $this->bakFlag = $bakFlag;
-          $this->weight = $weight;
-          $this->weightType = $weightType;
+        $this->host = $host;
+        $this->port = $port;
+        $this->timeout = $timeout;
+        $this->istcp = $istcp;
+        $this->grid = $grid;
+        $this->groupworkid = $groupworkid;
+        $this->grouprealid = $grouprealid;
+        $this->setId = $setId;
+        $this->qos = $qos;
+        $this->bakFlag = $bakFlag;
+        $this->weight = $weight;
+        $this->weightType = $weightType;
     }
 }

@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,67 +27,67 @@ final class LogInfo
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $appname;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 1)]
+    #[TarsProperty(type: 'string', order: 1)]
     public readonly string $servername;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 2)]
+    #[TarsProperty(type: 'string', order: 2)]
     public readonly string $sFilename;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 3)]
+    #[TarsProperty(type: 'string', order: 3)]
     public readonly string $sFormat;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 4)]
+    #[TarsProperty(type: 'string', order: 4)]
     public readonly ?string $setdivision;
 
     /**
      * @var bool|null
      */
-    #[TarsProperty(type: "bool", order: 5)]
+    #[TarsProperty(type: 'bool', order: 5)]
     public readonly ?bool $bHasSufix;
 
     /**
      * @var bool|null
      */
-    #[TarsProperty(type: "bool", order: 6)]
+    #[TarsProperty(type: 'bool', order: 6)]
     public readonly ?bool $bHasAppNamePrefix;
 
     /**
      * @var bool|null
      */
-    #[TarsProperty(type: "bool", order: 7)]
+    #[TarsProperty(type: 'bool', order: 7)]
     public readonly ?bool $bHasSquareBracket;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 8)]
+    #[TarsProperty(type: 'string', order: 8)]
     public readonly ?string $sConcatStr;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 9)]
+    #[TarsProperty(type: 'string', order: 9)]
     public readonly ?string $sSepar;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 10)]
+    #[TarsProperty(type: 'string', order: 10)]
     public readonly ?string $sLogType;
 
     public function __construct(
@@ -104,16 +103,16 @@ final class LogInfo
         ?string $sSepar = null,
         ?string $sLogType = null
     ) {
-          $this->appname = $appname;
-          $this->servername = $servername;
-          $this->sFilename = $sFilename;
-          $this->sFormat = $sFormat;
-          $this->setdivision = $setdivision;
-          $this->bHasSufix = $bHasSufix;
-          $this->bHasAppNamePrefix = $bHasAppNamePrefix;
-          $this->bHasSquareBracket = $bHasSquareBracket;
-          $this->sConcatStr = $sConcatStr;
-          $this->sSepar = $sSepar;
-          $this->sLogType = $sLogType;
+        $this->appname = $appname;
+        $this->servername = $servername;
+        $this->sFilename = $sFilename;
+        $this->sFormat = $sFormat;
+        $this->setdivision = $setdivision;
+        $this->bHasSufix = $bHasSufix;
+        $this->bHasAppNamePrefix = $bHasAppNamePrefix;
+        $this->bHasSquareBracket = $bHasSquareBracket;
+        $this->sConcatStr = $sConcatStr;
+        $this->sSepar = $sSepar;
+        $this->sLogType = $sLogType;
     }
 }

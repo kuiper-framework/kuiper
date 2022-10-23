@@ -18,7 +18,6 @@ use kuiper\swoole\event\StartEvent;
 use kuiper\swoole\event\TaskEvent;
 use kuiper\swoole\event\WorkerStartEvent;
 use kuiper\swoole\fixtures\FooTask;
-use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\SwooleServerTestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;

@@ -60,6 +60,7 @@ class EnumConverter implements AttributeConverterInterface
                     self::$ENUM_CASES[$enumType][$enum->name] = $enum;
                 }
             }
+
             return self::$ENUM_CASES[$enumType][$dbData] ?? null;
         }
         throw new \InvalidArgumentException('attribute is not enum type');

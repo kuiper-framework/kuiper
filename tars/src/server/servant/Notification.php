@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,31 +27,31 @@ final class Notification
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $createTime;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 1)]
+    #[TarsProperty(type: 'string', order: 1)]
     public readonly string $eventId;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 2)]
+    #[TarsProperty(type: 'string', order: 2)]
     public readonly string $topic;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 3)]
+    #[TarsProperty(type: 'string', order: 3)]
     public readonly string $eventName;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 4)]
+    #[TarsProperty(type: 'string', order: 4)]
     public readonly string $payload;
 
     public function __construct(
@@ -62,10 +61,10 @@ final class Notification
         string $eventName,
         string $payload
     ) {
-          $this->createTime = $createTime;
-          $this->eventId = $eventId;
-          $this->topic = $topic;
-          $this->eventName = $eventName;
-          $this->payload = $payload;
+        $this->createTime = $createTime;
+        $this->eventId = $eventId;
+        $this->topic = $topic;
+        $this->eventName = $eventName;
+        $this->payload = $payload;
     }
 }

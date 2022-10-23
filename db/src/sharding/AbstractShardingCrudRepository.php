@@ -30,10 +30,10 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
     protected array $shardKeys;
 
     public function __construct(
-        ClusterInterface          $cluster,
+        ClusterInterface $cluster,
         MetaModelFactoryInterface $metaModelFactory,
-        DateTimeFactoryInterface  $dateTimeFactory,
-        EventDispatcherInterface  $eventDispatcher)
+        DateTimeFactoryInterface $dateTimeFactory,
+        EventDispatcherInterface $eventDispatcher)
     {
         $this->cluster = $cluster;
         parent::__construct($cluster, $metaModelFactory, $dateTimeFactory, $eventDispatcher);
@@ -43,7 +43,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
             }
         }
         if (empty($this->shardKeys)) {
-            throw new MetaModelException($this->metaModel->getEntityClass()->getName() . ' does not contain any sharding columns, please annotate property with @' . ShardKey::class);
+            throw new MetaModelException($this->metaModel->getEntityClass()->getName().' does not contain any sharding columns, please annotate property with @'.ShardKey::class);
         }
     }
 
@@ -140,7 +140,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         $strategy = $this->cluster->getTableStrategy($this->getTableName());
         $shard = $this->getShardFields($entity);
 
-        return $strategy->getDb($shard) . ':' . $strategy->getTable($shard, $this->getTableName());
+        return $strategy->getDb($shard).':'.$strategy->getTable($shard, $this->getTableName());
     }
 
     protected function doExecute(\kuiper\db\StatementInterface $stmt): void

@@ -18,7 +18,10 @@ use kuiper\reflection\ReflectionTypeInterface;
 
 class ArrayType extends ReflectionType
 {
-    public function __construct(private ReflectionTypeInterface $valueType, private int $dimension = 1, bool $allowsNull = false)
+    public function __construct(
+        private readonly ReflectionTypeInterface $valueType,
+        private readonly int $dimension = 1,
+        bool $allowsNull = false)
     {
         parent::__construct($allowsNull);
     }

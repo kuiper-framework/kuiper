@@ -17,7 +17,6 @@ use kuiper\event\EventListenerInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\event\WorkerStartEvent;
 use kuiper\tars\server\monitor\MonitorInterface;
-use kuiper\web\middleware\RemoteAddress;
 
 class ServiceMonitor implements EventListenerInterface
 {

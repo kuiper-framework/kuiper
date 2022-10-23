@@ -23,7 +23,7 @@ class ProxyGeneratorTest extends TestCase
         $generator = new ProxyGenerator();
         $result = $generator->generate(UserService::class);
         $this->assertNotNull($result->getCode());
-        //echo $result->getCode();
-        $this->assertStringEqualsFile(dirname(__DIR__) . '/fixtures/UserServiceProxy.txt', $result->getCode());
+        // echo $result->getCode();
+        $this->assertStringEqualsFile(dirname(__DIR__).'/fixtures/UserServiceProxy.txt', $result->getCode());
     }
 }

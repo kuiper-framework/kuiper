@@ -20,7 +20,7 @@ final class PostMapping extends RequestMapping
 {
     public function __construct(
         string|array $mapping,
-        string       $name = '')
+        string $name = '')
     {
         parent::__construct($mapping, $name, ['POST']);
     }

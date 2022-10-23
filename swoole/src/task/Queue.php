@@ -21,14 +21,13 @@ use kuiper\swoole\exception\TaskProcessorNotFoundException;
 use kuiper\swoole\server\ServerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\NullLogger;
 
 class Queue implements QueueInterface, DispatcherInterface, LoggerAwareInterface, ContainerAwareInterface
 {
     use LoggerAwareTrait;
     use ContainerAwareTrait;
 
-    protected const TAG = '[' . __CLASS__ . '] ';
+    protected const TAG = '['.__CLASS__.'] ';
 
     /**
      * @var ProcessorInterface[]
@@ -61,7 +60,7 @@ class Queue implements QueueInterface, DispatcherInterface, LoggerAwareInterface
             $handler = $this->container->get($handler);
         }
         if (!($handler instanceof ProcessorInterface)) {
-            throw new \InvalidArgumentException("task handler '" . get_class($handler) . "' should implement " . ProcessorInterface::class);
+            throw new \InvalidArgumentException("task handler '".get_class($handler)."' should implement ".ProcessorInterface::class);
         }
         $this->processors[$taskClass] = $handler;
     }
@@ -82,7 +81,7 @@ class Queue implements QueueInterface, DispatcherInterface, LoggerAwareInterface
                 $this->server->finish($result);
             }
         } catch (\Exception $e) {
-            $this->logger->error(static::TAG . 'dispatch error', [
+            $this->logger->error(static::TAG.'dispatch error', [
                 'exception' => get_class($e),
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -103,16 +102,17 @@ class Queue implements QueueInterface, DispatcherInterface, LoggerAwareInterface
             /** @var TaskProcessor $attribute */
             $attribute = $attributes[0]->newInstance();
             $this->registerProcessor($taskClass, $attribute->getName());
+
             return $this->processors[$taskClass];
         }
 
-        $handler = $taskClass . 'Processor';
+        $handler = $taskClass.'Processor';
         if (class_exists($handler)) {
             $this->registerProcessor($taskClass, $handler);
 
             return $this->processors[$taskClass];
         }
 
-        throw new TaskProcessorNotFoundException('Cannot find task processor for task ' . $taskClass);
+        throw new TaskProcessorNotFoundException('Cannot find task processor for task '.$taskClass);
     }
 }

@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,55 +27,55 @@ final class StatSampleMsg
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $unid;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 1)]
+    #[TarsProperty(type: 'string', order: 1)]
     public readonly string $masterName;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 2)]
+    #[TarsProperty(type: 'string', order: 2)]
     public readonly string $slaveName;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 3)]
+    #[TarsProperty(type: 'string', order: 3)]
     public readonly string $interfaceName;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 4)]
+    #[TarsProperty(type: 'string', order: 4)]
     public readonly string $masterIp;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 5)]
+    #[TarsProperty(type: 'string', order: 5)]
     public readonly string $slaveIp;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 6)]
+    #[TarsProperty(type: 'int', order: 6)]
     public readonly int $depth;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 7)]
+    #[TarsProperty(type: 'int', order: 7)]
     public readonly int $width;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 8)]
+    #[TarsProperty(type: 'int', order: 8)]
     public readonly int $parentWidth;
 
     public function __construct(
@@ -90,14 +89,14 @@ final class StatSampleMsg
         int $width,
         int $parentWidth
     ) {
-          $this->unid = $unid;
-          $this->masterName = $masterName;
-          $this->slaveName = $slaveName;
-          $this->interfaceName = $interfaceName;
-          $this->masterIp = $masterIp;
-          $this->slaveIp = $slaveIp;
-          $this->depth = $depth;
-          $this->width = $width;
-          $this->parentWidth = $parentWidth;
+        $this->unid = $unid;
+        $this->masterName = $masterName;
+        $this->slaveName = $slaveName;
+        $this->interfaceName = $interfaceName;
+        $this->masterIp = $masterIp;
+        $this->slaveIp = $slaveIp;
+        $this->depth = $depth;
+        $this->width = $width;
+        $this->parentWidth = $parentWidth;
     }
 }

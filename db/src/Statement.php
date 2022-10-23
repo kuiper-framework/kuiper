@@ -390,7 +390,7 @@ class Statement implements StatementInterface
 
     public function getStatement(): string
     {
-        return (string)$this->query->getStatement();
+        return (string) $this->query->getStatement();
     }
 
     /** @noinspection PhpUnused */

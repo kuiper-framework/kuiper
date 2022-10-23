@@ -23,10 +23,9 @@ enum Protocol: string
     case GRPC = 'grpc';
     case JSONRPC = 'jsonrpc';
     case TARS = 'tars';
-
     public function getServerType(): ?ServerType
     {
-        return match($this) {
+        return match ($this) {
             self::HTTP => ServerType::HTTP,
             self::HTTP2, self::GRPC => ServerType::HTTP2,
             self::WEBSOCKET => ServerType::WEBSOCKET,

@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -25,35 +24,36 @@ use kuiper\tars\attribute\TarsClient;
 use kuiper\tars\attribute\TarsParameter;
 use kuiper\tars\attribute\TarsReturnType;
 
-#[TarsClient("tars.tarslog.LogObj")]
+#[TarsClient('tars.tarslog.LogObj')]
 interface LogServant
 {
     /**
-     * 记录远程日志
+     * 记录远程日志.
+     *
      * @tars-param app, 应用名称
      * @tars-param server, 服务名称
      * @tars-param file, 文件名称
      * @tars-param format, 日志时间格式(%Y%m%d)
      * @tars-param buffer, 日志内容
      */
-    #[TarsReturnType("void")]
+    #[TarsReturnType('void')]
     public function logger(
-        #[TarsParameter(type: "string")] string $app,
-        #[TarsParameter(type: "string")] string $server,
-        #[TarsParameter(type: "string")] string $file,
-        #[TarsParameter(type: "string")] string $format,
-        #[TarsParameter(type: "vector<string>")] array $buffer
+        #[TarsParameter(type: 'string')] string $app,
+        #[TarsParameter(type: 'string')] string $server,
+        #[TarsParameter(type: 'string')] string $file,
+        #[TarsParameter(type: 'string')] string $format,
+        #[TarsParameter(type: 'vector<string>')] array $buffer
     ): void;
 
     /**
-     * 记录远程日志
+     * 记录远程日志.
+     *
      * @tars-param info, LogInfo
      * @tars-param buffer, 日志内容
      */
-    #[TarsReturnType("void")]
+    #[TarsReturnType('void')]
     public function loggerbyInfo(
-        #[TarsParameter(type: "LogInfo")] LogInfo $info,
-        #[TarsParameter(type: "vector<string>")] array $buffer
+        #[TarsParameter(type: 'LogInfo')] LogInfo $info,
+        #[TarsParameter(type: 'vector<string>')] array $buffer
     ): void;
-
 }

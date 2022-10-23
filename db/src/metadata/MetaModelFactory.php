@@ -29,7 +29,6 @@ use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 
 class MetaModelFactory implements MetaModelFactoryInterface
 {
-
     /**
      * @var MetaModelInterface[]
      */
@@ -71,7 +70,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
     private function getEntityClass(\ReflectionClass $reflectionClass): \ReflectionClass
     {
         $attributes = $reflectionClass->getAttributes(Repository::class);
-        if (count($attributes) === 0) {
+        if (0 === count($attributes)) {
             foreach ($reflectionClass->getInterfaces() as $interface) {
                 $attributes = $interface->getAttributes(Repository::class);
                 if (count($attributes) > 0) {
@@ -79,12 +78,13 @@ class MetaModelFactory implements MetaModelFactoryInterface
                 }
             }
         }
-        if (count($attributes) === 0) {
-            throw new \InvalidArgumentException($reflectionClass->getName() . ' should annotation with @' . Repository::class);
+        if (0 === count($attributes)) {
+            throw new \InvalidArgumentException($reflectionClass->getName().' should annotation with @'.Repository::class);
         }
 
         /** @var Repository $attribute */
         $attribute = $attributes[0]->newInstance();
+
         return new \ReflectionClass($attribute->getEntityClass());
     }
 
@@ -99,6 +99,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
             $attribute = $attributes[0]->newInstance();
             $context->setAnnotationValue($attribute->getName());
         }
+
         return $this->namingStrategy->toTableName($context);
     }
 
@@ -148,13 +149,11 @@ class MetaModelFactory implements MetaModelFactoryInterface
             $metaProperty->createColumn($columnName, $attributeConverter);
         } else {
             if (!$type->isClass()) {
-                throw new MetaModelException(sprintf('Unsupported type %s for %s property %s',
-                    $type->getName(), $metaProperty->getEntityClass()->getName(), $metaProperty->getPath()));
+                throw new MetaModelException(sprintf('Unsupported type %s for %s property %s', $type->getName(), $metaProperty->getEntityClass()->getName(), $metaProperty->getPath()));
             }
             $reflectionClass = new \ReflectionClass($type->getName());
-            if (count($reflectionClass->getAttributes(Embeddable::class)) === 0) {
-                throw new MetaModelException(sprintf('%s property %s type class %s is not annotated with %s',
-                    $metaProperty->getEntityClass()->getName(), $metaProperty->getPath(), $type->getName(), Embeddable::class));
+            if (0 === count($reflectionClass->getAttributes(Embeddable::class))) {
+                throw new MetaModelException(sprintf('%s property %s type class %s is not annotated with %s', $metaProperty->getEntityClass()->getName(), $metaProperty->getPath(), $type->getName(), Embeddable::class));
             }
 
             $metaProperty->setChildren($this->getProperties($reflectionClass, $metaProperty));

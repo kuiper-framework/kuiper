@@ -29,11 +29,11 @@ class HealthyStatus implements MiddlewareInterface
      * @param string|string[] $path
      */
     public function __construct(
-        private      readonly ResponseFactoryInterface $responseFactory,
+        private readonly ResponseFactoryInterface $responseFactory,
         string|array $path = '/status.html',
-        private      readonly string $body = 'ok')
+        private readonly string $body = 'ok')
     {
-        $this->pathList = (array)$path;
+        $this->pathList = (array) $path;
     }
 
     /**

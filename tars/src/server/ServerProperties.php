@@ -17,7 +17,6 @@ use InvalidArgumentException;
 use kuiper\rpc\servicediscovery\ServiceEndpoint;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\serializer\attribute\SerializeName;
-use kuiper\swoole\constants\ServerType;
 use kuiper\tars\core\EndpointParser;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -44,21 +43,21 @@ class ServerProperties
      * The basepath config value, equal to "$TARSPATH/tarsnode/data/$app.$server/bin".
      */
     #[Assert\NotBlank]
-    #[SerializeName("basepath")]
+    #[SerializeName('basepath')]
     private ?string $basePath = null;
 
     /**
      * The datapath config value, equal to "$TARSPATH/tarsnode/data/$app.$server/data".
      */
     #[Assert\NotBlank]
-    #[SerializeName("datapath")]
+    #[SerializeName('datapath')]
     private ?string $dataPath = null;
 
     /**
      * The logpath config value, equal to "$TARSPATH/app_log".
      */
     #[Assert\NotBlank]
-    #[SerializeName("logpath")]
+    #[SerializeName('logpath')]
     private ?string $logPath = null;
 
     #[Assert\NotBlank]
@@ -70,7 +69,7 @@ class ServerProperties
 
     private ?Endpoint $local = null;
 
-    #[SerializeName("localip")]
+    #[SerializeName('localip')]
     private ?string $localIp = null;
 
     private string $logServantName = 'tars.tarslog.LogObj';

@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -28,25 +27,25 @@ final class ServerInfo
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 0)]
+    #[TarsProperty(type: 'string', order: 0)]
     public readonly string $application;
 
     /**
      * @var string
      */
-    #[TarsProperty(type: "string", order: 1)]
+    #[TarsProperty(type: 'string', order: 1)]
     public readonly string $serverName;
 
     /**
      * @var int
      */
-    #[TarsProperty(type: "int", order: 2)]
+    #[TarsProperty(type: 'int', order: 2)]
     public readonly int $pid;
 
     /**
      * @var string|null
      */
-    #[TarsProperty(type: "string", order: 3)]
+    #[TarsProperty(type: 'string', order: 3)]
     public readonly ?string $adapter;
 
     public function __construct(
@@ -55,9 +54,9 @@ final class ServerInfo
         int $pid,
         ?string $adapter = null
     ) {
-          $this->application = $application;
-          $this->serverName = $serverName;
-          $this->pid = $pid;
-          $this->adapter = $adapter;
+        $this->application = $application;
+        $this->serverName = $serverName;
+        $this->pid = $pid;
+        $this->adapter = $adapter;
     }
 }

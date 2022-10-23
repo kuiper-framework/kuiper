@@ -20,8 +20,8 @@ class RequestMapping
 {
     /**
      * @param string|string[] $mapping The path mapping URIs. type is string|string[].
-     * @param string $name Assign a name to this mapping.
-     * @param string[] $method The HTTP request methods to map to.
+     * @param string          $name    assign a name to this mapping
+     * @param string[]        $method  the HTTP request methods to map to
      */
     public function __construct(
         private readonly string|array $mapping,

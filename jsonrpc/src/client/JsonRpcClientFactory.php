@@ -24,7 +24,6 @@ use kuiper\rpc\client\RpcExecutorFactoryInterface;
 use kuiper\rpc\client\RpcRequestFactoryInterface;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\client\RpcResponseNormalizer;
-use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\rpc\transporter\HttpTransporter;
 use kuiper\rpc\transporter\PooledTransporter;

@@ -26,7 +26,7 @@ class Stat implements StatInterface, LoggerAwareInterface
 
     protected const TAG = '['.__CLASS__.'] ';
 
-    private readonly  int $reportInterval;
+    private readonly int $reportInterval;
 
     public function __construct(
         private readonly StatStore $store,

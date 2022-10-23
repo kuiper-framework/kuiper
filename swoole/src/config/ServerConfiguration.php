@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\config;
 
-use kuiper\di\attribute\Bean;
 use function DI\autowire;
+use kuiper\di\attribute\Bean;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\PropertyResolverInterface;
@@ -117,18 +117,18 @@ class ServerConfiguration implements DefinitionConfiguration
     {
         $config = Application::getInstance()->getConfig();
         $settings = array_merge([
-            ServerSetting::OPEN_LENGTH_CHECK  => true,
-            ServerSetting::PACKAGE_LENGTH_TYPE  => 'N',
-            ServerSetting::PACKAGE_LENGTH_OFFSET  => 0,
-            ServerSetting::PACKAGE_BODY_OFFSET  => 0,
-            ServerSetting::MAX_WAIT_TIME  => 60,
-            ServerSetting::RELOAD_ASYNC  => true,
-            ServerSetting::PACKAGE_MAX_LENGTH  => 10485760,
-            ServerSetting::OPEN_TCP_NODELAY  => true,
-            ServerSetting::OPEN_EOF_CHECK  => false,
-            ServerSetting::OPEN_EOF_SPLIT  => false,
-            ServerSetting::DISPATCH_MODE  => 2,
-            ServerSetting::DAEMONIZE  => false,
+            ServerSetting::OPEN_LENGTH_CHECK => true,
+            ServerSetting::PACKAGE_LENGTH_TYPE => 'N',
+            ServerSetting::PACKAGE_LENGTH_OFFSET => 0,
+            ServerSetting::PACKAGE_BODY_OFFSET => 0,
+            ServerSetting::MAX_WAIT_TIME => 60,
+            ServerSetting::RELOAD_ASYNC => true,
+            ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
+            ServerSetting::OPEN_TCP_NODELAY => true,
+            ServerSetting::OPEN_EOF_CHECK => false,
+            ServerSetting::OPEN_EOF_SPLIT => false,
+            ServerSetting::DISPATCH_MODE => 2,
+            ServerSetting::DAEMONIZE => false,
         ], $config->get('application.swoole') ?? []);
 
         $ports = [];

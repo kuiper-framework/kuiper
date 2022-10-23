@@ -16,7 +16,6 @@ namespace kuiper\swoole\pool;
 use kuiper\swoole\fixtures\FooConnection;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerInterface;
 
 class ConnectionProxyGeneratorTest extends TestCase
 {

@@ -14,15 +14,13 @@ declare(strict_types=1);
 namespace kuiper\rpc\registry;
 
 use DI\Attribute\Inject;
-use kuiper\di\attribute\AllConditions;
-use kuiper\di\attribute\Bean;
-use kuiper\di\attribute\ConditionalOnProperty;
-use kuiper\rpc\servicediscovery\InMemoryCache;
-use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
 use GuzzleHttp\ClientInterface;
+use kuiper\di\attribute\AllConditions;
+use kuiper\di\attribute\Bean;
+use kuiper\di\attribute\ConditionalOnProperty;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\http\client\HttpClientFactoryInterface;
@@ -33,6 +31,8 @@ use kuiper\rpc\registry\consul\ConsulServiceRegistry;
 use kuiper\rpc\registry\consul\ConsulServiceResolver;
 use kuiper\rpc\server\listener\ServiceDiscoveryListener;
 use kuiper\rpc\server\ServiceRegistryInterface;
+use kuiper\rpc\servicediscovery\InMemoryCache;
+use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Container\ContainerInterface;
@@ -59,19 +59,19 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
 
     #[Bean]
     public function serviceDiscovery(
-        ServiceResolverInterface                                               $serviceResolver,
-        #[Inject("application.client.service_discovery.load_balance")] ?string $lb): ServiceDiscovery
+        ServiceResolverInterface $serviceResolver,
+        #[Inject('application.client.service_discovery.load_balance')] ?string $lb): ServiceDiscovery
     {
         return new ServiceDiscovery(
             $serviceResolver,
             new InMemoryCache(),
-            $lb === null ? LoadBalanceAlgorithm::ROUND_ROBIN : LoadBalanceAlgorithm::from($lb)
+            null === $lb ? LoadBalanceAlgorithm::ROUND_ROBIN : LoadBalanceAlgorithm::from($lb)
         );
     }
 
-    #[Bean("consulHttpClient")]
-    public function consulHttpClient(HttpClientFactoryInterface             $httpClientFactory,
-                                     #[Inject("application.consul")] ?array $options): ClientInterface
+    #[Bean('consulHttpClient')]
+    public function consulHttpClient(HttpClientFactoryInterface $httpClientFactory,
+                                     #[Inject('application.consul')] ?array $options): ClientInterface
     {
         return $httpClientFactory->create(array_merge([
             'base_uri' => 'http://localhost:8500',
@@ -81,19 +81,19 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
 
     #[Bean]
     #[AllConditions(
-        new ConditionalOnProperty("application.consul"),
-        new ConditionalOnProperty("application.server.service_discovery.type", hasValue: "consul", matchIfMissing: true)
+        new ConditionalOnProperty('application.consul'),
+        new ConditionalOnProperty('application.server.service_discovery.type', hasValue: 'consul', matchIfMissing: true)
     )]
-    public function consulServerRegistry(ConsulAgent                                              $consulAgent,
-                                         #[Inject("application.server.service_discovery")] ?array $options): ServiceRegistryInterface
+    public function consulServerRegistry(ConsulAgent $consulAgent,
+                                         #[Inject('application.server.service_discovery')] ?array $options): ServiceRegistryInterface
     {
         return new ConsulServiceRegistry($consulAgent, $options ?? []);
     }
 
     #[Bean]
     #[AllConditions(
-        new ConditionalOnProperty("application.consul"),
-        new ConditionalOnProperty("application.server.service_discovery.type", hasValue: "consul", matchIfMissing: true)
+        new ConditionalOnProperty('application.consul'),
+        new ConditionalOnProperty('application.server.service_discovery.type', hasValue: 'consul', matchIfMissing: true)
     )]
     public function consulServerResolver(ConsulAgent $consulAgent): ServiceResolverInterface
     {

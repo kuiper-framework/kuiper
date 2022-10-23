@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 declare(strict_types=1);
 
 /**
@@ -25,57 +24,61 @@ use kuiper\tars\attribute\TarsClient;
 use kuiper\tars\attribute\TarsParameter;
 use kuiper\tars\attribute\TarsReturnType;
 
-#[TarsClient("tars.tarsconfig.ConfigObj")]
+#[TarsClient('tars.tarsconfig.ConfigObj')]
 interface ConfigServant
 {
     /**
-     * 读取配置文件列表
+     * 读取配置文件列表.
+     *
      * @tars-param app, app name
      * @tars-param server, server name
      * @tars-param vf, config file name
      * /
      */
-    #[TarsReturnType("int")]
+    #[TarsReturnType('int')]
     public function ListConfig(
-        #[TarsParameter(type: "string")] string $app,
-        #[TarsParameter(type: "string")] string $server,
-        #[TarsParameter(type: "vector<string>")] ?array &$vf
+        #[TarsParameter(type: 'string')] string $app,
+        #[TarsParameter(type: 'string')] string $server,
+        #[TarsParameter(type: 'vector<string>')] ?array &$vf
     ): int;
 
     /**
-     * 读取配置文件
+     * 读取配置文件.
+     *
      * @tars-param app, app name
      * @tars-param server, server name
      * @tars-param filename, config file name
      * @tars-param config, 配置文件内容
      * /
      */
-    #[TarsReturnType("int")]
+    #[TarsReturnType('int')]
     public function loadConfig(
-        #[TarsParameter(type: "string")] string $app,
-        #[TarsParameter(type: "string")] string $server,
-        #[TarsParameter(type: "string")] string $filename,
-        #[TarsParameter(type: "string")] ?string &$config
+        #[TarsParameter(type: 'string')] string $app,
+        #[TarsParameter(type: 'string')] string $server,
+        #[TarsParameter(type: 'string')] string $filename,
+        #[TarsParameter(type: 'string')] ?string &$config
     ): int;
 
     /**
-     * 根据host读取文件
+     * 根据host读取文件.
+     *
      * @tars-param appSerever, app.server
      * @tars-param filename, config file name
      * @tars-param host, ip
      * @tars-param config, 配置文件内容
      * /
      */
-    #[TarsReturnType("int")]
+    #[TarsReturnType('int')]
     public function loadConfigByHost(
-        #[TarsParameter(type: "string")] string $appServerName,
-        #[TarsParameter(type: "string")] string $filename,
-        #[TarsParameter(type: "string")] string $host,
-        #[TarsParameter(type: "string")] ?string &$config
+        #[TarsParameter(type: 'string')] string $appServerName,
+        #[TarsParameter(type: 'string')] string $filename,
+        #[TarsParameter(type: 'string')] string $host,
+        #[TarsParameter(type: 'string')] ?string &$config
     ): int;
 
     /**
-     * 检查配置文件是否服务TC_Config格式
+     * 检查配置文件是否服务TC_Config格式.
+     *
      * @tars-param appSerever, app.server
      * @tars-param filename, config file name
      * @tars-param host, ip
@@ -83,65 +86,67 @@ interface ConfigServant
      * @tars-return int 0: 合法, -1:非法
      * /
      */
-    #[TarsReturnType("int")]
+    #[TarsReturnType('int')]
     public function checkConfig(
-        #[TarsParameter(type: "string")] string $appServerName,
-        #[TarsParameter(type: "string")] string $filename,
-        #[TarsParameter(type: "string")] string $host,
-        #[TarsParameter(type: "string")] ?string &$result
+        #[TarsParameter(type: 'string')] string $appServerName,
+        #[TarsParameter(type: 'string')] string $filename,
+        #[TarsParameter(type: 'string')] string $host,
+        #[TarsParameter(type: 'string')] ?string &$result
     ): int;
 
     /**
-     * 读取服务所在节点的配置文件列表
-     * 
+     * 读取服务所在节点的配置文件列表.
+     *
      * @tars-param configInfo, ConfigInfo 配置文件信息，如果没有set分组信息，请设置setdivision为空""
      * @tars-param vf, config file name
      * @tars-return int 0: 成功, -1:失败
      * /
      */
-    #[TarsReturnType("int")]
+    #[TarsReturnType('int')]
     public function ListConfigByInfo(
-        #[TarsParameter(type: "ConfigInfo")] ConfigInfo $configInfo,
-        #[TarsParameter(type: "vector<string>")] ?array &$vf
+        #[TarsParameter(type: 'ConfigInfo')] ConfigInfo $configInfo,
+        #[TarsParameter(type: 'vector<string>')] ?array &$vf
     ): int;
 
     /**
-     * 读取配置文件
+     * 读取配置文件.
+     *
      * @tars-param configInfo, ConfigInfo 配置文件信息
      * @tars-param config, 配置文件内容
      * @tars-return int 0: 成功, -1:失败
      * /
      */
-    #[TarsReturnType("int")]
+    #[TarsReturnType('int')]
     public function loadConfigByInfo(
-        #[TarsParameter(type: "ConfigInfo")] ConfigInfo $configInfo,
-        #[TarsParameter(type: "string")] ?string &$config
+        #[TarsParameter(type: 'ConfigInfo')] ConfigInfo $configInfo,
+        #[TarsParameter(type: 'string')] ?string &$config
     ): int;
 
     /**
-     * 检查配置文件是否符合TC_Config格式
+     * 检查配置文件是否符合TC_Config格式.
+     *
      * @tars-param configInfo, ConfigInfo 配置文件信息
      * @tars-param result, 提示
      * @tars-return int 0: 合法, -1:非法
      * /
      */
-    #[TarsReturnType("int")]
+    #[TarsReturnType('int')]
     public function checkConfigByInfo(
-        #[TarsParameter(type: "ConfigInfo")] ConfigInfo $configInfo,
-        #[TarsParameter(type: "string")] ?string &$result
+        #[TarsParameter(type: 'ConfigInfo')] ConfigInfo $configInfo,
+        #[TarsParameter(type: 'string')] ?string &$result
     ): int;
 
     /**
-     * 获取服务的所有配置文件列表，
+     * 获取服务的所有配置文件列表，.
+     *
      * @tars-param configInfo 支持拉取应用配置列表，服务配置列表，机器配置列表
      * @tars-param [out] vf  获取到的文件名称列表
      * @tars-return int 0: 成功, -1:失败
      * /
      */
-    #[TarsReturnType("int")]
+    #[TarsReturnType('int')]
     public function ListAllConfigByInfo(
-        #[TarsParameter(type: "GetConfigListInfo")] GetConfigListInfo $configInfo,
-        #[TarsParameter(type: "vector<string>")] ?array &$vf
+        #[TarsParameter(type: 'GetConfigListInfo')] GetConfigListInfo $configInfo,
+        #[TarsParameter(type: 'vector<string>')] ?array &$vf
     ): int;
-
 }

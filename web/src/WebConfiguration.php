@@ -14,13 +14,13 @@ declare(strict_types=1);
 namespace kuiper\web;
 
 use DI\Attribute\Inject;
+use function DI\autowire;
 use kuiper\di\attribute\AnyCondition;
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\ConditionalOnClass;
 use kuiper\di\attribute\ConditionalOnMissingClass;
 use kuiper\di\attribute\ConditionalOnProperty;
 use kuiper\di\attribute\Configuration;
-use function DI\autowire;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -216,6 +216,7 @@ class WebConfiguration implements DefinitionConfiguration
         #[Inject('application.web.error.include_stacktrace')] ?string $includeStacktrace): ErrorHandlerInterface
     {
         $logger = $loggerFactory->create(ErrorHandler::class);
+
         return new ErrorHandler(
             $responseFactory, $errorRenderers, $logErrorRenderer, $logger,
             includeStacktraceStrategy: $includeStacktrace ?? IncludeStacktrace::NEVER);
@@ -224,7 +225,7 @@ class WebConfiguration implements DefinitionConfiguration
     #[Bean]
     #[AnyCondition(
         new ConditionalOnMissingClass(Twig::class),
-        new ConditionalOnProperty("application.web.view.engine", hasValue: "php")
+        new ConditionalOnProperty('application.web.view.engine', hasValue: 'php')
     )]
     public function phpView(#[Inject('application.web.view')] ?array $options): ViewInterface
     {
@@ -234,7 +235,7 @@ class WebConfiguration implements DefinitionConfiguration
     #[Bean]
     #[AnyCondition(
         new ConditionalOnClass(Twig::class),
-        new ConditionalOnProperty("application.web.view.engine", hasValue: "twig", matchIfMissing: true)
+        new ConditionalOnProperty('application.web.view.engine', hasValue: 'twig', matchIfMissing: true)
     )]
     public function twigView(LoaderInterface $twigLoader, #[Inject('application.web.view')] ?array $options): ViewInterface
     {

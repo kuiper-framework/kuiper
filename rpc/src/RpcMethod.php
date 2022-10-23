@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
-use InvalidArgumentException;
-
 class RpcMethod implements RpcMethodInterface
 {
     /**
@@ -23,9 +21,9 @@ class RpcMethod implements RpcMethodInterface
     private ?array $result = null;
 
     public function __construct(
-        private       readonly object|string $target,
-        private       readonly ServiceLocator $serviceLocator,
-        private       readonly string $methodName,
+        private readonly object|string $target,
+        private readonly ServiceLocator $serviceLocator,
+        private readonly string $methodName,
         private array $arguments)
     {
     }
@@ -86,6 +84,7 @@ class RpcMethod implements RpcMethodInterface
     {
         $new = clone $this;
         $new->arguments = $args;
+
         return $new;
     }
 
@@ -107,6 +106,6 @@ class RpcMethod implements RpcMethodInterface
 
     public function __toString(): string
     {
-        return $this->getServiceName() . '::' . $this->methodName;
+        return $this->getServiceName().'::'.$this->methodName;
     }
 }

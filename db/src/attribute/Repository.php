@@ -15,7 +15,6 @@ namespace kuiper\db\attribute;
 
 use kuiper\di\attribute\Service;
 
-
 #[\Attribute(\Attribute::TARGET_CLASS)]
 class Repository extends Service
 {

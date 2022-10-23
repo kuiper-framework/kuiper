@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 /*
  * This file is part of the Kuiper package.
@@ -186,7 +188,7 @@ class Criteria
                     throw new InvalidArgumentException("$column is required");
                 }
                 if (!is_scalar($value)) {
-                    throw new InvalidArgumentException("Support only scalar type, $column is ". get_debug_type($value));
+                    throw new InvalidArgumentException("Support only scalar type, $column is ".get_debug_type($value));
                 }
             }
         }

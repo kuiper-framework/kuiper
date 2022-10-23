@@ -19,7 +19,7 @@ use Attribute;
 final class TaskProcessor
 {
     /**
-     * @param string $name class name of the task processor (use as the id that looked up in container).
+     * @param string $name class name of the task processor (use as the id that looked up in container)
      */
     public function __construct(private readonly string $name)
     {

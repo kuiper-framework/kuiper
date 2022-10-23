@@ -49,6 +49,7 @@ class AdminServantImpl implements AdminServant, LoggerAwareInterface
     {
         // todo: aggregate all workers stats
         $statArr = $this->server->stats();
+
         return new Stat(
             startTime: date('c', $statArr['start_time'] ?? time()),
             connections: $statArr['connection_num'] ?? 0,
