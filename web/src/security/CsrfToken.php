@@ -82,7 +82,7 @@ class CsrfToken implements CsrfTokenInterface
         $post = $request->getParsedBody();
         $tokenValue = $post[$this->getTokenKey()] ?? $request->getHeaderLine('x-csrf-token');
 
-        return null !== $tokenValue && $this->checkToken($tokenValue, $destroyIfValid);
+        return $this->checkToken($tokenValue, $destroyIfValid);
     }
 
     protected function generateRandomString(int $bytes): string

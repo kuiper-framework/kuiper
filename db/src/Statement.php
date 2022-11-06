@@ -474,7 +474,17 @@ class Statement implements StatementInterface
     private function doQueryOnce(ConnectionInterface $conn): bool
     {
         $this->pdoStatement = $conn->prepare($this->query->getStatement());
-        $result = @$this->pdoStatement->execute($this->query->getBindValues());
+        foreach ($this->query->getBindValues() as $key => $value) {
+            if (is_int($value)) {
+                $this->pdoStatement->bindValue(':'.$key, $value, \PDO::PARAM_INT);
+            } else {
+                if ($value instanceof \DateTimeInterface) {
+                    $value = $value->format('Y-m-d H:i:s');
+                }
+                $this->pdoStatement->bindValue(':'.$key, $value);
+            }
+        }
+        $result = @$this->pdoStatement->execute();
         if ($this->query instanceof InsertInterface) {
             try {
                 $this->lastInsertId = $conn->lastInsertId();

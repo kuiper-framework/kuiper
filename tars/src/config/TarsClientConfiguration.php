@@ -206,10 +206,10 @@ class TarsClientConfiguration implements DefinitionConfiguration
         $resolvers = [
             $container->get(InMemoryServiceResolver::class),
         ];
-        if ($container->get('application.tars.client.locator')) {
+        if ((bool) $container->get('application.tars.client.locator')) {
             $resolvers[] = $container->get(TarsRegistryResolver::class);
         }
-        if ($container->get('application.client.service_discovery.enable_dns')) {
+        if ((bool) $container->get('application.client.service_discovery.enable_dns')) {
             $resolvers[] = $container->get(DnsServiceResolver::class);
         }
 

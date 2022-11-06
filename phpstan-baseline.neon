@@ -301,11 +301,6 @@ parameters:
 			path: swoole/src/server/workers/SocketChannel.php
 
 		-
-			message: "#^Only booleans are allowed in an if condition, mixed given\\.$#"
-			count: 2
-			path: tars/src/config/TarsClientConfiguration.php
-
-		-
 			message: "#^Parameter \\#1 \\$type of method kuiper\\\\tars\\\\type\\\\TypeParser\\:\\:fromPhpType\\(\\) expects ReflectionNamedType, ReflectionType\\|null given\\.$#"
 			count: 1
 			path: tars/src/core/TarsMethodFactory.php

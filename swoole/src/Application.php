@@ -317,7 +317,7 @@ class Application
             if (!empty($config['configuration'])) {
                 foreach ($config['configuration'] as $configurationBean) {
                     $reflectionClass = new \ReflectionClass($configurationBean);
-                    if (!$reflectionClass->getAttributes(ServerStartConfiguration::class)) {
+                    if (count($reflectionClass->getAttributes(ServerStartConfiguration::class)) === 0) {
                         continue;
                     }
                     if (is_string($configurationBean)) {

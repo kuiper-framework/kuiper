@@ -157,7 +157,7 @@ class LoggerConfiguration implements DefinitionConfiguration
             'handlers' => [
                 [
                     'handler' => [
-                        'class' => StreamHandler::class,
+                        'class' => FileHandler::class,
                         'constructor' => [
                             'stream' => $logFileName,
                         ],
