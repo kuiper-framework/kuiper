@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\config;
 
+use kuiper\swoole\ServerReloadCommand;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use function DI\autowire;
 use kuiper\di\attribute\Bean;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -41,7 +43,6 @@ use kuiper\swoole\ServerStartCommand;
 use kuiper\swoole\ServerStopCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ServerConfiguration implements DefinitionConfiguration
 {
@@ -54,16 +55,17 @@ class ServerConfiguration implements DefinitionConfiguration
         $config = Application::getInstance()->getConfig();
         $config->mergeIfNotExists([
             'application' => [
-                'default_command' => 'start',
+                'default_command' => ServerStartCommand::NAME,
                 'commands' => [
                     'start' => ServerStartCommand::class,
                     'stop' => ServerStopCommand::class,
+                    'reload' => ServerReloadCommand::class
                 ],
             ],
         ]);
         $config->merge([
             'application' => [
-                'listeners' => [
+                'server_start_listeners' => [
                     StartEventListener::class,
                     ManagerStartEventListener::class,
                     WorkerStartEventListener::class,
@@ -76,7 +78,8 @@ class ServerConfiguration implements DefinitionConfiguration
         ]);
         if (!$config->has('application.server.ports')) {
             $config->set('application.server.ports', [
-                $config->getString('application.server.port', '8000') => $config->getString('application.server.type', ServerType::HTTP->value),
+                $config->getString('application.server.port', '8000')
+                => $config->getString('application.server.type', ServerType::HTTP->value),
             ]);
         }
 

@@ -13,32 +13,29 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
-use kuiper\swoole\server\ServerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ServerStartCommand extends Command
+class ServerReloadCommand extends Command
 {
-    public const NAME = 'start';
-
     /**
      * ServerCommand constructor.
      */
-    public function __construct(private readonly ServerInterface $server)
+    public function __construct(private readonly ServerManager $serverManager)
     {
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this->setName(self::NAME);
-        $this->setDescription('Start the server');
+        $this->setName('reload');
+        $this->setDescription('Reload the server');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->server->start();
+        $this->serverManager->reload();
 
         return 0;
     }

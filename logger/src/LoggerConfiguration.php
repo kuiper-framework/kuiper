@@ -15,6 +15,7 @@ namespace kuiper\logger;
 
 use DI\Definition\FactoryDefinition;
 use DI\Definition\ObjectDefinition;
+use kuiper\swoole\attribute\ServerStartConfiguration;
 use function DI\factory;
 use kuiper\di\attribute\Bean;
 use kuiper\di\AwareInjection;
@@ -29,6 +30,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 
+#[ServerStartConfiguration]
 class LoggerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;

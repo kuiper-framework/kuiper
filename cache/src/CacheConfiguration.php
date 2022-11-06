@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\cache;
 
 use DI\Attribute\Inject;
+use kuiper\swoole\attribute\ServerStartConfiguration;
 use function DI\factory;
 use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\Bean;
@@ -32,6 +33,7 @@ use Symfony\Component\Cache\Adapter\ChainAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\RedisTagAwareAdapter;
 
+#[ServerStartConfiguration]
 class CacheConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;

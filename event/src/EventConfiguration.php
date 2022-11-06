@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\event;
 
-use function DI\autowire;
-use function DI\get;
 use kuiper\di\AwareInjection;
 use kuiper\di\Bootstrap;
 use kuiper\di\ComponentCollection;
@@ -23,14 +21,19 @@ use kuiper\di\DefinitionConfiguration;
 use kuiper\event\attribute\EventListener;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\swoole\Application;
+use kuiper\swoole\attribute\ServerStartConfiguration;
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\task\QueueInterface;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface as PsrEventDispatcher;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Slim\App;
+use function DI\autowire;
+use function DI\get;
+use function DI\value;
 
+#[ServerStartConfiguration]
 class EventConfiguration implements DefinitionConfiguration, Bootstrap
 {
     use ContainerBuilderAwareTrait;
@@ -50,12 +53,11 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
                 }
             }
         });
-
+        $eventDispatcher = Application::getInstance()->getEventDispatcher();
         return [
-            PsrEventDispatcher::class => autowire(AsyncEventDispatcher::class)
-                ->constructorParameter(0, get(EventDispatcherInterface::class)),
+            PsrEventDispatcher::class => value(new AsyncEventDispatcher($eventDispatcher)),
             AsyncEventDispatcherInterface::class => get(PsrEventDispatcher::class),
-            EventDispatcherInterface::class => autowire(EventDispatcher::class),
+            EventRegistryInterface::class => value($eventDispatcher),
         ];
     }
 
@@ -64,7 +66,8 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
         $logger = $container->has(LoggerFactoryInterface::class)
             ? $container->get(LoggerFactoryInterface::class)->create(__CLASS__)
             : $container->get(LoggerInterface::class);
-        $dispatcher = $container->get(EventDispatcherInterface::class);
+        /** @var EventRegistryInterface $dispatcher */
+        $dispatcher = $container->get(EventRegistryInterface::class);
         $config = $container->get(PropertyResolverInterface::class);
         $events = [];
         $addListener = static function (?string $eventName, string|object $listener) use ($container, $logger, $dispatcher, &$events): void {
@@ -89,8 +92,13 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
             /** @var EventListener $attribute */
             $addListener($attribute->getEventName(), $attribute->getComponentId());
         }
-        foreach ($config->get('application.listeners', []) as $key => $listener) {
+        foreach ($config->get('application.server_start_listeners', []) as $key => $listener) {
             $addListener(is_string($key) ? $key : null, $listener);
+        }
+        if (!Application::getInstance()->isServerStarting()) {
+            foreach ($config->get('application.listeners', []) as $key => $listener) {
+                $addListener(is_string($key) ? $key : null, $listener);
+            }
         }
     }
 }

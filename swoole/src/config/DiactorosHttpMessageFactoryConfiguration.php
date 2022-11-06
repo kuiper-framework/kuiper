@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\config;
 
+use kuiper\swoole\attribute\ServerStartConfiguration;
 use function DI\autowire;
 use function DI\get;
 use kuiper\di\attribute\AllConditions;
@@ -36,7 +37,7 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 
-#[Configuration]
+#[Configuration, ServerStartConfiguration]
 #[AllConditions(
     new ConditionalOnClass(ServerRequestFactory::class),
     new ConditionalOnProperty('application.server.http_factory', hasValue: 'diactoros', matchIfMissing: true)

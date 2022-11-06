@@ -18,6 +18,11 @@ use kuiper\di\attribute\Command;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\ContainerFactoryInterface;
+use kuiper\event\AsyncEventDispatcher;
+use kuiper\event\EventDispatcher;
+use kuiper\event\EventRegistryInterface;
+use kuiper\swoole\attribute\ServerStartConfiguration;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use function kuiper\helper\env;
 use kuiper\helper\Properties;
 use kuiper\helper\Text;
@@ -28,12 +33,18 @@ use Symfony\Component\Console\CommandLoader\FactoryCommandLoader;
 
 class Application
 {
+    private const CONFIG_SERVER_STARTING = "application.server_starting";
+
     /**
      * @var ContainerFactoryInterface|callable|null
      */
     private $containerFactory;
 
+    private EventDispatcherInterface $eventDispatcher;
+
     private ?ContainerInterface $container = null;
+
+    private ?ContainerInterface $serverStartContainer = null;
 
     private ?string $configFile = null;
 
@@ -48,9 +59,11 @@ class Application
      */
     final private function __construct(
         private readonly string $basePath,
-        ContainerFactoryInterface|callable $containerFactory = null)
+        ContainerFactoryInterface|callable $containerFactory = null,
+        EventDispatcherInterface $eventDispatcher = null)
     {
         $this->containerFactory = $containerFactory;
+        $this->eventDispatcher = $eventDispatcher ?? new EventDispatcher();
         $this->loadConfig();
     }
 
@@ -156,6 +169,7 @@ class Application
         $this->config->mergeIfNotExists([
             'application' => [
                 'env' => env('ENV', 'prod'),
+                'enable_server_start_container' => true,
                 'name' => 'app',
                 'base_path' => $this->getBasePath(),
                 'logging' => [
@@ -191,6 +205,22 @@ class Application
         return $this->container;
     }
 
+    protected function getServerStartContainer(): ContainerInterface
+    {
+        if ($this->isServerStartCommand() && !$this->enableServerStartContainer()) {
+            throw new \InvalidArgumentException("Cannot create server start container");
+        }
+        if (null === $this->serverStartContainer) {
+            $this->serverStartContainer = $this->createServerStartContainer();
+        }
+        return $this->serverStartContainer;
+    }
+
+    public function getEventDispatcher(): EventDispatcherInterface
+    {
+        return $this->eventDispatcher;
+    }
+
     public function getBasePath(): string
     {
         return $this->basePath;
@@ -209,9 +239,18 @@ class Application
         return $this->config;
     }
 
+    public function isServerStarting(): bool
+    {
+        return $this->config->getBool(self::CONFIG_SERVER_STARTING);
+    }
+
     public function createApp(): ConsoleApplication
     {
-        $container = $this->getContainer();
+        if ($this->isServerStartCommand() && $this->enableServerStartContainer()) {
+            $container = $this->getServerStartContainer();
+        } else {
+            $container = $this->getContainer();
+        }
         $app = $container->get(ConsoleApplication::class);
         $commandLoader = new FactoryCommandLoader($this->getCommandMap($container));
         $app->setCommandLoader($commandLoader);
@@ -248,8 +287,55 @@ class Application
         return $basePath;
     }
 
+    protected function isServerStartCommand(): bool
+    {
+        $command = $_SERVER['argv'][1] ?? null;
+        return $command === ServerStartCommand::NAME;
+    }
+
+    protected function enableServerStartContainer(): bool
+    {
+        return $this->config->getBool("application.enable_server_start_container");
+    }
+
+    protected function createServerStartContainer(): ContainerInterface
+    {
+        $this->config->set(self::CONFIG_SERVER_STARTING, true);
+        $projectPath = $this->basePath;
+        if (!file_exists($projectPath.'/vendor/autoload.php')
+            || !file_exists($projectPath.'/composer.json')) {
+            throw new \InvalidArgumentException("Cannot detect project path, expected composer.json in $projectPath");
+        }
+        $builder = new ContainerBuilder();
+        $builder->setClassLoader(require $projectPath.'/vendor/autoload.php');
+
+        $composerJson = json_decode(file_get_contents($projectPath.'/composer.json'), true, 512, JSON_THROW_ON_ERROR);
+        $configFile = $projectPath.'/'.($composerJson['extra']['kuiper']['config-file'] ?? 'config/container.php');
+        if (file_exists($configFile)) {
+            $config = require $configFile;
+
+            if (!empty($config['configuration'])) {
+                foreach ($config['configuration'] as $configurationBean) {
+                    $reflectionClass = new \ReflectionClass($configurationBean);
+                    if (!$reflectionClass->getAttributes(ServerStartConfiguration::class)) {
+                        continue;
+                    }
+                    if (is_string($configurationBean)) {
+                        $configurationBean = new $configurationBean();
+                    }
+                    $builder->addConfiguration($configurationBean);
+                }
+            }
+        }
+        return $builder->build();
+    }
+
     protected function createContainer(): ContainerInterface
     {
+        if ($this->isServerStarting() && $this->eventDispatcher instanceof EventRegistryInterface) {
+            $this->eventDispatcher->reset();
+        }
+        $this->config->set(self::CONFIG_SERVER_STARTING, false);
         if (null === $this->containerFactory) {
             return ContainerBuilder::create($this->basePath)
                 ->build();

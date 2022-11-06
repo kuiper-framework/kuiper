@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\web;
 
 use DI\Attribute\Inject;
+use kuiper\swoole\attribute\ServerStartConfiguration;
 use function DI\autowire;
 use kuiper\di\attribute\AnyCondition;
 use kuiper\di\attribute\Bean;
@@ -68,7 +69,7 @@ use Twig\Environment as Twig;
 use Twig\Loader\FilesystemLoader;
 use Twig\Loader\LoaderInterface;
 
-#[Configuration(dependOn: [ServerConfiguration::class])]
+#[Configuration(dependOn: [ServerConfiguration::class]), ServerStartConfiguration]
 class WebConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;

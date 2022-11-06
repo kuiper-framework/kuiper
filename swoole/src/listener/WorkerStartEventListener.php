@@ -17,6 +17,7 @@ use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
 use kuiper\event\EventListenerInterface;
 use kuiper\logger\Logger;
+use kuiper\swoole\Application;
 use kuiper\swoole\constants\ProcessType;
 use kuiper\swoole\event\WorkerStartEvent;
 use kuiper\swoole\server\ServerInterface;
@@ -43,6 +44,8 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
      */
     public function __invoke(object $event): void
     {
+        // recreate container if necessarily
+        Application::getInstance()->getContainer();
         Assert::isInstanceOf($event, WorkerStartEvent::class);
         /* @var WorkerStartEvent $event */
         $this->handleSignal($event);
