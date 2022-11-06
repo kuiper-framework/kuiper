@@ -33,6 +33,18 @@ class StatementTest extends TestCase
         $this->connection = $connection;
     }
 
+    public function testInsert(): void
+    {
+        $query = $this->connection->insert('article');
+        $query->addRow([
+            'author' => 'j',
+        ]);
+        $query->addRow([
+            'author' => 'k',
+        ]);
+        $this->assertEquals('', $query->getStatement());
+    }
+
     public function testWhere(): void
     {
         $query = $this->connection->from('article')
