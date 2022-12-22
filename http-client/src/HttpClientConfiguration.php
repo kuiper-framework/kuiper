@@ -54,7 +54,7 @@ class HttpClientConfiguration implements DefinitionConfiguration
         if (isset($options['middleware'])) {
             foreach ($options['middleware'] as $i => $middleware) {
                 if (is_string($middleware)) {
-                    $options[$i] = $container->get($middleware);
+                    $options['middleware'][$i] = $container->get($middleware);
                 }
             }
         }
