@@ -16,6 +16,9 @@ namespace kuiper\cache;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 
+/**
+ * PSR-6 cache to PSR-16 Adapter
+ */
 class SimpleCache implements CacheInterface
 {
     public function __construct(private readonly CacheItemPoolInterface $pool)

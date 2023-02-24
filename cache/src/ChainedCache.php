@@ -15,6 +15,9 @@ namespace kuiper\cache;
 
 use Psr\SimpleCache\CacheInterface;
 
+/**
+ * Chains several cache storage together.
+ */
 class ChainedCache implements CacheInterface
 {
     /**

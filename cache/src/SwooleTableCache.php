@@ -18,6 +18,9 @@ use function serialize;
 use Swoole\Table;
 use function unserialize;
 
+/**
+ * A cache storage based on swoole table
+ */
 class SwooleTableCache implements CacheInterface
 {
     public const KEY_DATA = 'data';
