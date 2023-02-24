@@ -43,7 +43,11 @@ class StatementTest extends TestCase
         $query->addRow([
             'author' => 'k',
         ]);
-        $this->assertEquals('', $query->getStatement());
+        $this->assertEquals('INSERT INTO `article`
+    (`author`)
+VALUES
+    (:author_0),
+    (:author_1)', $query->getStatement());
     }
 
     public function testWhere(): void

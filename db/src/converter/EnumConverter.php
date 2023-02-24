@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace kuiper\db\converter;
 
 use BackedEnum;
-use kuiper\db\metadata\Column;
+use kuiper\db\metadata\ColumnInterface;
 use UnitEnum;
 
 class EnumConverter implements AttributeConverterInterface
@@ -28,7 +28,7 @@ class EnumConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed
+    public function convertToDatabaseColumn(mixed $attribute, ColumnInterface $column): mixed
     {
         if ($attribute instanceof BackedEnum) {
             return $attribute->value;
@@ -43,7 +43,7 @@ class EnumConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed
+    public function convertToEntityAttribute(mixed $dbData, ColumnInterface $column): mixed
     {
         if (null === $dbData || '' === $dbData) {
             return null;
@@ -55,14 +55,24 @@ class EnumConverter implements AttributeConverterInterface
         }
 
         if (is_a($enumType, UnitEnum::class, true)) {
-            if (!isset(self::$ENUM_CASES[$enumType])) {
-                foreach ($enumType::cases() as $enum) {
-                    self::$ENUM_CASES[$enumType][$enum->name] = $enum;
-                }
-            }
-
-            return self::$ENUM_CASES[$enumType][$dbData] ?? null;
+            return self::tryFromEnum($enumType, $dbData);
         }
         throw new \InvalidArgumentException('attribute is not enum type');
+    }
+
+    /**
+     * @param class-string<UnitEnum> $enumType
+     * @param string $enumName
+     * @return UnitEnum|null
+     */
+    private static function tryFromEnum(string $enumType, string $enumName): ?UnitEnum
+    {
+        if (!isset(self::$ENUM_CASES[$enumType])) {
+            foreach ($enumType::cases() as $enum) {
+                self::$ENUM_CASES[$enumType][$enum->name] = $enum;
+            }
+        }
+
+        return self::$ENUM_CASES[$enumType][$enumName] ?? null;
     }
 }

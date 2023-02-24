@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\db\converter;
 
-use kuiper\db\metadata\Column;
+use kuiper\db\metadata\ColumnInterface;
 
 class JoinerConverter implements AttributeConverterInterface
 {
@@ -21,7 +21,7 @@ class JoinerConverter implements AttributeConverterInterface
     {
     }
 
-    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed
+    public function convertToDatabaseColumn(mixed $attribute, ColumnInterface $column): mixed
     {
         if (!is_array($attribute)) {
             throw new \InvalidArgumentException('attribute should be array');
@@ -31,7 +31,7 @@ class JoinerConverter implements AttributeConverterInterface
         return $this->around ? $this->delimiter.$value.$this->delimiter : $value;
     }
 
-    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed
+    public function convertToEntityAttribute(mixed $dbData, ColumnInterface $column): mixed
     {
         $trim = trim($dbData, $this->delimiter);
         if (empty($trim)) {

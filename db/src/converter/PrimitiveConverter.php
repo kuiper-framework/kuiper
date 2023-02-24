@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\db\converter;
 
 use kuiper\db\metadata\Column;
+use kuiper\db\metadata\ColumnInterface;
 use kuiper\reflection\ReflectionType;
 use kuiper\reflection\ReflectionTypeInterface;
 
@@ -26,7 +27,7 @@ class PrimitiveConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed
+    public function convertToDatabaseColumn(mixed $attribute, ColumnInterface $column): mixed
     {
         if (isset($attribute) && !is_scalar($attribute)) {
             throw new \InvalidArgumentException(sprintf('Cannot convert %s to %s', ReflectionType::describe($attribute), $this->type->getName()));
@@ -38,7 +39,7 @@ class PrimitiveConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed
+    public function convertToEntityAttribute(mixed $dbData, ColumnInterface $column): mixed
     {
         return $this->type->sanitize($dbData);
     }

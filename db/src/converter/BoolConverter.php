@@ -14,13 +14,14 @@ declare(strict_types=1);
 namespace kuiper\db\converter;
 
 use kuiper\db\metadata\Column;
+use kuiper\db\metadata\ColumnInterface;
 
 class BoolConverter implements AttributeConverterInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn(mixed $attribute, Column $column): int
+    public function convertToDatabaseColumn(mixed $attribute, ColumnInterface $column): int
     {
         return $attribute ? 1 : 0;
     }
@@ -28,8 +29,8 @@ class BoolConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute(mixed $dbData, Column $column): bool
+    public function convertToEntityAttribute(mixed $dbData, ColumnInterface $column): bool
     {
-        return (bool) $dbData;
+        return (bool)$dbData;
     }
 }

@@ -103,16 +103,9 @@ class DbConfiguration implements DefinitionConfiguration
     #[Bean]
     public function attributeConverterRegistry(DateTimeFactoryInterface $dateTimeFactory): AttributeConverterRegistry
     {
-        $registry = new AttributeConverterRegistry();
-        $registry->register('bool', new BoolConverter());
-        foreach (['int', 'string', 'float'] as $typeName) {
-            $type = ReflectionType::parse($typeName);
-            $registry->register($type->getName(), new PrimitiveConverter($type));
-        }
+        $registry = AttributeConverterRegistry::createDefault();
         $registry->register(\DateTimeInterface::class, new DateTimeConverter($dateTimeFactory));
         $registry->register(DateConverter::class, new DateConverter($dateTimeFactory));
-        $registry->register(JsonConverter::class, new JsonConverter());
-        $registry->register(JoinerConverter::class, new JoinerConverter());
 
         return $registry;
     }

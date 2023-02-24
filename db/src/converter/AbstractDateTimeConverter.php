@@ -15,7 +15,7 @@ namespace kuiper\db\converter;
 
 use DateTimeInterface;
 use kuiper\db\DateTimeFactoryInterface;
-use kuiper\db\metadata\Column;
+use kuiper\db\metadata\ColumnInterface;
 
 class AbstractDateTimeConverter implements AttributeConverterInterface
 {
@@ -26,7 +26,7 @@ class AbstractDateTimeConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn(mixed $attribute, Column $column): string
+    public function convertToDatabaseColumn(mixed $attribute, ColumnInterface $column): string
     {
         if ($attribute instanceof DateTimeInterface) {
             return $this->format($attribute);
@@ -38,7 +38,7 @@ class AbstractDateTimeConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute(mixed $dbData, Column $column): ?DateTimeInterface
+    public function convertToEntityAttribute(mixed $dbData, ColumnInterface $column): ?DateTimeInterface
     {
         try {
             return $this->dateTimeFactory->stringToTime($dbData);

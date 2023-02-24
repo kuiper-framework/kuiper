@@ -17,7 +17,6 @@ use kuiper\db\attribute\Attribute;
 use kuiper\db\attribute\Column as ColumnAttribute;
 use kuiper\db\attribute\Convert;
 use kuiper\db\attribute\Embeddable;
-use kuiper\db\attribute\Enumerated;
 use kuiper\db\attribute\Repository;
 use kuiper\db\attribute\Table;
 use kuiper\db\attribute\Transient;
@@ -35,8 +34,8 @@ class MetaModelFactory implements MetaModelFactoryInterface
     private array $cache = [];
 
     public function __construct(
-        private readonly AttributeConverterRegistry $attributeConverterRegistry,
-        private readonly NamingStrategyInterface $namingStrategy,
+        private readonly AttributeConverterRegistry         $attributeConverterRegistry,
+        private readonly NamingStrategyInterface            $namingStrategy,
         private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
     {
     }
@@ -79,7 +78,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
             }
         }
         if (0 === count($attributes)) {
-            throw new \InvalidArgumentException($reflectionClass->getName().' should annotation with @'.Repository::class);
+            throw new \InvalidArgumentException($reflectionClass->getName() . ' should annotation with @' . Repository::class);
         }
 
         /** @var Repository $attribute */
@@ -168,7 +167,8 @@ class MetaModelFactory implements MetaModelFactoryInterface
         if (null !== $converter) {
             return $this->attributeConverterRegistry->get($converter->getConverter());
         }
-        if ($metaProperty->hasAttribute(Enumerated::class)) {
+        if ($metaProperty->getType()->isClass()
+                && is_a($metaProperty->getType()->getName(), \UnitEnum::class, true)) {
             return new EnumConverter();
         }
 

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\db\converter;
 
+use kuiper\reflection\ReflectionType;
+
 class AttributeConverterRegistry
 {
     /**
@@ -28,5 +30,18 @@ class AttributeConverterRegistry
     public function register(string $name, AttributeConverterInterface $converter): void
     {
         $this->converters[$name] = $converter;
+    }
+
+    public static function createDefault(): AttributeConverterRegistry
+    {
+        $registry = new self();
+        $registry->register('bool', new BoolConverter());
+        foreach (['int', 'string', 'float'] as $typeName) {
+            $type = ReflectionType::parse($typeName);
+            $registry->register($type->getName(), new PrimitiveConverter($type));
+        }
+        $registry->register(JsonConverter::class, new JsonConverter());
+        $registry->register(JoinerConverter::class, new JoinerConverter());
+        return $registry;
     }
 }

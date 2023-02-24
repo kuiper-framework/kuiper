@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\db\converter;
 
 use kuiper\db\metadata\Column;
+use kuiper\db\metadata\ColumnInterface;
 
 class JsonConverter implements AttributeConverterInterface
 {
@@ -25,7 +26,7 @@ class JsonConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn(mixed $attribute, Column $column): mixed
+    public function convertToDatabaseColumn(mixed $attribute, ColumnInterface $column): mixed
     {
         return json_encode($attribute, $this->options);
     }
@@ -33,7 +34,7 @@ class JsonConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute(mixed $dbData, Column $column): mixed
+    public function convertToEntityAttribute(mixed $dbData, ColumnInterface $column): mixed
     {
         return json_decode($dbData, $this->assoc);
     }
