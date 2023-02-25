@@ -48,7 +48,7 @@ class Config
                 continue;
             }
             if (preg_match("/<(\/?)(\S+)>/", $line, $matches)) {
-                if ($matches[1]) {
+                if (!empty($matches[1])) {
                     if (empty($stack)) {
                         throw new ConfigException("Unexpect close tag '$line' at line $lineNum");
                     }

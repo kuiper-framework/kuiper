@@ -1,16 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\event;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher as SymfonyEventDispatcher;
 
 class EventDispatcher implements EventDispatcherInterface, EventRegistryInterface
 {
-    private \Symfony\Component\EventDispatcher\EventDispatcher $delegateEventDispatcher;
+    private SymfonyEventDispatcher $delegateEventDispatcher;
 
     public function __construct()
     {
-        $this->delegateEventDispatcher = new \Symfony\Component\EventDispatcher\EventDispatcher();
+        $this->delegateEventDispatcher = new SymfonyEventDispatcher();
     }
 
     public function dispatch(object $event)
@@ -25,6 +28,6 @@ class EventDispatcher implements EventDispatcherInterface, EventRegistryInterfac
 
     public function reset(): void
     {
-        $this->delegateEventDispatcher = new \Symfony\Component\EventDispatcher\EventDispatcher();
+        $this->delegateEventDispatcher = new SymfonyEventDispatcher();
     }
 }

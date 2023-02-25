@@ -211,10 +211,10 @@ class LoggerFactory implements LoggerFactoryInterface
         return $logger;
     }
 
-    private function createFileHandler(string $logFile, int $logLevel, ?int $rotate = null): StreamHandler
+    private function createFileHandler(string $logFile, int $logLevel, ?int $maxFiles = null): StreamHandler
     {
-        if (null !== $rotate) {
-            return new RotatingFileHandler($logFile, $rotate, $logLevel);
+        if (null !== $maxFiles) {
+            return new RotatingFileHandler($logFile, $maxFiles, $logLevel);
         }
 
         return new StreamHandler($logFile, $logLevel);

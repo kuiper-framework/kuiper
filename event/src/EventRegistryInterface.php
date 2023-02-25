@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace kuiper\event;
 
 interface EventRegistryInterface
@@ -13,7 +15,7 @@ interface EventRegistryInterface
     public function addListener(string $eventName, callable $listener, int $priority = 0): void;
 
     /**
-     * Removes all event listeners
+     * Removes all event listeners.
      */
     public function reset(): void;
 }

@@ -6,6 +6,7 @@ namespace kuiper\logger;
 
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
+use Monolog\LogRecord;
 use Monolog\Utils;
 
 class FileHandler extends AbstractProcessingHandler
@@ -33,11 +34,11 @@ class FileHandler extends AbstractProcessingHandler
         return $this->fileName;
     }
 
-    protected function write(array $record): void
+    protected function write(LogRecord $record): void
     {
         $url = $this->fileName;
         $this->createDir($url);
-        file_put_contents($url, (string) $record['formatted'], FILE_APPEND | LOCK_EX);
+        file_put_contents($url, (string) $record->formatted, FILE_APPEND | LOCK_EX);
     }
 
     private function getDirFromStream(string $stream): ?string

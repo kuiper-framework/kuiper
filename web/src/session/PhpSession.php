@@ -119,7 +119,7 @@ class PhpSession implements SessionInterface
      *
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         $this->checkStart();
 
@@ -139,9 +139,9 @@ class PhpSession implements SessionInterface
     /**
      * {@inheritDoc}
      *
-     * @return mixed
+     * @return string|int|null
      */
-    public function key()
+    public function key(): string|int|null
     {
         $this->checkStart();
 

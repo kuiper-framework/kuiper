@@ -77,7 +77,7 @@ class EphemeralSession implements SessionInterface
      *
      * @return false|mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return current($this->data);
     }
@@ -93,9 +93,9 @@ class EphemeralSession implements SessionInterface
     /**
      * {@inheritDoc}
      *
-     * @return mixed
+     * @return string|int|null
      */
-    public function key()
+    public function key(): string|int|null
     {
         return key($this->data);
     }

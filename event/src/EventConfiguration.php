@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\event;
 
+use function DI\get;
+use function DI\value;
+
 use kuiper\di\AwareInjection;
 use kuiper\di\Bootstrap;
 use kuiper\di\ComponentCollection;
@@ -28,10 +31,6 @@ use kuiper\swoole\task\QueueInterface;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface as PsrEventDispatcher;
 use Psr\Log\LoggerInterface;
-use Slim\App;
-use function DI\autowire;
-use function DI\get;
-use function DI\value;
 
 #[ServerStartConfiguration]
 class EventConfiguration implements DefinitionConfiguration, Bootstrap
@@ -54,6 +53,7 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
             }
         });
         $eventDispatcher = Application::getInstance()->getEventDispatcher();
+
         return [
             PsrEventDispatcher::class => value(new AsyncEventDispatcher($eventDispatcher)),
             AsyncEventDispatcherInterface::class => get(PsrEventDispatcher::class),

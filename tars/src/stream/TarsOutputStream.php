@@ -274,10 +274,6 @@ class TarsOutputStream implements TarsOutputStreamInterface
      */
     public function writeMap(int $tag, StructMap|array $value, MapType $mapType): void
     {
-        /** @var mixed $value */
-        if (!is_array($value) && !($value instanceof StructMap)) {
-            throw TarsStreamException::typeNotMatch('Expect array or StructMap, got '.gettype($value));
-        }
         $cnt = count($value);
         $this->writeHead($tag, Type::MAP);
         $this->writeInt32(0, $cnt);

@@ -34,7 +34,7 @@ class RedisStateStore implements StateStore
         if (State::OPEN === $state) {
             $value[$this->keyPrefix.'open'.$name] = (int) (microtime(true) * 1000);
         }
-        $this->redis->mset($value);
+        $this->redis->mSet($value);
     }
 
     public function getOpenAt(string $name): int
