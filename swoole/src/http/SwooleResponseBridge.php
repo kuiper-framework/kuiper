@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\http;
 
-use kuiper\swoole\constants\HttpHeaderName;
 use Psr\Http\Message\ResponseInterface;
 use Swoole\Http\Response;
 use Swoole\Timer;
@@ -41,7 +40,6 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
         }
         $body = $response->getBody();
         $contentLength = $body->getSize();
-        $swooleResponse->header(HttpHeaderName::CONTENT_LENGTH, (string) $contentLength);
 
         if ($body instanceof FileStreamInterface) {
             $swooleResponse->sendfile($body->getFileName());

@@ -162,7 +162,7 @@ class LineRequestLogFormatter implements RequestLogFormatterInterface
                 $header = substr($name, 7);
                 $extra[$header] = $request->getHeaderLine($header);
             } elseif ('pid' === $name) {
-                $extra += call_user_func($this->pidProcessor, [])['extra'];
+                $extra += $this->pidProcessor->get();
             }
         }
         $extra = array_filter($extra);

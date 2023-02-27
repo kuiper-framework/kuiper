@@ -25,6 +25,7 @@ use kuiper\swoole\ServerPort;
 use Psr\Http\Message\ResponseFactoryInterface;
 use RuntimeException;
 use Swoole\Server;
+use Swoole\Timer;
 
 class SwooleServer extends AbstractServer
 {
@@ -161,8 +162,7 @@ class SwooleServer extends AbstractServer
      */
     public function tick(int $millisecond, callable $callback): int
     {
-        /* @phpstan-ignore-next-line */
-        return $this->resource->tick($millisecond, $callback);
+        return Timer::tick($millisecond, $callback);
     }
 
     /**

@@ -21,11 +21,18 @@ class CoroutineIdProcessor implements ProcessorInterface
 {
     public function __invoke(LogRecord $record): LogRecord
     {
-        $record->extra['pid'] = getmypid();
-        if (Coroutine::isEnabled()) {
-            $record->extra['cid'] = Coroutine::getCoroutineId();
+        foreach ($this->get() as $name => $val) {
+            $record->extra[$name] = $val;
         }
 
         return $record;
+    }
+
+    public function get(): array
+    {
+        return array_filter([
+            'pid' => getmypid(),
+            'cid' => Coroutine::getCoroutineId(),
+        ]);
     }
 }

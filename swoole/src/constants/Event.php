@@ -25,7 +25,6 @@ enum Event: string
     case REQUEST = 'request';
     case RECEIVE = 'receive';
     case CONNECT = 'connect';
-    case HAND_SHAKE = 'handshake';
     case OPEN = 'open';
     case MESSAGE = 'message';
     case CLOSE = 'close';
