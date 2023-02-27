@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\tars\type;
 
+use InvalidArgumentException;
+
 /**
  * @method static PrimitiveType string(): static
  * @method static PrimitiveType bool(): static
@@ -77,7 +79,7 @@ final class PrimitiveType extends AbstractType
     private function __construct(string $primitiveType)
     {
         if (!self::has($primitiveType)) {
-            throw new \InvalidArgumentException("unknown primitive tars type $primitiveType");
+            throw new InvalidArgumentException("unknown primitive tars type $primitiveType");
         }
         $this->type = $primitiveType;
     }

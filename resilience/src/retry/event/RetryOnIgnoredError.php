@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\resilience\retry\event;
 
 use kuiper\resilience\retry\Retry;
+use Throwable;
 
 /**
  * 调用抛出的异常非重试类型
@@ -26,7 +27,7 @@ class RetryOnIgnoredError
      */
     public function __construct(
         private readonly Retry $retry,
-        private readonly \Throwable $exception)
+        private readonly Throwable $exception)
     {
     }
 
@@ -35,7 +36,7 @@ class RetryOnIgnoredError
         return $this->retry;
     }
 
-    public function getException(): \Throwable
+    public function getException(): Throwable
     {
         return $this->exception;
     }

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\servicediscovery\loadbalance;
 
+use InvalidArgumentException;
+
 class RoundRobin implements LoadBalanceInterface
 {
     /**
@@ -28,7 +30,7 @@ class RoundRobin implements LoadBalanceInterface
     public function __construct(array $hosts, private readonly array $weights)
     {
         if (empty($hosts)) {
-            throw new \InvalidArgumentException('hosts should not be empty');
+            throw new InvalidArgumentException('hosts should not be empty');
         }
         $this->hosts = $hosts;
         $this->states = [];

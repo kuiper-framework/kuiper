@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\tars\attribute;
 
-#[\Attribute(\Attribute::TARGET_METHOD)]
+use Attribute;
+
+#[Attribute(Attribute::TARGET_METHOD)]
 final class TarsReturnType
 {
     public function __construct(private readonly string $name)

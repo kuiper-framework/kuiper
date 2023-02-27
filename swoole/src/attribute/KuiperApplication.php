@@ -13,12 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\attribute;
 
+use Attribute;
 use kuiper\di\attribute\ComponentTrait;
 use kuiper\di\Component;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 
-#[\Attribute(\Attribute::TARGET_CLASS)]
+#[Attribute(Attribute::TARGET_CLASS)]
 class KuiperApplication implements Component
 {
     use ComponentTrait;

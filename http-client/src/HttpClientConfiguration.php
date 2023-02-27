@@ -14,8 +14,10 @@ declare(strict_types=1);
 namespace kuiper\http\client;
 
 use DI\Attribute\Inject;
+
 use function DI\autowire;
 use function DI\factory;
+
 use GuzzleHttp\ClientInterface;
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\ConditionalOnClass;

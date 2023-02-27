@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server\workers;
 
+use InvalidArgumentException;
+use RuntimeException;
+
 class SocketChannel
 {
     /**
@@ -37,7 +40,7 @@ class SocketChannel
     {
         $sockets = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
         if (!$sockets) {
-            throw new \RuntimeException('Cannot create socket pair');
+            throw new RuntimeException('Cannot create socket pair');
         }
         [$this->child, $this->parent] = $sockets;
     }
@@ -73,7 +76,7 @@ class SocketChannel
     public function push(mixed $data): void
     {
         if (!$this->isActive()) {
-            throw new \InvalidArgumentException('Cannot send on closed channel');
+            throw new InvalidArgumentException('Cannot send on closed channel');
         }
         $serialized = serialize($data);
         $hdr = pack('N', strlen($serialized));    // 4 byte length
@@ -112,7 +115,7 @@ class SocketChannel
     public function read(): mixed
     {
         if (!$this->isActive()) {
-            throw new \InvalidArgumentException('cannot read on closed channel');
+            throw new InvalidArgumentException('cannot read on closed channel');
         }
         // read 4 byte length first
         $hdr = '';

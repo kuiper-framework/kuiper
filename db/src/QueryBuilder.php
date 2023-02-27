@@ -17,6 +17,7 @@ use Aura\SqlQuery\QueryFactory;
 use Aura\SqlQuery\QueryInterface;
 use kuiper\event\EventDispatcherAwareInterface;
 use kuiper\event\EventDispatcherAwareTrait;
+use PDO;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 class QueryBuilder implements QueryBuilderInterface, EventDispatcherAwareInterface
@@ -33,7 +34,7 @@ class QueryBuilder implements QueryBuilderInterface, EventDispatcherAwareInterfa
             $this->queryFactory = $queryFactory;
         } else {
             $connection = $this->pool->take();
-            $this->queryFactory = new QueryFactory($connection->getAttribute(\PDO::ATTR_DRIVER_NAME));
+            $this->queryFactory = new QueryFactory($connection->getAttribute(PDO::ATTR_DRIVER_NAME));
             $this->pool->release($connection);
         }
     }

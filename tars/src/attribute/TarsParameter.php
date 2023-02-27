@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\tars\attribute;
 
-#[\Attribute(\Attribute::TARGET_PARAMETER)]
+use Attribute;
+
+#[Attribute(Attribute::TARGET_PARAMETER)]
 final class TarsParameter
 {
     public function __construct(

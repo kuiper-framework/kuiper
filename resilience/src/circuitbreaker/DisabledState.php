@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use Exception;
+
 class DisabledState implements CircuitBreakerState
 {
     public function tryAcquirePermission(): bool
@@ -30,7 +32,7 @@ class DisabledState implements CircuitBreakerState
         // noOp
     }
 
-    public function onError(int $duration, \Exception $exception): void
+    public function onError(int $duration, Exception $exception): void
     {
         // noOp
     }

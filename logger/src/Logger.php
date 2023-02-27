@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\logger;
 
+use InvalidArgumentException;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
+use Stringable;
 
 class Logger extends AbstractLogger
 {
@@ -44,7 +46,7 @@ class Logger extends AbstractLogger
     public function __construct(private readonly LoggerInterface $logger, string $logLevel)
     {
         if (!isset(self::$LEVELS[$logLevel])) {
-            throw new \InvalidArgumentException("Unknown log level '$logLevel'");
+            throw new InvalidArgumentException("Unknown log level '$logLevel'");
         }
         $this->logLevel = self::$LEVELS[$logLevel];
     }
@@ -52,7 +54,7 @@ class Logger extends AbstractLogger
     /**
      * {@inheritdoc}
      */
-    public function log($level, string|\Stringable $message, array $context = []): void
+    public function log($level, string|Stringable $message, array $context = []): void
     {
         if (self::$LEVELS[$level] <= $this->logLevel) {
             $this->logger->log($level, $message, $context);

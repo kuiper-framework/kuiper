@@ -16,10 +16,11 @@ declare(strict_types=1);
 namespace kuiper\tars\config;
 
 use DI\Attribute\Inject;
-use kuiper\swoole\attribute\BootstrapConfiguration;
+
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
+
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\Configuration;
 use kuiper\di\ComponentCollection;
@@ -34,6 +35,7 @@ use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\serializer\NormalizerInterface;
 use kuiper\swoole\Application;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\logger\RequestLogFormatterInterface;

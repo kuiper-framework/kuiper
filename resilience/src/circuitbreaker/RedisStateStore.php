@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use Redis;
+
 class RedisStateStore implements StateStore
 {
-    public function __construct(private readonly \Redis $redis, private readonly string $keyPrefix = 'circuitbreaker')
+    public function __construct(private readonly Redis $redis, private readonly string $keyPrefix = 'circuitbreaker')
     {
     }
 

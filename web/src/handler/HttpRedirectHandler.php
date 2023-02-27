@@ -16,13 +16,14 @@ namespace kuiper\web\handler;
 use kuiper\web\exception\RedirectException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 class HttpRedirectHandler extends AbstractErrorHandler
 {
     /**
      * {@inheritdoc}
      */
-    protected function respondHtml(ServerRequestInterface $request, \Throwable $exception, bool $displayErrorDetails): ResponseInterface
+    protected function respondHtml(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails): ResponseInterface
     {
         if (!$exception instanceof RedirectException) {
             return $this->getDefaultErrorHandler()->__invoke($request, $exception, $displayErrorDetails, true, true);

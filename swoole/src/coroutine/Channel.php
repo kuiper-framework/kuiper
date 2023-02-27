@@ -13,13 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\coroutine;
 
+use SplQueue;
 use Swoole\Coroutine\Channel as SwooleChannel;
 
 class Channel implements ChannelInterface
 {
     private readonly SwooleChannel $channel;
 
-    private readonly \SplQueue $queue;
+    private readonly SplQueue $queue;
 
     /**
      * Channel constructor.
@@ -29,7 +30,7 @@ class Channel implements ChannelInterface
         private readonly float $timeout = 0)
     {
         $this->channel = new SwooleChannel($size);
-        $this->queue = new \SplQueue();
+        $this->queue = new SplQueue();
     }
 
     /**

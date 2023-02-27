@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\core;
 
+use Redis;
+
 class RedisCounter implements Counter
 {
     public function __construct(
-        private readonly \Redis $redis,
+        private readonly Redis $redis,
         private readonly string $key)
     {
     }

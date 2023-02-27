@@ -15,6 +15,7 @@ namespace kuiper\db\sharding;
 
 use Aura\SqlQuery\QueryFactory;
 use Aura\SqlQuery\QueryInterface;
+use InvalidArgumentException;
 use kuiper\db\ConnectionPoolInterface;
 use kuiper\event\EventDispatcherAwareInterface;
 use kuiper\event\EventDispatcherAwareTrait;
@@ -40,7 +41,7 @@ class Cluster implements ClusterInterface, EventDispatcherAwareInterface
     public function getConnectionPool(int $connectionId): ConnectionPoolInterface
     {
         if (!isset($this->poolList[$connectionId])) {
-            throw new \InvalidArgumentException("unknown connection $connectionId");
+            throw new InvalidArgumentException("unknown connection $connectionId");
         }
 
         return $this->poolList[$connectionId];
@@ -99,7 +100,7 @@ class Cluster implements ClusterInterface, EventDispatcherAwareInterface
     protected function createStatement(string $table, QueryInterface $query): \kuiper\db\StatementInterface
     {
         if (!isset($this->tables[$table])) {
-            throw new \InvalidArgumentException("Table '{$table}' strategy was not configured, call setTableStrategy first");
+            throw new InvalidArgumentException("Table '{$table}' strategy was not configured, call setTableStrategy first");
         }
 
         return new Statement(new ClusterConnectionPool($this->poolList), $query, $table, $this->tables[$table], $this->eventDispatcher);

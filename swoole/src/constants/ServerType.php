@@ -23,6 +23,7 @@ enum ServerType: string
     case WEBSOCKET = 'websocket';
     case TCP = 'tcp';
     case UDP = 'udp';
+
     public function isHttpProtocol(): bool
     {
         return in_array(Event::REQUEST, $this->handledEvents(), true);

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\task;
 
+use Exception;
+use InvalidArgumentException;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
 use kuiper\swoole\attribute\TaskProcessor;
@@ -21,6 +23,7 @@ use kuiper\swoole\exception\TaskProcessorNotFoundException;
 use kuiper\swoole\server\ServerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use ReflectionClass;
 
 class Queue implements QueueInterface, DispatcherInterface, LoggerAwareInterface, ContainerAwareInterface
 {
@@ -55,12 +58,12 @@ class Queue implements QueueInterface, DispatcherInterface, LoggerAwareInterface
     {
         if (is_string($handler)) {
             if (!isset($this->container)) {
-                throw new \InvalidArgumentException('container not set');
+                throw new InvalidArgumentException('container not set');
             }
             $handler = $this->container->get($handler);
         }
         if (!($handler instanceof ProcessorInterface)) {
-            throw new \InvalidArgumentException("task handler '".get_class($handler)."' should implement ".ProcessorInterface::class);
+            throw new InvalidArgumentException("task handler '".get_class($handler)."' should implement ".ProcessorInterface::class);
         }
         $this->processors[$taskClass] = $handler;
     }
@@ -80,7 +83,7 @@ class Queue implements QueueInterface, DispatcherInterface, LoggerAwareInterface
             if (isset($result)) {
                 $this->server->finish($result);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error(static::TAG.'dispatch error', [
                 'exception' => get_class($e),
                 'message' => $e->getMessage(),
@@ -96,7 +99,7 @@ class Queue implements QueueInterface, DispatcherInterface, LoggerAwareInterface
             return $this->processors[$taskClass];
         }
 
-        $reflectionClass = new \ReflectionClass($taskClass);
+        $reflectionClass = new ReflectionClass($taskClass);
         $attributes = $reflectionClass->getAttributes(TaskProcessor::class);
         if (count($attributes) > 0) {
             /** @var TaskProcessor $attribute */

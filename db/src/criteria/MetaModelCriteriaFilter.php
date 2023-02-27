@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\db\criteria;
 
+use InvalidArgumentException;
 use kuiper\db\Criteria;
 use kuiper\db\metadata\Column;
 use kuiper\db\metadata\MetaModelInterface;
@@ -62,7 +63,7 @@ class MetaModelCriteriaFilter implements CriteriaFilterInterface
                     ->matches($values, $fields)
                     ->getClause();
             }
-            throw new \InvalidArgumentException('only = or in can apply to '.$property->getEntityClass()->getName().'.'.$property->getPath());
+            throw new InvalidArgumentException('only = or in can apply to '.$property->getEntityClass()->getName().'.'.$property->getPath());
         }
 
         $column = current($columns);

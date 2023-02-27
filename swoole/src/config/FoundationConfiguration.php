@@ -14,11 +14,11 @@ declare(strict_types=1);
 namespace kuiper\swoole\config;
 
 use DI\Attribute\Inject;
-use kuiper\swoole\attribute\BootstrapConfiguration;
-use Psr\EventDispatcher\EventDispatcherInterface;
+
 use function DI\autowire;
 use function DI\get;
 use function DI\value;
+
 use kuiper\di\attribute\Bean;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerAwareInterface;
@@ -28,11 +28,13 @@ use kuiper\di\PropertiesDefinitionSource;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\pool\PoolFactory;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\swoole\task\DispatcherInterface;
 use kuiper\swoole\task\Queue;
 use kuiper\swoole\task\QueueInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

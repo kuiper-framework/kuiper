@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server\stat;
 
+use Iterator;
+
 interface StatStore
 {
     public function save(StatEntry $entry): void;
@@ -22,7 +24,7 @@ interface StatStore
     /**
      * @param int $maxIndex
      *
-     * @return \Iterator<StatEntry>
+     * @return Iterator<StatEntry>
      */
-    public function getEntries(int $maxIndex): \Iterator;
+    public function getEntries(int $maxIndex): Iterator;
 }

@@ -13,9 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\normalizer;
 
+use Exception;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\serializer\NormalizerInterface;
 use ReflectionClass;
+use RuntimeException;
+use Serializable;
 
 class ExceptionNormalizer implements NormalizerInterface
 {
@@ -25,8 +28,8 @@ class ExceptionNormalizer implements NormalizerInterface
     public function normalize(mixed $object): mixed
     {
         $exception = $object;
-        /** @var \Exception $exception */
-        if ($exception instanceof \Serializable) {
+        /** @var Exception $exception */
+        if ($exception instanceof Serializable) {
             $data = $exception;
         } else {
             $data = [
@@ -46,16 +49,16 @@ class ExceptionNormalizer implements NormalizerInterface
     {
         $exception = unserialize(base64_decode($data, true), ['allowed_classes' => true]);
         if (false === $exception) {
-            return new \RuntimeException('Bad exception data: '.json_encode($data));
+            return new RuntimeException('Bad exception data: '.json_encode($data));
         }
-        if ($exception instanceof \Exception) {
+        if ($exception instanceof Exception) {
             return $exception;
         }
         if (is_array($exception) && isset($exception['class'], $exception['message'], $exception['code'])) {
             $exceptionClass = $exception['class'];
             $class = new ReflectionClass($exceptionClass);
             $constructor = $class->getConstructor();
-            if (null !== $constructor && $class->isSubclassOf(\Exception::class)) {
+            if (null !== $constructor && $class->isSubclassOf(Exception::class)) {
                 $params = $constructor->getParameters();
                 $paramNames = [];
                 foreach ($params as $param) {
@@ -67,6 +70,6 @@ class ExceptionNormalizer implements NormalizerInterface
             }
         }
 
-        return new \RuntimeException('Bad exception data: '.json_encode($exception));
+        return new RuntimeException('Bad exception data: '.json_encode($exception));
     }
 }

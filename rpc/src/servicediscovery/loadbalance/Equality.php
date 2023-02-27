@@ -13,16 +13,18 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\servicediscovery\loadbalance;
 
+use ArrayIterator;
+
 class Equality implements LoadBalanceInterface
 {
     /**
-     * @var \ArrayIterator
+     * @var ArrayIterator
      */
-    private readonly \ArrayIterator $hosts;
+    private readonly ArrayIterator $hosts;
 
     public function __construct(array $hosts)
     {
-        $this->hosts = new \ArrayIterator($hosts);
+        $this->hosts = new ArrayIterator($hosts);
     }
 
     public function select(): mixed

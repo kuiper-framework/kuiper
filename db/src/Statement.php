@@ -23,9 +23,11 @@ use Aura\SqlQuery\Common\UpdateInterface;
 use Aura\SqlQuery\Common\WhereInterface;
 use Aura\SqlQuery\QueryInterface;
 use BadMethodCallException;
+use DateTimeInterface;
 use InvalidArgumentException;
 use kuiper\db\constants\ErrorCode;
 use kuiper\db\event\StatementQueriedEvent;
+use PDO;
 use PDOException;
 use PDOStatement;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -476,9 +478,9 @@ class Statement implements StatementInterface
         $this->pdoStatement = $conn->prepare($this->query->getStatement());
         foreach ($this->query->getBindValues() as $key => $value) {
             if (is_int($value)) {
-                $this->pdoStatement->bindValue(':'.$key, $value, \PDO::PARAM_INT);
+                $this->pdoStatement->bindValue(':'.$key, $value, PDO::PARAM_INT);
             } else {
-                if ($value instanceof \DateTimeInterface) {
+                if ($value instanceof DateTimeInterface) {
                     $value = $value->format('Y-m-d H:i:s');
                 }
                 $this->pdoStatement->bindValue(':'.$key, $value);

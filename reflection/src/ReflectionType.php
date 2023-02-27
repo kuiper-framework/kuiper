@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
+use InvalidArgumentException;
 use kuiper\reflection\type\ArrayType;
 use kuiper\reflection\type\ClassType;
 use kuiper\reflection\type\CompositeType;
 use kuiper\reflection\type\MixedType;
+use ReflectionNamedType;
+use ReflectionUnionType;
 
 /**
  * @SuppressWarnings("NumberOfChildren")
@@ -97,7 +100,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
     public static function forName(string $type, bool $allowsNull = false): ReflectionTypeInterface
     {
         if (empty($type)) {
-            throw new \InvalidArgumentException('Expected an type string, got empty string');
+            throw new InvalidArgumentException('Expected an type string, got empty string');
         }
         if (str_starts_with($type, '?')) {
             $type = substr($type, 1);
@@ -114,7 +117,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
             return self::getSingletonType($type, $allowsNull);
         }
 
-        throw new \InvalidArgumentException("Expected an type string, got '{$type}'");
+        throw new InvalidArgumentException("Expected an type string, got '{$type}'");
     }
 
     public static function isClassName(string $identifier): bool
@@ -127,11 +130,11 @@ abstract class ReflectionType implements ReflectionTypeInterface
         if (null === $type) {
             return ReflectionType::forName('mixed');
         }
-        if ($type instanceof \ReflectionNamedType) {
+        if ($type instanceof ReflectionNamedType) {
             return self::forName($type->getName(), $type->allowsNull());
         }
 
-        if ($type instanceof \ReflectionUnionType) {
+        if ($type instanceof ReflectionUnionType) {
             return new CompositeType(array_map(static function (\ReflectionType $subType) {
                 return self::forName((string) $subType);
             }, $type->getTypes()));
@@ -161,7 +164,7 @@ abstract class ReflectionType implements ReflectionTypeInterface
      *
      * 目前只实现解析不能包含括号的简单类型.
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public static function parse(string $typeString): ReflectionTypeInterface
     {

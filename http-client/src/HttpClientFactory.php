@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\http\client;
 
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
@@ -71,7 +72,7 @@ class HttpClientFactory implements HttpClientFactoryInterface, LoggerAwareInterf
 
     public function createRetryCallback(int $maxRetries): callable
     {
-        return static function ($retries, RequestInterface $req, ResponseInterface $resp = null, \Exception $e = null) use ($maxRetries): bool {
+        return static function ($retries, RequestInterface $req, ResponseInterface $resp = null, Exception $e = null) use ($maxRetries): bool {
             if ($retries >= $maxRetries) {
                 return false;
             }

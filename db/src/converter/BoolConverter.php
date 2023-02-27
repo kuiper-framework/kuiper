@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\db\converter;
 
-use kuiper\db\metadata\Column;
 use kuiper\db\metadata\ColumnInterface;
 
 class BoolConverter implements AttributeConverterInterface
@@ -31,6 +30,6 @@ class BoolConverter implements AttributeConverterInterface
      */
     public function convertToEntityAttribute(mixed $dbData, ColumnInterface $column): bool
     {
-        return (bool)$dbData;
+        return (bool) $dbData;
     }
 }

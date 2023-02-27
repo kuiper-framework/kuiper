@@ -20,6 +20,7 @@ use kuiper\swoole\ServerConfig;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use SplPriorityQueue;
 
 abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
 {
@@ -31,7 +32,7 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
 
     private bool $stopped = false;
 
-    private readonly \SplPriorityQueue $tickCallbacks;
+    private readonly SplPriorityQueue $tickCallbacks;
 
     private int $timerId = 0;
 
@@ -43,7 +44,7 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
         LoggerInterface $logger)
     {
         $this->setLogger($logger);
-        $this->tickCallbacks = new \SplPriorityQueue();
+        $this->tickCallbacks = new SplPriorityQueue();
         $this->pid = $pid > 0 ? $pid : getmypid();
     }
 

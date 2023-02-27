@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use Exception;
 use kuiper\logger\Logger;
 use kuiper\swoole\coroutine\Channel;
 use kuiper\swoole\coroutine\ChannelInterface;
@@ -165,7 +166,7 @@ class SimplePool implements PoolInterface, LoggerAwareInterface
             $this->eventDispatcher->dispatch(new ConnectionCreateEvent($this->poolName, $connection));
 
             return $connection;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw $e;
         }
     }

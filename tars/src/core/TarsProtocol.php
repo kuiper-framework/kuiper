@@ -24,6 +24,7 @@ enum TarsProtocol: string
     case JSONRPC = 'jsonrpc';
     case TARS = 'tars';
     case NOT_TARS = 'not_tars';
+
     public function getServerType(): ServerType
     {
         return match ($this) {

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\servicediscovery;
 
+use DateInterval;
 use Psr\SimpleCache\CacheInterface;
 
 class InMemoryCache implements CacheInterface
@@ -46,7 +47,7 @@ class InMemoryCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
+    public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
         $this->table[$key] = [
             self::KEY_DATA => $value,
@@ -92,7 +93,7 @@ class InMemoryCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
+    public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);

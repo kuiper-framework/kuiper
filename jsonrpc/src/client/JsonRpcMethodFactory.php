@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
+use InvalidArgumentException;
 use kuiper\jsonrpc\attribute\JsonRpcClient;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\rpc\client\ProxyGenerator;
@@ -21,6 +22,7 @@ use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
 use kuiper\rpc\ServiceLocator;
 use kuiper\rpc\ServiceLocatorImpl;
+use ReflectionClass;
 
 class JsonRpcMethodFactory implements RpcMethodFactoryInterface
 {
@@ -42,11 +44,11 @@ class JsonRpcMethodFactory implements RpcMethodFactoryInterface
         if (!isset($this->serviceLocators[$className])) {
             $interfaceName = ProxyGenerator::getInterfaceName($className);
             if (null === $interfaceName) {
-                throw new \InvalidArgumentException("Cannot find interface class for {$className}");
+                throw new InvalidArgumentException("Cannot find interface class for {$className}");
             }
             $options = $this->options[$interfaceName] ?? [];
 
-            $reflectionClass = new \ReflectionClass($interfaceName);
+            $reflectionClass = new ReflectionClass($interfaceName);
             $attributes = $reflectionClass->getAttributes(JsonRpcClient::class);
             /** @var JsonRpcClient|null $attribute */
             $attribute = null;

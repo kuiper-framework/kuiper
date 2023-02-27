@@ -20,7 +20,7 @@ class SystemCpuCollector extends AbstractCollector
         exec("command -v mpstat > /dev/null && mpstat -P ALL | awk '{if($12!=\"\") print $12}' | tail -n +3", $cpusInfo);
         $values = [];
         foreach ($cpusInfo as $key => $cpuInfo) {
-            $values["systemCpu{$key}Usage"] = 100 - (int)$cpuInfo;
+            $values["systemCpu{$key}Usage"] = 100 - (int) $cpuInfo;
         }
 
         return $values;

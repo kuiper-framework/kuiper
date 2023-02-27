@@ -40,6 +40,7 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use ReflectionException;
 
 class JsonRpcClientFactory implements LoggerAwareInterface
 {
@@ -125,7 +126,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface
      *
      * @return mixed
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function create(string $className, array $options)
     {

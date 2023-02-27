@@ -13,13 +13,17 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
+use DateInterval;
 use Psr\SimpleCache\CacheInterface;
+
 use function serialize;
+
 use Swoole\Table;
+
 use function unserialize;
 
 /**
- * A cache storage based on swoole table
+ * A cache storage based on swoole table.
  */
 class SwooleTableCache implements CacheInterface
 {
@@ -73,7 +77,7 @@ class SwooleTableCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
+    public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
         $this->table->set($key, [
             self::KEY_DATA => $this->serialize($value),
@@ -133,7 +137,7 @@ class SwooleTableCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
+    public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);

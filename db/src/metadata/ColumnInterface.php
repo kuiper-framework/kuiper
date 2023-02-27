@@ -18,25 +18,29 @@ use kuiper\reflection\ReflectionTypeInterface;
 interface ColumnInterface
 {
     /**
-     * Gets the column name
+     * Gets the column name.
+     *
      * @return string
      */
     public function getName(): string;
 
     /**
-     * Gets the php type
+     * Gets the php type.
+     *
      * @return ReflectionTypeInterface
      */
     public function getType(): ReflectionTypeInterface;
 
     /**
-     * Gets the object property path
+     * Gets the object property path.
+     *
      * @return string
      */
     public function getPropertyPath(): string;
 
     /**
-     * Gets the property meta data
+     * Gets the property meta data.
+     *
      * @return MetaModelProperty
      */
     public function getProperty(): MetaModelProperty;

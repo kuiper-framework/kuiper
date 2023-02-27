@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\exception;
 
-class BadHttpRequestException extends \Exception
+use Exception;
+
+class BadHttpRequestException extends Exception
 {
 }

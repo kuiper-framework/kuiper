@@ -13,20 +13,22 @@ declare(strict_types=1);
 
 namespace kuiper\db\metadata;
 
+use ReflectionClass;
+
 class NamingContext
 {
-    private ?\ReflectionClass $entityClass = null;
+    private ?ReflectionClass $entityClass = null;
 
     private ?string $annotationValue = null;
 
     private ?string $propertyName = null;
 
-    public function getEntityClass(): \ReflectionClass
+    public function getEntityClass(): ReflectionClass
     {
         return $this->entityClass;
     }
 
-    public function setEntityClass(\ReflectionClass $entityClass): void
+    public function setEntityClass(ReflectionClass $entityClass): void
     {
         $this->entityClass = $entityClass;
     }

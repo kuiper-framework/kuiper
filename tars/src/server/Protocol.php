@@ -23,6 +23,7 @@ enum Protocol: string
     case GRPC = 'grpc';
     case JSONRPC = 'jsonrpc';
     case TARS = 'tars';
+
     public function getServerType(): ?ServerType
     {
         return match ($this) {

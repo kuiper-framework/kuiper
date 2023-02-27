@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use InvalidArgumentException;
 use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
@@ -23,6 +24,7 @@ use kuiper\tars\stream\ResponsePacket;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Throwable;
 
 class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
 {
@@ -32,9 +34,9 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
     {
     }
 
-    public function handle(RpcRequestInterface $request, \Throwable $error): RpcResponseInterface
+    public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface
     {
-        if ($error instanceof \InvalidArgumentException) {
+        if ($error instanceof InvalidArgumentException) {
             $this->logger->info(sprintf('process %s#%s failed: %s',
                 $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(), $error));
         } else {
@@ -45,7 +47,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         $packet = ResponsePacket::createFromRequest($request);
         if ($error->getCode() > 0) {
             $packet->iRet = $error->getCode();
-        } elseif ($error instanceof \InvalidArgumentException) {
+        } elseif ($error instanceof InvalidArgumentException) {
             $packet->iRet = ErrorCode::INVALID_ARGUMENT;
         } else {
             $packet->iRet = ErrorCode::UNKNOWN;

@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\tars\attribute;
 
+use Attribute;
 use kuiper\di\attribute\ComponentTrait;
 use kuiper\di\Component;
 
-#[\Attribute(\Attribute::TARGET_CLASS)]
+#[Attribute(Attribute::TARGET_CLASS)]
 class TarsServant implements Component
 {
     use ComponentTrait;

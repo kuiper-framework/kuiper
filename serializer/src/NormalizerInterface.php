@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\serializer;
 
+use InvalidArgumentException;
 use kuiper\reflection\ReflectionTypeInterface;
 
 interface NormalizerInterface
@@ -36,7 +37,7 @@ interface NormalizerInterface
      *
      * @return mixed
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws exception\SerializeException
      * @throws exception\UnexpectedValueException
      */

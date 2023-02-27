@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\client;
 
+use InvalidArgumentException;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\exception\RequestIdMismatchException;
 use kuiper\rpc\exception\ServerException;
@@ -40,7 +41,7 @@ class TarsResponseFactory implements RpcResponseFactoryInterface
         }
         if (ErrorCode::SERVER_SUCCESS !== $packet->iRet) {
             if (ErrorCode::INVALID_ARGUMENT === $packet->iRet) {
-                throw new \InvalidArgumentException($packet->sResultDesc, $packet->iRet);
+                throw new InvalidArgumentException($packet->sResultDesc, $packet->iRet);
             }
             throw new ServerException($packet->sResultDesc, $packet->iRet);
         }

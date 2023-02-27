@@ -15,6 +15,7 @@ namespace kuiper\web\security;
 
 use kuiper\web\session\SessionInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
 
 class CsrfToken implements CsrfTokenInterface
 {
@@ -88,7 +89,7 @@ class CsrfToken implements CsrfTokenInterface
     protected function generateRandomString(int $bytes): string
     {
         if (!function_exists('openssl_random_pseudo_bytes')) {
-            throw new \RuntimeException('openssl extension must be loaded');
+            throw new RuntimeException('openssl extension must be loaded');
         }
         $randBytes = openssl_random_pseudo_bytes($bytes, $strong);
         /** @phpstan-ignore-next-line */

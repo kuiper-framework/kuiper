@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\reflection\exception;
 
-class ReflectionException extends \Exception
+use Exception;
+
+class ReflectionException extends Exception
 {
 }

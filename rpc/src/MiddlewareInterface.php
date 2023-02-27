@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
+use Exception;
+
 interface MiddlewareInterface
 {
     /**
@@ -21,7 +23,7 @@ interface MiddlewareInterface
      *
      * @return RpcResponseInterface
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $handler): RpcResponseInterface;
 }

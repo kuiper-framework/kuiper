@@ -14,13 +14,14 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use PDO;
+use PDOException;
 
 interface ConnectionInterface extends PdoInterface
 {
     /**
      * Connects to the database and sets PDO attributes.
      *
-     * @throws \PDOException if the connection fails
+     * @throws PDOException if the connection fails
      */
     public function connect(): void;
 

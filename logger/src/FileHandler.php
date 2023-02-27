@@ -8,6 +8,7 @@ use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use Monolog\LogRecord;
 use Monolog\Utils;
+use UnexpectedValueException;
 
 class FileHandler extends AbstractProcessingHandler
 {
@@ -66,7 +67,7 @@ class FileHandler extends AbstractProcessingHandler
         if (null !== $dir && !is_dir($dir)) {
             $status = mkdir($dir, 0777, true);
             if (false === $status && !is_dir($dir)) {
-                throw new \UnexpectedValueException(sprintf('There is no existing directory at "%s" and it could not be created', $dir));
+                throw new UnexpectedValueException(sprintf('There is no existing directory at "%s" and it could not be created', $dir));
             }
         }
         $this->dirCreated = true;

@@ -359,7 +359,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
                 $this->stop();
                 $this->stopWorkers();
                 break;
-            // Reload.
+                // Reload.
             case SIGUSR1:
                 $this->stopWorkers();
                 break;

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use Exception;
+
 class CircuitBreakerConfig
 {
     /**
@@ -70,7 +72,7 @@ class CircuitBreakerConfig
         return call_user_func($this->resultPredicate, $result);
     }
 
-    public function shouldIgnoreException(\Exception $exception): bool
+    public function shouldIgnoreException(Exception $exception): bool
     {
         foreach ($this->ignoreExceptions as $type) {
             if ($exception instanceof $type) {
@@ -84,7 +86,7 @@ class CircuitBreakerConfig
         return false;
     }
 
-    public function isFailureException(\Exception $exception): bool
+    public function isFailureException(Exception $exception): bool
     {
         foreach ($this->recordExceptions as $type) {
             if ($exception instanceof $type) {

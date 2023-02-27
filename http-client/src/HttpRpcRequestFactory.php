@@ -15,6 +15,7 @@ namespace kuiper\http\client;
 
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Utils;
+use InvalidArgumentException;
 use kuiper\http\client\attribute\HttpClient;
 use kuiper\http\client\attribute\HttpHeader;
 use kuiper\http\client\attribute\QueryParam;
@@ -28,6 +29,7 @@ use kuiper\rpc\RpcRequest;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Http\Message\RequestInterface as HttpRequestInterface;
+use ReflectionAttribute;
 use ReflectionMethod;
 use ReflectionParameter;
 
@@ -82,7 +84,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
                 return urlencode($value['value']);
             }
 
-            throw new \InvalidArgumentException($invokingMethod." should have parameter \${$matches[1]}");
+            throw new InvalidArgumentException($invokingMethod." should have parameter \${$matches[1]}");
         };
         $placeholderRe = '/\{(\w+)(:.*)?\}/';
 
@@ -93,7 +95,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
             $headers[strtolower($headerAttribute->getName())] = preg_replace_callback($placeholderRe, $replacePlaceholder, $headerAttribute->getValue());
         }
 
-        $mapping = $this->getAttribute($reflectionMethod, RequestMapping::class, \ReflectionAttribute::IS_INSTANCEOF);
+        $mapping = $this->getAttribute($reflectionMethod, RequestMapping::class, ReflectionAttribute::IS_INSTANCEOF);
         $uri = preg_replace_callback($placeholderRe, $replacePlaceholder, $mapping->getPath());
 
         $httpClientAttribute = $this->getAttribute($reflectionMethod, HttpClient::class);
@@ -187,7 +189,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 
         if (isset($options['form_params'])) {
             if (isset($options['multipart'])) {
-                throw new \InvalidArgumentException('You cannot use '.'form_params and multipart at the same time. Use the '.'form_params option if you want to send application/'.'x-www-form-urlencoded requests, and the multipart '.'option to send multipart/form-data requests.');
+                throw new InvalidArgumentException('You cannot use form_params and multipart at the same time. Use the form_params option if you want to send application/x-www-form-urlencoded requests, and the multipart option to send multipart/form-data requests.');
             }
             $options['body'] = \http_build_query($options['form_params'], '', '&');
             unset($options['form_params']);
@@ -219,7 +221,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 
         if (isset($options['body'])) {
             if (\is_array($options['body'])) {
-                throw new \InvalidArgumentException('Passing in the "body" request '.'option as an array to send a request is not supported. '.'Please use the "form_params" request option to send a '.'application/x-www-form-urlencoded request, or the "multipart" '.'request option to send a multipart/form-data request.');
+                throw new InvalidArgumentException('Passing in the "body" request option as an array to send a request is not supported. Please use the "form_params" request option to send a application/x-www-form-urlencoded request, or the "multipart" request option to send a multipart/form-data request.');
             }
             $modify['body'] = Psr7\Utils::streamFor($options['body']);
             unset($options['body']);
@@ -242,7 +244,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
                 $value = \http_build_query($value, '', '&', \PHP_QUERY_RFC3986);
             }
             if (!\is_string($value)) {
-                throw new \InvalidArgumentException('query must be a string or array');
+                throw new InvalidArgumentException('query must be a string or array');
             }
             $modify['query'] = $value;
             unset($options['query']);
@@ -252,7 +254,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
         if (isset($options['sink'])) {
             // TODO: Add more sink validation?
             if (\is_bool($options['sink'])) {
-                throw new \InvalidArgumentException('sink must not be a boolean');
+                throw new InvalidArgumentException('sink must not be a boolean');
             }
         }
 

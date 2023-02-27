@@ -13,14 +13,16 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\exception;
 
+use Exception;
 use kuiper\rpc\RpcRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
-class BadResponseException extends \Exception
+class BadResponseException extends Exception
 {
     public function __construct(
         private readonly RpcRequestInterface $request,
-        private readonly ResponseInterface $response, \Throwable $prev = null)
+        private readonly ResponseInterface $response, Throwable $prev = null)
     {
         parent::__construct('Cannot parse response', 0, $prev);
     }

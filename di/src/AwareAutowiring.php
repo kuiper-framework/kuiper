@@ -17,6 +17,7 @@ use DI\Definition\Definition;
 use DI\Definition\ObjectDefinition;
 use DI\Definition\Source\Autowiring;
 use DI\Definition\Source\DefinitionSource;
+use InvalidArgumentException;
 
 class AwareAutowiring implements DefinitionSource, Autowiring
 {
@@ -33,7 +34,7 @@ class AwareAutowiring implements DefinitionSource, Autowiring
     public function add(AwareInjection $awareInjection, bool $ignoreExist = false): void
     {
         if (!$ignoreExist && isset($this->awareInjections[$awareInjection->getInterfaceName()])) {
-            throw new \InvalidArgumentException($awareInjection->getInterfaceName().' is injected');
+            throw new InvalidArgumentException($awareInjection->getInterfaceName().' is injected');
         }
         $this->awareInjections[$awareInjection->getInterfaceName()] = $awareInjection;
     }

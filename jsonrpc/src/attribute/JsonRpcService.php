@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\attribute;
 
+use Attribute;
 use kuiper\di\attribute\Service;
 
-#[\Attribute(\Attribute::TARGET_CLASS)]
+#[Attribute(Attribute::TARGET_CLASS)]
 class JsonRpcService extends Service
 {
     public function __construct(

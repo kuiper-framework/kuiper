@@ -16,6 +16,7 @@ namespace kuiper\db\metadata;
 use kuiper\db\annotation\Id;
 use kuiper\db\annotation\NaturalId;
 use kuiper\db\Criteria;
+use ReflectionClass;
 
 interface MetaModelInterface extends EntityMapperInterface
 {
@@ -27,7 +28,7 @@ interface MetaModelInterface extends EntityMapperInterface
     /**
      * Gets the class.
      */
-    public function getEntityClass(): \ReflectionClass;
+    public function getEntityClass(): ReflectionClass;
 
     /**
      * Gets the database column names.

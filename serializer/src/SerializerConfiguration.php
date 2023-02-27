@@ -13,9 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\serializer;
 
+use DateTimeInterface;
 use DI\Attribute\Inject;
-use kuiper\swoole\attribute\BootstrapConfiguration;
+
 use function DI\get;
+
+use Exception;
 use kuiper\di\attribute\Bean;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -24,6 +27,7 @@ use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\serializer\normalizer\DateTimeNormalizer;
 use kuiper\serializer\normalizer\EnumNormalizer;
 use kuiper\serializer\normalizer\ExceptionNormalizer;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use Psr\Container\ContainerInterface;
 
 #[BootstrapConfiguration]
@@ -50,9 +54,9 @@ class SerializerConfiguration implements DefinitionConfiguration
     public function serializerNormalizers(ContainerInterface $container): array
     {
         return [
-            \DateTimeInterface::class => $container->get(DateTimeNormalizer::class),
+            DateTimeInterface::class => $container->get(DateTimeNormalizer::class),
             Enum::class => $container->get(EnumNormalizer::class),
-            \Exception::class => $container->get(ExceptionNormalizer::class),
+            Exception::class => $container->get(ExceptionNormalizer::class),
         ];
     }
 }

@@ -13,8 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use InvalidArgumentException;
+use Iterator;
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
+use SplFileInfo;
 use Symfony\Component\Finder\Finder;
 
 class PackageConfig
@@ -93,7 +96,7 @@ class PackageConfig
     }
 
     /**
-     * @return array<\Iterator<\SplFileInfo>>
+     * @return array<Iterator<SplFileInfo>>
      */
     public function getFinders(): array
     {
@@ -114,7 +117,7 @@ class PackageConfig
 
         foreach ($methods as $method => $arguments) {
             if (false === method_exists($finder, $method)) {
-                throw new \InvalidArgumentException(sprintf('The method "Finder::%s" does not exist.', $method));
+                throw new InvalidArgumentException(sprintf('The method "Finder::%s" does not exist.', $method));
             }
 
             $arguments = (array) $arguments;
@@ -144,6 +147,6 @@ class PackageConfig
             return;
         }
         $this->files[$fileName] = true;
-        $this->finders[0][] = new \SplFileInfo($this->getCanonicalPath($fileName));
+        $this->finders[0][] = new SplFileInfo($this->getCanonicalPath($fileName));
     }
 }

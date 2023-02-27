@@ -24,6 +24,7 @@ use kuiper\rpc\client\RpcResponseNormalizer;
 use kuiper\rpc\RpcMethodFactory;
 use kuiper\rpc\transporter\HttpTransporter;
 use kuiper\serializer\NormalizerInterface;
+use ReflectionException;
 
 class HttpProxyClientFactory
 {
@@ -89,7 +90,7 @@ class HttpProxyClientFactory
      *
      * @return T
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function create(string $interfaceClass)
     {

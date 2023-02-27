@@ -23,6 +23,7 @@ use kuiper\tars\attribute\TarsServant;
 use kuiper\tars\exception\SyntaxErrorException;
 use kuiper\tars\type\TypeParser;
 use kuiper\tars\type\VoidType;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
@@ -189,7 +190,7 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
                 $reflectionMethod = new ReflectionMethod($proxyClass, $method);
             } else {
                 foreach ($reflectionClass->getInterfaceNames() as $interfaceName) {
-                    $attributes = (new ReflectionClass($interfaceName))->getAttributes(TarsServant::class, \ReflectionAttribute::IS_INSTANCEOF);
+                    $attributes = (new ReflectionClass($interfaceName))->getAttributes(TarsServant::class, ReflectionAttribute::IS_INSTANCEOF);
                     if (count($attributes) > 0) {
                         $reflectionMethod = new ReflectionMethod($interfaceName, $method);
                         break;

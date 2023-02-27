@@ -15,6 +15,7 @@ namespace kuiper\di;
 
 use kuiper\di\attribute\ComponentScan;
 use kuiper\reflection\ReflectionNamespaceFactoryInterface;
+use ReflectionClass;
 
 class ComponentScanner implements ComponentScannerInterface
 {
@@ -51,7 +52,7 @@ class ComponentScanner implements ComponentScannerInterface
                 if ($this->isExcluded($className)) {
                     continue;
                 }
-                $reflectionClass = new \ReflectionClass($className);
+                $reflectionClass = new ReflectionClass($className);
                 foreach ($reflectionClass->getAttributes() as $reflectionAttribute) {
                     if (is_a($reflectionAttribute->getName(), Component::class, true)) {
                         $attribute = $reflectionAttribute->newInstance();

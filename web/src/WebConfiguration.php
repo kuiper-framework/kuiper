@@ -14,8 +14,9 @@ declare(strict_types=1);
 namespace kuiper\web;
 
 use DI\Attribute\Inject;
-use kuiper\swoole\attribute\BootstrapConfiguration;
+
 use function DI\autowire;
+
 use kuiper\di\attribute\AnyCondition;
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\ConditionalOnClass;
@@ -28,6 +29,7 @@ use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\listener\HttpRequestEventListener;
@@ -253,7 +255,9 @@ class WebConfiguration implements DefinitionConfiguration
 
     /**
      * @Bean()
+     *
      * @Inject({"options": "application.web.view"})
+     *
      * @ConditionalOnClass(Twig::class)
      */
     #[Bean]

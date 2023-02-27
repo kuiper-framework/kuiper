@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\coroutine;
 
+use SplQueue;
+
 class SplQueueChannel implements ChannelInterface
 {
-    public function __construct(private readonly \SplQueue $queue = new \SplQueue())
+    public function __construct(private readonly SplQueue $queue = new SplQueue())
     {
     }
 

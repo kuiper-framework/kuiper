@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\db\converter;
 
 use BackedEnum;
+use InvalidArgumentException;
 use kuiper\db\metadata\ColumnInterface;
 use UnitEnum;
 
@@ -37,7 +38,7 @@ class EnumConverter implements AttributeConverterInterface
         if ($attribute instanceof UnitEnum) {
             return $attribute->name;
         }
-        throw new \InvalidArgumentException('attribute is not enum type');
+        throw new InvalidArgumentException('attribute is not enum type');
     }
 
     /**
@@ -57,12 +58,13 @@ class EnumConverter implements AttributeConverterInterface
         if (is_a($enumType, UnitEnum::class, true)) {
             return self::tryFromEnum($enumType, $dbData);
         }
-        throw new \InvalidArgumentException('attribute is not enum type');
+        throw new InvalidArgumentException('attribute is not enum type');
     }
 
     /**
      * @param class-string<UnitEnum> $enumType
-     * @param string $enumName
+     * @param string                 $enumName
+     *
      * @return UnitEnum|null
      */
     private static function tryFromEnum(string $enumType, string $enumName): ?UnitEnum

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\web\session;
 
 use Psr\Http\Message\ServerRequestInterface;
+use SessionHandlerInterface;
 
 class CacheStoreSessionFactory implements SessionFactoryInterface
 {
@@ -28,7 +29,7 @@ class CacheStoreSessionFactory implements SessionFactoryInterface
     private $cookieName = 'PHPSESSIONID';
 
     /**
-     * @var \SessionHandlerInterface
+     * @var SessionHandlerInterface
      */
     private $sessionHandler;
 
@@ -41,7 +42,7 @@ class CacheStoreSessionFactory implements SessionFactoryInterface
      */
     private $autoStart;
 
-    public function __construct(\SessionHandlerInterface $handler, array $options = [])
+    public function __construct(SessionHandlerInterface $handler, array $options = [])
     {
         if (isset($options['cookie_lifetime'])) {
             $this->cookieLifetime = (int) $options['cookie_lifetime'];

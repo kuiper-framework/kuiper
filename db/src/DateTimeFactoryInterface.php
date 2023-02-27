@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\db;
 
 use DateTimeInterface;
+use Exception;
 
 interface DateTimeFactoryInterface
 {
@@ -25,7 +26,7 @@ interface DateTimeFactoryInterface
     /**
      * Parses time string to time.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function stringToTime(string $timeString): ?DateTimeInterface;
 

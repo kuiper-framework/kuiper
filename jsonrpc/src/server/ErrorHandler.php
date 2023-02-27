@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\server;
 
+use Exception;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
@@ -25,6 +26,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use Throwable;
 use Webmozart\Assert\Assert;
 
 class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterface
@@ -39,19 +41,19 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
     /**
      * {@inheritDoc}
      */
-    public function handleInvalidRequest(RequestInterface $request, \Exception $exception): ResponseInterface
+    public function handleInvalidRequest(RequestInterface $request, Exception $exception): ResponseInterface
     {
         return $this->createResponse($this->createRequestErrorResponse($exception));
     }
 
-    public function handle(RpcRequestInterface $request, \Throwable $error): RpcResponseInterface
+    public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface
     {
         Assert::isInstanceOf($request, JsonRpcRequestInterface::class);
         /** @var JsonRpcRequestInterface $request */
         return new RpcResponse($request, $this->createResponse($this->createErrorResponse($error, $request)));
     }
 
-    private function createRequestErrorResponse(\Exception $e): string
+    private function createRequestErrorResponse(Exception $e): string
     {
         return JsonRpcProtocol::encode([
             'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
@@ -63,7 +65,7 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
         ]);
     }
 
-    private function createErrorResponse(\Throwable $e, JsonRpcRequestInterface $rpcRequest): string
+    private function createErrorResponse(Throwable $e, JsonRpcRequestInterface $rpcRequest): string
     {
         return JsonRpcProtocol::encode([
             'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,

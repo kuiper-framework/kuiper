@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use Exception;
+
 interface CircuitBreakerState
 {
     public function tryAcquirePermission(): bool;
@@ -21,7 +23,7 @@ interface CircuitBreakerState
 
     public function releasePermission(): void;
 
-    public function onError(int $duration, \Exception $exception): void;
+    public function onError(int $duration, Exception $exception): void;
 
     public function onSuccess(int $duration): void;
 

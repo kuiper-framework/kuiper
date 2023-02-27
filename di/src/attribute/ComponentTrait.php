@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\di\attribute;
 
+use InvalidArgumentException;
 use kuiper\di\ComponentCollection;
 use ReflectionClass;
+use Reflector;
 
 trait ComponentTrait
 {
@@ -25,18 +27,18 @@ trait ComponentTrait
     /**
      * {@inheritDoc}
      */
-    public function setTarget(\Reflector $class): void
+    public function setTarget(Reflector $class): void
     {
-        if (!$class instanceof \ReflectionClass) {
-            throw new \InvalidArgumentException(sprintf('Attribute %s only target class', get_class($this)));
+        if (!$class instanceof ReflectionClass) {
+            throw new InvalidArgumentException(sprintf('Attribute %s only target class', get_class($this)));
         }
         $this->class = $class;
     }
 
     /**
-     * @return \Reflector
+     * @return Reflector
      */
-    public function getTarget(): \Reflector
+    public function getTarget(): Reflector
     {
         return $this->class;
     }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\server;
 
+use Exception;
 use kuiper\rpc\DelegateRequestHandler;
 use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\exception\ErrorCode;
@@ -22,6 +23,7 @@ use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
 use ReflectionException;
+use ReflectionMethod;
 
 class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
 {
@@ -57,7 +59,7 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
         if (!is_object($target)) {
             $target = $this->resolve($request, $method->getServiceLocator()->getName());
         }
-        $reflectionMethod = new \ReflectionMethod($target, $method->getMethodName());
+        $reflectionMethod = new ReflectionMethod($target, $method->getMethodName());
         $parameters = [];
         $out = [];
         $outIndex = 0;
@@ -72,7 +74,7 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
         }
         try {
             $return = call_user_func_array([$target, $method->getMethodName()], $parameters);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->errorHandler->handle($request, $e);
         }
         $request = $request->withRpcMethod($method->withResult(array_merge([$return], $out)));

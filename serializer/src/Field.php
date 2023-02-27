@@ -14,8 +14,11 @@ declare(strict_types=1);
 namespace kuiper\serializer;
 
 use kuiper\reflection\ReflectionTypeInterface;
+use ReflectionException;
+use ReflectionProperty;
+use Serializable;
 
-final class Field implements \Serializable
+final class Field implements Serializable
 {
     private ?ReflectionTypeInterface $type = null;
 
@@ -118,7 +121,7 @@ final class Field implements \Serializable
                     return $object->{$this->getter}();
                 };
             } else {
-                $property = new \ReflectionProperty($this->className, $this->name);
+                $property = new ReflectionProperty($this->className, $this->name);
                 $this->getFunction = static function ($object) use ($property) {
                     return $property->getValue($object);
                 };
@@ -131,7 +134,7 @@ final class Field implements \Serializable
     /**
      * @param mixed $value
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function setValue(object $object, $value): void
     {
@@ -147,7 +150,7 @@ final class Field implements \Serializable
                     $object->{$this->setter}($value);
                 };
             } else {
-                $property = new \ReflectionProperty($this->className, $this->name);
+                $property = new ReflectionProperty($this->className, $this->name);
                 $this->setFunction = static function ($object, $value) use ($property): void {
                     $property->setValue($object, $value);
                 };

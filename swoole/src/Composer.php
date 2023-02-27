@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole;
 
+use InvalidArgumentException;
+
 class Composer
 {
     public static function getJson(string $file = null): array
@@ -21,11 +23,11 @@ class Composer
             $file = self::detect();
         }
         if (!is_readable($file)) {
-            throw new \InvalidArgumentException('Cannot read composer.json');
+            throw new InvalidArgumentException('Cannot read composer.json');
         }
         $json = json_decode(file_get_contents($file), true);
         if (empty($json)) {
-            throw new \InvalidArgumentException("invalid composer.json read from $file");
+            throw new InvalidArgumentException("invalid composer.json read from $file");
         }
 
         return $json;
@@ -39,7 +41,7 @@ class Composer
         while (!file_exists($basePath.'/composer.json')) {
             $parentDir = dirname($basePath);
             if ($parentDir === $basePath) {
-                throw new \InvalidArgumentException('Cannot detect project path, is there composer.json in current directory?');
+                throw new InvalidArgumentException('Cannot detect project path, is there composer.json in current directory?');
             }
             $basePath = $parentDir;
         }

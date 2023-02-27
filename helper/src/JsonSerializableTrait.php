@@ -13,13 +13,15 @@ declare(strict_types=1);
 
 namespace kuiper\helper;
 
+use DateTimeInterface;
+
 trait JsonSerializableTrait
 {
     protected function internalToArray(): array
     {
         $arr = [];
         foreach (get_object_vars($this) as $propertyName => $value) {
-            if ($value instanceof \DateTimeInterface) {
+            if ($value instanceof DateTimeInterface) {
                 $value = $value->format('Y-m-d H:i:s');
             }
             $arr[$this->formatPropertyName($propertyName)] = $value;

@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\servicediscovery;
 
+use InvalidArgumentException;
+use Iterator;
 use kuiper\rpc\ServiceLocator;
 use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\rpc\transporter\Endpoint;
 
-class ServiceEndpoint implements \Iterator
+class ServiceEndpoint implements Iterator
 {
     /**
      * @var Endpoint[]
@@ -38,7 +40,7 @@ class ServiceEndpoint implements \Iterator
     {
         $pos = strpos($serviceEndpoint, '@');
         if (false === $pos) {
-            throw new \InvalidArgumentException("invalid service endpoint '$serviceEndpoint'");
+            throw new InvalidArgumentException("invalid service endpoint '$serviceEndpoint'");
         }
 
         return new self(

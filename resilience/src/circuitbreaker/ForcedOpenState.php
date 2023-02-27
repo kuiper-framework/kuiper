@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use Exception;
 use kuiper\resilience\circuitbreaker\exception\CallNotPermittedException;
 
 class ForcedOpenState implements CircuitBreakerState
@@ -50,7 +51,7 @@ class ForcedOpenState implements CircuitBreakerState
         // noOp
     }
 
-    public function onError(int $duration, \Exception $exception): void
+    public function onError(int $duration, Exception $exception): void
     {
         // noOp
     }

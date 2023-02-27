@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
+use InvalidArgumentException;
 use kuiper\helper\Text;
 use kuiper\swoole\constants\ClientSettings;
 use Psr\Http\Message\UriInterface;
@@ -112,7 +113,7 @@ final class Endpoint
     public static function fromAddress(string $address): self
     {
         if (!str_contains($address, ':')) {
-            throw new \InvalidArgumentException("invalid server address '$address'");
+            throw new InvalidArgumentException("invalid server address '$address'");
         }
         [$host, $port] = explode(':', $address);
 

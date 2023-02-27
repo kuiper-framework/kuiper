@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\server\middleware;
 
+use Exception;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
@@ -55,7 +56,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
             }
 
             return $response;
-        } catch (\Exception $error) {
+        } catch (Exception $error) {
             $this->logContext->setError($error);
             $this->logger->info(...$this->formatter->format($this->logContext));
             throw $error;

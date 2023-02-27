@@ -13,18 +13,20 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
+use ReflectionProperty;
+
 class ReflectionPropertyDocBlock implements ReflectionPropertyDocBlockInterface
 {
     /**
      * ReflectionPropertyDocBlockImpl constructor.
      */
     public function __construct(
-        private readonly \ReflectionProperty $property,
+        private readonly ReflectionProperty $property,
         private readonly ReflectionTypeInterface $type)
     {
     }
 
-    public function getProperty(): \ReflectionProperty
+    public function getProperty(): ReflectionProperty
     {
         return $this->property;
     }

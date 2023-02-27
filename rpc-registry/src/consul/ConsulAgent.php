@@ -39,7 +39,6 @@ interface ConsulAgent
     public function registerService(
         RegisterServiceRequest $request,
         #[QueryParam('replace-existing-checks')] bool $replaceExistingChecks = null): void;
-
     #[PutMapping('/service/deregister/{service}')]
     public function deregisterService(string $service): void;
 

@@ -130,7 +130,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
     {
         $acceptHeader = $request->getHeaderLine('Accept');
         if (str_contains($acceptHeader, ';')) {
-            [$acceptHeader,] = explode(';', $acceptHeader, 2);
+            [$acceptHeader] = explode(';', $acceptHeader, 2);
         }
         $selectedContentTypes = array_intersect(
             explode(',', $acceptHeader),

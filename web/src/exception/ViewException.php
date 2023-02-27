@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\web\exception;
 
-class ViewException extends \RuntimeException
+use RuntimeException;
+
+class ViewException extends RuntimeException
 {
 }

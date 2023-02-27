@@ -41,6 +41,7 @@ interface QueryFServant
      * @tars-param id         对象名称
      * @tars-param activeEp   存活endpoint列表
      * @tars-param inactiveEp 非存活endpoint列表
+     *
      * @tars-return 0-成功  others-失败
      */
     #[TarsReturnType('int')]
@@ -54,6 +55,7 @@ interface QueryFServant
      * @tars-param id         对象名称
      * @tars-param activeEp   存活endpoint列表
      * @tars-param inactiveEp 非存活endpoint列表
+     *
      * @tars-return 0-成功  others-失败
      */
     #[TarsReturnType('int')]
@@ -67,6 +69,7 @@ interface QueryFServant
      * @tars-param id         对象名称
      * @tars-param activeEp   存活endpoint列表
      * @tars-param inactiveEp 非存活endpoint列表
+     *
      * @tars-return 0-成功  others-失败
      */
     #[TarsReturnType('int')]
@@ -80,6 +83,7 @@ interface QueryFServant
      * @tars-param id         对象名称
      * @tars-param activeEp   存活endpoint列表
      * @tars-param inactiveEp 非存活endpoint列表
+     *
      * @tars-return 0-成功  others-失败
      */
     #[TarsReturnType('int')]
@@ -95,6 +99,7 @@ interface QueryFServant
      * @tars-param setId      set全称,格式为setname.setarea.setgroup
      * @tars-param activeEp   存活endpoint列表
      * @tars-param inactiveEp 非存活endpoint列表
+     *
      * @tars-return 0-成功  others-失败
      */
     #[TarsReturnType('int')]

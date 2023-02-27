@@ -13,6 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\helper;
 
+use BadMethodCallException;
+use InvalidArgumentException;
+use JsonSerializable;
+use ReflectionClass;
+use ReflectionException;
+use RuntimeException;
+use Stringable;
+
 /**
  * enum class.
  *
@@ -21,7 +29,7 @@ namespace kuiper\helper;
  *
  * @deprecated
  */
-abstract class Enum implements \JsonSerializable, \Stringable
+abstract class Enum implements JsonSerializable, Stringable
 {
     /**
      * key = className
@@ -100,12 +108,12 @@ abstract class Enum implements \JsonSerializable, \Stringable
             return $this->value;
         }
 
-        throw new \InvalidArgumentException('Undefined property: '.get_class($this).'::$'.$name);
+        throw new InvalidArgumentException('Undefined property: '.get_class($this).'::$'.$name);
     }
 
     public function __set(string $name, mixed $value): void
     {
-        throw new \InvalidArgumentException('Cannot modified enum object '.get_class($this));
+        throw new InvalidArgumentException('Cannot modified enum object '.get_class($this));
     }
 
     public function __isset(string $name): bool
@@ -208,7 +216,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
             return self::fromValue($names[$name]);
         }
         if (null === $default) {
-            throw new \InvalidArgumentException("No enum constant '$name' in class ".static::class);
+            throw new InvalidArgumentException("No enum constant '$name' in class ".static::class);
         }
 
         return $default;
@@ -229,7 +237,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
             return $values[$value];
         }
         if (null === $default) {
-            throw new \InvalidArgumentException("No enum constant value '$value' class ".static::class);
+            throw new InvalidArgumentException("No enum constant value '$value' class ".static::class);
         }
 
         return $default;
@@ -250,7 +258,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
             return $values[$ordinal];
         }
         if (null === $default) {
-            throw new \InvalidArgumentException("No enum for ordinal $ordinal class ".static::class);
+            throw new InvalidArgumentException("No enum for ordinal $ordinal class ".static::class);
         }
 
         return $default;
@@ -264,7 +272,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
      *
      * @return static
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public static function __callStatic(string $name, array $arguments)
     {
@@ -272,7 +280,7 @@ abstract class Enum implements \JsonSerializable, \Stringable
             return static::fromName($name);
         }
 
-        throw new \BadMethodCallException("unknown method '$name'");
+        throw new BadMethodCallException("unknown method '$name'");
     }
 
     public function jsonSerialize(): mixed
@@ -288,9 +296,9 @@ abstract class Enum implements \JsonSerializable, \Stringable
         $class = static::class;
         if (!array_key_exists($class, self::$VALUES)) {
             try {
-                $reflect = new \ReflectionClass($class);
-            } catch (\ReflectionException $e) {
-                throw new \RuntimeException('unexpected reflection exception', $e);
+                $reflect = new ReflectionClass($class);
+            } catch (ReflectionException $e) {
+                throw new RuntimeException('unexpected reflection exception', $e);
             }
             $constants = $reflect->getConstants();
             self::$NAMES[$class] = $constants;

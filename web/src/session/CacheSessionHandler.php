@@ -14,11 +14,13 @@ declare(strict_types=1);
 namespace kuiper\web\session;
 
 use Psr\Cache\CacheItemPoolInterface;
+use SessionHandlerInterface;
+use SessionIdInterface;
 
 /**
  * Use cache component as session storage.
  */
-class CacheSessionHandler implements \SessionHandlerInterface, \SessionIdInterface
+class CacheSessionHandler implements SessionHandlerInterface, SessionIdInterface
 {
     /**
      * @var int

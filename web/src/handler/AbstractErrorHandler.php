@@ -18,6 +18,7 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Interfaces\ErrorHandlerInterface;
+use Throwable;
 
 abstract class AbstractErrorHandler implements ErrorHandlerInterface
 {
@@ -39,7 +40,7 @@ abstract class AbstractErrorHandler implements ErrorHandlerInterface
 
     public function __invoke(
         ServerRequestInterface $request,
-        \Throwable $exception,
+        Throwable $exception,
         bool $displayErrorDetails,
         bool $logErrors,
         bool $logErrorDetails): ResponseInterface
@@ -57,11 +58,11 @@ abstract class AbstractErrorHandler implements ErrorHandlerInterface
         return $this->respondApi($request, $exception, $logErrors);
     }
 
-    protected function respondApi(ServerRequestInterface $request, \Throwable $exception, bool $logErrors): ResponseInterface
+    protected function respondApi(ServerRequestInterface $request, Throwable $exception, bool $logErrors): ResponseInterface
     {
         return $this->defaultErrorHandler->__invoke(
             $request, $exception, false, $logErrors, true);
     }
 
-    abstract protected function respondHtml(ServerRequestInterface $request, \Throwable $exception, bool $displayErrorDetails): ResponseInterface;
+    abstract protected function respondHtml(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails): ResponseInterface;
 }

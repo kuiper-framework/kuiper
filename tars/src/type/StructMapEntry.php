@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\tars\type;
 
-class StructMapEntry implements \JsonSerializable
+use JsonSerializable;
+
+class StructMapEntry implements JsonSerializable
 {
     public function __construct(private readonly mixed $key, private readonly mixed $value)
     {

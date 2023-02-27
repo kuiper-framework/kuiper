@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\logger;
 
+use DateTime;
 use DateTimeZone;
 
 class DateFormatter implements DateFormatterInterface
@@ -32,7 +33,7 @@ class DateFormatter implements DateFormatterInterface
      */
     public function format(float $time): string
     {
-        return \DateTime::createFromFormat('U.u', sprintf('%.3f', $time))
+        return DateTime::createFromFormat('U.u', sprintf('%.3f', $time))
             ->setTimezone($this->timezone)
             ->format($this->format);
     }

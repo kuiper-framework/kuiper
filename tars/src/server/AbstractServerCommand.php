@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use Exception;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 
 abstract class AbstractServerCommand extends Command implements ContainerAwareInterface, LoggerAwareInterface
@@ -43,14 +45,14 @@ abstract class AbstractServerCommand extends Command implements ContainerAwareIn
                 $this->logger->info(static::TAG."obtain lock file $lockFile");
                 try {
                     $callback();
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->logger->error(static::TAG.'fail to execute '.$e->getMessage());
                 }
                 flock($fp, LOCK_UN);    // 释放锁定
                 fclose($fp);
                 $this->logger->info(static::TAG."release lock file $lockFile");
                 if (file_exists($lockFile) && !unlink($lockFile)) {
-                    throw new \RuntimeException("Cannot delete lock file $lockFile");
+                    throw new RuntimeException("Cannot delete lock file $lockFile");
                 }
 
                 return true;

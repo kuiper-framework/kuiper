@@ -35,6 +35,7 @@ use Laminas\Diactoros\UriFactory;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use RuntimeException;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ServerFactory implements LoggerAwareInterface, EventDispatcherAwareInterface
@@ -191,7 +192,7 @@ class ServerFactory implements LoggerAwareInterface, EventDispatcherAwareInterfa
     private function checkClassExists(string $className, string $package): void
     {
         if (!class_exists($className)) {
-            throw new \RuntimeException("Cannot load class {$className}. "."Consider compose require {$package}");
+            throw new RuntimeException("Cannot load class {$className}. Consider compose require {$package}");
         }
     }
 }

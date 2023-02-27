@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\db\sharding;
 
+use InvalidArgumentException;
 use kuiper\db\AbstractCrudRepository;
 use kuiper\db\attribute\ShardKey;
 use kuiper\db\Criteria;
@@ -113,7 +114,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
                 foreach ($partEntities as $example) {
                     $criteria = $values[] = $this->metaModel->getNaturalIdValues($example);
                     if (!isset($criteria)) {
-                        throw new \InvalidArgumentException('Cannot extract unique constraint from input');
+                        throw new InvalidArgumentException('Cannot extract unique constraint from input');
                     }
                 }
                 $shardFields = $this->getShardFields($partEntities[0]);
@@ -176,7 +177,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
 
         $missing = array_diff($this->shardKeys, array_keys($fields));
         if (!empty($missing)) {
-            throw new \InvalidArgumentException(sprintf('Shard fields %s are required for table %s', json_encode($missing), $this->getTableName()));
+            throw new InvalidArgumentException(sprintf('Shard fields %s are required for table %s', json_encode($missing), $this->getTableName()));
         }
     }
 
@@ -187,7 +188,7 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         foreach ($this->shardKeys as $field) {
             $value = $this->metaModel->getValue($entity, $field);
             if (!isset($value)) {
-                throw new \InvalidArgumentException("sharding column $field cannot be null");
+                throw new InvalidArgumentException("sharding column $field cannot be null");
             }
             $shard[$field] = $value;
         }

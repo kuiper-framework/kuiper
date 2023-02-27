@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\di\attribute;
 
+use Attribute;
 use kuiper\di\Component;
 
-#[\Attribute(\Attribute::TARGET_CLASS)]
+#[Attribute(Attribute::TARGET_CLASS)]
 final class Command implements Component
 {
     use ComponentTrait;

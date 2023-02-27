@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\web;
 
+use BadMethodCallException;
 use kuiper\swoole\http\ServerRequestHolder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -36,7 +37,7 @@ class ControllerInvocationStrategy implements RequestHandlerInvocationStrategyIn
                     return $initResult;
                 }
 
-                throw new \BadMethodCallException(get_class($controller).'::initialize should return '.ResponseInterface::class.', got '.gettype($initResult));
+                throw new BadMethodCallException(get_class($controller).'::initialize should return '.ResponseInterface::class.', got '.gettype($initResult));
             }
             $result = call_user_func_array([$controller, $callable[1]], array_values($routeArguments));
             if (!isset($result)) {
@@ -46,7 +47,7 @@ class ControllerInvocationStrategy implements RequestHandlerInvocationStrategyIn
                 return $result;
             }
 
-            throw new \BadMethodCallException(get_class($controller).'::'.$callable[1].' should return null or '.ResponseInterface::class.', got '.gettype($initResult));
+            throw new BadMethodCallException(get_class($controller).'::'.$callable[1].' should return null or '.ResponseInterface::class.', got '.gettype($initResult));
         }
 
         return $callable($request, $response, ...array_values($routeArguments));

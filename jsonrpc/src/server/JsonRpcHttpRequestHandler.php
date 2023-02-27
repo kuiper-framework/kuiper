@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\server;
 
+use Exception;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\rpc\ErrorHandlerInterface;
@@ -48,7 +49,7 @@ class JsonRpcHttpRequestHandler implements RequestHandlerInterface
             ServerRequestHolder::setRequest($rpcRequest);
 
             return $this->requestHandler->handle($rpcRequest);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->errorHandler->handle($rpcRequest, $e);
         }
     }

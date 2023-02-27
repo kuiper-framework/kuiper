@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\core;
 
+use Redis;
+
 class RedisCounterFactory extends AbstractCounterFactory
 {
-    public function __construct(private readonly \Redis $redis)
+    public function __construct(private readonly Redis $redis)
     {
     }
 

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\db\sharding\rule;
 
+use InvalidArgumentException;
+
 class StringHashRule extends HashRule
 {
     /**
@@ -29,7 +31,7 @@ class StringHashRule extends HashRule
     protected function getPartitionFor(mixed $value): int|string
     {
         if (!is_string($value)) {
-            throw new \InvalidArgumentException("Value of column '{$this->getField()}' must be a string, Got $value");
+            throw new InvalidArgumentException("Value of column '{$this->getField()}' must be a string, Got $value");
         }
 
         return parent::getPartitionFor(call_user_func($this->hashFunction, $value));

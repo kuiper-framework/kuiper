@@ -14,7 +14,10 @@ declare(strict_types=1);
 namespace kuiper\di\attribute;
 
 use Attribute;
+
 use function DI\factory;
+
+use InvalidArgumentException;
 use kuiper\di\Component;
 use kuiper\di\ContainerBuilderAwareInterface;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -45,7 +48,7 @@ class ConfigurationProperties implements Component, ContainerBuilderAwareInterfa
         $this->containerBuilder->addDefinitions([
             $this->getComponentId() => factory(function (ContainerInterface $container, NormalizerInterface $serializer) {
                 if (!$container->has(PropertyResolverInterface::class)) {
-                    throw new \InvalidArgumentException(PropertyResolverInterface::class.' should be registered in container');
+                    throw new InvalidArgumentException(PropertyResolverInterface::class.' should be registered in container');
                 }
                 $value = $container->get(PropertyResolverInterface::class)->get($this->prefix);
 

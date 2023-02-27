@@ -42,6 +42,7 @@ class AttributeConverterRegistry
         }
         $registry->register(JsonConverter::class, new JsonConverter());
         $registry->register(JoinerConverter::class, new JoinerConverter());
+
         return $registry;
     }
 }

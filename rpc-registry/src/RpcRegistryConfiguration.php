@@ -14,9 +14,11 @@ declare(strict_types=1);
 namespace kuiper\rpc\registry;
 
 use DI\Attribute\Inject;
+
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
+
 use GuzzleHttp\ClientInterface;
 use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\Bean;

@@ -19,6 +19,7 @@ use kuiper\helper\Arrays;
 use kuiper\rpc\MiddlewareFactoryInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use ReflectionAttribute;
+use ReflectionMethod;
 
 class RpcExecutorFactory implements RpcExecutorFactoryInterface, ContainerAwareInterface
 {
@@ -55,7 +56,7 @@ class RpcExecutorFactory implements RpcExecutorFactoryInterface, ContainerAwareI
         if (isset($this->methodMiddlewares[$key])) {
             return $this->methodMiddlewares[$key];
         }
-        $reflectionMethod = new \ReflectionMethod($proxy, $method);
+        $reflectionMethod = new ReflectionMethod($proxy, $method);
         $reflectionClass = $reflectionMethod->getDeclaringClass();
         $attributes = [];
         foreach ($reflectionClass->getInterfaces() as $interface) {
@@ -78,7 +79,7 @@ class RpcExecutorFactory implements RpcExecutorFactoryInterface, ContainerAwareI
         return $this->methodMiddlewares[$key] = Arrays::flatten($middlewares);
     }
 
-    private function getMethodAttributes(\ReflectionMethod $method): array
+    private function getMethodAttributes(ReflectionMethod $method): array
     {
         $attributes = [];
 

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use Exception;
 use kuiper\event\EventDispatcherAwareInterface;
 use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\resilience\circuitbreaker\event\CircuitBreakerOnError;
@@ -82,7 +83,7 @@ class CircuitBreakerImpl implements CircuitBreaker, EventDispatcherAwareInterfac
                 $this->onResult($duration, $result);
 
                 return $result;
-            } catch (\Exception $exception) {
+            } catch (Exception $exception) {
                 $duration = $this->getCurrentTimestamp() - $start;
                 $this->onError($duration, $exception);
                 throw $exception;
@@ -90,7 +91,7 @@ class CircuitBreakerImpl implements CircuitBreaker, EventDispatcherAwareInterfac
         };
     }
 
-    public function onError(int $duration, \Exception $exception, bool $shouldNotIgnore = false): void
+    public function onError(int $duration, Exception $exception, bool $shouldNotIgnore = false): void
     {
         if ($shouldNotIgnore) {
             $this->eventDispatcher->dispatch(new CircuitBreakerOnError($this, $duration, $exception));

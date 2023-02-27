@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\exception;
 
-class PoolClosedException extends \Exception
+use Exception;
+
+class PoolClosedException extends Exception
 {
     /**
      * PoolTimeoutException constructor.

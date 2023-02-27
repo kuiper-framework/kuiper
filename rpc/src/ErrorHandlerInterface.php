@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
+use Throwable;
+
 interface ErrorHandlerInterface
 {
-    public function handle(RpcRequestInterface $request, \Throwable $error): RpcResponseInterface;
+    public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface;
 }

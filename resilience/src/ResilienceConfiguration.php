@@ -15,6 +15,8 @@ namespace kuiper\resilience;
 
 use function DI\autowire;
 use function DI\factory;
+
+use InvalidArgumentException;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\resilience\circuitbreaker\CircuitBreakerFactory;
@@ -42,7 +44,7 @@ class ResilienceConfiguration implements DefinitionConfiguration
         if (class_exists(Application::class)) {
             $ignoreExceptions = [
                 ServerException::class,
-                \InvalidArgumentException::class,
+                InvalidArgumentException::class,
             ];
             Application::getInstance()->getConfig()->merge([
                 'application' => [

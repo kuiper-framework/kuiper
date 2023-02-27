@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\web\security;
 
+use BadMethodCallException;
 use GuzzleHttp\Psr7\ServerRequest;
+use InvalidArgumentException;
 use kuiper\swoole\http\ServerRequestHolder;
 use kuiper\web\session\EphemeralSession;
 use kuiper\web\session\FlashInterface;
@@ -65,7 +67,7 @@ class SecurityContext
             $request = ServerRequestHolder::getRequest();
             if (null === $request) {
                 if (!class_exists(ServerRequest::class)) {
-                    throw new \InvalidArgumentException('guzzlehttp/psr7 is required');
+                    throw new InvalidArgumentException('guzzlehttp/psr7 is required');
                 }
                 $request = new ServerRequest('GET', '/');
                 ServerRequestHolder::setRequest($request);
@@ -107,7 +109,7 @@ class SecurityContext
     {
         $session = $request->getAttribute(static::SESSION);
         if (null === $session) {
-            throw new \BadMethodCallException('SessionMiddleware not enabled');
+            throw new BadMethodCallException('SessionMiddleware not enabled');
         }
 
         return self::createComponent(__CLASS__, $session);

@@ -14,8 +14,10 @@ declare(strict_types=1);
 namespace kuiper\tars\config;
 
 use DI\Attribute\Inject;
+
 use function DI\autowire;
 use function DI\factory;
+
 use kuiper\di\attribute\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -58,9 +60,11 @@ use kuiper\tars\integration\PropertyFServant;
 use kuiper\tars\integration\QueryFServant;
 use kuiper\tars\integration\ServerFServant;
 use kuiper\tars\integration\StatFServant;
+use Net_DNS2;
 use Net_DNS2_Resolver;
 use Psr\Container\ContainerInterface;
 use ReflectionException;
+use RuntimeException;
 
 class TarsClientConfiguration implements DefinitionConfiguration
 {
@@ -219,8 +223,8 @@ class TarsClientConfiguration implements DefinitionConfiguration
     #[Bean]
     public function dnsResolver(PoolFactoryInterface $poolFactory): DnsResolverInterface
     {
-        if (!class_exists(\Net_DNS2::class)) {
-            throw new \RuntimeException('Net_DNS2 is required, please run composer require pear/net_dns2');
+        if (!class_exists(Net_DNS2::class)) {
+            throw new RuntimeException('Net_DNS2 is required, please run composer require pear/net_dns2');
         }
         /** @var Net_DNS2_Resolver $resolver */
         $resolver = ConnectionProxyGenerator::create($poolFactory, Net_DNS2_Resolver::class, static function () {

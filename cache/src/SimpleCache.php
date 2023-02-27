@@ -13,11 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
+use DateInterval;
+use InvalidArgumentException;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
+use Traversable;
 
 /**
- * PSR-6 cache to PSR-16 Adapter
+ * PSR-6 cache to PSR-16 Adapter.
  */
 class SimpleCache implements CacheInterface
 {
@@ -38,7 +41,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
+    public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
         $cacheItem = $this->pool->getItem($key);
         $cacheItem->set($value);
@@ -70,10 +73,10 @@ class SimpleCache implements CacheInterface
      */
     public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
-        if ($keys instanceof \Traversable) {
+        if ($keys instanceof Traversable) {
             $keys = iterator_to_array($keys, false);
         } elseif (!\is_array($keys)) {
-            throw new \InvalidArgumentException(sprintf('Cache keys must be array or Traversable, "%s" given.', get_debug_type($keys)));
+            throw new InvalidArgumentException(sprintf('Cache keys must be array or Traversable, "%s" given.', get_debug_type($keys)));
         }
 
         $items = $this->pool->getItems($keys);
@@ -90,11 +93,11 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
+    public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
         $valuesIsArray = \is_array($values);
-        if (!$valuesIsArray && !$values instanceof \Traversable) {
-            throw new \InvalidArgumentException(sprintf('Cache values must be array or Traversable, "%s" given.', get_debug_type($values)));
+        if (!$valuesIsArray && !$values instanceof Traversable) {
+            throw new InvalidArgumentException(sprintf('Cache values must be array or Traversable, "%s" given.', get_debug_type($values)));
         }
         $ok = true;
         foreach ($values as $key => $value) {
@@ -114,10 +117,10 @@ class SimpleCache implements CacheInterface
      */
     public function deleteMultiple(iterable $keys): bool
     {
-        if ($keys instanceof \Traversable) {
+        if ($keys instanceof Traversable) {
             $keys = iterator_to_array($keys, false);
         } elseif (!\is_array($keys)) {
-            throw new \InvalidArgumentException(sprintf('Cache keys must be array or Traversable, "%s" given.', get_debug_type($keys)));
+            throw new InvalidArgumentException(sprintf('Cache keys must be array or Traversable, "%s" given.', get_debug_type($keys)));
         }
 
         return $this->pool->deleteItems($keys);

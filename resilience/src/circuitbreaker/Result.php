@@ -20,6 +20,7 @@ enum Result
     case SLOW_CALL_RATE_ABOVE_THRESHOLDS;
     case ABOVE_THRESHOLDS;
     case BELOW_MINIMUM_CALLS_THRESHOLD;
+
     public static function hasExceededThresholds(Result $result): bool
     {
         return in_array($result, [self::ABOVE_THRESHOLDS, self::FAILURE_RATE_ABOVE_THRESHOLDS, self::SLOW_CALL_RATE_ABOVE_THRESHOLDS], true);

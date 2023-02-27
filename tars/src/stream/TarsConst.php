@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\tars\stream;
 
+use RuntimeException;
+
 class TarsConst
 {
     public const MAX_TAG_VALUE = 15;
@@ -43,7 +45,7 @@ class TarsConst
     public static function check(): void
     {
         if (PHP_INT_SIZE !== 8) {
-            throw new \RuntimeException('Your php is not 64bits');
+            throw new RuntimeException('Your php is not 64bits');
         }
     }
 }

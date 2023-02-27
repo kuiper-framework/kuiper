@@ -17,6 +17,7 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Interfaces\ErrorHandlerInterface;
+use Throwable;
 
 class UnauthorizedErrorHandler extends AbstractErrorHandler
 {
@@ -28,7 +29,7 @@ class UnauthorizedErrorHandler extends AbstractErrorHandler
         parent::__construct($defaultErrorHandler, $responseFactory);
     }
 
-    protected function respondHtml(ServerRequestInterface $request, \Throwable $exception, bool $displayErrorDetails): ResponseInterface
+    protected function respondHtml(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails): ResponseInterface
     {
         return $this->getResponseFactory()->createResponse(302)
             ->withHeader('Location', $this->loginUriBuilder->build($request));

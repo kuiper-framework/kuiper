@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\listener;
 
+use Exception;
 use kuiper\event\EventListenerInterface;
 use kuiper\logger\Logger;
 use kuiper\swoole\event\RequestEvent;
@@ -42,7 +43,7 @@ class HttpRequestEventListener implements EventListenerInterface, LoggerAwareInt
             $this->logger->debug(static::TAG.'receive request');
             /* @var RequestEvent $event */
             $event->setResponse($this->requestHandler->handle($event->getRequest()));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error(static::TAG.'Uncaught exception: '.get_class($e).': '.$e->getMessage()."\n"
                 .$e->getTraceAsString());
         }

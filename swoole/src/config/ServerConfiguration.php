@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\config;
 
-use kuiper\swoole\ServerReloadCommand;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use function DI\autowire;
+
+use InvalidArgumentException;
 use kuiper\di\attribute\Bean;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
@@ -39,9 +39,11 @@ use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerFactory;
 use kuiper\swoole\ServerPort;
+use kuiper\swoole\ServerReloadCommand;
 use kuiper\swoole\ServerStartCommand;
 use kuiper\swoole\ServerStopCommand;
 use Psr\Container\ContainerInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
 
 class ServerConfiguration implements DefinitionConfiguration
@@ -59,7 +61,7 @@ class ServerConfiguration implements DefinitionConfiguration
                 'commands' => [
                     'start' => ServerStartCommand::class,
                     'stop' => ServerStopCommand::class,
-                    'reload' => ServerReloadCommand::class
+                    'reload' => ServerReloadCommand::class,
                 ],
             ],
         ]);
@@ -78,8 +80,7 @@ class ServerConfiguration implements DefinitionConfiguration
         ]);
         if (!$config->has('application.server.ports')) {
             $config->set('application.server.ports', [
-                $config->getString('application.server.port', '8000')
-                => $config->getString('application.server.type', ServerType::HTTP->value),
+                $config->getString('application.server.port', '8000') => $config->getString('application.server.type', ServerType::HTTP->value),
             ]);
         }
 
@@ -141,7 +142,7 @@ class ServerConfiguration implements DefinitionConfiguration
         $ports = [];
         foreach ($config->get('application.server.ports') as $port => $portConfig) {
             if (isset($ports[$port])) {
-                throw new \InvalidArgumentException("Port $port was duplicated");
+                throw new InvalidArgumentException("Port $port was duplicated");
             }
             if (is_string($portConfig)) {
                 $portConfig = [

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\helper;
 
 use ArrayAccess;
+use Countable;
 use InvalidArgumentException;
 use Iterator;
 use ReflectionClass;
@@ -21,12 +22,12 @@ use ReflectionException;
 
 class Arrays
 {
-    public static function isEmpty(\Countable|array|null $arr): bool
+    public static function isEmpty(Countable|array|null $arr): bool
     {
         return !isset($arr) || 0 === count($arr);
     }
 
-    public static function isNotEmpty(\Countable|array|null $arr): bool
+    public static function isNotEmpty(Countable|array|null $arr): bool
     {
         return isset($arr) && count($arr) > 0;
     }
@@ -147,7 +148,7 @@ class Arrays
             if (null === $key || is_scalar($key)) {
                 $ret[$key][] = $elem;
             } else {
-                throw new InvalidArgumentException("Cannot group by key '$groupBy', support only scalar type, got ".(get_debug_type($key)));
+                throw new InvalidArgumentException("Cannot group by key '$groupBy', support only scalar type, got ".get_debug_type($key));
             }
         }
 

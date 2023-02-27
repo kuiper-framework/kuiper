@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
-use kuiper\swoole\attribute\BootstrapConfiguration;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
+
+use InvalidArgumentException;
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\Configuration;
 use kuiper\di\ComponentCollection;
@@ -34,6 +35,7 @@ use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\swoole\Application;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
@@ -43,6 +45,8 @@ use kuiper\swoole\ServerPort;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
+use ReflectionClass;
+use ReflectionMethod;
 
 #[Configuration(dependOn: [ServerConfiguration::class])]
 #[BootstrapConfiguration]
@@ -137,7 +141,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             }
         }
         if (null === $serverPort) {
-            throw new \InvalidArgumentException('Cannot find port use http protocol');
+            throw new InvalidArgumentException('Cannot find port use http protocol');
         }
         if ('0.0.0.0' === $serverPort->getHost()) {
             $serverPort = new ServerPort(gethostbyname(gethostname()), $serverPort->getPort(), $serverPort->getServerType());
@@ -161,7 +165,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
                 $service = ['class' => $service];
             }
             $serviceImpl = $container->get($service['class']);
-            $class = new \ReflectionClass($serviceImpl);
+            $class = new ReflectionClass($serviceImpl);
             if (!is_string($serviceName)) {
                 $serviceName = $service['service'] ?? $this->getServiceName($class);
             }
@@ -178,7 +182,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         return $services;
     }
 
-    public static function getServiceClass(\ReflectionClass $class): string
+    public static function getServiceClass(ReflectionClass $class): string
     {
         if ($class->isInterface()) {
             $serviceClass = $class->getName();
@@ -194,22 +198,22 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             }
         }
         if (!isset($serviceClass)) {
-            throw new \InvalidArgumentException('Cannot resolve service name from '.$class->getName());
+            throw new InvalidArgumentException('Cannot resolve service name from '.$class->getName());
         }
 
         return $serviceClass;
     }
 
-    private function getServiceName(\ReflectionClass $class): string
+    private function getServiceName(ReflectionClass $class): string
     {
         return str_replace('\\', '.', self::getServiceClass($class));
     }
 
-    private function getMethods(\ReflectionClass $class): array
+    private function getMethods(ReflectionClass $class): array
     {
         $methods = [];
-        $class = new \ReflectionClass(self::getServiceClass($class));
-        foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+        $class = new ReflectionClass(self::getServiceClass($class));
+        foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if (count($method->getAttributes(Ignore::class)) > 0) {
                 continue;
             }

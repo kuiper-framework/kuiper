@@ -31,6 +31,7 @@ interface ServerFServant
      * 向node定时上报serverInfo.
      *
      * @tars-param serverInfo  服务状态
+     *
      * @tars-return int
      */
     #[TarsReturnType('int')]
@@ -42,6 +43,7 @@ interface ServerFServant
      * 向node上报TARS版本信息.
      *
      * @tars-param string  版本信息
+     *
      * @tars-return int
      */
     #[TarsReturnType('int')]

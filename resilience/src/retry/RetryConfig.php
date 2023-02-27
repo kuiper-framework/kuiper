@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\retry;
 
+use Throwable;
+
 /**
  * @see RetryConfigBuilder
  */
@@ -46,7 +48,7 @@ class RetryConfig
         $this->retryOnException = $retryOnException;
     }
 
-    public function shouldRetryOnException(\Throwable $exception): bool
+    public function shouldRetryOnException(Throwable $exception): bool
     {
         if (null !== $this->retryOnException) {
             return call_user_func($this->retryOnException, $exception);
@@ -69,7 +71,7 @@ class RetryConfig
         return true;
     }
 
-    public function getRetryInterval(int $retryAttempts, ?\Throwable $lastException, mixed $result): int
+    public function getRetryInterval(int $retryAttempts, ?Throwable $lastException, mixed $result): int
     {
         if (null !== $this->intervalFunction) {
             return call_user_func($this->intervalFunction, $retryAttempts, $this->waitDuration, $lastException, $result);

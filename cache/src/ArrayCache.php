@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
+use DateInterval;
 use Psr\SimpleCache\CacheInterface;
 
 /**
- * An in-memory cache storage which implements PSR-16
+ * An in-memory cache storage which implements PSR-16.
  */
 class ArrayCache implements CacheInterface
 {
@@ -31,10 +32,10 @@ class ArrayCache implements CacheInterface
     private $timeFactory;
 
     public function __construct(
-        private readonly int   $ttl = 60,
-        private readonly int   $capacity = 256,
+        private readonly int $ttl = 60,
+        private readonly int $capacity = 256,
         private readonly float $fillRate = 0.6,
-        callable|string        $timeFactory = 'time')
+        callable|string $timeFactory = 'time')
     {
         $this->timeFactory = $timeFactory;
     }
@@ -51,12 +52,12 @@ class ArrayCache implements CacheInterface
         foreach ($this->values as $itemKey => $item) {
             if ($now > $item[self::KEY_EXPIRE]) {
                 unset($this->values[$itemKey]);
-                $count--;
+                --$count;
             }
         }
 
         if ($count > $this->capacity) {
-            $this->values = array_slice($this->values, -1 * (int)($this->capacity * $this->fillRate));
+            $this->values = array_slice($this->values, -1 * (int) ($this->capacity * $this->fillRate));
         }
     }
 
@@ -76,7 +77,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
+    public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
         $this->values[$key] = [
             self::KEY_DATA => $value,
@@ -125,7 +126,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
+    public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);

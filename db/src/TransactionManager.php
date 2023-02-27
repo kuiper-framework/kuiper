@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+use Throwable;
+
 class TransactionManager implements TransactionManagerInterface
 {
     public function __construct(private readonly ConnectionInterface $connection)
@@ -34,7 +36,7 @@ class TransactionManager implements TransactionManagerInterface
             $connection->commit();
 
             return $ret;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $connection->rollBack();
             throw $e;
         }

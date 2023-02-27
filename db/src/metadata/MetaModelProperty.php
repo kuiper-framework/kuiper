@@ -13,10 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\db\metadata;
 
+use InvalidArgumentException;
 use kuiper\db\attribute\Attribute;
 use kuiper\db\converter\AttributeConverterInterface;
 use kuiper\db\exception\MetaModelException;
 use kuiper\reflection\ReflectionTypeInterface;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionProperty;
 
 class MetaModelProperty
 {
@@ -29,7 +33,7 @@ class MetaModelProperty
      */
     private array $children = [];
 
-    private ?\ReflectionClass $modelClass = null;
+    private ?ReflectionClass $modelClass = null;
 
     private readonly string $path;
 
@@ -39,15 +43,15 @@ class MetaModelProperty
     private readonly array $ancestors;
 
     /**
-     * @param \ReflectionProperty     $property
+     * @param ReflectionProperty      $property
      * @param ReflectionTypeInterface $type
      * @param MetaModelProperty|null  $parent
      * @param Attribute[]             $attributes
      *
-     * @throws MetaModelException|\ReflectionException
+     * @throws MetaModelException|ReflectionException
      */
     public function __construct(
-        private readonly \ReflectionProperty $property,
+        private readonly ReflectionProperty $property,
         private readonly ReflectionTypeInterface $type,
         private readonly ?MetaModelProperty $parent,
         private readonly array $attributes)
@@ -61,7 +65,7 @@ class MetaModelProperty
                 if (!$metaProperty->type->isClass()) {
                     throw new MetaModelException($metaProperty->type.' not class');
                 }
-                $metaProperty->modelClass = new \ReflectionClass($metaProperty->type->getName());
+                $metaProperty->modelClass = new ReflectionClass($metaProperty->type->getName());
             }
             $ancestors[] = $metaProperty;
             $metaProperty = $metaProperty->parent;
@@ -114,10 +118,10 @@ class MetaModelProperty
             ];
         }
         if (!is_object($propertyValue)) {
-            throw new \InvalidArgumentException("Expected {$this->getFullName()} type of {$this->type}, got ".gettype($propertyValue));
+            throw new InvalidArgumentException("Expected {$this->getFullName()} type of {$this->type}, got ".gettype($propertyValue));
         }
         if ($this->type->isClass() && !is_a($propertyValue, $this->type->getName())) {
-            throw new \InvalidArgumentException("Expected {$this->getFullName()} type of {$this->type}, got ".get_class($propertyValue));
+            throw new InvalidArgumentException("Expected {$this->getFullName()} type of {$this->type}, got ".get_class($propertyValue));
         }
 
         return array_merge(...array_map(static function (MetaModelProperty $child) use ($propertyValue): array {
@@ -176,7 +180,7 @@ class MetaModelProperty
         return null !== $this->getAttribute($annotationName);
     }
 
-    public function getEntityClass(): \ReflectionClass
+    public function getEntityClass(): ReflectionClass
     {
         return null !== $this->parent
             ? $this->parent->getEntityClass()

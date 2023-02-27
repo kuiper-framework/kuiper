@@ -13,6 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\normalizer;
 
+use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
+use DateTimeZone;
+use InvalidArgumentException;
 use kuiper\helper\Text;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\serializer\NormalizerInterface;
@@ -24,11 +29,11 @@ class DateTimeNormalizer implements NormalizerInterface
      */
     public function normalize(mixed $object): mixed
     {
-        if ($object instanceof \DateTimeInterface) {
-            return $object->format(\DateTimeInterface::RFC3339);
+        if ($object instanceof DateTimeInterface) {
+            return $object->format(DateTimeInterface::RFC3339);
         }
 
-        throw new \InvalidArgumentException('Expected DateTime object, got '.gettype($object));
+        throw new InvalidArgumentException('Expected DateTime object, got '.gettype($object));
     }
 
     /**
@@ -37,17 +42,17 @@ class DateTimeNormalizer implements NormalizerInterface
     public function denormalize(mixed $data, string|ReflectionTypeInterface $className): mixed
     {
         $dateTimeClass = Text::isNotEmpty($className)
-            && (\DateTimeInterface::class === $className || is_a($className, \DateTimeImmutable::class, true))
-            ? \DateTimeImmutable::class
-            : \DateTime::class;
+            && (DateTimeInterface::class === $className || is_a($className, DateTimeImmutable::class, true))
+            ? DateTimeImmutable::class
+            : DateTime::class;
         if (is_string($data)) {
             return new $dateTimeClass($data);
         }
 
         if (isset($data['date'], $data['timezone']) && is_array($data)) {
             // \DateTime array
-            return new $dateTimeClass($data['date'], new \DateTimeZone($data['timezone']));
+            return new $dateTimeClass($data['date'], new DateTimeZone($data['timezone']));
         }
-        throw new \InvalidArgumentException('not valid date');
+        throw new InvalidArgumentException('not valid date');
     }
 }

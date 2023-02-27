@@ -33,6 +33,7 @@ use DI\Definition\Source\SourceChain;
 use DI\Definition\ValueDefinition;
 use DI\Proxy\ProxyFactory;
 use InvalidArgumentException;
+use JsonException;
 use kuiper\di\attribute\Configuration;
 use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionNamespaceFactory;
@@ -146,7 +147,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function create(string $projectPath): self
     {
@@ -289,9 +290,9 @@ class ContainerBuilder implements ContainerBuilderInterface
      * @param bool        $writeToFile    If true, write the proxies to disk to improve performances
      * @param string|null $proxyDirectory Directory where to write the proxies
      *
-     * @throws InvalidArgumentException when writeToFile is set to true and the proxy directory is null
-     *
      * @return $this
+     *
+     * @throws InvalidArgumentException when writeToFile is set to true and the proxy directory is null
      */
     public function writeProxiesToFile(bool $writeToFile, string $proxyDirectory = null): self
     {

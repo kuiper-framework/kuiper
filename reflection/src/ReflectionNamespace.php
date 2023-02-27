@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace kuiper\reflection;
 
 use kuiper\reflection\exception\ReflectionException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 class ReflectionNamespace implements ReflectionNamespaceInterface
 {
@@ -57,7 +59,7 @@ class ReflectionNamespace implements ReflectionNamespaceInterface
                 continue;
             }
             $seen[$dir] = true;
-            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
+            $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
             foreach ($it as $file => $fileInfo) {
                 $name = $fileInfo->getFilename();
                 if ('.' === $name[0]) {

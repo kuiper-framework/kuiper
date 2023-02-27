@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\normalizer;
 
+use InvalidArgumentException;
 use kuiper\helper\Enum;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\serializer\NormalizerInterface;
@@ -28,7 +29,7 @@ class EnumNormalizer implements NormalizerInterface
             return $object->name();
         }
 
-        throw new \InvalidArgumentException('Expected Enum object, got '.gettype($object));
+        throw new InvalidArgumentException('Expected Enum object, got '.gettype($object));
     }
 
     /**
@@ -37,7 +38,7 @@ class EnumNormalizer implements NormalizerInterface
     public function denormalize(mixed $data, string|ReflectionTypeInterface $className): mixed
     {
         if (!is_string($data)) {
-            throw new \InvalidArgumentException('Expected string, got '.gettype($data));
+            throw new InvalidArgumentException('Expected string, got '.gettype($data));
         }
 
         return call_user_func([$className, 'fromName'], $data);

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\db\converter;
 
+use InvalidArgumentException;
 use kuiper\db\metadata\ColumnInterface;
 
 class JoinerConverter implements AttributeConverterInterface
@@ -24,7 +25,7 @@ class JoinerConverter implements AttributeConverterInterface
     public function convertToDatabaseColumn(mixed $attribute, ColumnInterface $column): mixed
     {
         if (!is_array($attribute)) {
-            throw new \InvalidArgumentException('attribute should be array');
+            throw new InvalidArgumentException('attribute should be array');
         }
         $value = implode($this->delimiter, $attribute);
 

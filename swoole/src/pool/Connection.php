@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use Exception;
+
 class Connection implements ConnectionInterface
 {
     private readonly float $createdAt;
@@ -50,7 +52,7 @@ class Connection implements ConnectionInterface
                     try {
                         /** @phpstan-ignore-next-line */
                         $this->resource->$method();
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         // noOps
                     }
                 }

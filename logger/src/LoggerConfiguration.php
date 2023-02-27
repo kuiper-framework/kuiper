@@ -15,13 +15,16 @@ namespace kuiper\logger;
 
 use DI\Definition\FactoryDefinition;
 use DI\Definition\ObjectDefinition;
-use kuiper\swoole\attribute\BootstrapConfiguration;
+
 use function DI\factory;
+
+use InvalidArgumentException;
 use kuiper\di\attribute\Bean;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\PropertyResolverInterface;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\logger\CoroutineIdProcessor;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
@@ -90,7 +93,7 @@ class LoggerConfiguration implements DefinitionConfiguration
 
         $loggerLevel = constant(Logger::class.'::'.$loggerLevelName);
         if (!isset($loggerLevel)) {
-            throw new \InvalidArgumentException("Unknown logger level '{$loggerLevelName}'");
+            throw new InvalidArgumentException("Unknown logger level '{$loggerLevelName}'");
         }
         $handlers = [];
         if (!empty($rootLoggerConfig['console'])) {

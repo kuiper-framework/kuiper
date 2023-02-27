@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\servicediscovery\dns;
 
+use Net_DNS2_Exception;
 use Net_DNS2_Resolver;
 use Net_DNS2_RR_SRV;
 
@@ -23,7 +24,7 @@ class NetDns2Resolver implements DnsResolverInterface
     }
 
     /**
-     * @throws \Net_DNS2_Exception
+     * @throws Net_DNS2_Exception
      */
     public function resolve(string $hostname): array
     {

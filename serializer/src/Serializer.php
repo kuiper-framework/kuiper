@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\serializer;
 
+use JsonException;
 use JsonSerializable;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
@@ -187,7 +188,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function decodeJson(string $json): mixed
     {

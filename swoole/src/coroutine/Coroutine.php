@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\coroutine;
 
+use ArrayObject;
 use Swoole\Coroutine as SwooleCoroutine;
 use Swoole\Runtime;
 
@@ -29,7 +30,7 @@ final class Coroutine
     | SWOOLE_HOOK_SSL | SWOOLE_HOOK_TLS | SWOOLE_HOOK_SLEEP | SWOOLE_HOOK_FILE | SWOOLE_HOOK_STREAM_SELECT
     | SWOOLE_HOOK_BLOCKING_FUNCTION;
 
-    private static ?\ArrayObject $CONTEXT;
+    private static ?ArrayObject $CONTEXT;
 
     public static function isEnabled(): bool
     {
@@ -60,14 +61,14 @@ final class Coroutine
         self::$HOOK_FLAGS = $flags;
     }
 
-    public static function getContext(int $coroutineId = null): \ArrayObject
+    public static function getContext(int $coroutineId = null): ArrayObject
     {
         if (self::isEnabled()) {
             return isset($coroutineId) ? SwooleCoroutine::getContext($coroutineId) : SwooleCoroutine::getContext();
         }
 
         if (!isset(self::$CONTEXT)) {
-            self::$CONTEXT = new \ArrayObject();
+            self::$CONTEXT = new ArrayObject();
         }
 
         return self::$CONTEXT;

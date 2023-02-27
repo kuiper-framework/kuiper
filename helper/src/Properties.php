@@ -13,7 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\helper;
 
+use ArrayIterator;
+use BadMethodCallException;
+
 use function DI\create;
+
+use InvalidArgumentException;
 
 /**
  * Access array use key separated by dot(.) :.
@@ -25,7 +30,7 @@ use function DI\create;
  *     ]);
  *     echo $array->get('redis.host');   // 'localhost'
  */
-final class Properties extends \ArrayIterator implements PropertyResolverInterface
+final class Properties extends ArrayIterator implements PropertyResolverInterface
 {
     private const PLACEHOLDER_REGEXP = '#\{([^\{\}]+)\}#';
 
@@ -41,7 +46,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
 
     public function __set(string $name, mixed $value): void
     {
-        throw new \BadMethodCallException('Cannot modify config');
+        throw new BadMethodCallException('Cannot modify config');
     }
 
     public function __isset(string $name): bool
@@ -106,7 +111,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
             if (0 === $posBracket) {
                 $posRight = strpos($key, ']');
                 if (false === $posRight) {
-                    throw new \InvalidArgumentException("invalid key $key");
+                    throw new InvalidArgumentException("invalid key $key");
                 }
                 $current = (int) substr($key, 1, $posRight - 1);
                 $rest = substr($key, $posRight + 1);
@@ -225,7 +230,7 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
         $this->replacePlaceholderRecursive($this, function (array $matches) {
             $name = $matches[1];
             if (!$this->has($name)) {
-                throw new \InvalidArgumentException("Unknown config entry: '$name'");
+                throw new InvalidArgumentException("Unknown config entry: '$name'");
             }
 
             return $this->get($name);
@@ -243,8 +248,8 @@ final class Properties extends \ArrayIterator implements PropertyResolverInterfa
                 do {
                     try {
                         $value = preg_replace_callback($re, $replacer, $value);
-                    } catch (\InvalidArgumentException $e) {
-                        throw new \InvalidArgumentException("Fail to replace placeholder $prefix.$key: ".$e->getMessage());
+                    } catch (InvalidArgumentException $e) {
+                        throw new InvalidArgumentException("Fail to replace placeholder $prefix.$key: ".$e->getMessage());
                     }
                 } while (preg_match(self::PLACEHOLDER_REGEXP, $value));
 

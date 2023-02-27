@@ -15,6 +15,10 @@ namespace kuiper\tars\type;
 
 use kuiper\tars\attribute\TarsProperty;
 use kuiper\tars\exception\SyntaxErrorException;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionNamedType;
+use UnitEnum;
 
 /**
  * tars_type: vector< vector_sub_type > :
@@ -31,7 +35,7 @@ class TypeParser
      */
     private array $cache = [];
 
-    public function fromPhpType(\ReflectionNamedType $type): Type
+    public function fromPhpType(ReflectionNamedType $type): Type
     {
         if ($type->isBuiltin()) {
             return $this->parse($type->getName());
@@ -67,7 +71,7 @@ class TypeParser
 
         if (TypeTokenizer::T_STRUCT === $token[0]) {
             $className = $namespace.'\\'.$token[1];
-            if (is_a($className, \UnitEnum::class, true)) {
+            if (is_a($className, UnitEnum::class, true)) {
                 return new EnumType($className);
             }
 
@@ -115,9 +119,9 @@ class TypeParser
         }
 
         try {
-            $reflectionClass = new \ReflectionClass($className);
-        } catch (\ReflectionException $e) {
-            throw new SyntaxErrorException("Class not found '${className}'");
+            $reflectionClass = new ReflectionClass($className);
+        } catch (ReflectionException $e) {
+            throw new SyntaxErrorException("Class not found '{$className}'");
         }
         $constructor = $reflectionClass->getConstructor();
         // 防止递归类型错误

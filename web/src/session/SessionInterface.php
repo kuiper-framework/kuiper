@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\web\session;
 
+use ArrayAccess;
 use Psr\Http\Message\ResponseInterface;
 
-interface SessionInterface extends \ArrayAccess, \Iterator
+interface SessionInterface extends ArrayAccess, \Iterator
 {
     /**
      * Starts session, optionally using an adapter.

@@ -75,7 +75,7 @@ class WorkerStartEventListener implements EventListenerInterface, LoggerAwareInt
     {
         $serverName = $event->getServer()->getServerConfig()->getServerName();
         $title = sprintf('%s: %s%s %d process', $serverName,
-            ($event->getServer()->isTaskWorker() ? 'task ' : ''), ProcessType::WORKER, $event->getWorkerId());
+            $event->getServer()->isTaskWorker() ? 'task ' : '', ProcessType::WORKER, $event->getWorkerId());
         @cli_set_process_title($title);
         $this->logger->debug(static::TAG."start worker {$title}");
     }

@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker\exception;
 
+use Exception;
 use kuiper\resilience\circuitbreaker\CircuitBreaker;
 use kuiper\resilience\core\ResilienceException;
 
-class ResultWasFailureException extends \Exception implements ResilienceException
+class ResultWasFailureException extends Exception implements ResilienceException
 {
     public function __construct(
         private readonly CircuitBreaker $circuitBreaker,

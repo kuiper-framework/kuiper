@@ -37,6 +37,7 @@ enum Event: string
     case MANAGER_STOP = 'managerStop';
     case BEFORE_RELOAD = 'beforeReload';
     case AFTER_RELOAD = 'afterReload';
+
     public static function requestEvents(): array
     {
         return [self::REQUEST, self::MESSAGE, self::RECEIVE];

@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
-interface ServiceLocator extends \Stringable
+use Stringable;
+
+interface ServiceLocator extends Stringable
 {
     /**
      * @return string

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
+use Reflector;
+
 interface Component
 {
     /**
@@ -26,14 +28,14 @@ interface Component
     public function getComponentId(): string;
 
     /**
-     * @return \Reflector
+     * @return Reflector
      */
-    public function getTarget(): \Reflector;
+    public function getTarget(): Reflector;
 
     /**
-     * @param \Reflector $target
+     * @param Reflector $target
      */
-    public function setTarget(\Reflector $target): void;
+    public function setTarget(Reflector $target): void;
 
     public function handle(): void;
 }

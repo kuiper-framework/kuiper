@@ -13,15 +13,16 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\exception;
 
+use Exception;
 use kuiper\rpc\transporter\TransporterInterface;
 
-abstract class CommunicationException extends \Exception
+abstract class CommunicationException extends Exception
 {
     public function __construct(
         private readonly TransporterInterface $connection,
         string $message = null,
         int $code = null,
-        \Exception $cause = null)
+        Exception $cause = null)
     {
         parent::__construct($message, $code, $cause);
     }

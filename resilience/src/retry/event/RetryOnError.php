@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\resilience\retry\event;
 
 use kuiper\resilience\retry\Retry;
+use Throwable;
 
 /**
  * 重试达到最大重试次数，重试失败
@@ -27,7 +28,7 @@ class RetryOnError
     public function __construct(
         private readonly Retry $retry,
         private readonly int $numOfAttempts,
-        private readonly \Throwable $lastException)
+        private readonly Throwable $lastException)
     {
     }
 
@@ -41,7 +42,7 @@ class RetryOnError
         return $this->numOfAttempts;
     }
 
-    public function getLastException(): \Throwable
+    public function getLastException(): Throwable
     {
         return $this->lastException;
     }

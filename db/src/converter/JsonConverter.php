@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\db\converter;
 
-use kuiper\db\metadata\Column;
 use kuiper\db\metadata\ColumnInterface;
 
 class JsonConverter implements AttributeConverterInterface

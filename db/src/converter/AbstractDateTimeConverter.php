@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\db\converter;
 
 use DateTimeInterface;
+use Exception;
 use kuiper\db\DateTimeFactoryInterface;
 use kuiper\db\metadata\ColumnInterface;
 
@@ -42,7 +43,7 @@ class AbstractDateTimeConverter implements AttributeConverterInterface
     {
         try {
             return $this->dateTimeFactory->stringToTime($dbData);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }

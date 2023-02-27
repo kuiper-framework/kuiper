@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\db\attribute;
 
+use Attribute;
 use kuiper\di\attribute\Service;
 
-#[\Attribute(\Attribute::TARGET_CLASS)]
+#[Attribute(Attribute::TARGET_CLASS)]
 class Repository extends Service
 {
     public function __construct(private readonly string $entityClass)

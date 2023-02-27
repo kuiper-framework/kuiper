@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
+use DateInterval;
 use Psr\SimpleCache\CacheInterface;
 
 /**
@@ -47,7 +48,7 @@ class ChainedCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
+    public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
         foreach ($this->cacheList as $cache) {
             $cache->set($key, $value, $ttl);
@@ -96,7 +97,7 @@ class ChainedCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
+    public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);

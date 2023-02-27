@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\tars\type;
 
-interface Type extends \Stringable
+use Stringable;
+
+interface Type extends Stringable
 {
     public const ZERO = 12;
     public const STRING4 = 7;

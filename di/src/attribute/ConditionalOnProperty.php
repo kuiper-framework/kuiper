@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\di\attribute;
 
 use Attribute;
+use InvalidArgumentException;
 use kuiper\di\Condition;
 use kuiper\helper\PropertyResolverInterface;
 use Psr\Container\ContainerInterface;
@@ -31,7 +32,7 @@ class ConditionalOnProperty implements Condition
     public function matches(ContainerInterface $container): bool
     {
         if (!$container->has(PropertyResolverInterface::class)) {
-            throw new \InvalidArgumentException(PropertyResolverInterface::class.' should be registered in container');
+            throw new InvalidArgumentException(PropertyResolverInterface::class.' should be registered in container');
         }
         $value = $container->get(PropertyResolverInterface::class)->get($this->name);
         if (isset($value)) {

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\tars\client;
 
 use GuzzleHttp\Psr7\HttpFactory;
+use InvalidArgumentException;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
 use kuiper\logger\Logger;
@@ -56,6 +57,8 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use ReflectionClass;
+use ReflectionException;
 
 class TarsProxyFactory implements ContainerAwareInterface
 {
@@ -98,7 +101,7 @@ class TarsProxyFactory implements ContainerAwareInterface
      *
      * @return self
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public static function createDefault(...$serviceEndpoints): self
     {
@@ -126,7 +129,7 @@ class TarsProxyFactory implements ContainerAwareInterface
             $httpResponseFactory = new ResponseFactory();
             $streamFactory = new StreamFactory();
         } else {
-            throw new \InvalidArgumentException('Cannot find ');
+            throw new InvalidArgumentException('Cannot find ');
         }
 
         return new static(
@@ -189,11 +192,11 @@ class TarsProxyFactory implements ContainerAwareInterface
      *
      * @return object
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function create(string $className, array $options = [])
     {
-        $class = new \ReflectionClass($className);
+        $class = new ReflectionClass($className);
         if (isset($options['endpoint'])) {
             if (preg_match('#^\w+://#', $options['endpoint'])) {
                 $options['endpoint'] = Endpoint::removeTcpScheme($options['endpoint']);
@@ -215,7 +218,7 @@ class TarsProxyFactory implements ContainerAwareInterface
                 $tarsClient = $attributes[0]->newInstance();
                 $options['service'] = $tarsClient->getService();
             } else {
-                throw new \InvalidArgumentException('Cannot resolver service name');
+                throw new InvalidArgumentException('Cannot resolver service name');
             }
         }
         if ($class->isInterface()) {

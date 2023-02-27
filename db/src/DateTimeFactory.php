@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+use DateTimeImmutable;
 use DateTimeInterface;
 
 class DateTimeFactory implements DateTimeFactoryInterface
@@ -32,7 +33,7 @@ class DateTimeFactory implements DateTimeFactoryInterface
      */
     public function stringToTime(string $timeString): ?DateTimeInterface
     {
-        return new \DateTimeImmutable($timeString);
+        return new DateTimeImmutable($timeString);
     }
 
     /**

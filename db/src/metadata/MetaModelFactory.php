@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\db\metadata;
 
+use InvalidArgumentException;
 use kuiper\db\attribute\Attribute;
 use kuiper\db\attribute\Column as ColumnAttribute;
 use kuiper\db\attribute\Convert;
@@ -25,6 +26,11 @@ use kuiper\db\converter\AttributeConverterRegistry;
 use kuiper\db\converter\EnumConverter;
 use kuiper\db\exception\MetaModelException;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
+use ReflectionAttribute;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionProperty;
+use UnitEnum;
 
 class MetaModelFactory implements MetaModelFactoryInterface
 {
@@ -34,8 +40,8 @@ class MetaModelFactory implements MetaModelFactoryInterface
     private array $cache = [];
 
     public function __construct(
-        private readonly AttributeConverterRegistry         $attributeConverterRegistry,
-        private readonly NamingStrategyInterface            $namingStrategy,
+        private readonly AttributeConverterRegistry $attributeConverterRegistry,
+        private readonly NamingStrategyInterface $namingStrategy,
         private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
     {
     }
@@ -45,7 +51,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
      */
     public function create(string $entityClass): MetaModelInterface
     {
-        return $this->createInterval(new \ReflectionClass($entityClass));
+        return $this->createInterval(new ReflectionClass($entityClass));
     }
 
     /**
@@ -53,10 +59,10 @@ class MetaModelFactory implements MetaModelFactoryInterface
      */
     public function createFromRepository(string $repositoryClass): MetaModelInterface
     {
-        return $this->createInterval($this->getEntityClass(new \ReflectionClass($repositoryClass)));
+        return $this->createInterval($this->getEntityClass(new ReflectionClass($repositoryClass)));
     }
 
-    private function createInterval(\ReflectionClass $entityClass): MetaModelInterface
+    private function createInterval(ReflectionClass $entityClass): MetaModelInterface
     {
         if (isset($this->cache[$entityClass->getName()])) {
             return $this->cache[$entityClass->getName()];
@@ -66,7 +72,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
             $this->getTableName($entityClass), $entityClass, $this->getProperties($entityClass, null));
     }
 
-    private function getEntityClass(\ReflectionClass $reflectionClass): \ReflectionClass
+    private function getEntityClass(ReflectionClass $reflectionClass): ReflectionClass
     {
         $attributes = $reflectionClass->getAttributes(Repository::class);
         if (0 === count($attributes)) {
@@ -78,16 +84,16 @@ class MetaModelFactory implements MetaModelFactoryInterface
             }
         }
         if (0 === count($attributes)) {
-            throw new \InvalidArgumentException($reflectionClass->getName() . ' should annotation with @' . Repository::class);
+            throw new InvalidArgumentException($reflectionClass->getName().' should annotation with @'.Repository::class);
         }
 
         /** @var Repository $attribute */
         $attribute = $attributes[0]->newInstance();
 
-        return new \ReflectionClass($attribute->getEntityClass());
+        return new ReflectionClass($attribute->getEntityClass());
     }
 
-    private function getTableName(\ReflectionClass $entityClass): string
+    private function getTableName(ReflectionClass $entityClass): string
     {
         $context = new NamingContext();
         $context->setEntityClass($entityClass);
@@ -102,7 +108,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
         return $this->namingStrategy->toTableName($context);
     }
 
-    private function getProperties(\ReflectionClass $modelClass, ?MetaModelProperty $parent): array
+    private function getProperties(ReflectionClass $modelClass, ?MetaModelProperty $parent): array
     {
         $metaProperties = [];
         foreach ($modelClass->getProperties() as $property) {
@@ -113,9 +119,9 @@ class MetaModelFactory implements MetaModelFactoryInterface
             if (count($attributes) > 0) {
                 continue;
             }
-            $attributes = array_map(static function (\ReflectionAttribute $attribute) {
+            $attributes = array_map(static function (ReflectionAttribute $attribute) {
                 return $attribute->newInstance();
-            }, $property->getAttributes(Attribute::class, \ReflectionAttribute::IS_INSTANCEOF));
+            }, $property->getAttributes(Attribute::class, ReflectionAttribute::IS_INSTANCEOF));
             $metaProperties[] = $this->createProperty($property, $attributes, $parent);
         }
 
@@ -126,9 +132,9 @@ class MetaModelFactory implements MetaModelFactoryInterface
      * @param Attribute[] $attributes
      *
      * @throws MetaModelException
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    private function createProperty(\ReflectionProperty $property, array $attributes, ?MetaModelProperty $parent): MetaModelProperty
+    private function createProperty(ReflectionProperty $property, array $attributes, ?MetaModelProperty $parent): MetaModelProperty
     {
         $type = $this->reflectionDocBlockFactory->createPropertyDocBlock($property)->getType();
         $metaProperty = new MetaModelProperty($property, $type, $parent, $attributes);
@@ -150,7 +156,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
             if (!$type->isClass()) {
                 throw new MetaModelException(sprintf('Unsupported type %s for %s property %s', $type->getName(), $metaProperty->getEntityClass()->getName(), $metaProperty->getPath()));
             }
-            $reflectionClass = new \ReflectionClass($type->getName());
+            $reflectionClass = new ReflectionClass($type->getName());
             if (0 === count($reflectionClass->getAttributes(Embeddable::class))) {
                 throw new MetaModelException(sprintf('%s property %s type class %s is not annotated with %s', $metaProperty->getEntityClass()->getName(), $metaProperty->getPath(), $type->getName(), Embeddable::class));
             }
@@ -168,7 +174,7 @@ class MetaModelFactory implements MetaModelFactoryInterface
             return $this->attributeConverterRegistry->get($converter->getConverter());
         }
         if ($metaProperty->getType()->isClass()
-                && is_a($metaProperty->getType()->getName(), \UnitEnum::class, true)) {
+                && is_a($metaProperty->getType()->getName(), UnitEnum::class, true)) {
             return new EnumConverter();
         }
 

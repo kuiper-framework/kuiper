@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\http\client;
 
+use InvalidArgumentException;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\client\RpcResponseNormalizer;
 use kuiper\rpc\exception\BadResponseException;
@@ -37,7 +38,7 @@ class HttpJsonResponseFactory implements RpcResponseFactoryInterface
     {
         try {
             $method = $request->getRpcMethod()->withResult($this->buildResult($request->getRpcMethod(), $response));
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             throw new BadResponseException($request, $response, $e);
         }
 

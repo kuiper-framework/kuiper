@@ -83,6 +83,7 @@ interface ConfigServant
      * @tars-param filename, config file name
      * @tars-param host, ip
      * @tars-param result, 提示
+     *
      * @tars-return int 0: 合法, -1:非法
      * /
      */
@@ -99,6 +100,7 @@ interface ConfigServant
      *
      * @tars-param configInfo, ConfigInfo 配置文件信息，如果没有set分组信息，请设置setdivision为空""
      * @tars-param vf, config file name
+     *
      * @tars-return int 0: 成功, -1:失败
      * /
      */
@@ -113,6 +115,7 @@ interface ConfigServant
      *
      * @tars-param configInfo, ConfigInfo 配置文件信息
      * @tars-param config, 配置文件内容
+     *
      * @tars-return int 0: 成功, -1:失败
      * /
      */
@@ -127,6 +130,7 @@ interface ConfigServant
      *
      * @tars-param configInfo, ConfigInfo 配置文件信息
      * @tars-param result, 提示
+     *
      * @tars-return int 0: 合法, -1:非法
      * /
      */
@@ -141,6 +145,7 @@ interface ConfigServant
      *
      * @tars-param configInfo 支持拉取应用配置列表，服务配置列表，机器配置列表
      * @tars-param [out] vf  获取到的文件名称列表
+     *
      * @tars-return int 0: 成功, -1:失败
      * /
      */

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\db\exception;
 
-abstract class DataAccessException extends \RuntimeException
+use RuntimeException;
+
+abstract class DataAccessException extends RuntimeException
 {
 }

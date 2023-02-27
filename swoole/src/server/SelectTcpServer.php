@@ -21,6 +21,7 @@ use kuiper\swoole\exception\ServerStateException;
 use kuiper\swoole\server\workers\ForkedWorkerManager;
 use kuiper\swoole\server\workers\SingleWorkerManager;
 use kuiper\swoole\server\workers\WorkerManagerInterface;
+use RuntimeException;
 
 class SelectTcpServer extends AbstractServer
 {
@@ -31,10 +32,10 @@ class SelectTcpServer extends AbstractServer
     public static function check(): void
     {
         if (!extension_loaded('pcntl')) {
-            throw new \RuntimeException('extension pcntl should be enabled');
+            throw new RuntimeException('extension pcntl should be enabled');
         }
         if (!extension_loaded('posix')) {
-            throw new \RuntimeException('extension posix should be enabled');
+            throw new RuntimeException('extension posix should be enabled');
         }
     }
 

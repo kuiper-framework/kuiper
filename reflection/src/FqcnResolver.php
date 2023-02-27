@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
+use InvalidArgumentException;
+
 /**
  * Full Qualified Class Name Resolver.
  */
@@ -25,7 +27,7 @@ class FqcnResolver
     /**
      * Resolves class name to Full Qualified Class Name.
      *
-     * @throws \InvalidArgumentException       if $name is not valid class name, or namespace not in the file
+     * @throws InvalidArgumentException        if $name is not valid class name, or namespace not in the file
      * @throws exception\FileNotFoundException
      * @throws exception\SyntaxErrorException
      */
@@ -35,11 +37,11 @@ class FqcnResolver
             return ltrim($name, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR);
         }
         if (!ReflectionType::isClassName($name)) {
-            throw new \InvalidArgumentException("Invalid class name '{$name}'");
+            throw new InvalidArgumentException("Invalid class name '{$name}'");
         }
         $namespaces = $this->reflectionFile->getNamespaces();
         if (!in_array($namespace, $namespaces, true)) {
-            throw new \InvalidArgumentException(sprintf("namespace '%s' not defined in '%s'", $namespace, $this->reflectionFile->getFile()));
+            throw new InvalidArgumentException(sprintf("namespace '%s' not defined in '%s'", $namespace, $this->reflectionFile->getFile()));
         }
         $imports = $this->reflectionFile->getImportedClasses($namespace);
         $parts = explode(ReflectionNamespaceInterface::NAMESPACE_SEPARATOR, $name);

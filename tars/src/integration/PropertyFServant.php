@@ -31,6 +31,7 @@ interface PropertyFServant
      * 上报属性统计信息   Prop = property.
      *
      * @tars-param statmsg,             上报信息
+     *
      * @tars-return int,                返回0表示成功
      */
     #[TarsReturnType('int')]

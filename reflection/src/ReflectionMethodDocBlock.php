@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
+use ReflectionMethod;
+
 class ReflectionMethodDocBlock implements ReflectionMethodDocBlockInterface
 {
     /**
@@ -21,13 +23,13 @@ class ReflectionMethodDocBlock implements ReflectionMethodDocBlockInterface
      * @param ReflectionTypeInterface[] $parameterTypes
      */
     public function __construct(
-        private readonly \ReflectionMethod $method,
+        private readonly ReflectionMethod $method,
         private readonly array $parameterTypes,
         private readonly ReflectionTypeInterface $returnType)
     {
     }
 
-    public function getMethod(): \ReflectionMethod
+    public function getMethod(): ReflectionMethod
     {
         return $this->method;
     }

@@ -14,8 +14,10 @@ declare(strict_types=1);
 namespace kuiper\db\sharding;
 
 use Aura\SqlQuery\QueryInterface;
+use InvalidArgumentException;
 use kuiper\db\constants\SqlState;
 use kuiper\db\event\ShardTableNotExistEvent;
+use PDOException;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 class Statement extends \kuiper\db\Statement implements StatementInterface
@@ -63,11 +65,11 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
     protected function setTable(): void
     {
         if (empty($this->shardBy)) {
-            throw new \InvalidArgumentException('Sharding fields are empty');
+            throw new InvalidArgumentException('Sharding fields are empty');
         }
         $connectionId = $this->strategy->getDb($this->shardBy);
         if ($this->cluster->hasConnection() && $connectionId !== $this->cluster->getConnectionId()) {
-            throw new \InvalidArgumentException('connection not consist with previous');
+            throw new InvalidArgumentException('connection not consist with previous');
         }
         $this->cluster->setConnectionId($connectionId);
         if (method_exists($this->getQuery(), 'resetTables')) {
@@ -129,7 +131,7 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
     protected function getTableName(): string
     {
         if (empty($this->shardBy)) {
-            throw new \InvalidArgumentException('Sharding fields are empty');
+            throw new InvalidArgumentException('Sharding fields are empty');
         }
 
         return $this->strategy->getTable($this->shardBy, $this->baseTable);
@@ -142,7 +144,7 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
         }
         try {
             return parent::doQuery();
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             if (SqlState::BAD_TABLE === $e->getCode()) {
                 /** @var ShardTableNotExistEvent $event */
                 $event = $this->getEventDispatcher()->dispatch(new ShardTableNotExistEvent($this, $this->getTableName()));

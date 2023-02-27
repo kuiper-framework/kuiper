@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker\event;
 
+use Exception;
 use kuiper\resilience\circuitbreaker\CircuitBreaker;
 
 /**
@@ -24,7 +25,7 @@ class CircuitBreakerOnError
     public function __construct(
         private readonly CircuitBreaker $circuitBreaker,
         private readonly int $duration,
-        private readonly \Exception $exception)
+        private readonly Exception $exception)
     {
     }
 
@@ -38,7 +39,7 @@ class CircuitBreakerOnError
         return $this->duration;
     }
 
-    public function getException(): \Exception
+    public function getException(): Exception
     {
         return $this->exception;
     }

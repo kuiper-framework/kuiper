@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use Exception;
 use kuiper\resilience\circuitbreaker\exception\CallNotPermittedException;
 
 class OpenState implements CircuitBreakerState
@@ -54,7 +55,7 @@ class OpenState implements CircuitBreakerState
         // noOp
     }
 
-    public function onError(int $duration, \Exception $exception): void
+    public function onError(int $duration, Exception $exception): void
     {
         $this->metrics->onError($duration);
     }

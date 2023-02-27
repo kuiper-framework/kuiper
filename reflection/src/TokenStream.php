@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
+use ArrayIterator;
+use BadMethodCallException;
 use kuiper\reflection\exception\FileNotFoundException;
 use kuiper\reflection\exception\InvalidTokenException;
 use kuiper\reflection\exception\TokenStoppedException;
@@ -36,7 +38,7 @@ final class TokenStream
 
     private int $line = 0;
 
-    private function __construct(private readonly \ArrayIterator $tokens)
+    private function __construct(private readonly ArrayIterator $tokens)
     {
     }
 
@@ -60,7 +62,7 @@ final class TokenStream
 
     public static function fromTokens(array $tokens): self
     {
-        return new self(new \ArrayIterator($tokens));
+        return new self(new ArrayIterator($tokens));
     }
 
     /**
@@ -95,7 +97,7 @@ final class TokenStream
     public function current(): array|string|null
     {
         if (!isset($this->current)) {
-            throw new \BadMethodCallException('call next first');
+            throw new BadMethodCallException('call next first');
         }
 
         return $this->current;

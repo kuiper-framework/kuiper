@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\tars\exception;
 
-class TarsStreamException extends \Exception
+use Exception;
+
+class TarsStreamException extends Exception
 {
     public const TYPE_NOT_MATCH = 28001;
     public const LENGTH_NOT_MATCH = 28002;

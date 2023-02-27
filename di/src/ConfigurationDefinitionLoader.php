@@ -19,11 +19,15 @@ use DI\Definition\Definition;
 use DI\Definition\FactoryDefinition;
 use DI\Definition\Helper\DefinitionHelper;
 use DI\Definition\ValueDefinition;
+
 use function DI\get;
+
 use kuiper\di\attribute\Bean;
 use kuiper\helper\Text;
 use kuiper\reflection\ReflectionType;
+use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
 
 class ConfigurationDefinitionLoader
@@ -148,7 +152,7 @@ class ConfigurationDefinitionLoader
             }
             try {
                 $reflectionClass = new ReflectionClass($returnType->getName());
-                foreach ($reflectionClass->getAttributes(Component::class, \ReflectionAttribute::IS_INSTANCEOF) as $reflectionAttribute) {
+                foreach ($reflectionClass->getAttributes(Component::class, ReflectionAttribute::IS_INSTANCEOF) as $reflectionAttribute) {
                     /** @var Component $attribute */
                     $attribute = $reflectionAttribute->newInstance();
                     $attribute->setTarget($reflectionClass);
@@ -158,7 +162,7 @@ class ConfigurationDefinitionLoader
                     }
                     $attribute->handle();
                 }
-            } catch (\ReflectionException $e) {
+            } catch (ReflectionException $e) {
                 trigger_error("ReflectionClass on $returnType failed");
             }
         }

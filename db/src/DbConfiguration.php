@@ -15,7 +15,12 @@ namespace kuiper\db;
 
 use Aura\SqlQuery\QueryFactory;
 use Carbon\Carbon;
+use DateTimeInterface;
 use DI\Attribute\Inject;
+
+use function DI\autowire;
+use function DI\factory;
+
 use kuiper\db\converter\AttributeConverterRegistry;
 use kuiper\db\converter\DateConverter;
 use kuiper\db\converter\DateTimeConverter;
@@ -37,8 +42,6 @@ use kuiper\reflection\ReflectionFileFactoryInterface;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Swoole\Coroutine\Channel;
-use function DI\autowire;
-use function DI\factory;
 
 #[Configuration]
 #[ConditionalOnProperty('application.database')]
@@ -99,7 +102,7 @@ class DbConfiguration implements DefinitionConfiguration
     public function attributeConverterRegistry(DateTimeFactoryInterface $dateTimeFactory): AttributeConverterRegistry
     {
         $registry = AttributeConverterRegistry::createDefault();
-        $registry->register(\DateTimeInterface::class, new DateTimeConverter($dateTimeFactory));
+        $registry->register(DateTimeInterface::class, new DateTimeConverter($dateTimeFactory));
         $registry->register(DateConverter::class, new DateConverter($dateTimeFactory));
 
         return $registry;

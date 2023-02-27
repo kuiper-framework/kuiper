@@ -16,6 +16,7 @@ namespace kuiper\rpc\client;
 use kuiper\rpc\MiddlewareSupport;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
+use ReflectionException;
 use ReflectionProperty;
 
 class RpcExecutor implements RpcExecutorInterface
@@ -59,7 +60,7 @@ class RpcExecutor implements RpcExecutorInterface
     }
 
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public static function create(object $client, string $method, array $args): self
     {

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\swoole\http;
 
 use function Laminas\Diactoros\normalizeUploadedFiles;
+
 use Laminas\Diactoros\ServerRequestFactory;
 use Laminas\Diactoros\Stream;
 use Psr\Http\Message\ServerRequestInterface;

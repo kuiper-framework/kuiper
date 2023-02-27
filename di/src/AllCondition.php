@@ -13,8 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
+use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
 use ReflectionAttribute;
+use ReflectionClass;
+use ReflectionMethod;
+use Reflector;
 
 class AllCondition implements Condition
 {
@@ -46,12 +50,12 @@ class AllCondition implements Condition
         return true;
     }
 
-    public static function create(\Reflector $reflector): ?AllCondition
+    public static function create(Reflector $reflector): ?AllCondition
     {
-        if ($reflector instanceof \ReflectionClass || $reflector instanceof \ReflectionMethod) {
+        if ($reflector instanceof ReflectionClass || $reflector instanceof ReflectionMethod) {
             $attributes = $reflector->getAttributes(Condition::class, ReflectionAttribute::IS_INSTANCEOF);
         } else {
-            throw new \InvalidArgumentException('invalid reflector '.get_class($reflector));
+            throw new InvalidArgumentException('invalid reflector '.get_class($reflector));
         }
 
         return empty($attributes) ? null : new AllCondition(...array_map(static function (ReflectionAttribute $attribute) {

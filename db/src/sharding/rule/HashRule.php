@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\db\sharding\rule;
 
 use InvalidArgumentException;
+
 use function is_numeric;
 
 class HashRule extends AbstractRule

@@ -20,6 +20,7 @@ enum State: int
     case HALF_OPEN = 2;
     case DISABLED = 3;
     case FORCED_OPEN = 4;
+
     public function nextTransitions(): array
     {
         return match ($this) {

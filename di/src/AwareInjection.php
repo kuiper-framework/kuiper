@@ -16,7 +16,9 @@ namespace kuiper\di;
 use DI\Definition\ObjectDefinition;
 use DI\Definition\ObjectDefinition\MethodInjection;
 use DI\Definition\Reference;
+use InvalidArgumentException;
 use kuiper\reflection\ReflectionType;
+use ReflectionClass;
 
 class AwareInjection
 {
@@ -56,20 +58,20 @@ class AwareInjection
 
     public static function create(string $awareInterfaceName): AwareInjection
     {
-        $reflectionClass = new \ReflectionClass($awareInterfaceName);
+        $reflectionClass = new ReflectionClass($awareInterfaceName);
         $methods = $reflectionClass->getMethods();
         if (count($methods) > 1) {
-            throw new \InvalidArgumentException("$awareInterfaceName has more than one method");
+            throw new InvalidArgumentException("$awareInterfaceName has more than one method");
         }
         $method = $methods[0];
         $parameters = $method->getParameters();
         if (count($parameters) > 1) {
-            throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} has more than one parameter");
+            throw new InvalidArgumentException("$awareInterfaceName::{$method->getName()} has more than one parameter");
         }
         $parameter = $parameters[0];
         $parameterType = ReflectionType::fromPhpType($parameter->getType());
         if (!$parameterType->isClass()) {
-            throw new \InvalidArgumentException("$awareInterfaceName::{$method->getName()} parameter {$parameter->getName()} not a class");
+            throw new InvalidArgumentException("$awareInterfaceName::{$method->getName()} parameter {$parameter->getName()} not a class");
         }
         $setter = $method->getName();
         $beanName = $parameterType->getName();

@@ -20,6 +20,7 @@ use kuiper\swoole\event\StartEvent;
 use kuiper\swoole\server\SwooleServer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use RuntimeException;
 use Swoole\Process;
 use Webmozart\Assert\Assert;
 
@@ -70,14 +71,14 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
             $dir = dirname($pidFile);
             if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
                 $this->logger->error(static::TAG."Cannot create pid file directory $dir");
-                throw new \RuntimeException("Cannot create pid file directory $dir");
+                throw new RuntimeException("Cannot create pid file directory $dir");
             }
             $ret = file_put_contents($pidFile, $server->getMasterPid());
             if (false === $ret) {
-                throw new \RuntimeException("Cannot create pid file $pidFile");
+                throw new RuntimeException("Cannot create pid file $pidFile");
             }
             $this->logger->info(static::TAG.'Listening on '.$serverConfig->getPort());
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             $this->logger->error(static::TAG.'Cannot write pid file: '.$e->getMessage());
             $server->stop();
         }

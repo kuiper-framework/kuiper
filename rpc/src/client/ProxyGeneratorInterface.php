@@ -14,11 +14,12 @@ declare(strict_types=1);
 namespace kuiper\rpc\client;
 
 use kuiper\swoole\pool\GeneratedClass;
+use ReflectionException;
 
 interface ProxyGeneratorInterface
 {
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function generate(string $interfaceName, array $context = []): GeneratedClass;
 }

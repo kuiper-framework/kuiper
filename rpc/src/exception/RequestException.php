@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\exception;
 
+use Exception;
 use kuiper\rpc\RpcRequestInterface;
 
-class RequestException extends \Exception
+class RequestException extends Exception
 {
     public function __construct(private readonly RpcRequestInterface $request, string $message, int $code)
     {

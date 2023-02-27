@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace kuiper\db;
 
+use BadMethodCallException;
 use kuiper\db\constants\ErrorCode;
 use kuiper\db\event\ConnectedEvent;
 use kuiper\db\event\DisconnectedEvent;
@@ -26,6 +27,7 @@ use kuiper\event\EventDispatcherAwareInterface;
 use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\event\NullEventDispatcher;
 use PDO;
+use PDOException;
 use PDOStatement;
 use Stringable;
 
@@ -74,6 +76,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
      * @param array       $attributes attributes to set after a lazy connection
      *
      * @see http://php.net/manual/en/pdo.construct.php
+     *
      * @noinspection MagicMethodsValidityInspection
      * @noinspection PhpMissingParentConstructorInspection
      */
@@ -231,7 +234,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         $this->beforeQuery();
         try {
             $affectedRows = @$this->pdo->exec($statement);
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             if (ErrorCode::isRetryable($e)) {
                 $this->reconnect();
                 $affectedRows = $this->pdo->exec($statement);
@@ -260,7 +263,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         $this->beforeQuery();
         try {
             $sth = @call_user_func_array([$this->pdo, 'query'], $args);
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             if (ErrorCode::isRetryable($e)) {
                 $this->reconnect();
                 $sth = call_user_func_array([$this->pdo, 'query'], $args);
@@ -292,7 +295,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
     public function lastInsertId(?string $name = null): string|false
     {
         if (null === $this->pdo) {
-            throw new \BadMethodCallException('Cannot call lastInsertId without insert');
+            throw new BadMethodCallException('Cannot call lastInsertId without insert');
         }
 
         return $this->pdo->lastInsertId($name);
@@ -410,7 +413,7 @@ class Connection extends PDO implements ConnectionInterface, EventDispatcherAwar
         return PDO::getAvailableDrivers();
     }
 
-    public static function isRetryableError(\PDOException $e): bool
+    public static function isRetryableError(PDOException $e): bool
     {
         return isset($e->errorInfo[1])
             && in_array($e->errorInfo[1], [ErrorCode::CR_SERVER_LOST, ErrorCode::CR_SERVER_GONE_ERROR], true);

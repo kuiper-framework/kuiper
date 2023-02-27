@@ -13,19 +13,22 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
+use ReflectionMethod;
+use ReflectionProperty;
+
 interface ReflectionDocBlockFactoryInterface
 {
     /**
-     * @param \ReflectionProperty $property
+     * @param ReflectionProperty $property
      *
      * @return ReflectionPropertyDocBlockInterface
      */
-    public function createPropertyDocBlock(\ReflectionProperty $property): ReflectionPropertyDocBlockInterface;
+    public function createPropertyDocBlock(ReflectionProperty $property): ReflectionPropertyDocBlockInterface;
 
     /**
-     * @param \ReflectionMethod $method
+     * @param ReflectionMethod $method
      *
      * @return ReflectionMethodDocBlockInterface
      */
-    public function createMethodDocBlock(\ReflectionMethod $method): ReflectionMethodDocBlockInterface;
+    public function createMethodDocBlock(ReflectionMethod $method): ReflectionMethodDocBlockInterface;
 }

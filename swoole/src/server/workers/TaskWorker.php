@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server\workers;
 
+use InvalidArgumentException;
 use kuiper\swoole\constants\Event;
 
 class TaskWorker extends AbstractWorker
@@ -33,7 +34,7 @@ class TaskWorker extends AbstractWorker
                 return;
             }
             if (MessageType::TASK !== $msgType) {
-                throw new \InvalidArgumentException("TaskWorker only accept task message: type=$msgType");
+                throw new InvalidArgumentException("TaskWorker only accept task message: type=$msgType");
             }
             $this->task = $task;
             $this->dispatch(Event::TASK->value, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);

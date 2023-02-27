@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\di;
 
+use Closure;
 use DI\Definition\Definition;
 use DI\Definition\Exception\InvalidDefinition;
 use DI\Definition\FactoryDefinition;
@@ -31,6 +32,7 @@ use DI\FactoryInterface;
 use DI\Invoker\DefinitionParameterResolver;
 use DI\NotFoundException;
 use DI\Proxy\ProxyFactory;
+use Exception;
 use Invoker\Invoker;
 use Invoker\InvokerInterface;
 use Invoker\ParameterResolver\AssociativeArrayResolver;
@@ -211,7 +213,7 @@ class Container implements ContainerInterface, FactoryInterface, InvokerInterfac
      *
      * @return mixed result of the function
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function call($callable, array $parameters = []): mixed
     {
@@ -228,7 +230,7 @@ class Container implements ContainerInterface, FactoryInterface, InvokerInterfac
     {
         if ($value instanceof DefinitionHelper) {
             $value = $value->getDefinition($name);
-        } elseif ($value instanceof \Closure) {
+        } elseif ($value instanceof Closure) {
             $value = new FactoryDefinition($name, $value);
         }
 

@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\config;
 
+use function DI\autowire;
+use function DI\get;
+
 use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\ConditionalOnClass;
@@ -28,8 +31,6 @@ use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
-use function DI\autowire;
-use function DI\get;
 
 #[BootstrapConfiguration]
 #[AllConditions(

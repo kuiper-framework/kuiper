@@ -13,12 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\db\constants;
 
+use PDOException;
+
 class ErrorCode
 {
     public const CR_SERVER_GONE_ERROR = 2006;
     public const CR_SERVER_LOST = 2013;
 
-    public static function isRetryable(\PDOException $e): bool
+    public static function isRetryable(PDOException $e): bool
     {
         return isset($e->errorInfo[1])
             && in_array($e->errorInfo[1], [self::CR_SERVER_LOST, self::CR_SERVER_GONE_ERROR], true);

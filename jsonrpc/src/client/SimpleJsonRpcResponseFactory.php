@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
+use InvalidArgumentException;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
@@ -54,7 +55,7 @@ class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
         }
         try {
             $method = $request->getRpcMethod()->withResult($this->buildResult($request->getRpcMethod(), $result['result'] ?? []));
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             throw new BadResponseException($request, $response);
         }
 

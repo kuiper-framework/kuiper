@@ -16,6 +16,7 @@ namespace kuiper\web\session;
 use kuiper\web\http\ResponseHelper;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use SessionHandlerInterface;
 
 class CacheStoreSession implements SessionInterface
 {
@@ -25,7 +26,7 @@ class CacheStoreSession implements SessionInterface
     private array $sessionData = [];
 
     public function __construct(
-        private readonly \SessionHandlerInterface $sessionHandler,
+        private readonly SessionHandlerInterface $sessionHandler,
         private readonly ServerRequestInterface $request,
         private readonly string $cookieName,
         private readonly int $cookieLifetime,

@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\tars\exception;
 
+use Exception;
 use kuiper\tars\stream\RequestPacket;
 
-class TarsRequestException extends \Exception
+class TarsRequestException extends Exception
 {
     /**
      * TarsRequestException constructor.

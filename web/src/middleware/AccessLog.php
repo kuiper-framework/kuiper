@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\middleware;
 
+use Exception;
 use kuiper\swoole\logger\LogContextImpl;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -61,7 +62,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
             }
 
             return $response;
-        } catch (\Exception $error) {
+        } catch (Exception $error) {
             $this->logContext->setError($error);
             $this->logger->info(...$this->formatter->format($this->logContext));
             throw $error;

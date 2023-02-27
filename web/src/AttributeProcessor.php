@@ -13,12 +13,16 @@ declare(strict_types=1);
 
 namespace kuiper\web;
 
+use InvalidArgumentException;
 use kuiper\di\attribute\Controller;
 use kuiper\di\ComponentCollection;
 use kuiper\helper\Text;
 use kuiper\web\attribute\RequestMapping;
 use kuiper\web\middleware\MiddlewareFactory;
 use Psr\Container\ContainerInterface;
+use ReflectionAttribute;
+use ReflectionClass;
+use ReflectionMethod;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Interfaces\RouteGroupInterface;
 use Slim\Interfaces\RouteInterface;
@@ -38,7 +42,7 @@ class AttributeProcessor implements AttributeProcessorInterface
         $seen = [];
         foreach (ComponentCollection::getComponents(Controller::class) as $attribute) {
             /** @var Controller $attribute */
-            /** @var \ReflectionClass $controllerClass */
+            /** @var ReflectionClass $controllerClass */
             $controllerClass = $attribute->getTarget();
             if (null !== $this->namespace && !str_starts_with($controllerClass->getNamespaceName(), $this->namespace)) {
                 continue;
@@ -65,14 +69,14 @@ class AttributeProcessor implements AttributeProcessorInterface
         }
     }
 
-    private function addMapping(RouteCollectorProxyInterface $routeCollector, \ReflectionClass $controllerClass): void
+    private function addMapping(RouteCollectorProxyInterface $routeCollector, ReflectionClass $controllerClass): void
     {
         $controller = $this->container->get($controllerClass->getName());
         foreach ($controllerClass->getMethods() as $reflectionMethod) {
             if (!$reflectionMethod->isPublic() || $reflectionMethod->isStatic()) {
                 continue;
             }
-            $attributes = $reflectionMethod->getAttributes(RequestMapping::class, \ReflectionAttribute::IS_INSTANCEOF);
+            $attributes = $reflectionMethod->getAttributes(RequestMapping::class, ReflectionAttribute::IS_INSTANCEOF);
             if (count($attributes) > 0) {
                 /** @var RequestMapping $requestMapping */
                 $requestMapping = $attributes[0]->newInstance();
@@ -85,7 +89,7 @@ class AttributeProcessor implements AttributeProcessorInterface
                     $this->addRouteMiddleware($route, $reflectionMethod);
                     if (Text::isNotEmpty($requestMapping->getName())) {
                         if (count($requestMapping->getMapping()) > 1) {
-                            throw new \InvalidArgumentException('Cannot set route name when there multiple routes for method '.$reflectionMethod->getDeclaringClass().'::'.$reflectionMethod->getName());
+                            throw new InvalidArgumentException('Cannot set route name when there multiple routes for method '.$reflectionMethod->getDeclaringClass().'::'.$reflectionMethod->getName());
                         }
                         $route->setName($requestMapping->getName());
                     }
@@ -94,15 +98,15 @@ class AttributeProcessor implements AttributeProcessorInterface
         }
     }
 
-    private function addRouteMiddleware(RouteInterface|RouteGroupInterface $route, \ReflectionMethod $method): void
+    private function addRouteMiddleware(RouteInterface|RouteGroupInterface $route, ReflectionMethod $method): void
     {
         /** @var MiddlewareFactory[] $filters */
         $filters = [];
-        foreach ($method->getAttributes(MiddlewareFactory::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+        foreach ($method->getAttributes(MiddlewareFactory::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
             $attr = $attribute->newInstance();
             $filters[get_class($attr)] = $attr;
         }
-        foreach ($method->getDeclaringClass()->getAttributes(MiddlewareFactory::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+        foreach ($method->getDeclaringClass()->getAttributes(MiddlewareFactory::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
             $attr = $attribute->newInstance();
             if (!isset($filters[get_class($attr)])) {
                 $filters[get_class($attr)] = $attr;

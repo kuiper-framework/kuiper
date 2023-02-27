@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\pool;
 
+use Exception;
 use kuiper\helper\Text;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\reflection\ReflectionType;
@@ -23,6 +24,10 @@ use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\ParameterGenerator;
 use Laminas\Code\Reflection\ParameterReflection;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
+use ReflectionParameter;
 
 class ConnectionProxyGenerator
 {
@@ -53,11 +58,11 @@ class ConnectionProxyGenerator
     }
 
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     protected function createClassGenerator(string $className): ClassGenerator
     {
-        $class = new \ReflectionClass($className);
+        $class = new ReflectionClass($className);
         if (false !== $class->getFileName()) {
             $hash = md5_file($class->getFileName());
         } else {
@@ -104,7 +109,7 @@ class ConnectionProxyGenerator
         );
         $phpClass->addMethod('__destruct');
 
-        foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
+        foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
             if ($reflectionMethod->isStatic() || in_array($reflectionMethod->getName(), ['__construct', '__destruct'], true)) {
                 continue;
             }
@@ -114,7 +119,7 @@ class ConnectionProxyGenerator
             try {
                 $returnType = ReflectionDocBlockFactory::getInstance()->createMethodDocBlock($reflectionMethod)
                     ->getReturnType();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $returnType = $reflectionMethod->hasReturnType() ? ReflectionType::fromPhpType($reflectionMethod->getReturnType()) : new MixedType();
             }
             $return = ($returnType instanceof VoidType ? '' : 'return ');
@@ -149,7 +154,7 @@ class ConnectionProxyGenerator
         return $phpClass;
     }
 
-    private function createParameter(\ReflectionMethod $method, \ReflectionParameter $parameter): ParameterGenerator
+    private function createParameter(ReflectionMethod $method, ReflectionParameter $parameter): ParameterGenerator
     {
         $callable = [$method->getDeclaringClass()->getName(), $method->getName()];
 

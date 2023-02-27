@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\tars\type;
 
+use ArrayIterator;
+use JsonSerializable;
+
 /**
  * @extends \ArrayIterator<int, StructMapEntry>
  */
-class StructMap extends \ArrayIterator implements \JsonSerializable
+class StructMap extends ArrayIterator implements JsonSerializable
 {
     /**
      * @param object $key

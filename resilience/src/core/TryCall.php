@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\core;
 
+use Exception;
+
 final class TryCall
 {
-    private function __construct(private readonly mixed $result, private readonly ?\Exception $exception)
+    private function __construct(private readonly mixed $result, private readonly ?Exception $exception)
     {
     }
 
@@ -25,7 +27,7 @@ final class TryCall
         $exception = null;
         try {
             $result = call_user_func_array($call, $args);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $exception = $e;
         }
 
@@ -42,7 +44,7 @@ final class TryCall
         return $this->result;
     }
 
-    public function getException(): ?\Exception
+    public function getException(): ?Exception
     {
         return $this->exception;
     }

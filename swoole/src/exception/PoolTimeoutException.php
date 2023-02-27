@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\exception;
 
+use Exception;
 use kuiper\swoole\pool\PoolInterface;
 
-class PoolTimeoutException extends \Exception
+class PoolTimeoutException extends Exception
 {
     private PoolInterface $pool;
 

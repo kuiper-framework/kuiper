@@ -14,25 +14,30 @@ declare(strict_types=1);
 namespace kuiper\swoole;
 
 use Dotenv\Dotenv;
+use Exception;
+use InvalidArgumentException;
 use kuiper\di\attribute\Command;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\ContainerFactoryInterface;
 use kuiper\event\EventDispatcher;
 use kuiper\event\EventRegistryInterface;
+
+use function kuiper\helper\env;
+
 use kuiper\helper\Properties;
 use kuiper\helper\Text;
 use kuiper\swoole\attribute\BootstrapConfiguration;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use ReflectionClass;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Command\Command as ConsoleCommand;
 use Symfony\Component\Console\CommandLoader\FactoryCommandLoader;
-use function kuiper\helper\env;
 
 class Application
 {
-    private const CONFIG_BOOTSTRAPPING = "application.bootstrapping";
+    private const CONFIG_BOOTSTRAPPING = 'application.bootstrapping';
 
     /**
      * @var ContainerFactoryInterface|callable|null
@@ -70,7 +75,7 @@ class Application
     public static function getInstance(): self
     {
         if (null === self::$INSTANCE) {
-            throw new \InvalidArgumentException('Call create first');
+            throw new InvalidArgumentException('Call create first');
         }
 
         return self::$INSTANCE;
@@ -94,7 +99,7 @@ class Application
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function run(ContainerFactoryInterface|callable $containerFactory = null): int
     {
@@ -108,7 +113,7 @@ class Application
         [$configFile, $properties] = $this->parseArgv();
         if (null !== $configFile) {
             if (!is_readable($configFile)) {
-                throw new \InvalidArgumentException("config file '$configFile' is not readable");
+                throw new InvalidArgumentException("config file '$configFile' is not readable");
             }
             $this->configFile = $configFile;
             $this->config = $this->parseConfig($configFile);
@@ -139,7 +144,7 @@ class Application
     {
         $config = parse_ini_file($configFile);
         if (false === $config) {
-            throw new \InvalidArgumentException("Cannot read config from $configFile");
+            throw new InvalidArgumentException("Cannot read config from $configFile");
         }
 
         $properties = Properties::create();
@@ -213,11 +218,12 @@ class Application
     public function getBootstrapContainer(): ContainerInterface
     {
         if (!$this->isBootstrapContainerEnabled()) {
-            throw new \InvalidArgumentException("Cannot create server start container");
+            throw new InvalidArgumentException('Cannot create server start container');
         }
         if (null === $this->bootstrapContainer) {
             $this->bootstrapContainer = $this->createBootstrapContainer();
         }
+
         return $this->bootstrapContainer;
     }
 
@@ -229,7 +235,7 @@ class Application
     public function isBootstrapContainerEnabled(): bool
     {
         return $this->isServerStartCommand()
-            && $this->config->getBool("application.enable_bootstrap_container");
+            && $this->config->getBool('application.enable_bootstrap_container');
     }
 
     public function getEventDispatcher(): EventDispatcherInterface
@@ -257,7 +263,9 @@ class Application
 
     /**
      * @deprecated
+     *
      * @return ConsoleApplication
+     *
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      */
@@ -300,7 +308,7 @@ class Application
         if (!isset($basePath)
             || !file_exists($basePath.'/vendor/autoload.php')
             || !file_exists($basePath.'/composer.json')) {
-            throw new \InvalidArgumentException("Cannot detect project path, expected composer.json in $basePath");
+            throw new InvalidArgumentException("Cannot detect project path, expected composer.json in $basePath");
         }
         if (!defined('APP_PATH')) {
             define('APP_PATH', $basePath);
@@ -312,7 +320,8 @@ class Application
     protected function isServerStartCommand(): bool
     {
         $command = $_SERVER['argv'][1] ?? null;
-        return $command === ServerStartCommand::NAME;
+
+        return ServerStartCommand::NAME === $command;
     }
 
     protected function createBootstrapContainer(): ContainerInterface
@@ -322,7 +331,7 @@ class Application
         $projectPath = $this->basePath;
         if (!file_exists($projectPath.'/vendor/autoload.php')
             || !file_exists($projectPath.'/composer.json')) {
-            throw new \InvalidArgumentException("Cannot detect project path, expected composer.json in $projectPath");
+            throw new InvalidArgumentException("Cannot detect project path, expected composer.json in $projectPath");
         }
         $builder = new ContainerBuilder();
         $builder->setClassLoader(require $projectPath.'/vendor/autoload.php');
@@ -334,8 +343,8 @@ class Application
 
             if (!empty($config['configuration'])) {
                 foreach ($config['configuration'] as $configurationBean) {
-                    $reflectionClass = new \ReflectionClass($configurationBean);
-                    if (count($reflectionClass->getAttributes(BootstrapConfiguration::class)) === 0) {
+                    $reflectionClass = new ReflectionClass($configurationBean);
+                    if (0 === count($reflectionClass->getAttributes(BootstrapConfiguration::class))) {
                         continue;
                     }
                     if (is_string($configurationBean)) {
@@ -345,6 +354,7 @@ class Application
                 }
             }
         }
+
         return $builder->build();
     }
 
@@ -376,7 +386,7 @@ class Application
         $commands = $container->get('application.commands');
         if (null !== $commands) {
             if (!is_array($commands)) {
-                throw new \InvalidArgumentException('application.commands should be an array');
+                throw new InvalidArgumentException('application.commands should be an array');
             }
             foreach ($commands as $name => $id) {
                 $commandMap[$name] = $factory($id);

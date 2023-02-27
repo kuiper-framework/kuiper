@@ -16,6 +16,7 @@ namespace kuiper\jsonrpc\config;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
+
 use kuiper\di\attribute\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;

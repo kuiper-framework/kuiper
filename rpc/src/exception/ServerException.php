@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\exception;
 
-class ServerException extends \Exception
+use Exception;
+
+class ServerException extends Exception
 {
 }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\resilience\circuitbreaker;
 
+use Exception;
 use kuiper\resilience\circuitbreaker\event\CircuitBreakerOnFailureRateExceeded;
 
 class ClosedState implements CircuitBreakerState
@@ -45,7 +46,7 @@ class ClosedState implements CircuitBreakerState
         // noOp
     }
 
-    public function onError(int $duration, \Exception $exception): void
+    public function onError(int $duration, Exception $exception): void
     {
         $this->checkIfThresholdsExceeded($this->metrics->onError($duration));
     }

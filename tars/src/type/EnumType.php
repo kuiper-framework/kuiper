@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\tars\type;
 
+use BackedEnum;
+
 /**
  * @template T
  */
@@ -45,7 +47,7 @@ class EnumType extends AbstractType
         return $this->className;
     }
 
-    public function getEnumValue(\BackedEnum|int $enumObj): ?int
+    public function getEnumValue(BackedEnum|int $enumObj): ?int
     {
         return is_object($enumObj) ? $enumObj->value : $enumObj;
     }

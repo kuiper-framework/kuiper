@@ -23,6 +23,7 @@ use kuiper\db\criteria\CriteriaFilterInterface;
 use kuiper\db\criteria\MetaModelCriteriaFilter;
 use kuiper\helper\Arrays;
 use ReflectionClass;
+use ReflectionException;
 
 class MetaModel implements MetaModelInterface
 {
@@ -332,7 +333,7 @@ class MetaModel implements MetaModelInterface
     }
 
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     protected function createEntity(): object
     {

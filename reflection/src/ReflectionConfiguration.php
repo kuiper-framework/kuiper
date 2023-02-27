@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
-use kuiper\swoole\attribute\BootstrapConfiguration;
 use function DI\factory;
+
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 
 #[BootstrapConfiguration]
 class ReflectionConfiguration implements DefinitionConfiguration

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\tars\type;
 
+use BadMethodCallException;
+
 class VoidType extends AbstractType
 {
     private static ?VoidType $INSTANCE = null;
@@ -38,6 +40,6 @@ class VoidType extends AbstractType
 
     public function getTarsType(): int
     {
-        throw new \BadMethodCallException('cannot cast void to tars type');
+        throw new BadMethodCallException('cannot cast void to tars type');
     }
 }

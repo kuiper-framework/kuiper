@@ -30,7 +30,7 @@ class ResponseHelper
                 throw new InvalidArgumentException(sprintf('The provided cookie string "%s" must have at least one attribute', $setCookie));
             }
 
-            [$cookieName,] = self::splitCookiePair($rawAttribute);
+            [$cookieName] = self::splitCookiePair($rawAttribute);
             $cookies[$cookieName] = $setCookie;
         }
 
