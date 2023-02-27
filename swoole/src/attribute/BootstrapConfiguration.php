@@ -5,7 +5,7 @@ namespace kuiper\swoole\attribute;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS)]
-class ServerStartConfiguration
+class BootstrapConfiguration
 {
 
 }

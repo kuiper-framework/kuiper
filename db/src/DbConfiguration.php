@@ -16,15 +16,9 @@ namespace kuiper\db;
 use Aura\SqlQuery\QueryFactory;
 use Carbon\Carbon;
 use DI\Attribute\Inject;
-use function DI\autowire;
-use function DI\factory;
 use kuiper\db\converter\AttributeConverterRegistry;
-use kuiper\db\converter\BoolConverter;
 use kuiper\db\converter\DateConverter;
 use kuiper\db\converter\DateTimeConverter;
-use kuiper\db\converter\JoinerConverter;
-use kuiper\db\converter\JsonConverter;
-use kuiper\db\converter\PrimitiveConverter;
 use kuiper\db\event\listener\LogStatementQuery;
 use kuiper\db\metadata\MetaModelFactory;
 use kuiper\db\metadata\MetaModelFactoryInterface;
@@ -40,10 +34,11 @@ use kuiper\di\DefinitionConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionFileFactoryInterface;
-use kuiper\reflection\ReflectionType;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Swoole\Coroutine\Channel;
+use function DI\autowire;
+use function DI\factory;
 
 #[Configuration]
 #[ConditionalOnProperty('application.database')]

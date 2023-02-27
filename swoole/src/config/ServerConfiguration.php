@@ -65,7 +65,7 @@ class ServerConfiguration implements DefinitionConfiguration
         ]);
         $config->merge([
             'application' => [
-                'server_start_listeners' => [
+                'bootstrap_listeners' => [
                     StartEventListener::class,
                     ManagerStartEventListener::class,
                     WorkerStartEventListener::class,
@@ -101,7 +101,11 @@ class ServerConfiguration implements DefinitionConfiguration
         EventDispatcherInterface $eventDispatcher,
         LoggerFactoryInterface $loggerFactory): ServerInterface
     {
-        $config = Application::getInstance()->getConfig();
+        $app = Application::getInstance();
+        if ($app->isBootstrapContainerEnabled() && !$app->isBootstrapping()) {
+            return $app->getBootstrapContainer()->get(ServerInterface::class);
+        }
+        $config = $app->getConfig();
         $serverFactory = new ServerFactory();
         $serverFactory->setLogger($loggerFactory->create(ServerFactory::class));
         $serverFactory->setEventDispatcher($eventDispatcher);

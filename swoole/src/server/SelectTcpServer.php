@@ -119,7 +119,7 @@ class SelectTcpServer extends AbstractServer
      */
     public function isTaskWorker(): bool
     {
-        return $this->workerManager->isTaskWorker();
+        return isset($this->workerManager) && $this->workerManager->isTaskWorker();
     }
 
     /**

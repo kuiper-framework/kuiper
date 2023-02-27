@@ -260,3 +260,25 @@ $container->get(kuiper\swoole\task\QueueInterface::class)
 ```
 
 kuiper swoole 并没有具体服务实现，请通过使用 [kuiper/web](web.md)、[kuiper/jsonrpc](rpc.md) 或 [kuiper/tars](tars.md) 等进行业务服务开发。
+
+
+## 配置项
+
+
+| 配置项                      | 说明             |
+|-----------------------------|------|------------------|
+| application.php_config_file |                |
+| application.env             |  prod;development |
+| application.name            |  应用名称         |
+| application.base_path       |                   |
+| application.logging         |                   |
+|                             |                   |
+
+## 命令行参数
+
+| 参数名                 | 说明                  |
+|------------------------|-----------------------|
+| --config <config-file> | 值为 ini 配置文件路径 |
+| --define=foo=value     | 定义配置值            |
+| －D foo=value          | --define 参数别名     |
+|                        |                       |

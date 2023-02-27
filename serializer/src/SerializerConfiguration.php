@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace kuiper\serializer;
 
 use DI\Attribute\Inject;
-use kuiper\swoole\attribute\ServerStartConfiguration;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use function DI\get;
 use kuiper\di\attribute\Bean;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -26,7 +26,7 @@ use kuiper\serializer\normalizer\EnumNormalizer;
 use kuiper\serializer\normalizer\ExceptionNormalizer;
 use Psr\Container\ContainerInterface;
 
-#[ServerStartConfiguration]
+#[BootstrapConfiguration]
 class SerializerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;

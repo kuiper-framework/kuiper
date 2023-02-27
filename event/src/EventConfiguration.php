@@ -25,14 +25,14 @@ use kuiper\event\attribute\EventListener;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
-use kuiper\swoole\attribute\ServerStartConfiguration;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\task\QueueInterface;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface as PsrEventDispatcher;
 use Psr\Log\LoggerInterface;
 
-#[ServerStartConfiguration]
+#[BootstrapConfiguration]
 class EventConfiguration implements DefinitionConfiguration, Bootstrap
 {
     use ContainerBuilderAwareTrait;
@@ -92,10 +92,10 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
             /** @var EventListener $attribute */
             $addListener($attribute->getEventName(), $attribute->getComponentId());
         }
-        foreach ($config->get('application.server_start_listeners', []) as $key => $listener) {
+        foreach ($config->get('application.bootstrap_listeners', []) as $key => $listener) {
             $addListener(is_string($key) ? $key : null, $listener);
         }
-        if (!Application::getInstance()->isServerStarting()) {
+        if (!Application::getInstance()->isBootstrapping()) {
             foreach ($config->get('application.listeners', []) as $key => $listener) {
                 $addListener(is_string($key) ? $key : null, $listener);
             }

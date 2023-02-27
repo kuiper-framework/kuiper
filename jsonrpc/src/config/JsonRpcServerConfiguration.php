@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
-use kuiper\swoole\attribute\ServerStartConfiguration;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
@@ -44,7 +44,8 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 
-#[Configuration(dependOn: [ServerConfiguration::class]), ServerStartConfiguration]
+#[Configuration(dependOn: [ServerConfiguration::class])]
+#[BootstrapConfiguration]
 class JsonRpcServerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;

@@ -13,16 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\config;
 
-use kuiper\swoole\attribute\ServerStartConfiguration;
-use function DI\autowire;
-use function DI\get;
 use GuzzleHttp\Psr7\HttpFactory;
 use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\ConditionalOnClass;
 use kuiper\di\attribute\ConditionalOnProperty;
-use kuiper\di\attribute\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\http\GuzzleSwooleRequestBridge;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -31,8 +28,10 @@ use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
+use function DI\autowire;
+use function DI\get;
 
-#[Configuration, ServerStartConfiguration]
+#[BootstrapConfiguration]
 #[AllConditions(
     new ConditionalOnClass(HttpFactory::class),
     new ConditionalOnProperty('application.server.http_factory', hasValue: 'guzzle', matchIfMissing: true)

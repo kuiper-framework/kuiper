@@ -18,22 +18,21 @@ use kuiper\di\attribute\Command;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\ContainerFactoryInterface;
-use kuiper\event\AsyncEventDispatcher;
 use kuiper\event\EventDispatcher;
 use kuiper\event\EventRegistryInterface;
-use kuiper\swoole\attribute\ServerStartConfiguration;
-use Psr\EventDispatcher\EventDispatcherInterface;
-use function kuiper\helper\env;
 use kuiper\helper\Properties;
 use kuiper\helper\Text;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use Psr\Container\ContainerInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Command\Command as ConsoleCommand;
 use Symfony\Component\Console\CommandLoader\FactoryCommandLoader;
+use function kuiper\helper\env;
 
 class Application
 {
-    private const CONFIG_SERVER_STARTING = "application.server_starting";
+    private const CONFIG_BOOTSTRAPPING = "application.bootstrapping";
 
     /**
      * @var ContainerFactoryInterface|callable|null
@@ -44,11 +43,13 @@ class Application
 
     private ?ContainerInterface $container = null;
 
-    private ?ContainerInterface $serverStartContainer = null;
+    private ?ContainerInterface $bootstrapContainer = null;
 
     private ?string $configFile = null;
 
     private ?Properties $config = null;
+
+    private ?Properties $configBackup = null;
 
     private static ?Application $INSTANCE = null;
 
@@ -59,11 +60,10 @@ class Application
      */
     final private function __construct(
         private readonly string $basePath,
-        ContainerFactoryInterface|callable $containerFactory = null,
-        EventDispatcherInterface $eventDispatcher = null)
+        ContainerFactoryInterface|callable $containerFactory = null)
     {
         $this->containerFactory = $containerFactory;
-        $this->eventDispatcher = $eventDispatcher ?? new EventDispatcher();
+        $this->eventDispatcher = new EventDispatcher();
         $this->loadConfig();
     }
 
@@ -83,7 +83,9 @@ class Application
 
     public static function create(ContainerFactoryInterface|callable $containerFactory = null): self
     {
-        $app = new static(defined('APP_PATH') ? APP_PATH : self::detectBasePath(), $containerFactory);
+        $basePath = defined('APP_PATH') ? APP_PATH : self::detectBasePath();
+        $app = new static($basePath, $containerFactory);
+
         if (null === self::$INSTANCE) {
             self::setInstance($app);
         }
@@ -91,11 +93,14 @@ class Application
         return $app;
     }
 
+    /**
+     * @throws \Exception
+     */
     public static function run(ContainerFactoryInterface|callable $containerFactory = null): int
     {
         $self = static::create($containerFactory);
 
-        return $self->createApp()->run();
+        return $self->createConsoleApplication()->run();
     }
 
     protected function loadConfig(): void
@@ -169,7 +174,7 @@ class Application
         $this->config->mergeIfNotExists([
             'application' => [
                 'env' => env('ENV', 'prod'),
-                'enable_server_start_container' => true,
+                'enable_bootstrap_container' => true,
                 'name' => 'app',
                 'base_path' => $this->getBasePath(),
                 'logging' => [
@@ -205,15 +210,26 @@ class Application
         return $this->container;
     }
 
-    protected function getServerStartContainer(): ContainerInterface
+    public function getBootstrapContainer(): ContainerInterface
     {
-        if ($this->isServerStartCommand() && !$this->enableServerStartContainer()) {
+        if (!$this->isBootstrapContainerEnabled()) {
             throw new \InvalidArgumentException("Cannot create server start container");
         }
-        if (null === $this->serverStartContainer) {
-            $this->serverStartContainer = $this->createServerStartContainer();
+        if (null === $this->bootstrapContainer) {
+            $this->bootstrapContainer = $this->createBootstrapContainer();
         }
-        return $this->serverStartContainer;
+        return $this->bootstrapContainer;
+    }
+
+    public function isBootstrapping(): bool
+    {
+        return $this->config->getBool(self::CONFIG_BOOTSTRAPPING);
+    }
+
+    public function isBootstrapContainerEnabled(): bool
+    {
+        return $this->isServerStartCommand()
+            && $this->config->getBool("application.enable_bootstrap_container");
     }
 
     public function getEventDispatcher(): EventDispatcherInterface
@@ -239,15 +255,21 @@ class Application
         return $this->config;
     }
 
-    public function isServerStarting(): bool
-    {
-        return $this->config->getBool(self::CONFIG_SERVER_STARTING);
-    }
-
+    /**
+     * @deprecated
+     * @return ConsoleApplication
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
     public function createApp(): ConsoleApplication
     {
-        if ($this->isServerStartCommand() && $this->enableServerStartContainer()) {
-            $container = $this->getServerStartContainer();
+        return $this->createConsoleApplication();
+    }
+
+    public function createConsoleApplication(): ConsoleApplication
+    {
+        if ($this->isBootstrapContainerEnabled()) {
+            $container = $this->getBootstrapContainer();
         } else {
             $container = $this->getContainer();
         }
@@ -293,14 +315,10 @@ class Application
         return $command === ServerStartCommand::NAME;
     }
 
-    protected function enableServerStartContainer(): bool
+    protected function createBootstrapContainer(): ContainerInterface
     {
-        return $this->config->getBool("application.enable_server_start_container");
-    }
-
-    protected function createServerStartContainer(): ContainerInterface
-    {
-        $this->config->set(self::CONFIG_SERVER_STARTING, true);
+        $this->configBackup = Properties::create($this->config->toArray());
+        $this->config->set(self::CONFIG_BOOTSTRAPPING, true);
         $projectPath = $this->basePath;
         if (!file_exists($projectPath.'/vendor/autoload.php')
             || !file_exists($projectPath.'/composer.json')) {
@@ -317,7 +335,7 @@ class Application
             if (!empty($config['configuration'])) {
                 foreach ($config['configuration'] as $configurationBean) {
                     $reflectionClass = new \ReflectionClass($configurationBean);
-                    if (count($reflectionClass->getAttributes(ServerStartConfiguration::class)) === 0) {
+                    if (count($reflectionClass->getAttributes(BootstrapConfiguration::class)) === 0) {
                         continue;
                     }
                     if (is_string($configurationBean)) {
@@ -332,10 +350,10 @@ class Application
 
     protected function createContainer(): ContainerInterface
     {
-        if ($this->isServerStarting() && $this->eventDispatcher instanceof EventRegistryInterface) {
+        if ($this->eventDispatcher instanceof EventRegistryInterface && $this->isBootstrapContainerEnabled()) {
             $this->eventDispatcher->reset();
+            $this->config = $this->configBackup;
         }
-        $this->config->set(self::CONFIG_SERVER_STARTING, false);
         if (null === $this->containerFactory) {
             return ContainerBuilder::create($this->basePath)
                 ->build();

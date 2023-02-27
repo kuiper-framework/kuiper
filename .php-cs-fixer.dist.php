@@ -21,4 +21,5 @@ return $config
         'no_unused_imports' => true,
         'phpdoc_to_comment' => false,
         'no_alias_functions' => false,
+        'global_namespace_import' => ['import_classes' => true]
     ]);

@@ -31,11 +31,6 @@ parameters:
 			path: db/src/Statement.php
 
 		-
-			message: "#^Casting to string something that's already string\\.$#"
-			count: 1
-			path: db/src/Statement.php
-
-		-
 			message: "#^Method kuiper\\\\db\\\\Statement\\:\\:select\\(\\) has parameter \\$columns with no type specified\\.$#"
 			count: 1
 			path: db/src/Statement.php
@@ -59,11 +54,6 @@ parameters:
 			message: "#^Only booleans are allowed in a ternary operator condition, mixed given\\.$#"
 			count: 1
 			path: db/src/converter/BoolConverter.php
-
-		-
-			message: "#^Parameter \\#1 \\$separator of function explode expects non\\-empty\\-string, string given\\.$#"
-			count: 1
-			path: db/src/converter/JoinerConverter.php
 
 		-
 			message: "#^Unable to resolve the template type T in call to method kuiper\\\\db\\\\metadata\\\\MetaModelProperty\\:\\:getAttribute\\(\\)$#"
@@ -106,11 +96,6 @@ parameters:
 			path: http-client/src/HttpClientConfiguration.php
 
 		-
-			message: "#^Parameter \\#3 \\$logLevel of static method GuzzleHttp\\\\Middleware\\:\\:log\\(\\) expects 'alert'\\|'critical'\\|'debug'\\|'emergency'\\|'error'\\|'info'\\|'notice'\\|'warning', string given\\.$#"
-			count: 1
-			path: http-client/src/HttpClientFactory.php
-
-		-
 			message: "#^Parameter \\#1 \\$class of static method kuiper\\\\jsonrpc\\\\config\\\\JsonRpcServerConfiguration\\:\\:getServiceClass\\(\\) expects ReflectionClass, Reflector given\\.$#"
 			count: 1
 			path: jsonrpc/src/config/JsonRpcClientConfiguration.php
@@ -151,17 +136,12 @@ parameters:
 			path: logger/src/LoggerFactory.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			message: "#^Parameter \\#2 \\$level of class Monolog\\\\Handler\\\\StreamHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'ERROR'\\|'error'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning'\\|Monolog\\\\Level, int given\\.$#"
 			count: 1
 			path: logger/src/LoggerFactory.php
 
 		-
-			message: "#^Parameter \\#2 \\$level of class Monolog\\\\Handler\\\\StreamHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'ERROR'\\|'error'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
-			count: 1
-			path: logger/src/LoggerFactory.php
-
-		-
-			message: "#^Parameter \\#3 \\$level of class Monolog\\\\Handler\\\\RotatingFileHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'ERROR'\\|'error'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', int given\\.$#"
+			message: "#^Parameter \\#3 \\$level of class Monolog\\\\Handler\\\\RotatingFileHandler constructor expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'ERROR'\\|'error'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning'\\|Monolog\\\\Level, int given\\.$#"
 			count: 1
 			path: logger/src/LoggerFactory.php
 

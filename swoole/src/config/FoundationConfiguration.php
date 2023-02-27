@@ -14,7 +14,8 @@ declare(strict_types=1);
 namespace kuiper\swoole\config;
 
 use DI\Attribute\Inject;
-use kuiper\swoole\attribute\ServerStartConfiguration;
+use kuiper\swoole\attribute\BootstrapConfiguration;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use function DI\autowire;
 use function DI\get;
 use function DI\value;
@@ -32,11 +33,10 @@ use kuiper\swoole\pool\PoolFactoryInterface;
 use kuiper\swoole\task\DispatcherInterface;
 use kuiper\swoole\task\Queue;
 use kuiper\swoole\task\QueueInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[ServerStartConfiguration]
+#[BootstrapConfiguration]
 class FoundationConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;

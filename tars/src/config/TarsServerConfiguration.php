@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace kuiper\tars\config;
 
 use DI\Attribute\Inject;
-use kuiper\swoole\attribute\ServerStartConfiguration;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
@@ -63,7 +63,8 @@ use ReflectionClass;
 use ReflectionMethod;
 use Webmozart\Assert\Assert;
 
-#[Configuration(dependOn: [ServerConfiguration::class]), ServerStartConfiguration]
+#[Configuration(dependOn: [ServerConfiguration::class])]
+#[BootstrapConfiguration]
 class TarsServerConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;

@@ -94,7 +94,7 @@ class ForkedWorkerManager extends AbstractWorkerManager
         $this->getSocketWorker()->send($clientId, $data);
     }
 
-    private function getUri(): string
+    protected function getUri(): string
     {
         $serverPort = $this->getServerConfig()->getPort();
 

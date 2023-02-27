@@ -21,8 +21,8 @@
         "ext-posix": "*",
         "ext-pcntl": "*",
         "aura/sqlquery": "^2.0",
-        "monolog/monolog": "^2.0",
-        "php-di/php-di": "v7.x-dev",
+        "monolog/monolog": "^3.0",
+        "php-di/php-di": "^7.0",
         "psr/http-factory": "^1.0",
         "psr/http-server-handler": "^1.0",
         "psr/http-server-middleware": "^1.0",
@@ -40,8 +40,8 @@
         "phpstan/extension-installer": "^1.0",
         "phpstan/phpstan": "^1.0",
         "phpstan/phpstan-strict-rules": "^1.0",
-        "phpunit/phpunit": "^9.0",
-        "predis/predis": "^1.1",
+        "phpunit/phpunit": "^10.0",
+        "predis/predis": "^2.0",
         "roave/security-advisories": "dev-latest",
         "slim/slim": "^4.5",
         "swoft/swoole-ide-helper": "^4.4",
@@ -118,7 +118,7 @@
         }
     },
     "scripts": {
-        "lint": "@php -d memory_limit=-1 ./vendor/bin/phpstan analyze --error-format=raw"
+        "lint": "@php -d memory_limit=-1 -d xdebug.mode=off ./vendor/bin/phpstan analyze --error-format=raw"
     },
     "extra": {
         "kuiper": {
