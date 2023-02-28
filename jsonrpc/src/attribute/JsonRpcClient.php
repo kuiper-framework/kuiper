@@ -22,12 +22,12 @@ class JsonRpcClient extends RpcClient
     public function __construct(
         string $service = '',
         string $version = '',
-        string $namespace = '',
+        string $ns = '',
         string $protocol = '',
         string $endpoint = '',
         private readonly bool $outParams = false)
     {
-        parent::__construct($service, $version, $namespace, $protocol, $endpoint);
+        parent::__construct($service, $version, $ns, $protocol, $endpoint);
     }
 
     /**
@@ -36,5 +36,12 @@ class JsonRpcClient extends RpcClient
     public function isOutParams(): bool
     {
         return $this->outParams;
+    }
+
+    public function toArray(): array
+    {
+        return array_merge([
+            'out_params' => $this->outParams,
+        ], parent::toArray());
     }
 }

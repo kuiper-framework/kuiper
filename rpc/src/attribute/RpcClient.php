@@ -25,7 +25,7 @@ class RpcClient implements Component
     public function __construct(
         private readonly string $service = '',
         private readonly string $version = '',
-        private readonly string $namespace = '',
+        private readonly string $ns = '',
         private readonly string $protocol = '',
         private readonly string $endpoint = '')
     {
@@ -52,7 +52,7 @@ class RpcClient implements Component
      */
     public function getNamespace(): string
     {
-        return $this->namespace;
+        return $this->ns;
     }
 
     /**
@@ -69,5 +69,16 @@ class RpcClient implements Component
     public function getEndpoint(): string
     {
         return $this->endpoint;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'service' => $this->service,
+            'version' => $this->version,
+            'namespace' => $this->ns,
+            'protocol' => $this->protocol,
+            'endpoint' => $this->endpoint,
+        ];
     }
 }

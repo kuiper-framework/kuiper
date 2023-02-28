@@ -21,7 +21,6 @@ use kuiper\di\attribute\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
-use kuiper\helper\Arrays;
 use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\attribute\JsonRpcClient;
@@ -114,10 +113,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 continue;
             }
             $name = $annotation->getComponentId();
-            $clientOptions = array_merge(
-                Arrays::mapKeys(get_object_vars($annotation), [Text::class, 'snakeCase']),
-                $options[$name] ?? []
-            );
+            $clientOptions = array_merge($annotation->toArray(), $options[$name] ?? []);
             $clientOptions['class'] = $annotation->getTargetClass();
             $definitions[$name] = factory(function (ContainerInterface $container) use ($createClient, $clientOptions) {
                 return $createClient($container, $clientOptions);
@@ -159,10 +155,13 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         }
 
         if (isset($options['endpoint'])) {
-            return Endpoint::fromString($options['endpoint'])->getProtocol();
+            $protocol = Endpoint::fromString($options['endpoint'])->getProtocol();
+            if (Text::isNotEmpty($protocol) && null !== ServerType::tryFrom($protocol)) {
+                return $protocol;
+            }
         }
 
-        return ServerType::TCP->value;
+        return ServerType::HTTP->value;
     }
 
     #[Bean('jsonrpcClientMiddlewares')]

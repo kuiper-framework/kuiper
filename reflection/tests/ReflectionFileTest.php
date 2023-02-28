@@ -27,6 +27,12 @@ class ReflectionFileTest extends TestCase
         return ReflectionFileFactory::getInstance()->create($file);
     }
 
+    public function testAttribute(): void
+    {
+        $reflectionFile = $this->createReflectionFile(__DIR__.'/fixtures/TestAttribute.php');
+        $this->assertEquals([], $reflectionFile->getClasses());
+    }
+
     public function testGetClasses(): void
     {
         $parser = $this->createReflectionFile(__DIR__.'/fixtures/DummyClass.php');

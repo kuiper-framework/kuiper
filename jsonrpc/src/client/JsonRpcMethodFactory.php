@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\client;
 
 use InvalidArgumentException;
+use kuiper\helper\Text;
 use kuiper\jsonrpc\attribute\JsonRpcClient;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\rpc\client\ProxyGenerator;
@@ -65,7 +66,12 @@ class JsonRpcMethodFactory implements RpcMethodFactoryInterface
                     ? $attribute->getVersion()
                     : '1.0';
             }
-            $this->serviceLocators[$className] = new ServiceLocatorImpl($options['service'], JsonRpcProtocol::NS, $options['version']);
+            if (!isset($options['namespace'])) {
+                $options['namespace'] = (null !== $attribute) && Text::isNotEmpty($attribute->getNamespace())
+                    ? $attribute->getNamespace()
+                    : JsonRpcProtocol::NS;
+            }
+            $this->serviceLocators[$className] = new ServiceLocatorImpl($options['service'], $options['namespace'], $options['version']);
         }
 
         return new RpcMethod($service, $this->serviceLocators[$className], $method, $args);
