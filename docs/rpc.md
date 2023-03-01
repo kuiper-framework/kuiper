@@ -124,7 +124,11 @@ return [
             'client' => [
                 'clients' => [
                     UserService::class,
-                    'calculator' => CalculatorService::class
+                    'calculator' => CalculatorService::class,
+                    'calculator2' => [
+                       'class' => CalculatorService::class,
+                       'endpoint' => 'http://localhost:8001'
+                    ]
                 ]
             ]
         ]
@@ -162,9 +166,9 @@ $ret = $container->get(FooService::class)->foo();
 ```
 
 客户端配置项包括：
-- middleware 通用中间件
+- middleware 
 - http_options 设置公共 http 配置参数，参考 [Guzzle 请求参数](https://docs.guzzlephp.org/en/stable/request-options.html)
-- tcp_options 设置公共 tcp 配置参数，参考 `\kuiper\swoole\constants\ClientSettings`
+- tcp_options 
 - options 按客户端类设置配置参数
 
 客户端类配置包括
@@ -172,6 +176,15 @@ $ret = $container->get(FooService::class)->foo();
 - service 服务名
 - middleware 设置中间件
 - 其他 http 或 tcp 配置参数
+
+application.jsonrpc.client 配置项：
+
+| 配置项       | 说明                                                                                                      |
+| middleware   | 通用中间件 ｜                                                                                             |
+| http_options | 设置公共 http 配置参数，参考 [Guzzle 请求参数](https://docs.guzzlephp.org/en/stable/request-options.html) |
+| tcp_options  | 设置公共 tcp 配置参数，参考 `\kuiper\swoole\constants\ClientSettings`                                     |
+| options      | 按客户端接口类名设置配置参数                                                                              |
+| clients      | 创建单独的客户端实例                                                                                      |
 
 ## 实现
 

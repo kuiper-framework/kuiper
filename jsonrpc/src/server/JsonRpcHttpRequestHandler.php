@@ -18,6 +18,7 @@ use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
+use kuiper\rpc\RpcServerRequestInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\rpc\server\ServerRequestHolder;
 use Psr\Http\Message\ResponseInterface;
@@ -40,7 +41,7 @@ class JsonRpcHttpRequestHandler implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         try {
-            /** @var JsonRpcRequestInterface $rpcRequest */
+            /** @var JsonRpcRequestInterface|RpcServerRequestInterface $rpcRequest */
             $rpcRequest = $this->requestFactory->createRequest($request);
         } catch (JsonRpcRequestException $e) {
             return $this->invalidRequestHandler->handleInvalidRequest($request, $e);

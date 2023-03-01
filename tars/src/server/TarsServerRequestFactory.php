@@ -14,13 +14,13 @@ declare(strict_types=1);
 namespace kuiper\tars\server;
 
 use kuiper\rpc\RpcMethodFactoryInterface;
-use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcServerRequestInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\rpc\server\Service;
 use kuiper\tars\exception\ErrorCode;
 use kuiper\tars\exception\TarsRequestException;
 use kuiper\tars\stream\RequestPacket;
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 
@@ -42,7 +42,7 @@ class TarsServerRequestFactory implements RpcServerRequestFactoryInterface, Logg
     /**
      * {@inheritDoc}
      */
-    public function createRequest(RequestInterface $request): RpcRequestInterface
+    public function createRequest(ServerRequestInterface $request): RpcServerRequestInterface
     {
         $packet = RequestPacket::decode((string) $request->getBody());
         if (!isset($this->services[$packet->sServantName])) {

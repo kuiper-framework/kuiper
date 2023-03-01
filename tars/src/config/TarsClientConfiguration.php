@@ -32,8 +32,8 @@ use kuiper\rpc\client\middleware\Retry;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
 use kuiper\rpc\client\RequestIdGenerator;
 use kuiper\rpc\client\RequestIdGeneratorInterface;
-use kuiper\rpc\JsonRpcRequestLogFormatter;
 use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcRequestJsonLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\servicediscovery\ChainedServiceResolver;
 use kuiper\rpc\servicediscovery\dns\DnsResolverInterface;
@@ -53,7 +53,7 @@ use kuiper\tars\client\middleware\RequestStat;
 use kuiper\tars\client\TarsProxyFactory;
 use kuiper\tars\client\TarsRegistryResolver;
 use kuiper\tars\core\EndpointParser;
-use kuiper\tars\core\TarsRequestLogFormatter;
+use kuiper\tars\core\TarsRequestJsonLogFormatter;
 use kuiper\tars\integration\ConfigServant;
 use kuiper\tars\integration\LogServant;
 use kuiper\tars\integration\PropertyFServant;
@@ -106,8 +106,8 @@ class TarsClientConfiguration implements DefinitionConfiguration
         ]);
 
         return array_merge($this->createTarsClients(), [
-            'tarsClientRequestLogFormatter' => autowire(TarsRequestLogFormatter::class)
-                ->constructorParameter('fields', JsonRpcRequestLogFormatter::CLIENT),
+            'tarsClientRequestLogFormatter' => autowire(TarsRequestJsonLogFormatter::class)
+                ->constructorParameter('fields', RpcRequestJsonLogFormatter::CLIENT),
         ]);
     }
 
@@ -284,7 +284,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
                 'logging' => [
                     'loggers' => [
                         'TarsRequestLogger' => LoggerConfiguration::createJsonLogger(
-                            $config->getString('application.logging.tars_client_log_file', $path.'/tars-client.log')),
+                            $config->getString('application.tars.client.log_file', $path.'/tars-client.log')),
                     ],
                     'logger' => [
                         'TarsRequestLogger' => 'TarsRequestLogger',

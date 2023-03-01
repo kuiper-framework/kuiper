@@ -47,11 +47,7 @@ class ServerConfig
             return $b->isHttpProtocol() ? 1 : 0;
         });
         $this->ports = array_values($ports);
-        if (isset($this->ports[0])) {
-            $this->settings = Properties::create($this->ports[0]->getSettings());
-        } else {
-            $this->settings = Properties::create();
-        }
+        $this->settings = isset($this->ports[0]) ? Properties::create($this->ports[0]->getSettings()) : Properties::create();
     }
 
     public function getServerName(): string

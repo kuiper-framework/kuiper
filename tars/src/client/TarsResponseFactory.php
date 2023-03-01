@@ -35,7 +35,7 @@ class TarsResponseFactory implements RpcResponseFactoryInterface
     {
         Assert::isInstanceOf($request, TarsRequestInterface::class);
         $packet = ResponsePacket::decode((string) $response->getBody());
-        /** @var TarsRequestInterface $request */
+        /** @var TarsRequestInterface|RpcRequestInterface $request */
         if ($packet->iRequestId > 0 && $packet->iRequestId !== $request->getRequestId()) {
             throw new RequestIdMismatchException();
         }

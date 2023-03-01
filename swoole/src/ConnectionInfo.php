@@ -72,4 +72,14 @@ class ConnectionInfo
     {
         return $this->lastTime;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'SERVER_PORT' => $this->serverPort,
+            'REMOTE_ADDR' => $this->remoteIp,
+            'REMOTE_PORT' => $this->remotePort,
+            'REQUEST_TIME' => $this->connectTime,
+        ];
+    }
 }

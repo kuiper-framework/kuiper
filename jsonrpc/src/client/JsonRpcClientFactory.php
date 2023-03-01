@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
+use kuiper\di\ContainerAwareInterface;
+use kuiper\di\ContainerAwareTrait;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\logger\LoggerFactoryInterface;
@@ -42,9 +44,10 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use ReflectionException;
 
-class JsonRpcClientFactory implements LoggerAwareInterface
+class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterface
 {
     use LoggerAwareTrait;
+    use ContainerAwareTrait;
 
     public function __construct(
         private readonly RpcResponseNormalizer $rpcResponseNormalizer,
@@ -136,6 +139,13 @@ class JsonRpcClientFactory implements LoggerAwareInterface
         if (isset($options['endpoint'])) {
             // Laminas\Diactoros\Uri cannot accept tcp scheme
             $options['endpoint'] = Endpoint::removeTcpScheme($options['endpoint']);
+        }
+        if (isset($options['middleware'])) {
+            foreach ($options['middleware'] as $i => $middleware) {
+                if (is_string($middleware)) {
+                    $options['middleware'][$i] = $this->container->get($middleware);
+                }
+            }
         }
 
         if (ServerType::TCP->value === ($options['protocol'] ?? ServerType::TCP->value)) {

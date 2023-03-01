@@ -15,6 +15,7 @@ namespace kuiper\jsonrpc\server;
 
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
+use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -25,7 +26,7 @@ class JsonRpcServerResponse extends RpcResponse
     private ?StreamInterface $body = null;
 
     public function __construct(
-        JsonRpcRequestInterface $request,
+        RpcRequestInterface $request,
         ResponseInterface $httpResponse,
         private readonly StreamFactoryInterface $streamFactory)
     {

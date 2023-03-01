@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\tars\client;
 
+use Exception;
 use GuzzleHttp\Psr7\Response;
+use InvalidArgumentException;
 use kuiper\event\NullEventDispatcher;
 use kuiper\resilience\core\SimpleCounter;
 use kuiper\resilience\core\SimpleCounterFactory;
@@ -38,7 +40,7 @@ use kuiper\rpc\transporter\TransporterInterface;
 use kuiper\swoole\pool\PoolFactory;
 use kuiper\tars\core\TarsMethodFactory;
 use kuiper\tars\core\TarsRequestInterface;
-use kuiper\tars\core\TarsRequestLogFormatter;
+use kuiper\tars\core\TarsRequestJsonLogFormatter;
 use kuiper\tars\fixtures\HelloService;
 use kuiper\tars\stream\RequestPacket;
 use kuiper\tars\stream\ResponsePacket;
@@ -47,6 +49,7 @@ use kuiper\tars\type\MapType;
 use kuiper\tars\type\PrimitiveType;
 use Laminas\Diactoros\RequestFactory;
 use Laminas\Diactoros\StreamFactory;
+use Mockery;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
 use PHPUnit\Framework\TestCase;
@@ -70,7 +73,7 @@ class TarsClientTest extends TestCase
 
     private function createClient(array $middlewares = []): HelloService
     {
-        $transporter = \Mockery::mock(TransporterInterface::class);
+        $transporter = Mockery::mock(TransporterInterface::class);
         $transporter->shouldReceive('createSession')
             ->andReturnUsing(function (RpcRequestInterface $request) use ($transporter) {
                 $response = array_shift($this->responses);
@@ -79,7 +82,7 @@ class TarsClientTest extends TestCase
                 } elseif (is_callable($response)) {
                     $packet = $response($request, $transporter);
                 } else {
-                    throw new \InvalidArgumentException('invalid response');
+                    throw new InvalidArgumentException('invalid response');
                 }
                 $this->requests[] = ['request' => $request, 'response' => $packet];
 
@@ -136,12 +139,12 @@ class TarsClientTest extends TestCase
         };
         $handler = new TestHandler();
         $logger = new Logger('test', [$handler]);
-        $accessLog = new AccessLog(new TarsRequestLogFormatter(TarsRequestLogFormatter::CLIENT));
+        $accessLog = new AccessLog(new TarsRequestJsonLogFormatter(TarsRequestJsonLogFormatter::CLIENT));
         $accessLog->setLogger($logger);
         $proxy = $this->createClient([$accessLog]);
         try {
             $result = $proxy->hello('world');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
         $this->assertEquals($result, 'hello world');
 
@@ -167,12 +170,12 @@ class TarsClientTest extends TestCase
         };
         $handler = new TestHandler();
         $logger = new Logger('test', [$handler]);
-        $accessLog = new AccessLog(new TarsRequestLogFormatter(TarsRequestLogFormatter::CLIENT));
+        $accessLog = new AccessLog(new TarsRequestJsonLogFormatter(TarsRequestJsonLogFormatter::CLIENT));
         $accessLog->setLogger($logger);
         $proxy = $this->createClient([$accessLog]);
         try {
             $result = $proxy->hello('world');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->assertInstanceOf(ServerException::class, $e);
         }
 
@@ -183,7 +186,7 @@ class TarsClientTest extends TestCase
 
     public function testServiceDiscovery()
     {
-        $serviceResolver = \Mockery::mock(ServiceResolverInterface::class);
+        $serviceResolver = Mockery::mock(ServiceResolverInterface::class);
         $serviceResolver->shouldReceive('resolve')
             ->andReturnUsing(function (ServiceLocator $locator) {
                 error_log('resolving '.$locator);

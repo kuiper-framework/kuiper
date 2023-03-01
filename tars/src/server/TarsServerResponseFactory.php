@@ -34,7 +34,7 @@ class TarsServerResponseFactory implements RpcServerResponseFactoryInterface
         Assert::isInstanceOf($request, TarsRequestInterface::class);
         $response = $this->httpResponseFactory->createResponse();
 
-        /** @var TarsRequestInterface $request */
+        /** @var TarsRequestInterface|RpcRequestInterface $request */
         return new TarsServerResponse($request, $response, $this->streamFactory);
     }
 }

@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace kuiper\rpc\server;
 
 use kuiper\rpc\exception\InvalidRequestException;
-use kuiper\rpc\RpcRequestInterface;
-use Psr\Http\Message\RequestInterface;
+use kuiper\rpc\RpcServerRequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 interface RpcServerRequestFactoryInterface
 {
@@ -24,5 +24,5 @@ interface RpcServerRequestFactoryInterface
      *
      * @throws InvalidRequestException
      */
-    public function createRequest(RequestInterface $request): RpcRequestInterface;
+    public function createRequest(ServerRequestInterface $request): RpcServerRequestInterface;
 }

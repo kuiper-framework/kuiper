@@ -14,13 +14,14 @@ declare(strict_types=1);
 namespace kuiper\tars\client;
 
 use GuzzleHttp\Psr7\HttpFactory;
+use InvalidArgumentException;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\ServerPort;
-use kuiper\tars\core\TarsRequestLogFormatter;
+use kuiper\tars\core\TarsRequestJsonLogFormatter;
 use kuiper\tars\fixtures\HelloService;
 use kuiper\tars\server\ErrorHandler;
 use kuiper\tars\server\TarsServerMethodFactory;
@@ -31,6 +32,7 @@ use kuiper\tars\stream\ResponsePacket;
 use kuiper\tars\stream\TarsOutputStream;
 use kuiper\tars\type\MapType;
 use kuiper\tars\type\PrimitiveType;
+use Mockery;
 use Monolog\Handler\TestHandler;
 use PHPUnit\Framework\TestCase;
 
@@ -38,9 +40,9 @@ class TarsServerTest extends TestCase
 {
     public function testRpcCall()
     {
-        $mockService = \Mockery::mock(HelloService::class);
+        $mockService = Mockery::mock(HelloService::class);
         $mockService->shouldReceive('hello')
-            ->andThrow(new \InvalidArgumentException('invalid arg message'));
+            ->andThrow(new InvalidArgumentException('invalid arg message'));
         // ->andReturn('hello world');
 
         $services['app.hello.HelloObj'] = new Service(
@@ -57,7 +59,7 @@ class TarsServerTest extends TestCase
         $errorHandler->setLogger($logger);
 
         $serverResponseFactory = new TarsServerResponseFactory($httpFactory, $httpFactory);
-        $accessLog = new AccessLog(new TarsRequestLogFormatter());
+        $accessLog = new AccessLog(new TarsRequestJsonLogFormatter());
         $accessLog->setLogger($logger);
         $requestHandler = new RpcServerRpcRequestHandler($services, $serverResponseFactory, $errorHandler, [$accessLog]);
 

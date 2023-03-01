@@ -286,11 +286,6 @@ parameters:
 			path: tars/src/core/TarsMethodFactory.php
 
 		-
-			message: "#^Parameter \\#1 \\$request of static method kuiper\\\\tars\\\\client\\\\middleware\\\\AddRequestReferer\\:\\:getReferer\\(\\) expects kuiper\\\\tars\\\\core\\\\TarsRequestInterface, Psr\\\\Http\\\\Message\\\\RequestInterface given\\.$#"
-			count: 1
-			path: tars/src/core/TarsRequestLogFormatter.php
-
-		-
 			message: "#^Method kuiper\\\\tars\\\\integration\\\\PropertyFServant\\:\\:reportPropMsg\\(\\) has parameter \\$statmsg with no type specified\\.$#"
 			count: 1
 			path: tars/src/integration/PropertyFServant.php

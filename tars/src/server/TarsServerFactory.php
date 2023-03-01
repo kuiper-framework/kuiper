@@ -23,23 +23,23 @@ use kuiper\rpc\server\RpcServerResponseFactoryInterface;
 use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\rpc\server\Service;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 class TarsServerFactory
 {
     /**
-     * @param RequestFactoryInterface  $httpRequestFactory
-     * @param ResponseFactoryInterface $httpResponseFactory
-     * @param StreamFactoryInterface   $streamFactory
-     * @param ServerProperties         $serverProperties
-     * @param LoggerFactoryInterface   $loggerFactory
-     * @param Service[]                $services
-     * @param MiddlewareInterface[]    $middlewares
+     * @param ServerRequestFactoryInterface $httpRequestFactory
+     * @param ResponseFactoryInterface      $httpResponseFactory
+     * @param StreamFactoryInterface        $streamFactory
+     * @param ServerProperties              $serverProperties
+     * @param LoggerFactoryInterface        $loggerFactory
+     * @param Service[]                     $services
+     * @param MiddlewareInterface[]         $middlewares
      */
     public function __construct(
-        private readonly RequestFactoryInterface $httpRequestFactory,
+        private readonly ServerRequestFactoryInterface $httpRequestFactory,
         private readonly ResponseFactoryInterface $httpResponseFactory,
         private readonly StreamFactoryInterface $streamFactory,
         private readonly ServerProperties $serverProperties,
@@ -83,7 +83,7 @@ class TarsServerFactory
     public static function createFromContainer(ContainerInterface $container): self
     {
         return new self(
-            $container->get(RequestFactoryInterface::class),
+            $container->get(ServerRequestFactoryInterface::class),
             $container->get(ResponseFactoryInterface::class),
             $container->get(StreamFactoryInterface::class),
             $container->get(ServerProperties::class),

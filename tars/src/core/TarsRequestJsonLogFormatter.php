@@ -13,11 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\tars\core;
 
-use kuiper\rpc\JsonRpcRequestLogFormatter;
+use kuiper\rpc\RpcRequestJsonLogFormatter;
+use kuiper\rpc\RpcServerRequestInterface;
 use kuiper\swoole\logger\LogContext;
 use kuiper\tars\client\middleware\AddRequestReferer;
 
-class TarsRequestLogFormatter extends JsonRpcRequestLogFormatter
+class TarsRequestJsonLogFormatter extends RpcRequestJsonLogFormatter
 {
     /**
      * {@inheritDoc}
@@ -30,8 +31,11 @@ class TarsRequestLogFormatter extends JsonRpcRequestLogFormatter
             $packet = $response->getResponsePacket();
             $message['status'] = $packet->iRet;
         }
-        /** @noinspection PhpParamsInspection */
-        $message['referer'] = AddRequestReferer::getReferer($context->getRequest());
+        /** @var TarsRequestInterface $request */
+        $request = $context->getRequest();
+        if (!($request instanceof RpcServerRequestInterface)) {
+            $message['referer'] = AddRequestReferer::getReferer($request);
+        }
 
         return $message;
     }

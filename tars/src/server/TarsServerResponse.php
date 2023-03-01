@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
+use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponse;
 use kuiper\tars\core\TarsMethodInterface;
 use kuiper\tars\core\TarsRequestInterface;
@@ -32,10 +33,11 @@ class TarsServerResponse extends RpcResponse implements TarsResponseInterface
     private ?StreamInterface $body = null;
 
     public function __construct(
-        TarsRequestInterface $request,
+        RpcRequestInterface $request,
         ResponseInterface $response,
         private readonly StreamFactoryInterface $streamFactory)
     {
+        /** @var RpcRequestInterface|TarsRequestInterface $request */
         parent::__construct($request, $response);
         $this->packet = ResponsePacket::createFromRequest($request);
     }

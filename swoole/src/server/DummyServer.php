@@ -49,6 +49,7 @@ class DummyServer extends AbstractServer
 
     public function task(mixed $data, int $taskWorkerId = -1, callable $onFinish = null)
     {
+        return null;
     }
 
     public function finish(mixed $data): void

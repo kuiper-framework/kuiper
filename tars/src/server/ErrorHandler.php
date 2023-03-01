@@ -43,7 +43,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
             $this->logger->error(sprintf('process %s#%s failed: %s',
                 $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(), $error));
         }
-        /** @var TarsRequestInterface $request */
+        /** @var TarsRequestInterface|RpcRequestInterface $request */
         $packet = ResponsePacket::createFromRequest($request);
         if ($error->getCode() > 0) {
             $packet->iRet = $error->getCode();

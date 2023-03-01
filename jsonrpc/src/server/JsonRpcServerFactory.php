@@ -22,8 +22,8 @@ use kuiper\rpc\server\RpcServerRpcRequestHandler;
 use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\serializer\NormalizerInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
@@ -41,7 +41,7 @@ class JsonRpcServerFactory
         private readonly array $services,
         private readonly array $middlewares,
         private readonly bool $outParams,
-        private readonly RequestFactoryInterface $httpRequestFactory,
+        private readonly ServerRequestFactoryInterface $httpRequestFactory,
         private readonly ResponseFactoryInterface $httpResponseFactory,
         private readonly StreamFactoryInterface $streamFactory,
         private readonly NormalizerInterface $normalizer,
@@ -143,7 +143,7 @@ class JsonRpcServerFactory
             $container->get('jsonrpcServices'),
             $container->get('jsonrpcServerMiddlewares'),
             (bool) $container->get('application.jsonrpc.server.out_params'),
-            $container->get(RequestFactoryInterface::class),
+            $container->get(ServerRequestFactoryInterface::class),
             $container->get(ResponseFactoryInterface::class),
             $container->get(StreamFactoryInterface::class),
             $container->get(NormalizerInterface::class),

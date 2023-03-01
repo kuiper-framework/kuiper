@@ -14,9 +14,8 @@ declare(strict_types=1);
 namespace kuiper\tars\core;
 
 use kuiper\rpc\HasRequestIdInterface;
-use kuiper\rpc\RpcRequestInterface;
 
-interface TarsRequestInterface extends RpcRequestInterface, HasRequestIdInterface
+interface TarsRequestInterface extends HasRequestIdInterface
 {
     /**
      * @return int

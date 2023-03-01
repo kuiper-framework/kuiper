@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace kuiper\rpc;
 
 use kuiper\helper\Arrays;
-use kuiper\swoole\logger\JsonRequestLogFormatter;
+use kuiper\swoole\logger\RequestLogJsonFormatter;
 use kuiper\swoole\logger\LogContext;
 
-class JsonRpcRequestLogFormatter extends RpcRequestLogFormatter
+class RpcRequestJsonLogFormatter extends RpcRequestLogTextFormatter
 {
     public const SERVER = [
         'service', 'method', 'status', 'remote_addr', 'time_local',
@@ -26,7 +26,7 @@ class JsonRpcRequestLogFormatter extends RpcRequestLogFormatter
 
     public const CLIENT = [
         'service', 'method', 'status', 'server_addr', 'time_local',
-        'callee_servant', 'callee_method',
+        'callee_service', 'callee_method',
         'body_bytes_sent', 'body_bytes_recv', 'request_id', 'request_time', 'extra',
     ];
 
@@ -46,6 +46,6 @@ class JsonRpcRequestLogFormatter extends RpcRequestLogFormatter
     {
         $messageContext = $this->prepareMessageContext($context);
 
-        return [JsonRequestLogFormatter::jsonEncode(Arrays::select($messageContext, $this->fields))];
+        return [RequestLogJsonFormatter::jsonEncode(Arrays::select($messageContext, $this->fields))];
     }
 }

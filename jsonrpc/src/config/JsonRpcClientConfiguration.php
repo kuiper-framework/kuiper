@@ -17,6 +17,7 @@ use function DI\autowire;
 use function DI\factory;
 use function DI\get;
 
+use InvalidArgumentException;
 use kuiper\di\attribute\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -27,12 +28,14 @@ use kuiper\jsonrpc\attribute\JsonRpcClient;
 use kuiper\jsonrpc\attribute\JsonRpcService;
 use kuiper\jsonrpc\client\JsonRpcClientFactory;
 use kuiper\logger\LoggerConfiguration;
+use kuiper\logger\LoggerFactoryInterface;
 use kuiper\resilience\core\SwooleAtomicCounter;
+use kuiper\rpc\client\middleware\AddRequestReferer;
 use kuiper\rpc\client\ProxyGenerator;
 use kuiper\rpc\client\ProxyGeneratorInterface;
 use kuiper\rpc\client\RequestIdGenerator;
 use kuiper\rpc\client\RequestIdGeneratorInterface;
-use kuiper\rpc\JsonRpcRequestLogFormatter;
+use kuiper\rpc\RpcRequestJsonLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\transporter\Endpoint;
 use kuiper\swoole\Application;
@@ -51,6 +54,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 'jsonrpc' => [
                     'client' => [
                         'middleware' => [
+                            AddRequestReferer::class,
                             'jsonrpcRequestLog',
                         ],
                     ],
@@ -60,14 +64,18 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
 
         return array_merge($this->createJsonRpcClients(), [
             ProxyGeneratorInterface::class => autowire(ProxyGenerator::class),
-            'jsonrpcClientRequestLogFormatter' => autowire(JsonRpcRequestLogFormatter::class),
+            'jsonrpcClientRequestLogFormatter' => autowire(RpcRequestJsonLogFormatter::class)
+                ->constructorParameter(0, RpcRequestJsonLogFormatter::CLIENT),
             JsonRpcClientFactory::class => autowire(JsonRpcClientFactory::class)
                 ->constructorParameter('middlewares', get('jsonrpcClientMiddlewares'))
                 ->constructorParameter('httpClientFactory', factory(function (ContainerInterface $container) {
                     return $container->has(HttpClientFactoryInterface::class) ? $container->get(HttpClientFactoryInterface::class) : null;
                 })),
             'jsonrpcRequestLog' => autowire(AccessLog::class)
-                ->constructorParameter(0, get('jsonrpcClientRequestLogFormatter')),
+                ->constructorParameter(0, get('jsonrpcClientRequestLogFormatter'))
+                ->method('setLogger', factory(function (LoggerFactoryInterface $loggerFactory) {
+                    return $loggerFactory->create('JsonRpcRequestLogger');
+                })),
         ]);
     }
 
@@ -88,24 +96,6 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
     {
         $definitions = [];
         $config = Application::getInstance()->getConfig();
-        $options = $config->get('application.jsonrpc.client.options', []);
-        $createClient = function (ContainerInterface $container, array $options) use ($config) {
-            $options['protocol'] = $this->getProtocol($options);
-            if (ServerType::from($options['protocol'])->isHttpProtocol()) {
-                $options = array_merge($config->get('application.jsonrpc.client.http_options', []), $options);
-            } else {
-                $options = array_merge($config->get('application.jsonrpc.client.tcp_options', []), $options);
-            }
-            if (isset($options['middleware'])) {
-                foreach ($options['middleware'] as $i => $middleware) {
-                    if (is_string($middleware)) {
-                        $options['middleware'][$i] = $container->get($middleware);
-                    }
-                }
-            }
-
-            return $container->get(JsonRpcClientFactory::class)->create($options['class'], $options);
-        };
         $jsonrpcServices = $this->getServices();
         /** @var JsonRpcClient $annotation */
         foreach (ComponentCollection::getComponents(JsonRpcClient::class) as $annotation) {
@@ -113,23 +103,40 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 continue;
             }
             $name = $annotation->getComponentId();
-            $clientOptions = array_merge($annotation->toArray(), $options[$name] ?? []);
-            $clientOptions['class'] = $annotation->getTargetClass();
-            $definitions[$name] = factory(function (ContainerInterface $container) use ($createClient, $clientOptions) {
-                return $createClient($container, $clientOptions);
+            $definitions[$name] = factory(function (JsonRpcClientFactory $factory) use ($annotation) {
+                return $this->createJsonRpcClient($factory, $annotation->getTargetClass());
             });
         }
 
-        foreach ($config->get('application.jsonrpc.client.clients', []) as $name => $service) {
-            $componentId = is_string($name) ? $name : $service;
-            $clientOptions = array_merge($options[$componentId] ?? []);
-            $clientOptions['class'] = $service;
-            $definitions[$componentId] = factory(function (ContainerInterface $container) use ($createClient, $clientOptions) {
-                return $createClient($container, $clientOptions);
+        foreach ($config->get('application.jsonrpc.client.clients', []) as $name => $options) {
+            if (is_string($options)) {
+                $options = ['class' => $options];
+            }
+            if (!isset($options['class'])) {
+                throw new InvalidArgumentException("application.jsonrpc.client.clients.{$name} class is required");
+            }
+            $options['name'] = $componentId = is_string($name) ? $name : $options['class'];
+            $definitions[$componentId] = factory(function (JsonRpcClientFactory $factory) use ($options) {
+                return $this->createJsonRpcClient($factory, $options['class'], $options);
             });
         }
 
         return $definitions;
+    }
+
+    public function createJsonRpcClient(JsonRpcClientFactory $factory, string $clientClass, array $options = []): object
+    {
+        $config = Application::getInstance()->getConfig();
+        $clientOptions = $config->get('application.jsonrpc.client.options', []);
+        $options = array_merge($options, $clientOptions['default'] ?? [], $clientOptions[$options['name'] ?? $clientClass] ?? []);
+        $options['protocol'] = $this->getProtocol($options);
+        if (ServerType::from($options['protocol'])->isHttpProtocol()) {
+            $options = array_merge($config->get('application.jsonrpc.client.http_options', []), $options);
+        } else {
+            $options = array_merge($config->get('application.jsonrpc.client.tcp_options', []), $options);
+        }
+
+        return $factory->create($clientClass, $options);
     }
 
     private function getServices(): array
@@ -187,7 +194,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 'logging' => [
                     'loggers' => [
                         'JsonRpcRequestLogger' => LoggerConfiguration::createJsonLogger(
-                            $config->getString('application.logging.jsonrpc_client_log_file', $path.'/jsonrpc-client.log')),
+                            $config->getString('application.jsonrpc.client.log_file', $path.'/jsonrpc.log')),
                     ],
                     'logger' => [
                         'JsonRpcRequestLogger' => 'JsonRpcRequestLogger',

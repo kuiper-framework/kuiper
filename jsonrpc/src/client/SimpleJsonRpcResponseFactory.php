@@ -42,7 +42,7 @@ class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
             || !array_key_exists('id', $result)) {
             throw new BadResponseException($request, $response);
         }
-        /** @var JsonRpcRequestInterface $request */
+        /** @var JsonRpcRequestInterface|RpcRequestInterface $request */
         if (null !== $result['id'] && $result['id'] !== $request->getRequestId()) {
             throw new RequestIdMismatchException("expected request id {$request->getRequestId()}, got {$result['id']}");
         }

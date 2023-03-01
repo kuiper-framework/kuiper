@@ -31,8 +31,8 @@ use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\config\ServerConfiguration;
-use kuiper\swoole\logger\LineRequestLogFormatter;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
+use kuiper\swoole\logger\RequestLogTextFormatter;
 use kuiper\web\exception\RedirectException;
 use kuiper\web\exception\UnauthorizedException;
 use kuiper\web\handler\DefaultLoginUrlBuilder;
@@ -89,7 +89,7 @@ class WebConfiguration implements DefinitionConfiguration
         return [
             ErrorRendererInterface::class => autowire(LogErrorRenderer::class),
             AclInterface::class => autowire(Acl::class),
-            RequestLogFormatterInterface::class => autowire(LineRequestLogFormatter::class),
+            RequestLogFormatterInterface::class => autowire(RequestLogTextFormatter::class),
         ];
     }
 

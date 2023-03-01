@@ -17,20 +17,20 @@ use Exception;
 use kuiper\event\EventListenerInterface;
 use kuiper\rpc\exception\InvalidRequestException;
 use kuiper\rpc\RpcRequestHandlerInterface;
-use kuiper\rpc\RpcRequestHelper;
+use kuiper\rpc\RpcServerRequestInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\rpc\server\ServerRequestHolder;
 use kuiper\swoole\event\ReceiveEvent;
 use kuiper\tars\core\TarsRequestInterface;
 use kuiper\tars\exception\TarsRequestException;
 use kuiper\tars\stream\ResponsePacket;
-use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ServerRequestFactoryInterface;
 use Webmozart\Assert\Assert;
 
 class TarsTcpReceiveEventListener implements EventListenerInterface
 {
     public function __construct(
-        private readonly RequestFactoryInterface $httpRequestFactory,
+        private readonly ServerRequestFactoryInterface $httpRequestFactory,
         private readonly RpcServerRequestFactoryInterface $serverRequestFactory,
         private readonly RpcRequestHandlerInterface $requestHandler)
     {
@@ -47,9 +47,11 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
 
         $connectionInfo = $server->getConnectionInfo($event->getClientId());
         Assert::notNull($connectionInfo, 'cannot get connection info');
-        $request = $this->httpRequestFactory->createRequest('POST', sprintf('//%s:%d', 'localhost', $connectionInfo->getServerPort()));
+        $uri = sprintf('//%s:%d', 'localhost', $connectionInfo->getServerPort());
+        $request = $this->httpRequestFactory->createServerRequest('POST', $uri, $connectionInfo->toArray());
         $request->getBody()->write($event->getData());
         try {
+            /** @var TarsRequestInterface|RpcServerRequestInterface $serverRequest */
             $serverRequest = $this->serverRequestFactory->createRequest($request);
         } catch (TarsRequestException $e) {
             $server->send($event->getClientId(), (string) $this->createInvalidTarsRequestResponse($e)->encode());
@@ -61,12 +63,10 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
             return;
         }
         try {
-            $serverRequest = RpcRequestHelper::addConnectionInfo($serverRequest, $connectionInfo);
             ServerRequestHolder::setRequest($serverRequest);
             $response = $this->requestHandler->handle($serverRequest);
             $server->send($event->getClientId(), (string) $response->getBody());
         } catch (Exception $e) {
-            /** @var TarsRequestInterface $serverRequest */
             $server->send($event->getClientId(), (string) $this->createErrorResponse($serverRequest, $e)->encode());
         }
     }

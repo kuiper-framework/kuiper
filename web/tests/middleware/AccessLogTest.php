@@ -16,7 +16,7 @@ namespace kuiper\web\middleware;
 use Carbon\Carbon;
 use GuzzleHttp\Psr7\BufferStream;
 use kuiper\helper\Arrays;
-use kuiper\swoole\logger\LineRequestLogFormatter;
+use kuiper\swoole\logger\RequestLogTextFormatter;
 use Laminas\Diactoros\ResponseFactory;
 use Laminas\Diactoros\ServerRequestFactory;
 use PHPUnit\Framework\TestCase;
@@ -41,7 +41,7 @@ class AccessLogTest extends TestCase
      */
     protected function setUp(): void
     {
-        $accessLog = new AccessLog(new LineRequestLogFormatter());
+        $accessLog = new AccessLog(new RequestLogTextFormatter());
         $logger = new TestLogger();
         $accessLog->setLogger($logger);
         $this->accessLog = $accessLog;
@@ -65,7 +65,7 @@ class AccessLogTest extends TestCase
 
     public function testFilter()
     {
-        $accessLog = new AccessLog(new LineRequestLogFormatter(),
+        $accessLog = new AccessLog(new RequestLogTextFormatter(),
             function (ServerRequestInterface $request, $response) {
                 return '/status.html' !== $request->getUri()->getPath();
             });
@@ -79,7 +79,7 @@ class AccessLogTest extends TestCase
     {
         Carbon::setTestNow('2020-01-01 00:01:00.30323');
         $accessLog = new AccessLog(
-             new LineRequestLogFormatter(LineRequestLogFormatter::MAIN, ['body'], 1),
+            new RequestLogTextFormatter(RequestLogTextFormatter::MAIN, ['body'], 1),
             function () { return Carbon::now()->format('Y-m-d H:i:s.v'); }
         );
         $accessLog->setLogger($this->logger);
@@ -98,7 +98,7 @@ class AccessLogTest extends TestCase
     {
         Carbon::setTestNow('2020-01-01 00:01:00.30323');
         $accessLog = new AccessLog(
-            new LineRequestLogFormatter(),
+            new RequestLogTextFormatter(),
             function () { return Carbon::now()->format('Y-m-d H:i:s.v'); }
         );
         $accessLog->setLogger($this->logger);
@@ -110,7 +110,7 @@ class AccessLogTest extends TestCase
 
     public function testFormat()
     {
-        $accessLog = new AccessLog(new LineRequestLogFormatter(), function ($message) {
+        $accessLog = new AccessLog(new RequestLogTextFormatter(), function ($message) {
             return json_encode(Arrays::select($message, [
                 'time_local', 'request_method', 'request_uri', 'status', 'body_bytes_sent', 'http_referer', 'http_user_agent', 'http_x_forwarded_for', 'request_time',
             ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

@@ -49,7 +49,7 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
     public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface
     {
         Assert::isInstanceOf($request, JsonRpcRequestInterface::class);
-        /** @var JsonRpcRequestInterface $request */
+        /** @var JsonRpcRequestInterface|RpcRequestInterface $request */
         return new RpcResponse($request, $this->createResponse($this->createErrorResponse($error, $request)));
     }
 

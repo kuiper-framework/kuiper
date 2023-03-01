@@ -66,7 +66,7 @@ enum ServerType: string
     {
         return match ($this) {
             self::HTTP, self::HTTP2 => [Event::REQUEST],
-            self::WEBSOCKET => [Event::REQUEST, Event::MESSAGE, Event::OPEN, Event::HAND_SHAKE],
+            self::WEBSOCKET => [Event::REQUEST, Event::MESSAGE, Event::OPEN],
             self::TCP => [Event::RECEIVE],
             self::UDP => [Event::PACKET],
         };

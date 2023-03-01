@@ -20,9 +20,9 @@ use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\rpc\exception\InvalidMethodException;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
-use kuiper\rpc\RpcRequestInterface;
+use kuiper\rpc\RpcServerRequestInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
 {
@@ -33,7 +33,7 @@ class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
     /**
      * {@inheritDoc}
      */
-    public function createRequest(RequestInterface $request): RpcRequestInterface
+    public function createRequest(ServerRequestInterface $request): RpcServerRequestInterface
     {
         $requestData = json_decode((string) $request->getBody(), true);
         if (false === $requestData) {

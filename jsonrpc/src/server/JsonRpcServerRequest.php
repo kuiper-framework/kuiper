@@ -15,13 +15,13 @@ namespace kuiper\jsonrpc\server;
 
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\rpc\RpcMethodInterface;
-use kuiper\rpc\RpcRequest;
-use Psr\Http\Message\RequestInterface as HttpRequestInterface;
+use kuiper\rpc\RpcServerRequest;
+use Psr\Http\Message\ServerRequestInterface;
 
-class JsonRpcServerRequest extends RpcRequest implements JsonRpcRequestInterface
+class JsonRpcServerRequest extends RpcServerRequest implements JsonRpcRequestInterface
 {
     public function __construct(
-        HttpRequestInterface $httpRequest,
+        ServerRequestInterface $httpRequest,
         RpcMethodInterface $rpcMethod,
         private readonly int $requestId,
         private readonly string $version)

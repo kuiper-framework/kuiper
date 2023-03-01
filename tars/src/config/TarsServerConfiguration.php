@@ -42,7 +42,7 @@ use kuiper\swoole\event\ReceiveEvent;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\swoole\ServerPort;
 use kuiper\tars\attribute\TarsServant;
-use kuiper\tars\core\TarsRequestLogFormatter;
+use kuiper\tars\core\TarsRequestJsonLogFormatter;
 use kuiper\tars\server\Adapter;
 use kuiper\tars\server\AdminServantImpl;
 use kuiper\tars\server\ClientProperties;
@@ -113,7 +113,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
                 ->constructorParameter('tarsFilePath', Application::getInstance()->getBasePath().'/tars/servant'),
             MonitorInterface::class => autowire(Monitor::class)
                 ->constructorParameter('collectors', get('monitorCollectors')),
-            'tarsServerRequestLogFormatter' => autowire(TarsRequestLogFormatter::class),
+            'tarsServerRequestLogFormatter' => autowire(TarsRequestJsonLogFormatter::class),
             TarsTcpReceiveEventListener::class => factory([TarsServerFactory::class, 'createTcpReceiveEventListener']),
         ];
     }
@@ -230,7 +230,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
                 'logging' => [
                     'loggers' => [
                         'TarsServerRequestLogger' => LoggerConfiguration::createJsonLogger(
-                            $config->getString('application.logging.tars_server_log_file', $path.'/tars-server.log')),
+                            $config->getString('application.tars.server.log_file', $path.'/tars-server.log')),
                     ],
                     'logger' => [
                         'TarsServerRequestLogger' => 'TarsServerRequestLogger',

@@ -13,12 +13,13 @@ declare(strict_types=1);
 
 namespace kuiper\rpc;
 
+use kuiper\rpc\client\middleware\AddRequestReferer;
 use kuiper\rpc\server\ServerRequestHolder;
-use kuiper\swoole\logger\LineRequestLogFormatter;
+use kuiper\swoole\logger\RequestLogTextFormatter;
 use kuiper\swoole\logger\LogContext;
 use Psr\Http\Message\RequestInterface;
 
-class RpcRequestLogFormatter extends LineRequestLogFormatter
+class RpcRequestLogTextFormatter extends RequestLogTextFormatter
 {
     /**
      * {@inheritDoc}
@@ -31,12 +32,8 @@ class RpcRequestLogFormatter extends LineRequestLogFormatter
         $rpcMethod = $request->getRpcMethod();
         $message['service'] = $rpcMethod->getServiceLocator()->getName();
         $message['method'] = $rpcMethod->getMethodName();
-        if ($request instanceof HasRequestIdInterface) {
-            $message['request_id'] = $request->getRequestId();
-        }
-        $message['server_addr'] = $request->getUri()->getHost()
-            .($request->getUri()->getPort() > 0 ? ':'.$request->getUri()->getPort() : '');
-        if (null !== RpcRequestHelper::getConnectionInfo($request)) {
+        if ($request instanceof RpcServerRequestInterface) {
+            $message['referer'] = AddRequestReferer::getReferer($request);
             $serverRequest = ServerRequestHolder::getRequest();
             if (null !== $serverRequest) {
                 $calleeMethod = $serverRequest->getRpcMethod();
@@ -46,7 +43,12 @@ class RpcRequestLogFormatter extends LineRequestLogFormatter
         } else {
             // client request exchange body bytes
             [$message['body_bytes_recv'], $message['body_bytes_sent']]
-            = [$message['body_bytes_sent'], $message['body_bytes_recv']];
+                = [$message['body_bytes_sent'], $message['body_bytes_recv']];
+            $message['server_addr'] = $request->getUri()->getHost()
+                .($request->getUri()->getPort() > 0 ? ':'.$request->getUri()->getPort() : '');
+        }
+        if ($request instanceof HasRequestIdInterface) {
+            $message['request_id'] = $request->getRequestId();
         }
         if (in_array('params', $this->getExtra(), true)) {
             $param = str_replace('"', "'", (string) json_encode($rpcMethod->getArguments(),
@@ -61,12 +63,12 @@ class RpcRequestLogFormatter extends LineRequestLogFormatter
 
     protected function getIpList(RequestInterface $request): array
     {
-        /** @var RpcRequestInterface $request */
-        $connInfo = RpcRequestHelper::getConnectionInfo($request);
-        if (null !== $connInfo) {
-            return [$connInfo->getRemoteIp().':'.$connInfo->getRemotePort()];
+        if ($request instanceof RpcServerRequestInterface) {
+            $params = $request->getServerParams();
+            if (isset($params['REMOTE_ADDR'], $params['REMOTE_PORT'])) {
+                return [$params['REMOTE_ADDR'] . ':' . $params['REMOTE_PORT']];
+            }
         }
-
         return [];
     }
 }
