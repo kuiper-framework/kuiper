@@ -18,7 +18,6 @@ use DI\Definition\ObjectDefinition;
 
 use function DI\factory;
 
-use InvalidArgumentException;
 use kuiper\di\attribute\Bean;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -28,7 +27,7 @@ use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\logger\CoroutineIdProcessor;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
+use Monolog\Level;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -89,12 +88,7 @@ class LoggerConfiguration implements DefinitionConfiguration
     protected function createRootLogger(string $name, array $config): array
     {
         $rootLoggerConfig = $config['loggers']['root'] ?? [];
-        $loggerLevelName = strtoupper($rootLoggerConfig['level'] ?? 'error');
-
-        $loggerLevel = constant(Logger::class.'::'.$loggerLevelName);
-        if (!isset($loggerLevel)) {
-            throw new InvalidArgumentException("Unknown logger level '{$loggerLevelName}'");
-        }
+        $loggerLevel = Level::fromName($rootLoggerConfig['level'] ?? 'error');
         $handlers = [];
         if (!empty($rootLoggerConfig['console'])) {
             $handlers[] = [
@@ -129,7 +123,7 @@ class LoggerConfiguration implements DefinitionConfiguration
                     'class' => StreamHandler::class,
                     'constructor' => [
                         'stream' => $config['path'].'/error.log',
-                        'level' => Logger::ERROR,
+                        'level' => Level::Error,
                     ],
                 ],
             ];

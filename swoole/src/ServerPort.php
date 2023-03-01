@@ -29,6 +29,7 @@ class ServerPort
         private readonly string $host,
         private readonly int $port,
         private readonly ServerType $serverType,
+        private readonly ?string $listener = null,
         array $settings = [])
     {
         $this->settings = [];
@@ -68,6 +69,14 @@ class ServerPort
     public function isHttpProtocol(): bool
     {
         return $this->serverType->isHttpProtocol();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getListener(): ?string
+    {
+        return $this->listener;
     }
 
     /**

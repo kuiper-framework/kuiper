@@ -27,7 +27,6 @@ use kuiper\helper\PropertyResolverInterface;
 use kuiper\jsonrpc\attribute\JsonRpcService;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\server\JsonRpcServerFactory;
-use kuiper\jsonrpc\server\JsonRpcTcpReceiveEventListener;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\rpc\attribute\Ignore;
 use kuiper\rpc\JsonRpcRequestLogFormatter;
@@ -43,7 +42,6 @@ use kuiper\swoole\listener\HttpRequestEventListener;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerPort;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionMethod;
@@ -73,24 +71,18 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         ]);
         $definitions = [];
         if ($this->jsonrpcOnHttp($config)) {
-            $definitions[RequestHandlerInterface::class] = factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']);
-            $config->merge([
-                'application' => [
-                    'listeners' => [
-                        HttpRequestEventListener::class,
-                    ],
-                ],
-            ]);
+            $definitions['jsonRpcHttpRequestHandler'] = factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']);
+            $definitions['jsonRpcHttpRequestListener'] = autowire(HttpRequestEventListener::class)
+                ->constructor(get('jsonRpcHttpRequestHandler'));
         } else {
-            $definitions[JsonRpcTcpReceiveEventListener::class] = factory([JsonRpcServerFactory::class, 'createTcpRequestEventListener']);
+            $definitions['jsonRpcTcpReceiveEventListener'] = factory([JsonRpcServerFactory::class, 'createTcpRequestEventListener']);
             $config->merge([
                 'application' => [
-                    'listeners' => [
-                        JsonRpcTcpReceiveEventListener::class,
-                    ],
-                    'swoole' => [
-                        ServerSetting::OPEN_EOF_SPLIT => true,
-                        ServerSetting::PACKAGE_EOF => JsonRpcProtocol::EOF,
+                    'server' => [
+                        'settings' => [
+                            ServerSetting::OPEN_EOF_SPLIT => true,
+                            ServerSetting::PACKAGE_EOF => JsonRpcProtocol::EOF,
+                        ],
                     ],
                 ],
             ]);

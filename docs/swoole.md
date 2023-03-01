@@ -266,19 +266,27 @@ kuiper swoole 并没有具体服务实现，请通过使用 [kuiper/web](web.md)
 
 
 | 配置项                      | 说明             |
-|-----------------------------|------|------------------|
-| application.php_config_file |                |
-| application.env             |  prod;development |
-| application.name            |  应用名称         |
-| application.base_path       |                   |
-| application.logging         |                   |
-|                             |                   |
+|-----------------------------|------------------|
+| application.php_config_file |                  |
+| application.env             | prod;development |
+| application.name            | 应用名称         |
+| application.base_path       |                  |
+| application.logging         |                  |
+|                             |                  |
+
+服务相关配置 `application.server` ：
+
+| 配置项   | 说明 |
+|----------|------|
+| settings |      |
+|          |      |
+
 
 ## 命令行参数
 
-| 参数名                 | 说明                  |
-|------------------------|-----------------------|
-| --config <config-file> | 值为 ini 配置文件路径 |
-| --define=foo=value     | 定义配置值            |
-| －D foo=value          | --define 参数别名     |
-|                        |                       |
+| 参数名                 | 说明                                     |
+|------------------------|------------------------------------------|
+| --config <config-file> | 值为 ini 配置文件路径                    |
+| --define=foo=value     | 定义配置值，自动添加 `application.` 前缀 |
+| －D foo=value          | --define 参数别名                        |
+|                        |                                          |

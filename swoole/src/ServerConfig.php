@@ -15,7 +15,6 @@ namespace kuiper\swoole;
 
 use kuiper\helper\Properties;
 use kuiper\swoole\constants\ServerSetting;
-use Webmozart\Assert\Assert;
 
 class ServerConfig
 {
@@ -40,7 +39,6 @@ class ServerConfig
      */
     public function __construct(private readonly string $serverName, array $ports)
     {
-        Assert::notEmpty($ports, 'at least one server port should be set');
         usort($ports, static function (ServerPort $a, ServerPort $b) {
             if ($a->isHttpProtocol()) {
                 return $b->isHttpProtocol() ? 0 : -1;
@@ -49,7 +47,11 @@ class ServerConfig
             return $b->isHttpProtocol() ? 1 : 0;
         });
         $this->ports = array_values($ports);
-        $this->settings = Properties::create($this->ports[0]->getSettings());
+        if (isset($this->ports[0])) {
+            $this->settings = Properties::create($this->ports[0]->getSettings());
+        } else {
+            $this->settings = Properties::create();
+        }
     }
 
     public function getServerName(): string
@@ -70,9 +72,9 @@ class ServerConfig
         return $this->ports;
     }
 
-    public function getPort(): ServerPort
+    public function getPort(): ?ServerPort
     {
-        return $this->ports[0];
+        return $this->ports[0] ?? null;
     }
 
     public function getTaskWorkerNum(): int

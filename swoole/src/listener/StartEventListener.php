@@ -77,7 +77,6 @@ class StartEventListener implements EventListenerInterface, LoggerAwareInterface
             if (false === $ret) {
                 throw new RuntimeException("Cannot create pid file $pidFile");
             }
-            $this->logger->info(static::TAG.'Listening on '.$serverConfig->getPort());
         } catch (RuntimeException $e) {
             $this->logger->error(static::TAG.'Cannot write pid file: '.$e->getMessage());
             $server->stop();

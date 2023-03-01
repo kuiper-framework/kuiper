@@ -23,6 +23,7 @@ use kuiper\swoole\ServerConfig;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Webmozart\Assert\Assert;
 
 abstract class AbstractServer implements ServerInterface, LoggerAwareInterface, EventDispatcherAwareInterface
 {
@@ -36,6 +37,14 @@ abstract class AbstractServer implements ServerInterface, LoggerAwareInterface, 
     public function __construct(private readonly ServerConfig $serverConfig)
     {
         $this->serverEventFactory = new ServerEventFactory();
+    }
+
+    abstract protected function doStart(): void;
+
+    public function start(): void
+    {
+        Assert::notEmpty($this->serverConfig->getPorts(), 'At least one server port should be set');
+        $this->doStart();
     }
 
     public function dispatch(string $eventName, array $args): ?AbstractServerEvent

@@ -15,6 +15,7 @@ namespace kuiper\di\attribute;
 
 use Attribute;
 use DI\Definition\AutowireDefinition;
+use DI\Definition\Exception\InvalidAttribute;
 use DI\Definition\Reference;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ComponentDefinition;
@@ -31,9 +32,15 @@ class Component implements \kuiper\di\Component, ContainerBuilderAwareInterface
     {
     }
 
+    /**
+     * @throws InvalidAttribute
+     */
     public function handle(): void
     {
         ComponentCollection::register($this);
+        if (!$this->class->isInstantiable()) {
+            throw new InvalidAttribute(sprintf('Cannot put attribute %s on %s, because %2$s cannot be instantiable', get_class($this), $this->class->getName()));
+        }
         $className = $this->class->getName();
         if (!empty($this->value)) {
             $names = [$this->value];

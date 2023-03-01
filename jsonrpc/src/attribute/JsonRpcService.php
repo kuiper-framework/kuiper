@@ -14,17 +14,18 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\attribute;
 
 use Attribute;
-use kuiper\di\attribute\Service;
+use kuiper\di\attribute\ComponentTrait;
+use kuiper\di\Component;
 
 #[Attribute(Attribute::TARGET_CLASS)]
-class JsonRpcService extends Service
+class JsonRpcService implements Component
 {
+    use ComponentTrait;
+
     public function __construct(
-        ?string $value = null,
         private readonly ?string $service = null,
         private readonly ?string $version = null)
     {
-        parent::__construct($value);
     }
 
     /**

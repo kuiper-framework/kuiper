@@ -180,7 +180,7 @@ class Application
             'application' => [
                 'env' => env('ENV', 'prod'),
                 'enable_bootstrap_container' => true,
-                'name' => 'app',
+                'name' => env('APP_NAME', 'app'),
                 'base_path' => $this->getBasePath(),
                 'logging' => [
                     'path' => $this->getBasePath().'/logs',
@@ -321,7 +321,7 @@ class Application
     {
         $command = $_SERVER['argv'][1] ?? null;
 
-        return ServerStartCommand::NAME === $command;
+        return !isset($command) || ServerStartCommand::NAME === $command;
     }
 
     protected function createBootstrapContainer(): ContainerInterface

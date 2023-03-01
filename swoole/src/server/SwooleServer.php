@@ -87,7 +87,7 @@ class SwooleServer extends AbstractServer
     /**
      * {@inheritdoc}
      */
-    public function start(): void
+    protected function doStart(): void
     {
         self::check();
         $this->dispatch(Event::BOOTSTRAP->value, []);
@@ -216,6 +216,7 @@ class SwooleServer extends AbstractServer
     private function createSwooleServer(ServerPort $port): void
     {
         $swooleServerClass = $port->getServerType()->serverClass();
+        $this->logger->info(static::TAG."Listening to {$port}");
         $this->resource = new $swooleServerClass($port->getHost(), $port->getPort(), SWOOLE_PROCESS, $port->getSockType());
         $this->resource->set($port->getSettings());
 
@@ -234,7 +235,8 @@ class SwooleServer extends AbstractServer
     private function addPort(ServerPort $port): void
     {
         /** @var Server\Port $swoolePort */
-        $swoolePort = $this->resource->addListener($port->getHost(), $port->getPort(), $port->getSockType());
+        $this->logger->info(static::TAG."Listening to {$port}");
+        $swoolePort = $this->resource->listen($port->getHost(), $port->getPort(), $port->getSockType());
         $swoolePort->set($port->getSettings());
 
         foreach ($port->getServerType()->handledEvents() as $event) {

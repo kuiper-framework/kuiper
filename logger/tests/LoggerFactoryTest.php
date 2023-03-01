@@ -14,11 +14,15 @@ declare(strict_types=1);
 namespace kuiper\logger;
 
 use kuiper\swoole\logger\CoroutineIdProcessor;
+use Mockery;
 use Monolog\Handler\TestHandler;
+use Monolog\Level;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
+use ReflectionProperty;
+use UnhandledMatchError;
 
 class LoggerFactoryTest extends TestCase
 {
@@ -26,7 +30,7 @@ class LoggerFactoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $container = \Mockery::mock(ContainerInterface::class);
+        $container = Mockery::mock(ContainerInterface::class);
         $container->shouldReceive('get')
             ->andReturnUsing(function ($name) {
                 return new $name();
@@ -86,7 +90,7 @@ class LoggerFactoryTest extends TestCase
 
     private function assertLogLevel(string $level, LoggerInterface $logger): void
     {
-        $property = new \ReflectionProperty($logger, 'logLevel');
+        $property = new ReflectionProperty($logger, 'logLevel');
         $this->assertEquals(Logger::getLevel($level), $property->getValue($logger));
     }
 
@@ -98,5 +102,14 @@ class LoggerFactoryTest extends TestCase
         $logger = $this->factory->create('bar\\AccessLog');
         $logger->info('test');
         $this->assertTrue(true);
+    }
+
+    public function testLevel(): void
+    {
+        try {
+            $level = Level::fromName('test');
+        } catch (UnhandledMatchError $e) {
+            $this->assertTrue(true);
+        }
     }
 }
