@@ -14,8 +14,10 @@ declare(strict_types=1);
 namespace kuiper\cache;
 
 use function kuiper\helper\env;
+
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
+use Redis;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 class CacheConfigurationTest extends CacheTestCase
@@ -40,11 +42,25 @@ class CacheConfigurationTest extends CacheTestCase
                     'host' => env('REDIS_HOST'),
                 ],
             ],
-        ])->get(\Redis::class);
-        $this->assertInstanceOf(\Redis::class, $redis);
+        ])->get(Redis::class);
+        $this->assertInstanceOf(Redis::class, $redis);
         $ret = $redis->set('foo', 'bar');
         $this->assertTrue($ret);
         $this->assertTrue((bool) $redis->exists('foo'));
+    }
+
+    public function testCachePsr6(): void
+    {
+        $cache = $this->createContainer([
+            'application' => [
+                'redis' => [
+                    'host' => env('REDIS_HOST'),
+                ],
+            ],
+        ])->get(CacheItemPoolInterface::class);
+        $item = $cache->getItem('foo');
+        $item->set((object) ['a' => 1]);
+        $cache->save($item);
     }
 
     public function testCacheUsingSymfony(): void

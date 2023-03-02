@@ -19,6 +19,9 @@ use InvalidArgumentException;
 use kuiper\di\attribute\Bean;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+
+use function kuiper\helper\env;
+
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
@@ -185,6 +188,7 @@ class ServerConfiguration implements DefinitionConfiguration
             ServerSetting::OPEN_EOF_SPLIT => false,
         ];
         $mainSettings = [
+            ServerSetting::WORKER_NUM => env('SERVER_WORKER_NUM'),
             ServerSetting::DISPATCH_MODE => 2,
             ServerSetting::DAEMONIZE => false,
         ];

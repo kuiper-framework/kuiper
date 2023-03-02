@@ -71,12 +71,11 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             ],
         ]);
         $definitions = [];
-        if ($this->jsonrpcOnHttp($config)) {
-            $definitions['jsonRpcHttpRequestHandler'] = factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']);
-            $definitions['jsonRpcHttpRequestListener'] = autowire(HttpRequestEventListener::class)
-                ->constructor(get('jsonRpcHttpRequestHandler'));
-        } else {
-            $definitions['jsonRpcTcpReceiveEventListener'] = factory([JsonRpcServerFactory::class, 'createTcpRequestEventListener']);
+        $definitions['jsonRpcHttpRequestHandler'] = factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']);
+        $definitions['jsonRpcHttpRequestListener'] = autowire(HttpRequestEventListener::class)
+            ->constructor(get('jsonRpcHttpRequestHandler'));
+        $definitions['jsonRpcTcpReceiveEventListener'] = factory([JsonRpcServerFactory::class, 'createTcpRequestEventListener']);
+        if (!$this->jsonrpcOnHttp($config)) {
             $config->merge([
                 'application' => [
                     'server' => [
@@ -147,7 +146,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         /** @var JsonRpcService $annotation */
         foreach (ComponentCollection::getComponents(JsonRpcService::class) as $annotation) {
             $serviceName = $annotation->getService() ?? $this->getServiceName($annotation->getTarget());
-            $logger->info(static::TAG."register jsonrpc service $serviceName which served by ".$annotation->getTargetClass());
+            $logger->debug(static::TAG."register jsonrpc service $serviceName which served by ".$annotation->getTargetClass());
             $services[$serviceName] = new Service(
                 new ServiceLocatorImpl($serviceName, $annotation->getVersion() ?? '1.0', JsonRpcProtocol::NS),
                 $container->get($annotation->getComponentId()),
