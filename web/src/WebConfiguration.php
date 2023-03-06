@@ -26,6 +26,10 @@ use kuiper\di\attribute\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+
+use function kuiper\helper\env;
+
+use kuiper\helper\Properties;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
@@ -44,6 +48,8 @@ use kuiper\web\handler\LoginUrlBuilderInterface;
 use kuiper\web\handler\UnauthorizedErrorHandler;
 use kuiper\web\http\MediaType;
 use kuiper\web\middleware\AccessLog;
+use kuiper\web\middleware\HealthyStatus;
+use kuiper\web\middleware\Session;
 use kuiper\web\security\Acl;
 use kuiper\web\security\AclInterface;
 use kuiper\web\session\CacheSessionHandler;
@@ -64,6 +70,7 @@ use Slim\Error\Renderers\XmlErrorRenderer;
 use Slim\Exception\HttpUnauthorizedException;
 use Slim\Interfaces\ErrorHandlerInterface;
 use Slim\Interfaces\ErrorRendererInterface;
+use Slim\Middleware\BodyParsingMiddleware;
 use Slim\Middleware\ErrorMiddleware;
 use Twig\Environment as Twig;
 use Twig\Loader\FilesystemLoader;
@@ -77,44 +84,39 @@ class WebConfiguration implements DefinitionConfiguration
 
     public function getDefinitions(): array
     {
-        $this->addAccessLoggerConfig();
-        Application::getInstance()->getConfig()->mergeIfNotExists([
-            'application' => [
-                'server' => [
-                    'http_factory' => 'diactoros',
-                ],
-            ],
-        ]);
-
-        return [
-            ErrorRendererInterface::class => autowire(LogErrorRenderer::class),
-            AclInterface::class => autowire(Acl::class),
-            RequestLogFormatterInterface::class => autowire(RequestLogTextFormatter::class),
-        ];
-    }
-
-    protected function addAccessLoggerConfig(): void
-    {
         $config = Application::getInstance()->getConfig();
-
-        if (!in_array(AccessLog::class, $config->get('application.web.middleware', []), true)) {
-            $config->merge([
-                'application' => [
-                    'web' => [
-                        'middleware' => [
-                            AccessLog::class,
-                        ],
-                    ],
-                ],
-            ]);
-        }
         $config->mergeIfNotExists([
             'application' => [
+                'web' => [
+                    'log_file' => env('WEB_LOG_FILE', '{application.logging.path}/access.log'),
+                    'log_post_body' => 'true' === env('WEB_LOG_POST_BODY'),
+                    'namespace' => env('WEB_NAMESPACE'),
+                    'context_url' => env('WEB_CONTEXT_URL'),
+                    'health_check_enabled' => 'true' === env('WEB_HEALTH_CHECK_ENABLED'),
+                    'error' => [
+                        'display' => 'true' === env('WEB_ERROR_DISPLAY'),
+                        'logging' => 'true' === env('WEB_ERROR_LOGGING', 'true'),
+                        'include_stacktrace' => env('WEB_ERROR_INCLUDE_STACKTRACE', 'on_trace_param'),
+                        'handlers' => [
+                            RedirectException::class => HttpRedirectHandler::class,
+                            UnauthorizedException::class => UnauthorizedErrorHandler::class,
+                            HttpUnauthorizedException::class => UnauthorizedErrorHandler::class,
+                        ],
+                    ],
+                    'view' => [
+                        'engine' => env('WEB_VIEW_ENGINE'),
+                        'path' => env('WEB_VIEW_PATH', '{application.base_path}/resources/views'),
+                    ],
+                    'session' => [
+                        'enabled' => 'true' === env('WEB_SESSION_ENABLED'),
+                        'prefix' => env('WEB_SESSION_PREFIX'),
+                        'cookie_name' => env('WEB_SESSION_COOKIE_NAME'),
+                        'cookie_lifetime' => env('WEB_SESSION_COOKIE_LIFETIME'),
+                    ],
+                ],
                 'logging' => [
                     'loggers' => [
-                        'AccessLogLogger' => LoggerConfiguration::createAccessLogger(
-                            $config->get('application.logging.access_log_file',
-                                $config->get('application.logging.path').'/access.log')),
+                        'AccessLogLogger' => LoggerConfiguration::createAccessLogger('{application.web.log_file}'),
                     ],
                     'logger' => [
                         AccessLog::class => 'AccessLogLogger',
@@ -122,6 +124,18 @@ class WebConfiguration implements DefinitionConfiguration
                 ],
             ],
         ]);
+        $this->addMiddleware($config);
+
+        return [
+            ErrorRendererInterface::class => autowire(LogErrorRenderer::class),
+            AclInterface::class => autowire(Acl::class),
+        ];
+    }
+
+    #[Bean]
+    public function requestLogFormatter(#[Inject('application.web')] array $config): RequestLogFormatterInterface
+    {
+        return new RequestLogTextFormatter(extra: !empty($config['log_post_body']) ? ['query', 'body'] : ['query']);
     }
 
     #[Bean]
@@ -138,7 +152,8 @@ class WebConfiguration implements DefinitionConfiguration
         if (is_array($middlewares)) {
             // 数组前面的先运行
             ksort($middlewares);
-            foreach (array_reverse($middlewares) as $middleware) {
+            $middlewares = array_reverse($middlewares);
+            foreach ($middlewares as $middleware) {
                 $app->add(is_string($middleware) ? $container->get($middleware) : $middleware);
             }
         }
@@ -168,17 +183,15 @@ class WebConfiguration implements DefinitionConfiguration
         ErrorHandlerInterface $defaultErrorHandler,
         #[Inject('application.web.error')] ?array $options): ErrorMiddleware
     {
-        $errorMiddleware = new ErrorMiddleware($app->getCallableResolver(),
+        $errorMiddleware = new ErrorMiddleware(
+            $app->getCallableResolver(),
             $app->getResponseFactory(),
-            (bool) ($options['display_error'] ?? false),
-            (bool) ($options['log_error'] ?? true),
+            (bool) ($options['display'] ?? $options['display_error'] ?? false),
+            (bool) ($options['logging'] ?? $options['log_error'] ?? true),
             false,
-            $loggerFactory->create(ErrorMiddleware::class));
-        $errorHandlers = ($options['handlers'] ?? []) + [
-                RedirectException::class => HttpRedirectHandler::class,
-                UnauthorizedException::class => UnauthorizedErrorHandler::class,
-                HttpUnauthorizedException::class => UnauthorizedErrorHandler::class,
-            ];
+            $loggerFactory->create(ErrorMiddleware::class)
+        );
+        $errorHandlers = $options['handlers'] ?? [];
         foreach ($errorHandlers as $type => $errorHandler) {
             $errorMiddleware->setErrorHandler($type, $container->get($errorHandler));
         }
@@ -288,5 +301,37 @@ class WebConfiguration implements DefinitionConfiguration
         #[Inject('application.web.login.redirect_param')] ?string $redirectParam): LoginUrlBuilderInterface
     {
         return new DefaultLoginUrlBuilder($loginUrl ?? '/login', $redirectParam ?? 'redirect');
+    }
+
+    /**
+     * @param Properties $config
+     */
+    private function addMiddleware(Properties $config): void
+    {
+        $middlewares = $config->get('application.web.middleware', []);
+        if ($config->getBool('application.web.health_check_enabled')
+            && !in_array(HealthyStatus::class, $middlewares, true)) {
+            $middlewares[] = HealthyStatus::class;
+        }
+        if (!in_array(ErrorMiddleware::class, $middlewares, true)) {
+            $middlewares[] = ErrorMiddleware::class;
+        }
+        if (!in_array(AccessLog::class, $middlewares, true)) {
+            if (in_array(HealthyStatus::class, $middlewares, true)) {
+                $pos = array_search(HealthyStatus::class, $middlewares, true);
+                array_splice($middlewares, $pos + 1, 0, AccessLog::class);
+            } else {
+                $pos = array_search(ErrorMiddleware::class, $middlewares, true);
+                array_splice($middlewares, $pos, 0, AccessLog::class);
+            }
+        }
+        if (!in_array(BodyParsingMiddleware::class, $middlewares, true)) {
+            $middlewares[] = BodyParsingMiddleware::class;
+        }
+        if ($config->getBool('application.web.session.enabled')
+            && !in_array(Session::class, $middlewares, true)) {
+            $middlewares[] = Session::class;
+        }
+        $config->set('application.web.middleware', $middlewares);
     }
 }

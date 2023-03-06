@@ -5,59 +5,50 @@ RPC 服务可以有多种协议，这里以 jsonrpc 协议为例说明 RPC 服�
 ## 安装
 
 ```bash
-composer require kuiper/jsonrpc:^0.6
+composer require kuiper/jsonrpc:^0.8
 ```
 
 ## JSON RPC Server
 
+### 服务配置
 jsonrpc 服务传输方式可以使用 http 协议和 tcp 协议两种服务。
-在 composer.json 中添加 `kuiper\jsonrpc\config\JsonRpcHttpServerConfiguration` 启用 http 服务，例如：
+在 composer.json 中添加 `\kuiper\jsonrpc\config\JsonRpcServerConfiguration` 服务配置，例如：
 
 ```json
 {
-    "scripts": {
-        "container-config": "kuiper\\component\\ComponentInstaller::generate"
-    },
     "extra": {
         "kuiper": {
-            "config-file": "src/container.php",
-            "whitelist": [
-                "kuiper/*"
-            ],
             "configuration": [
-                "kuiper\\jsonrpc\\config\\JsonRpcHttpServerConfiguration"
+                "kuiper\\jsonrpc\\config\\JsonRpcServerConfiguration"
             ]
         }
     }
 }
 ```
 
-如果要使用 tcp 协议，则替换为 `"kuiper\\jsonrpc\\config\\JsonRpcTcpServerConfiguration"`。例如：
+在 `applicaton.server.ports` 中需要配置服务传输协议和监听器：
 
-```json
-{
-    "scripts": {
-        "container-config": "kuiper\\component\\ComponentInstaller::generate"
-    },
-    "extra": {
-        "kuiper": {
-            "config-file": "src/container.php",
-            "whitelist": [
-                "kuiper/*"
-            ],
-            "configuration": [
-                "kuiper\\jsonrpc\\config\\JsonRpcTcpServerConfiguration"
+```php
+[
+    'application' => [
+        'server' => [
+            'ports' => [
+                env('SERVER_PORT', '8000') => [
+                    'protocol' => 'http',
+                    'listener' => 'jsonRpcHttpRequestListener'
+                ]
             ]
-        }
-    }
-}
+        ]
+    ] 
+]
 ```
 
-## 服务注册
+对于 http 传输协议，配置的监听器为 `jsonRpcHttpRequestListener`，对于 tcp 传输协议配置监听器为 `jsonRpcTcpReceiveEventListener` 。
 
-项目中命名空间扫描注解 `@\kuiper\jsonrpc\annotation\JsonRpcService` 标记的类都将注册为对外的 jsonrpc 服务对象。
-服务名可以由 `@JsonRpcService` 注解中 `service` 属性值指定，当未指定时可以由 `@JsonRpcService` 的接口类名生成。
-接口类名和实现类名必须有包含关系，例如 `UserService` 和 `UserServiceImpl`。 服务名是由接口名将命名空间分隔符替换为 `.` 生成，
+### 服务注册
+
+项目中命名空间扫描注解 `\kuiper\jsonrpc\attribute\JsonRpcService` 标记的类都将注册为对外的 jsonrpc 服务对象。
+服务名可以由 `JsonRpcService` 注解中 `service` 属性值指定，当未指定时可以由所标记接口类名生成。 服务名是由接口名将命名空间分隔符替换为 `.` 生成，
 例如，`app\service\UserService` 服务名为 `app.service.UserService`。
 
 除了使用注解标记，也可以通过配置 `application.jsonrpc.server.services` 注册服务对象，例如：
@@ -79,41 +70,40 @@ return [
 ];
 ```
 
-当使用字符串 key 时，key 为服务名称。value 可以时字符或者是一个数组，数组可包含以下配置：
+`application.jsonrpc.server.services` 的配置 key 值为服务名称。value 可以时字符或者是一个数组，数组可包含以下配置：
 - service 服务名
 - class 服务实现类在容器中的注册 ID
 - version 服务版本号
 
-## 客户端
+### 配置项
 
-Json RPC 客户端可以通过代理对象调用。首先在 composer.json 中添加配置：
+| 配置项                       | 环境变量                      | 说明                              |
+|---------------------------|---------------------------|---------------------------------|
+| jsonrpc.server.log_file   | JSONRPC_SERVER_LOG_FILE   | 访问日志文件名，默认为 jsonrpc-server.json |
+| jsonrpc.server.log_params | JSONRPC_SERVER_LOG_PARAMS | 访问日志中是否记录请求参数                   |
+| jsonrpc.server.out_params |                           | 是否启用入参赋值                        |
+| jsonrpc.server.middleware |                           | 中间件配置                           |
+| jsonrpc.server.services   |                           | 注册服务                            |
 
-```json
+`jsonrpc.server.out_params` 配置项用于配置是否启用入参赋值。当我们的服务声明包含需要赋值的入参，例如：
+```php
+class RegistryService 
 {
-    "scripts": {
-        "container-config": "kuiper\\component\\ComponentInstaller::generate"
-    },
-    "extra": {
-        "kuiper": {
-            "config-file": "src/container.php",
-            "whitelist": [
-                "kuiper/kuiper"
-            ],
-            "configuration": [
-                "kuiper\\web\\http\\GuzzleHttpMessageFactoryConfiguration",
-                "kuiper\\jsonrpc\\config\\JsonRpcClientConfiguration"
-            ]
-        }
-    }
+    public function getService(string $name, ?array &$result): int;
 }
 ```
+通过设置 `out_params` 为 true 可以将函数返回值和入参，合并为数组作为结果响应。
 
-项目中命名空间扫描注解 `@\kuiper\jsonrpc\annotation\JsonRpcClient` 标记的类都将注册为 jsonrpc 客户端。
-服务名可以由 `@JsonRpcClient` 注解中 `service` 属性值指定，当未指定时可以由 `@JsonRpcClient` 标记的类名生成。
-服务名是由接口名将命名空间分隔符替换为 `.` 生成，
-例如，`app\service\UserService` 服务名为 `app.service.UserService`。
+## 客户端
 
-除了使用注解标记，也可以通过配置 `application.jsonrpc.client.clients` 注册服务对象，例如：
+### 客户端配置
+
+Json RPC 客户端可以通过代理对象调用。
+
+项目中命名空间扫描注解 `\kuiper\jsonrpc\attribute\JsonRpcClient` 标记的类都将注册为 jsonrpc 客户端。
+服务名可以由 `JsonRpcClient` 注解中 `service` 属性值指定。
+
+除了使用注解标记，也可以通过配置 `application.jsonrpc.client.clients` 注册服务对象，配置数组的 key 值为容器注册的 ID。例如：
 
 ```php
 <?php
@@ -136,10 +126,7 @@ return [
 ];
 ```
 
-当 key 为字符串时，key 值为容器中注册ID值，下面查询 `application.jsonrpc.client.options` 配置项时也会使用
-这个key值。
-
-服务地址通过配置项添加：
+`application.jsonrpc.client.options` 可以按类名配置缺省参数：
 
 ```php
 [
@@ -157,34 +144,35 @@ return [
 ];
 ```
 
-调用服务：
-```php
-<?php
-use kuiper\swoole\Application;
-$container = Application::create()->getContainer();
-$ret = $container->get(FooService::class)->foo();
-```
-
-客户端配置项包括：
-- middleware 
-- http_options 设置公共 http 配置参数，参考 [Guzzle 请求参数](https://docs.guzzlephp.org/en/stable/request-options.html)
-- tcp_options 
-- options 按客户端类设置配置参数
-
-客户端类配置包括
+客户端配置项包括
 - endpoint 设置服务器地址
+- protocol 服务传输协议，支持 http 和 tcp，默认为 http
 - service 服务名
+- out_params 是否启用入参赋值，参考服务端 `out_params` 配置说明
 - middleware 设置中间件
 - 其他 http 或 tcp 配置参数
 
-application.jsonrpc.client 配置项：
+调用服务：
+```php
+<?php
+$result = $container->get(FooService::class)->foo();
+```
 
-| 配置项       | 说明                                                                                                      |
-| middleware   | 通用中间件 ｜                                                                                             |
-| http_options | 设置公共 http 配置参数，参考 [Guzzle 请求参数](https://docs.guzzlephp.org/en/stable/request-options.html) |
-| tcp_options  | 设置公共 tcp 配置参数，参考 `\kuiper\swoole\constants\ClientSettings`                                     |
-| options      | 按客户端接口类名设置配置参数                                                                              |
-| clients      | 创建单独的客户端实例                                                                                      |
+
+### 配置项
+
+| 配置项                            | 环境变量                      | 说明                             |
+|--------------------------------|---------------------------|--------------------------------|
+| jsonrpc.client.log_file        | JSONRPC_CLIENT_LOG_FILE   | 请求日志文件                         |
+| jsonrpc.client.log_params      | JSONRPC_CLIENT_LOG_PARAMS | 请求日志是否记录请求参数                   |
+| jsonrpc.client.protocol        | JSONRPC_CLIENT_PROTOCOL   | 服务传输协议，支持 http 和 tcp，默认值为 http |
+| jsonrpc.client.middleware      |                           | 中间件                            |
+| jsonrpc.client.http_options    |                           | 设置公共 http 配置参数                 |
+| jsonrpc.client.tcp_options     |                           | 设置公共 tcp 配置参数                  |
+| jsonrpc.client.clients         |                           | 注册客户端                          |
+| jsonrpc.client.options         |                           | 客户端配置                          |
+
+`http_options` 可配置参数参考 [HttpClient](http-client.md)，`tcp_options` 可配置参数参考 swoole tcp 配置参数。
 
 ## 实现
 
@@ -198,60 +186,3 @@ jsonrpc 服务端中间件可以通过配置项 `application.jsonrpc.server.midd
 jsonrpc 客户端中间件可以通过配置项 `application.jsonrpc.client.middleware` 设置，也可以在
 `application.jsonrpc.client.options` 中对每个客户端类配置。
 
-## 服务发现
-
-通过使用 consul 等服务注册中心可以自动发现服务。
-
-```bash
-composer require kuiper/rpc-registry:^0.6
-```
-
-在 `src/config.php` 中添加 consul 服务地址配置：
-
-```php
-[
-    'application' => [
-        'consul' => [
-            'base_uri' => "http://consul:8500",
-        ]
-    ]
-]
-```
-consul 其他配置参数参考 [http-client](http-client.md) 。
-
-对于 rpc 服务端，需要添加事件监听器：
-
-```php
-[
-    'application' => [
-        'listeners' => [
-            \kuiper\rpc\server\listener\ServiceDiscoveryListener::class
-        ],
-    ]
-]
-```
-在服务启动时会自动将当前服务地址注册到 consul 中。
-
-对于 rpc 客户端，需要添加中间件：
-
-```php
-[
-    'application' => [
-        'jsonrpc' => [
-            'client'=> [
-                'middleware' => [
-                    \kuiper\rpc\client\middleware\ServiceDiscovery::class,
-                ]
-            ]
-        ]
-    ]
-]
-```
-
-服务发现相关配置项：
-
-| 配置项                                           | 说明                                               |
-|--------------------------------------------------|----------------------------------------------------|
-| application.server.service_disovery.type         | 服务端服务注册类型，目前只支持 consul                    |
-| application.client.service_disovery.type         | 客户端服务发现类型，目前只支持 consul                    |
-| application.client.service_disovery.load_balance | 负载均衡算法，可选值 round_robin, random, equality |

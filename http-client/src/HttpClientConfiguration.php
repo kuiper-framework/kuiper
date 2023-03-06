@@ -25,12 +25,16 @@ use kuiper\di\attribute\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+
+use function kuiper\helper\env;
+
 use kuiper\http\client\attribute\HttpClient;
 use kuiper\serializer\NormalizerInterface;
 use kuiper\swoole\Application;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use Psr\Container\ContainerInterface;
 
-#[Configuration]
+#[Configuration, BootstrapConfiguration]
 #[ConditionalOnClass(ClientInterface::class)]
 class HttpClientConfiguration implements DefinitionConfiguration
 {
@@ -38,6 +42,20 @@ class HttpClientConfiguration implements DefinitionConfiguration
 
     public function getDefinitions(): array
     {
+        if (class_exists(Application::class) && Application::hasInstance()) {
+            Application::getInstance()->getConfig()->mergeIfNotExists([
+                'application' => [
+                    'http_client' => [
+                        'default' => [
+                            'logging' => 'true' === env('HTTP_CLIENT_LOGGING'),
+                            'log_format' => env('HTTP_CLIENT_LOG_FORMAT'),
+                            'retry' => (int) env('HTTP_CLIENT_RETRY', '0'),
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
         return array_merge($this->createHttpClientProxy(), [
             HttpClientFactoryInterface::class => autowire(HttpClientFactory::class),
         ]);
@@ -52,7 +70,7 @@ class HttpClientConfiguration implements DefinitionConfiguration
         if (isset($options['middleware'])) {
             foreach ($options['middleware'] as $i => $middleware) {
                 if (is_string($middleware)) {
-                    $options[$i] = $container->get($middleware);
+                    $options['middleware'][$i] = $container->get($middleware);
                 }
             }
         }

@@ -16,6 +16,7 @@ namespace kuiper\tars\server;
 use kuiper\helper\Properties;
 use kuiper\reflection\ReflectionType;
 use kuiper\swoole\constants\ServerSetting;
+use kuiper\swoole\constants\ServerType;
 use kuiper\tars\core\EndpointParser;
 use kuiper\tars\core\TarsProtocol;
 use kuiper\tars\exception\ConfigException;
@@ -78,10 +79,15 @@ class Config
                     $adapter = $arr['server'][$key];
                     if (isset($adapter['endpoint'])) {
                         $endpoint = EndpointParser::parse($adapter['endpoint']);
-                        $ports[$endpoint->getPort()] = [
-                            'protocol' => TarsProtocol::from($adapter['protocol'] ?? 'tars')->getServerType()->value,
+                        $serverType = TarsProtocol::from($adapter['protocol'] ?? 'tars')->getServerType();
+                        $portConfig = [
+                            'protocol' => $serverType->value,
                             'host' => $endpoint->getHost(),
                         ];
+                        if (ServerType::TCP === $serverType) {
+                            $portConfig['listener'] = TarsTcpReceiveEventListener::class;
+                        }
+                        $ports[$endpoint->getPort()] = $portConfig;
                     }
                     $adapters[] = $adapter;
                     unset($arr['server'][$key]);

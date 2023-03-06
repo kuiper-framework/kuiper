@@ -10,6 +10,7 @@
   - [Server](swoole.md)
   - [Web Server](web.md)
   - [RPC](rpc.md)
+  - [RPC Registry](rpc-registry.md)
   - [Tars Server](tars.md)
   - [Resilience](resilience.md)
   - [Http Client](http-client.md)

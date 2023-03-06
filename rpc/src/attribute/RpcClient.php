@@ -27,8 +27,12 @@ class RpcClient implements Component
         private readonly string $version = '',
         private readonly string $ns = '',
         private readonly string $protocol = '',
-        private readonly string $endpoint = '')
+        private readonly string $endpoint = '',
+        private readonly ?string $name = null)
     {
+        if (isset($this->name)) {
+            $this->setComponentId($this->name);
+        }
     }
 
     /**

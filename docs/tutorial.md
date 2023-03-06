@@ -3,7 +3,7 @@
 Kuiper 使用 composer 管理项目依赖。创建 Kuiper 项目最好的方式是使用 `kuiper/skeleton` 项目模板来初始化：
 
 ```bash
-composer create-project kuiper/skeleton app
+composer create-project kuiper/skeleton:^0.2 app
 ```
 
 使用项目模板创建项目时，需要回答提供一些项目配置选项。首先需要指定服务类型：
@@ -32,6 +32,7 @@ Make your selection (1):
 |-- resources
 |   |-- serve.sh
 |   `-- views
+|      `-- index.html
 `-- src
     |-- application
     |   `-- controller
@@ -59,7 +60,7 @@ Application::run();
 
 这个入口文件非常简单，把启动过程都封装在 `kuiper\swoole\Application::run()` 函数中，后面我们会详细介绍启动过程。
 
-在服务启动后，Kuiper 框架会扫描项目命名空间下所有使用 `@kuiper\di\annotation\Controller` 注解的类，这里 `src/application/controller/IndexController.php` 满足条件：
+在服务启动后，Kuiper 框架会扫描项目命名空间下所有使用 `\kuiper\di\attribute\Controller` 注解的类，这里 `src/application/controller/IndexController.php` 满足条件：
 
 
 ```php
@@ -67,19 +68,15 @@ Application::run();
 
 namespace app\application\controller;
 
-use kuiper\di\annotation\Controller;
+use kuiper\di\attribute\Controller;
 use kuiper\web\AbstractController;
-use kuiper\web\annotation\GetMapping;
+use kuiper\web\attribute\GetMapping;
 use Slim\Exception\HttpUnauthorizedException;
 
-/**
- * @Controller
- */
+#[Controller]
 class IndexController extends AbstractController
 {
-    /**
-     * @GetMapping("/")
-     */
+    #[GetMapping("/")]
     public function index(): void
     {
         $this->getResponse()->getBody()->write("<h1>It works!</h1>\n");
@@ -87,7 +84,7 @@ class IndexController extends AbstractController
 }
 ```
 
-在发现 `@Controller` 注解标记的控制器类后，Kuiper 框架会扫描控制器类中使用 `@RequestMapping` 相关注解，将这些注解转换成路由规则添加在 Web 应用中。
+在发现 `#[Controller]` 注解标记的控制器类后，Kuiper 框架会扫描控制器类中使用 `#[RequestMapping]` 相关注解，将这些注解转换成路由规则添加在 Web 应用中。
 
 ## 启动服务
 

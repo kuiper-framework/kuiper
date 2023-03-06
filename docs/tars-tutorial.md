@@ -7,7 +7,7 @@
 同样，我们使用项目模板创建项目：
 
 ```bash
-composer create-project kuiper/skeleton app
+composer create-project kuiper/skeleton:^0.2 app
 ```
 
 服务类型选择第5项 Tars TCP RPC 服务：
@@ -47,7 +47,7 @@ Make your selection (1): 5
         `-- hello.tars
 ```
 
-与 jsonrpc 服务相比，我们多了一些文件。我们不再使用 `src/service` 目录作为服务接口目录，而是使用 servant 作为包名，在 `src/servant/HelloServant.php` 中声明接口。
+与 jsonrpc 服务相比，我们多了一些文件。我们使用 servant 作为包名，在 `src/servant/HelloServant.php` 中声明接口。
 
 ```php
 <?php
@@ -63,24 +63,15 @@ declare(strict_types=1);
 
 namespace app\servant;
 
-use kuiper\tars\annotation\TarsParameter;
-use kuiper\tars\annotation\TarsReturnType;
-use kuiper\tars\annotation\TarsServant;
+use kuiper\tars\attribute\TarsParameter;
+use kuiper\tars\attribute\TarsReturnType;
+use kuiper\tars\attribute\TarsServant;
 
-/**
- * @TarsServant("HelloObj")
- */
+#[TarsServant("HelloObj")]
 interface HelloServant
 {
-    /**
-     * @TarsParameter(name="message", type="string")
-     * @TarsReturnType("string")
-     *
-     * @param string $message
-     *
-     * @return string
-     */
-    public function hello(string $message): string;
+    #[TarsReturnType("string")]
+    public function say(#[TarsParameter(type: "string")] string $message): string;
 }
 ```
 
@@ -92,7 +83,7 @@ module app
 {
     interface Hello
     {
-        string hello(string message);
+        string say(string message);
     };
 };
 ```
@@ -110,25 +101,23 @@ declare(strict_types=1);
 
 namespace app\application;
 
+use kuiper\di\attribute\Service;
 use app\servant\HelloServant;
-use kuiper\di\annotation\Service;
 
-/**
- * @Service
- */
+#[Service]
 class HelloServantImpl implements HelloServant
 {
     /**
      * {@inheritdoc}
      */
-    public function hello(string $message): string
+    public function say(string $message): string
     {
         return "hello $message";
     }
 }
 ```
 
-这里我们使用 `@kuiper\di\annotation\Service` 注解将服务实现注册到容器中。
+这里我们使用 `kuiper\di\attribute\Service` 注解将服务实现注册到容器中。
 
 TARS 应用并不依赖 tars 平台运行，使用 `composer serve` 也可以启动本地服务。本地服务和部署在 tars 平台上的应用一样，启动时需要指定配置文件，这个配置文件是 `config.conf` 文件。`config.conf` 默认情况和 `config.conf.example` 相同，但是不会提交到 git 仓库中。
 
@@ -140,7 +129,7 @@ TARS 应用并不依赖 tars 平台运行，使用 `composer serve` 也可以启
 
 
 ```bash
-composer create-project kuiper/skeleton app2
+composer create-project kuiper/skeleton:^0.2 app2
 ```
 
 这次我们选择使用 Tars HTTP Server 演示如何调用 Tars RPC 服务：
@@ -193,7 +182,7 @@ return [
             'client' => [
                 'options' => [
                     HelloServant::class => [
-                        'endpoint' => 'app.demo.HelloObj@tcp -h localhost -p 7000'
+                        'endpoint' => 'tcp://localhost:7000'
                     ]
                 ]
             ]

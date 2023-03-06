@@ -248,12 +248,26 @@ class PropertiesTest extends TestCase
             'base_path' => '/path',
             'view_path' => '{base_path}/views',
             'tmpl_path' => '{view_path}/a.html',
+            'handler' => [
+                [
+                    'constructor' => [
+                        'stream' => '{base_path}/access.log',
+                    ],
+                ],
+            ],
         ]);
         $properties->replacePlaceholder();
         $this->assertEquals([
             'base_path' => '/path',
             'view_path' => '/path/views',
             'tmpl_path' => '/path/views/a.html',
+            'handler' => [
+                [
+                    'constructor' => [
+                        'stream' => '/path/access.log',
+                    ],
+                ],
+            ],
         ], $properties->toArray());
     }
 
@@ -281,5 +295,54 @@ class PropertiesTest extends TestCase
                 'APP_PATH' => '/path',
             ],
         ], $properties->toArray());
+    }
+
+    public function testModifyInplace(): void
+    {
+        $properties = Properties::create([
+            'application' => [
+                'redis' => [
+                    'host' => 'localhost',
+                ],
+            ],
+        ]);
+        $properties->application->redis->merge([
+            'host' => '127.0.0.1',
+        ]);
+        $this->assertEquals('127.0.0.1', $properties->get('application.redis.host'));
+    }
+
+    public function testWith(): void
+    {
+        $properties = Properties::create([
+            'application' => [
+                'redis' => [
+                    'host' => 'localhost',
+                ],
+            ],
+        ]);
+        $properties->with('application.redis', function ($value) {
+            $value->merge([
+                'host' => '127.0.0.1',
+            ]);
+        });
+        $this->assertEquals('127.0.0.1', $properties->get('application.redis.host'));
+    }
+
+    public function testArrayValueAppend(): void
+    {
+        $properties = Properties::create([
+            'application' => [
+                'web' => [
+                    'middleware' => [
+                        'foo',
+                    ],
+                ],
+            ],
+        ]);
+        $properties->with('application.web.middleware', function (Properties $value) {
+            $value->append('bar');
+        });
+        $this->assertEquals(['foo', 'bar'], $properties->get('application.web.middleware'));
     }
 }

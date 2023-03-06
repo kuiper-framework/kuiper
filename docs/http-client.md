@@ -6,7 +6,7 @@ kuiper 提供 Http 客户端工厂类，并提供类似 [Spring Cloud OpenFeign]
 ## 安装
 
 ```bash
-composer require kuiper/http-client:^0.6
+composer require kuiper/http-client:^0.8
 ```
 
 ## HttpClientFactory
@@ -39,31 +39,28 @@ composer require kuiper/http-client:^0.6
 
 ## Http 代理对象
 
-Http 代理对象通过 php 接口声明，并使用 `@\kuiper\http\client\annotation\HttpClient` 注解标识。例如
+Http 代理对象通过 php 接口声明，并使用 `#\kuiper\http\client\attribute\HttpClient` 注解标识。例如
 
 ```php
 <?php
 
-use kuiper\http\client\annotation\GetMapping;
-use kuiper\http\client\annotation\HttpClient;
-use kuiper\http\client\annotation\RequestHeader;
+use kuiper\http\client\attribute\GetMapping;
+use kuiper\http\client\attribute\HttpClient;
+use kuiper\http\client\attribute\HttpHeader;
 
-/**
- * @HttpClient
- * @RequestHeader("content-type: application/json")
- */
+#[HttpClient]
+#[HttpHeader("content-type", "application/json")]
 interface GithubService
 {
     /**
-     * @GetMapping("/users/{user}/list")
-     *
      * @return GitRepository[]
      */
+    #[GetMapping("/users/{user}/list")]
     public function listRepos(string $user): array;
 }
 ```
 
-http 请求方法和路径通过 `@kuiper\http\client\annotation\GetMapping` 这样注解进行声明，
+http 请求方法和路径通过 `\kuiper\http\client\attribute\GetMapping` 这样注解进行声明，
 路径中 `{user}` 这样的占位符会使用方法参数中同名的参数值替换。方法中的其他参数都将转换为 Guzzle 的请求参数。
 如果请求方法为 `GET`，则作为 query 参数；其他请求方法，根据 content-type 设置，如果是 `application/json`
 则作为 json 参数；如果是 `multipart/form-data`，则作为 multipart 参数。
@@ -72,18 +69,15 @@ http 请求方法和路径通过 `@kuiper\http\client\annotation\GetMapping` 这
 
 当上述参数解析不满足需求，可以通过使用 `\kuiper\http\client\request\Request` 对象，直接设置 Guzzle 请求参数。
 
-http 头可以通过 `@\kuiper\http\client\annotation\RequestHeader` 注解设置，value 值可以使用参数占位符，替换为方法中的参数例如：
+http 头可以通过 `\kuiper\http\client\attribute\HttpHeader` 注解设置，value 值可以使用参数占位符，替换为方法中的参数例如：
 
 ```php
 <?php
 
 interface GithubService
 {
-    /**
-     * @GetMapping("/users/{user}/list")
-     * @RequestHeander("Authorization: Bearer {token}")
-     * @return GitRepository[]
-     */
+    #[GetMapping("/users/{user}/list")]
+    #[RequestHeander("Authorization: Bearer {token}")]
     public function listRepos(string $user, string $token): array;
 }
 ```
@@ -91,8 +85,8 @@ interface GithubService
 http 响应默认使用 `\kuiper\http\client\HttpJsonResponseFactory` 解析， 只能解析 json 结果。
 当响应 status code 非 20X 的响应时， 将抛出 `\GuzzleHttp\Exception\RequestException`。
 如果解析方式不满足要求，可以实现 `\kuiper\rpc\client\RpcResponseFactoryInterface` 接口，配置类名
-到 `@HttpClient` 注解的 responseParser 属性。如果需要解析非 20X 响应结果，需要在 http 客户端配置
-中设置 `http-errors` 为 false。
+到 `HttpClient` 注解的 responseParser 属性。如果需要解析非 20X 响应结果，需要在 http 客户端配置
+中设置 `http_errors` 为 false。
 
 http 代理对象的 http 客户端配置项可以通过在 `application.http_client` 中使用接口名做为 key 值设置，例如：
 
@@ -108,3 +102,11 @@ http 代理对象的 http 客户端配置项可以通过在 `application.http_cl
 ]
 ```
 
+## 配置项
+
+
+| 配置项                            | 环境变量                   | 说明                             |
+|--------------------------------|------------------------|--------------------------------|
+| http_client.default.logging    | HTTP_CLIENT_LOGGING    | 是否打印 http 请求日志                 |
+| http_client.default.log_format | HTTP_CLIENT_LOG_FORMAT | 日志格式，支持 clf, short, debug 三种格式 |
+| http_client.default.retry      | HTTP_CLIENT_RETRY      | 重试次数，默认不重试                     |

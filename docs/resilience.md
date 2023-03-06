@@ -5,7 +5,7 @@ kuiper resilience 用于 RPC 容错处理库。resilience 库代码参考 [resil
 ## 安装
 
 ```bash
-composer require kuiper/resilience:^0.6
+composer require kuiper/resilience:^0.8
 ```
 
 ## 重试

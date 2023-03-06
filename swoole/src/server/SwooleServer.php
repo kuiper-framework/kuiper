@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\swoole\server;
 
 use Exception;
+use kuiper\swoole\Application;
 use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\Event;
 use kuiper\swoole\event\MessageInterface;
@@ -87,7 +88,7 @@ class SwooleServer extends AbstractServer
     /**
      * {@inheritdoc}
      */
-    protected function doStart(): void
+    public function start(): void
     {
         self::check();
         $this->dispatch(Event::BOOTSTRAP->value, []);
@@ -254,6 +255,12 @@ class SwooleServer extends AbstractServer
                 $this->onRequest(...$args);
 
                 return;
+            }
+            if ((Event::WORKER_START->value === $eventName)
+                && Application::getInstance()->isBootstrapContainerEnabled()) {
+                // recreate container if necessarily
+                Application::getInstance()->getContainer();
+                $this->setEventDispatcher(Application::getInstance()->getEventDispatcher());
             }
             if ($args[0] instanceof Server) {
                 array_shift($args);

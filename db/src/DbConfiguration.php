@@ -36,21 +36,41 @@ use kuiper\di\attribute\ConditionalOnProperty;
 use kuiper\di\attribute\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+
+use function kuiper\helper\env;
+
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionFileFactoryInterface;
+use kuiper\swoole\Application;
 use kuiper\swoole\pool\PoolFactoryInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Swoole\Coroutine\Channel;
 
 #[Configuration]
-#[ConditionalOnProperty('application.database')]
 class DbConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
 
     public function getDefinitions(): array
     {
+        if (class_exists(Application::class) && Application::hasInstance()) {
+            Application::getInstance()->getConfig()->mergeIfNotExists([
+                'application' => [
+                    'database' => [
+                        'driver' => env('DB_DRIVER', 'mysql'),
+                        'host' => env('DB_HOST', 'localhost'),
+                        'port' => (int) env('DB_PORT', '3306'),
+                        'user' => env('DB_USER'),
+                        'password' => env('DB_PASSWORD', env('DB_PASS')),
+                        'name' => env('DB_NAME'),
+                        'table_prefix' => env('DB_TABLE_PREFIX'),
+                        'logging' => 'true' === env('DB_LOGGING'),
+                    ],
+                ],
+            ]);
+        }
+
         return [
             ReflectionFileFactoryInterface::class => factory([ReflectionFileFactory::class, 'getInstance']),
             QueryBuilderInterface::class => autowire(QueryBuilder::class),

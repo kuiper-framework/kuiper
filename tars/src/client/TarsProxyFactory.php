@@ -207,7 +207,7 @@ class TarsProxyFactory implements ContainerAwareInterface
                 if (count($endpoints) > 1) {
                     unset($options['endpoint']);
                 } else {
-                    $options['endpoint'] = (string) $endpoints[0];
+                    $options['endpoint'] = Endpoint::removeTcpScheme((string) $endpoints[0]);
                 }
             }
         }

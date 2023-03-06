@@ -1,49 +1,25 @@
 # Cache
 
-Kuiper cache 提供协程环境下的基于 redis 缓存方案。Kuiper cache 基于 PSR-6 和 PSR-16 接口，
-本身并没有实现接口，而是需要使用 [Stash](https://www.stashphp.com/) 或 [Symfony Cache](https://symfony.com/doc/current/components/cache.html) .
+Kuiper cache 提供协程环境下的基于 redis 缓存方案。Kuiper cache 
+基于 [Symfony Cache](https://symfony.com/doc/current/components/cache.html)，提供 PSR-6 和 PSR-16 接口实现.
 
 ## 安装 
 
 ```bash
-composer require kuiper/cache:^0.6
-```
-
-在 `src/config.php` 中配置：
-
-```php
-use kuiper\helper\env;
-
-return [
-    'application' => [
-        'cache' => [
-            'implementation' => 'stash',
-            'namespace' => env('CACHE_PREFIX'),
-            'lifetime' => (int) env('CACHE_LIFETIME', 300),
-            'memory' => [
-                'max_items' => (int) env('CACHE_MEMORY_MAX_ITEMS', 1000)
-            ],
-        ],
-        'redis' => [
-            'host' => env('REDIS_HOST', 'localhost'),
-            'port' => (int) env('REDIS_PORT', 6379),
-            'password' => env('REDIS_PASSWARD'),
-            'database' => (int) env('REDIS_DATABASE')
-        ]
-    ]
-];
+composer require kuiper/cache:^0.8
 ```
 
 配置项说明：
 
-- `application.cache.implementation` 设置缓存实现，可以使用 stash 或者 symfony 
-- `application.cache.namespace` 设置缓存命名空间前缀
-- `application.cache.lifetime` 使用缓存默认过期事件
-- `application.cache.memory` 设置是否使用内存缓存加速
-- `application.redis` 设置 redis 连接选项
-
-> kuiper cache 默认使用 stash 缓存实现，原因是 stash Redis 提供按前缀删除缓存的方案，另外，symfony redis
-> cache 会把所有 key 存到内存中，在缓存可以较多时消耗内存。
+| 配置项                   | 环境变量                  | 说明           |
+|-----------------------|-----------------------|--------------|
+| cache.namespace       | CACHE_NAMESPACE       | 缓存键前缀        |
+| cache.lifetime        | CACHE_LIFETIME        | 缓存默认过期时间     |
+| cache.memory.lifetime | CACHE_MEMORY_LIFETIME | 内存缓存过期时间     |
+| redis.host            | REDIS_HOST            | redis 服务器地址  |
+| redis.port            | REDIS_PORT            | redis 服务器端口号 |
+| redis.password        | REDIS_PASSWORD        | redis 服务器密码  |
+| redis.database        | REDIS_DATABASE        | redis 数据库序号  |
 
 ## 使用
 
@@ -59,13 +35,17 @@ if (!$item->isHit()) {
 $value = $item->get();
 ```
 
-使用 stash 实现可以基于缓存前缀删除缓存（使用 `/` 作为前缀分隔符）。为和普通缓存 key 区分，基于前缀的缓存 key 必须使用 `group.` 开头。例如：
-
+如果需要使用 symfony cache 的特性，可以使用 `Symfony\Contracts\Cache\CacheInterface` 实现：
 ```php
-$cache = $container->get(\Psr\Cache\CacheItemPoolInterface::class);
-$item = $cache->getItem("group.foo/bar");
-$cache->save($item->set("bar content"));
-$cache->deleteItem("group.foo");
-echo $cache->hasItem("group.foo/bar");
-```
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\CacheInterface;
 
+$beta = 1.0;
+$cache = $container->get(\Symfony\Contracts\Cache\CacheInterface::class);
+$value = $cache->get('my_cache_key', function (ItemInterface $item) {
+    $item->expiresAfter(3600);
+    $item->tag(['tag_0', 'tag_1']);
+
+    return '...';
+}, $beta);
+```

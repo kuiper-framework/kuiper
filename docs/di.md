@@ -5,7 +5,7 @@ Kuiper DI(Dependency Injection)依赖注入是基于 [php-di](http://php-di.org/
 ## 安装
 
 ```bash
-composer require kuiper/di:^0.6
+composer require kuiper/di:^0.8
 ```
 
 ## ContainerBuilder 
@@ -27,18 +27,16 @@ $container = $builder->build();
 
 ## Configuration 
 
-容器的配置推荐使用使用 `Configuration` 类完成。在 `Configuration` 类中，所有添加了 `@\kuiper\di\annotation\Bean` 
+容器的配置推荐使用使用 `Configuration` 类完成。在 `Configuration` 类中，所有添加了 `\kuiper\di\attribute\Bean` 
 注解的方法将以 [factory](https://php-di.org/doc/php-definitions.html#factories) 的方式注册到容器中。例如：
 
 ```php
 <?php
-use kuiper\di\annotation\Bean;
+use kuiper\di\attribute\Bean;
 
 class MyConfiguration
 {
-    /**
-     * @Bean()
-     */
+    #[Bean]
     public function userRegistrationService(UserRepository $userRepository): UserRegistrationService
     {
         return new UserRegistrationService($userRepository);
@@ -48,17 +46,15 @@ class MyConfiguration
 $builer->addConfiguration(new MyConfiguration());
 ```
 
-需要注意的是容器中定义名字默认使用函数的返回类型。如果函数无返回类型或需要指定定义名字可以通过 `@Bean("beanName")` 方式设置，例如：
+需要注意的是容器中定义名字默认使用函数的返回类型。如果函数无返回类型或需要指定定义名字可以通过 `#[Bean("beanName")]` 方式设置，例如：
 
 ```php
 <?php
-use kuiper\di\annotation\Bean;
+use kuiper\di\attribute\Bean;
 
 class Configuration
 {
-    /**
-     * @Bean("userRegistrationService")
-     */
+    #[Bean("userRegistrationService")]
     public function userRegistrationService(UserRepository $userRepository): UserRegistrationService
     {
         return new UserRegistrationService($userRepository);
@@ -67,7 +63,7 @@ class Configuration
 ```
 
 在 php-di 中，factory 通过参数类型解析参数。如果参数不是一个 class 类型或者容器中定义名不是 class 类型，则需要使用
-`@\DI\Annotation\Inject` 注解来设置参数。注解的使用方式参考 [php-di 文档](https://php-di.org/doc/annotations.html#inject) 。
+`\DI\Attribute\Inject` 注解来设置参数。注解的使用方式参考 [php-di 文档](https://php-di.org/doc/annotations.html#inject) 。
 
 如果需要使用 php-di 提供的方法来创建定义，可以通过实现 `\kuiper\di\DefinitionConfiguration` 接口进行定义声明，例如：
 
@@ -94,7 +90,7 @@ class MyConfiguration implements DefinitionConfiguration
 
 ## ComponentScan
 
-容器支持按命名空间扫描命名空间下所有类，识别出所有实现 `\kuiper\di\annotation\ComponentInterface` 接口的注解。
+容器支持按命名空间扫描命名空间下所有类，识别出所有实现 `\kuiper\di\attribute\ComponentInterface` 接口的注解。
 
 命名空间扫描是基于 composer PSR-4 规则，通过 Composer ClassLoader 根据命名空间查找到命名空间对应的目录，然后递归扫描
 目录中的文件。使用这个特性必须先向 `ContainerBuilder` 中注册 Composer ClassLoader:
@@ -108,18 +104,18 @@ $builder->componentScan(["app\\service"]);
 $container = $builder->build();
 ```
 
-扫描过程中如果类使用 `@\kuiper\di\annotation\ComponentScan` 注解，注解配置的命名空间列表将被继续扫描。
+扫描过程中如果类使用 `\kuiper\di\attribute\ComponentScan` 注解，注解配置的命名空间列表将被继续扫描。
 
-目前支持的扫描的注解包括：
+常用的注解包括：
 
-- `@\kuiper\di\annotation\Configuration`
-- `@\kuiper\di\annotation\Component`
-- `@\kuiper\di\annotation\Controller`
-- `@\kuiper\di\annotation\Service`
+- `\kuiper\di\attribute\Configuration`
+- `\kuiper\di\attribute\Component`
+- `\kuiper\di\attribute\Controller`
+- `\kuiper\di\attribute\Service`
 
-`@Configuration` 注解用于标识该类是一个 Configuration 类，将自动添加到容器定义中。
+`#[Configuration]` 注解用于标识该类是一个 Configuration 类，将自动添加到容器定义中。
 
-`@Component`, `@Controller`, `@Service` 三种注解用于将当前注解标记的类添加到容器定义中。
+`#[Component]`, `#[Controller]`, `#[Service]` 三种注解用于将当前注解标记的类添加到容器定义中。
 默认将当前类实现的所有接口名都注册到容器中。如果注解指定名称，则使用注解中指定的名称作为容器定义名字。
 例如：
 
@@ -128,11 +124,9 @@ $container = $builder->build();
 
 name app\service;
 
-use kuiper\di\annotation\Service;
+use kuiper\di\attribute\Service;
 
-/**
- * @Service
- */
+#[Service]
 class UserServiceImpl implement UserService
 {
 }
@@ -144,18 +138,18 @@ class UserServiceImpl implement UserService
 
 当开发一个公共库或者一个开源组件时，我们希望应用可以根据用户配置或者用户引入的包自动进行配置。
 在 Kuiper DI 中可以使用条件注解设置定义生效的条件。目前支持的条件注解包括：
+``
+- `\kuiper\di\attribute\ConditionalOnClass` 当指定的类存在时生效
+- `\kuiper\di\attribute\ConditionalOnMissingClass` 当指定类不存在才生效
+- `\kuiper\di\attribute\ConditionalOnBean` 当容器中指定的名字的定义存在时生效
+- `\kuiper\di\attribute\ConditionalOnMissingBean` 当容器中指定名字的定义不存在才生效
+- `\kuiper\di\attribute\ConditionalOnProperty` 根据配置项值判断是否生效
+- `\kuiper\di\attribute\AllConditions` 所有子条件注解都为真时生效
+- `\kuiper\di\attribute\AnyCondition` 任意一个子条件注解为真时生效
+- `\kuiper\di\attribute\NoneCondition` 所有子条件注解都为假时生效
+- `\kuiper\di\attribute\Conditional` 根据自定义实现 Condition 接口的类判断是否生效 
 
-- `@\kuiper\di\annotation\ConditionalOnClass` 当指定的类存在时生效
-- `@\kuiper\di\annotation\ConditionalOnMissingClass` 当指定类不存在才生效
-- `@\kuiper\di\annotation\ConditionalOnBean` 当容器中指定的名字的定义存在时生效
-- `@\kuiper\di\annotation\ConditionalOnMissingBean` 当容器中指定名字的定义不存在才生效
-- `@\kuiper\di\annotation\ConditionalOnProperty` 根据配置项值判断是否生效
-- `@\kuiper\di\annotation\AllConditions` 所有子条件注解都为真时生效
-- `@\kuiper\di\annotation\AnyCondition` 任意一个子条件注解为真时生效
-- `@\kuiper\di\annotation\NoneCondition` 所有子条件注解都为假时生效
-- `@\kuiper\di\annotation\Conditional` 根据自定义实现 Condition 接口的类判断是否生效 
-
-使用 ConditionalOnProperty 注解需要先在容器中注册一个 `\kuiper\helper\PropertyResolverInterface` 对象，例如：
+使用 `ConditionalOnProperty` 注解需要先在容器中注册一个 `\kuiper\helper\PropertyResolverInterface` 对象，例如：
 
 ```php
 <?php

@@ -31,7 +31,7 @@ use kuiper\serializer\NormalizerInterface;
 use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 use ReflectionAttribute;
 use ReflectionMethod;
-use ReflectionParameter;
+use Reflector;
 
 class HttpRpcRequestFactory implements RpcRequestFactoryInterface
 {
@@ -44,13 +44,13 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
     /**
      * @template T
      *
-     * @param ReflectionMethod|ReflectionParameter $reflector
-     * @param class-string<T>                      $name
-     * @param int                                  $flags
+     * @param Reflector       $reflector
+     * @param class-string<T> $name
+     * @param int             $flags
      *
      * @return T|null
      */
-    private function getAttribute(ReflectionMethod|ReflectionParameter $reflector, string $name, int $flags = 0)
+    private function getAttribute(Reflector $reflector, string $name, int $flags = 0)
     {
         $attributes = $reflector->getAttributes($name, $flags);
         if (count($attributes) > 0) {
@@ -98,7 +98,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
         $mapping = $this->getAttribute($reflectionMethod, RequestMapping::class, ReflectionAttribute::IS_INSTANCEOF);
         $uri = preg_replace_callback($placeholderRe, $replacePlaceholder, $mapping->getPath());
 
-        $httpClientAttribute = $this->getAttribute($reflectionMethod, HttpClient::class);
+        $httpClientAttribute = $this->getAttribute($reflectionMethod->getDeclaringClass(), HttpClient::class);
         if (null !== $httpClientAttribute) {
             $uri = $httpClientAttribute->getUrl().$httpClientAttribute->getPath().$uri;
         }

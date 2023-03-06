@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
+use DI\Attribute\Inject;
+
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
@@ -22,6 +24,10 @@ use kuiper\di\attribute\Bean;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+
+use function kuiper\helper\env;
+
+use kuiper\helper\Properties;
 use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\attribute\JsonRpcClient;
@@ -48,24 +54,37 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
 
     public function getDefinitions(): array
     {
-        $this->addJsonRpcRequestLog();
-        Application::getInstance()->getConfig()->merge([
+        $config = Application::getInstance()->getConfig();
+        $config->mergeIfNotExists([
             'application' => [
                 'jsonrpc' => [
                     'client' => [
-                        'middleware' => [
-                            AddRequestReferer::class,
-                            'jsonrpcRequestLog',
-                        ],
+                        'log_file' => env('JSONRPC_CLIENT_LOG_FILE', '{application.logging.path}/jsonrpc.json'),
+                        'log_params' => 'true' === env('JSONRPC_CLIENT_LOG_PARAMS'),
+                        'protocol' => env('JSONRPC_CLIENT_PROTOCOL', 'http'),
+                    ],
+                ],
+                'logging' => [
+                    'loggers' => [
+                        'JsonRpcRequestLogger' => LoggerConfiguration::createJsonLogger('{application.jsonrpc.client.log_file}'),
+                    ],
+                    'logger' => [
+                        'JsonRpcRequestLogger' => 'JsonRpcRequestLogger',
                     ],
                 ],
             ],
         ]);
+        $config->with('application.jsonrpc.client', function (Properties $value) {
+            $value->merge([
+                'middleware' => [
+                    AddRequestReferer::class,
+                    'jsonrpcRequestLog',
+                ],
+            ]);
+        });
 
         return array_merge($this->createJsonRpcClients(), [
             ProxyGeneratorInterface::class => autowire(ProxyGenerator::class),
-            'jsonrpcClientRequestLogFormatter' => autowire(RpcRequestJsonLogFormatter::class)
-                ->constructorParameter(0, RpcRequestJsonLogFormatter::CLIENT),
             JsonRpcClientFactory::class => autowire(JsonRpcClientFactory::class)
                 ->constructorParameter('middlewares', get('jsonrpcClientMiddlewares'))
                 ->constructorParameter('httpClientFactory', factory(function (ContainerInterface $container) {
@@ -83,6 +102,15 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
     public function requestIdGenerator(): RequestIdGeneratorInterface
     {
         return new RequestIdGenerator(new SwooleAtomicCounter());
+    }
+
+    #[Bean('jsonrpcClientRequestLogFormatter')]
+    public function jsonrpcClientRequestLogFormatter(#[Inject('application.jsonrpc.client')] array $config): RpcRequestJsonLogFormatter
+    {
+        return new RpcRequestJsonLogFormatter(
+            fields: RpcRequestJsonLogFormatter::CLIENT,
+            extra: !empty($config['log_params']) ? ['params', 'pid'] : ['pid']
+        );
     }
 
     /**
@@ -126,14 +154,14 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
 
     public function createJsonRpcClient(JsonRpcClientFactory $factory, string $clientClass, array $options = []): object
     {
-        $config = Application::getInstance()->getConfig();
-        $clientOptions = $config->get('application.jsonrpc.client.options', []);
-        $options = array_merge($options, $clientOptions['default'] ?? [], $clientOptions[$options['name'] ?? $clientClass] ?? []);
-        $options['protocol'] = $this->getProtocol($options);
+        $config = Application::getInstance()->getConfig()->get('application.jsonrpc.client');
+        $clientOptions = $config['options'] ?? [];
+        $options = array_merge($options, $clientOptions[$options['name'] ?? $clientClass] ?? []);
+        $options['protocol'] = $this->getProtocol($options) ?? $config['protocol'] ?? 'http';
         if (ServerType::from($options['protocol'])->isHttpProtocol()) {
-            $options = array_merge($config->get('application.jsonrpc.client.http_options', []), $options);
+            $options = array_merge($config['http_options'] ?? [], $options);
         } else {
-            $options = array_merge($config->get('application.jsonrpc.client.tcp_options', []), $options);
+            $options = array_merge($config['tcp_options'] ?? [], $options);
         }
 
         return $factory->create($clientClass, $options);
@@ -151,7 +179,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         return $services;
     }
 
-    private function getProtocol(array $options): string
+    private function getProtocol(array $options): ?string
     {
         if (isset($options['protocol']) && null !== ServerType::tryFrom($options['protocol'])) {
             return $options['protocol'];
@@ -168,7 +196,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
             }
         }
 
-        return ServerType::HTTP->value;
+        return null;
     }
 
     #[Bean('jsonrpcClientMiddlewares')]
@@ -180,27 +208,5 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         }
 
         return $middlewares;
-    }
-
-    private function addJsonRpcRequestLog(): void
-    {
-        $config = Application::getInstance()->getConfig();
-        $path = $config->get('application.logging.path');
-        if (null === $path) {
-            return;
-        }
-        $config->merge([
-            'application' => [
-                'logging' => [
-                    'loggers' => [
-                        'JsonRpcRequestLogger' => LoggerConfiguration::createJsonLogger(
-                            $config->getString('application.jsonrpc.client.log_file', $path.'/jsonrpc.log')),
-                    ],
-                    'logger' => [
-                        'JsonRpcRequestLogger' => 'JsonRpcRequestLogger',
-                    ],
-                ],
-            ],
-        ]);
     }
 }

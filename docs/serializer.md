@@ -8,7 +8,7 @@ php 内置的 `serialize` 序列化结果对人是不友好的。一些开源库
 ## 安装
 
 ```bash
-composer require kuiper/serializer:^0.6
+composer require kuiper/serializer:^0.8
 ```
 
 ## 使用方法

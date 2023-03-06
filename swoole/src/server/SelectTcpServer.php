@@ -42,7 +42,7 @@ class SelectTcpServer extends AbstractServer
     /**
      * {@inheritdoc}
      */
-    protected function doStart(): void
+    public function start(): void
     {
         self::check();
         $this->getSettings()->mergeIfNotExists([

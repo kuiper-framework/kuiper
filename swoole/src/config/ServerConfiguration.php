@@ -43,7 +43,6 @@ use kuiper\swoole\listener\StartEventListener;
 use kuiper\swoole\listener\TaskEventListener;
 use kuiper\swoole\listener\WorkerExitEventListener;
 use kuiper\swoole\listener\WorkerStartEventListener;
-use kuiper\swoole\server\DummyServer;
 use kuiper\swoole\server\ServerInterface;
 use kuiper\swoole\ServerConfig;
 use kuiper\swoole\ServerFactory;
@@ -72,6 +71,10 @@ class ServerConfiguration implements DefinitionConfiguration
                     'stop' => ServerStopCommand::class,
                     'reload' => ServerReloadCommand::class,
                 ],
+                'server' => [
+                    'port' => env('SERVER_PORT'),
+                    'type' => env('SERVER_TYPE'),
+                ],
             ],
         ]);
         $config->merge([
@@ -91,11 +94,6 @@ class ServerConfiguration implements DefinitionConfiguration
                 ],
             ],
         ]);
-        if (!$config->has('application.server.ports')) {
-            $config->set('application.server.ports', [
-                $config->getString('application.server.port', '8000') => $config->getString('application.server.type', ServerType::HTTP->value),
-            ]);
-        }
 
         return [
             SwooleResponseBridgeInterface::class => autowire(SwooleResponseBridge::class),
@@ -109,7 +107,7 @@ class ServerConfiguration implements DefinitionConfiguration
     }
 
     #[Bean]
-    public function tcpReceiveEventListener(ContainerInterface $container, ServerConfig $serverConfig): RoutedTcpReceiveEventListener
+    public function tcpReceiveEventListener(ContainerInterface $container, ServerConfig $serverConfig, LoggerFactoryInterface $loggerFactory): RoutedTcpReceiveEventListener
     {
         $routes = [];
         foreach ($serverConfig->getPorts() as $port) {
@@ -122,11 +120,14 @@ class ServerConfiguration implements DefinitionConfiguration
             }
         }
 
-        return new RoutedTcpReceiveEventListener($routes);
+        $eventListener = new RoutedTcpReceiveEventListener($routes);
+        $eventListener->setLogger($loggerFactory->create(RoutedTcpReceiveEventListener::class));
+
+        return $eventListener;
     }
 
     #[Bean]
-    public function httpRequestEventListener(ContainerInterface $container, ServerConfig $serverConfig): RoutedHttpRequestEventListener
+    public function httpRequestEventListener(ContainerInterface $container, ServerConfig $serverConfig, LoggerFactoryInterface $loggerFactory): RoutedHttpRequestEventListener
     {
         $routes = [];
         foreach ($serverConfig->getPorts() as $port) {
@@ -140,7 +141,10 @@ class ServerConfiguration implements DefinitionConfiguration
             }
         }
 
-        return new RoutedHttpRequestEventListener($routes);
+        $eventListener = new RoutedHttpRequestEventListener($routes);
+        $eventListener->setLogger($loggerFactory->create(RoutedHttpRequestEventListener::class));
+
+        return $eventListener;
     }
 
     #[Bean]
@@ -150,9 +154,6 @@ class ServerConfiguration implements DefinitionConfiguration
         EventDispatcherInterface $eventDispatcher,
         LoggerFactoryInterface $loggerFactory): ServerInterface
     {
-        if (0 === count($serverConfig->getPorts())) {
-            return new DummyServer($serverConfig);
-        }
         $app = Application::getInstance();
         if ($app->isBootstrapContainerEnabled() && !$app->isBootstrapping()) {
             return $app->getBootstrapContainer()->get(ServerInterface::class);
@@ -193,9 +194,15 @@ class ServerConfiguration implements DefinitionConfiguration
             ServerSetting::DAEMONIZE => false,
         ];
         $settings = array_merge($mainSettings, $config->get('application.server.settings', $config->get('application.swoole', [])));
+        $allPortConfig = $config->get('application.server.ports');
+        if (empty($allPortConfig)) {
+            $allPortConfig = [
+                $config->get('application.server.port', env('SERVER_PORT', '8000')) => 'http',
+            ];
+        }
 
         $ports = [];
-        foreach ($config->get('application.server.ports') as $port => $portConfig) {
+        foreach ($allPortConfig as $port => $portConfig) {
             if (isset($ports[$port])) {
                 throw new InvalidArgumentException("Port $port was duplicated");
             }

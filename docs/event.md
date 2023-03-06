@@ -5,7 +5,7 @@ Kuiper Event 是基于 PSR-14 接口，使用 `symfony/event-dispatcher` 实现�
 ## 安装
 
 ```bash
-composer require kuiper/event:^0.6
+composer require kuiper/event:^0.8
 ```
 
 在 `src/config.php` 中配置：
@@ -22,7 +22,7 @@ return [
 ];
 ```
 
-或者使用 `@\kuiper\event\annotation\EventListener` 注解，在命名空间扫描目录中的事件监听器会自动添加到 Event Dispatcher 中。
+或者使用 `\kuiper\event\attribute\EventListener` 注解，在命名空间扫描目录中的事件监听器会自动添加到 Event Dispatcher 中。
 例如：
 
 ```php
@@ -30,12 +30,10 @@ return [
 
 namespace app\listeners;
 
-use kuiper\event\annotation\EventListener;
+use kuiper\event\attribute\EventListener;
 use kuiper\event\EventListenerInterface;
 
-/**
- * @EventListener
- */
+#[EventListener]
 class MyFooEventListener implements EventListenerInterface {
 }
 ```

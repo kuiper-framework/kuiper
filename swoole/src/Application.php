@@ -28,9 +28,11 @@ use function kuiper\helper\env;
 use kuiper\helper\Properties;
 use kuiper\helper\Text;
 use kuiper\swoole\attribute\BootstrapConfiguration;
+use Laminas\Diactoros\ServerRequestFactory;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use ReflectionClass;
+use RuntimeException;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Command\Command as ConsoleCommand;
 use Symfony\Component\Console\CommandLoader\FactoryCommandLoader;
@@ -72,10 +74,15 @@ class Application
         $this->loadConfig();
     }
 
+    public static function hasInstance(): bool
+    {
+        return null !== self::$INSTANCE;
+    }
+
     public static function getInstance(): self
     {
         if (null === self::$INSTANCE) {
-            throw new InvalidArgumentException('Call create first');
+            throw new RuntimeException('Application instance not created, forgot to call Application::create()?');
         }
 
         return self::$INSTANCE;
@@ -124,13 +131,10 @@ class Application
         $this->addDefaultConfig();
         $this->addCommandLineOptions($properties);
         $this->loadEnv();
-        $configFile = $this->config->getString('application.php_config_file', $this->getBasePath().'/src/config.php');
+        $configFile = $this->config->getString('application.php_config_file');
         if (file_exists($configFile)) {
             $this->config->merge(require $configFile);
         }
-        $this->config->replacePlaceholder(static function (string $key) {
-            return !str_starts_with($key, 'ENV.');
-        });
     }
 
     /**
@@ -178,12 +182,20 @@ class Application
     {
         $this->config->mergeIfNotExists([
             'application' => [
-                'env' => env('ENV', 'prod'),
-                'enable_bootstrap_container' => true,
+                'env' => env('APP_ENV', 'prod'),
+                'enable_bootstrap_container' => 'true' === env('APP_ENABLE_BOOTSTRAP_CONTAINER', 'true'),
                 'name' => env('APP_NAME', 'app'),
+                'php_config_file' => env('APP_PHP_CONFIG_FILE', $this->getBasePath().'/src/config.php'),
                 'base_path' => $this->getBasePath(),
                 'logging' => [
-                    'path' => $this->getBasePath().'/logs',
+                    'path' => env('LOGGING_PATH', $this->getBasePath().'/logs'),
+                    'level' => [
+                        'kuiper\\swoole' => 'info',
+                    ],
+                ],
+                'server' => [
+                    'enable_php_server' => 'true' === env('SERVER_ENABLE_PHP_SERVER'),
+                    'http_factory' => env('SERVER_HTTP_FACTOR', class_exists(ServerRequestFactory::class) ? 'diactoros' : 'guzzle'),
                 ],
             ],
             'ENV' => array_merge($_ENV, $_SERVER),
@@ -262,12 +274,12 @@ class Application
     }
 
     /**
-     * @deprecated
-     *
      * @return ConsoleApplication
      *
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
+     *
+     * @deprecated
      */
     public function createApp(): ConsoleApplication
     {
@@ -361,6 +373,7 @@ class Application
     protected function createContainer(): ContainerInterface
     {
         if ($this->eventDispatcher instanceof EventRegistryInterface && $this->isBootstrapContainerEnabled()) {
+            $this->getBootstrapContainer();
             $this->eventDispatcher->reset();
             $this->config = $this->configBackup;
         }

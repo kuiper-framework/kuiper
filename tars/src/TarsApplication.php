@@ -18,8 +18,6 @@ use kuiper\swoole\Application;
 use kuiper\tars\client\TarsProxyFactory;
 use kuiper\tars\integration\ConfigServant;
 use kuiper\tars\server\Config;
-use kuiper\tars\server\ServerStartCommand;
-use kuiper\tars\server\ServerStopCommand;
 
 class TarsApplication extends Application
 {
@@ -50,10 +48,6 @@ class TarsApplication extends Application
                 ],
                 'client' => [
                     'enable_dns' => $config->getBool('application.tars.client.enable_dns'),
-                ],
-                'commands' => [
-                    'start' => ServerStartCommand::class,
-                    'stop' => ServerStopCommand::class,
                 ],
                 'logging' => [
                     'loggers' => [

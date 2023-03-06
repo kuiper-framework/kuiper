@@ -5,7 +5,7 @@ Kuiper Reflection 增加了一些 PHP 反射中缺失的功能。
 ## 安装
 
 ```bash
-composer require kuiper/reflection:^0.6
+composer require kuiper/reflection:^0.8
 ```
 
 ## ReflectionFile

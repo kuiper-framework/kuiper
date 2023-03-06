@@ -2,7 +2,7 @@
 
 ## 简介
 
-Kuiper 希望能像 Spring Boot 一样简化 PHP 应用开发，通过简单的配置甚至没有配置就能运行基于 Swoole 的 PHP 服务。
+Kuiper 希望能像 Spring Boot 一样简化 PHP 应用开发，通过简单的配置甚至零配置就能启动服务。
 
 ## 特性
 
@@ -12,11 +12,11 @@ Kuiper 希望能像 Spring Boot 一样简化 PHP 应用开发，通过简单的�
 
 其次 Kuiper 框架提供一套完整的 rpc 支持库，支持包括 JsonRPC, Tars 等多种 RPC 协议，可以快速开发一个 RPC 服务。
 
-Kuiper 框架中大量使用了注解，通过注解可以让应用代码配置更加简洁。
+Kuiper 框架中大量使用了 PHP 8 Attribute，可以让配置更加简洁。
 
 ## 服务器要求
 
-Kuiper 只支持 PHP 7.2 以上版本，必须安装 swoole PHP 扩展 >=4.5，以及以下扩展：
+Kuiper 0.8 版本支持 PHP 8.1 以上版本，swoole PHP 扩展 >=4.5，以及以下扩展：
 - JSON PHP 扩展
 - Pcntl PHP 扩展
 - PDO 扩展(如果需要使用 db 组件)

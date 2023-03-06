@@ -3,71 +3,7 @@
 ## 安装 
 
 ```bash
-composer require kuiper/helper:^0.6
-```
-
-## Enum
-
-`\kuiper\helper\Enum` 和 [myclabs/php-enum](https://github.com/myclabs/php-enum) 功能相同，
-都是提供类似 Java Enum 的功能。
-
-声明一个 Enum 类：
-
-```php
-<?php
-
-use kuiper\helper\Enum;
-
-final class Action extends Enum
-{
-    private const VIEW = 'view';
-    private const EDIT = 'edit';
-}
-```
-
-使用方法：
-
-```php
-$action = Action::VIEW();
-$action = Action::fromValue(Action::VIEW);
-$action = Action::fromName('VIEW');
-Action::hasValue($value);
-Action::hasName($name);
-```
-遍历所有 Enum 的方法：
-
-```php
-Action::enums()
-Action::values();
-Action::names();
-```
-
-通过添加静态属性 `$PROPERTIES` 可以为 Enum 添加属性查询，例如：
-
-```php
-<?php
-use kuiper\helper\Enum;
-
-final class Action extends Enum
-{
-    private const VIEW = 'view';
-    private const EDIT = 'edit';
-    
-    protected static $PROPERTIES = [
-        'description' => [
-            self::VIEW => '查看',
-            self::EDIT => '编辑'
-        ]
-    ];
-}
-
-echo Action::VIEW()->description;
-```
-
-Enum 类实现 `JsonSerializable` 接口，可以 json 序列化为常量名字。例如：
-
-```php
-json_encode(Action::VIEW());   // "VIEW"
+composer require kuiper/helper:^0.8
 ```
 
 ## Arrays

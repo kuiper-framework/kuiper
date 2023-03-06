@@ -281,10 +281,14 @@ class TarsClientConfiguration implements DefinitionConfiguration
         }
         $config->mergeIfNotExists([
             'application' => [
+                'tars' => [
+                    'client' => [
+                        'log_file' => '{application.logging.path}/tars-client.json',
+                    ],
+                ],
                 'logging' => [
                     'loggers' => [
-                        'TarsRequestLogger' => LoggerConfiguration::createJsonLogger(
-                            $config->getString('application.tars.client.log_file', $path.'/tars-client.log')),
+                        'TarsRequestLogger' => LoggerConfiguration::createJsonLogger('{application.tars.client.log_file}'),
                     ],
                     'logger' => [
                         'TarsRequestLogger' => 'TarsRequestLogger',

@@ -14,17 +14,16 @@ declare(strict_types=1);
 namespace kuiper\rpc\registry;
 
 use DI\Attribute\Inject;
-
-use function DI\autowire;
-use function DI\factory;
-use function DI\get;
-
 use GuzzleHttp\ClientInterface;
 use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\ConditionalOnProperty;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+
+use function kuiper\helper\env;
+
+use kuiper\helper\Properties;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\http\client\HttpProxyClientFactory;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
@@ -37,26 +36,66 @@ use kuiper\rpc\servicediscovery\InMemoryCache;
 use kuiper\rpc\servicediscovery\loadbalance\LoadBalanceAlgorithm;
 use kuiper\rpc\servicediscovery\ServiceResolverInterface;
 use kuiper\serializer\NormalizerInterface;
+use kuiper\swoole\Application;
+use kuiper\swoole\attribute\BootstrapConfiguration;
 use Psr\Container\ContainerInterface;
 
+#[BootstrapConfiguration]
 class RpcRegistryConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;
 
     public function getDefinitions(): array
     {
-        return [
-            ConsulAgent::class => factory(function (ContainerInterface $container): ConsulAgent {
-                $clientFactory = new HttpProxyClientFactory(
-                    $container->get('consulHttpClient'),
-                    $container->get(NormalizerInterface::class)
-                );
+        $config = Application::getInstance()->getConfig();
+        $config->mergeIfNotExists([
+            'application' => [
+                'server' => [
+                    'service_discovery' => [
+                        'type' => env('SERVER_SERVICE_DISCOVERY_TYPE'),
+                    ],
+                ],
+                'client' => [
+                    'service_discovery' => [
+                        'type' => env('CLIENT_SERVICE_DISCOVERY_TYPE'),
+                        'load_balance' => env('CLIENT_SERVICE_DISCOVERY_LOAD_BALANCE'),
+                    ],
+                ],
+                'bootstrap_listeners' => [
+                    ServiceDiscoveryListener::class,
+                ],
+                'consul' => [
+                    'base_uri' => env('CONSUL_BASE_URI'),
+                ],
+            ],
+        ]);
+        $config->with('application.bootstrap_listeners', function (Properties $value) {
+            if (!in_array(ServiceDiscoveryListener::class, $value->toArray(), true)) {
+                $value->append(ServiceDiscoveryListener::class);
+            }
+        });
 
-                return $clientFactory->create(ConsulAgent::class);
-            }),
-            ServiceDiscoveryListener::class => autowire(ServiceDiscoveryListener::class)
-                ->constructorParameter('services', get('registerServices')),
+        return [
         ];
+    }
+
+    #[Bean]
+    public function serviceDiscoveryListener(ServiceRegistryInterface $serviceRegistry, ContainerInterface $container): ServiceDiscoveryListener
+    {
+        $services = $container->has('registerServices') ? $container->get('registerServices') : [];
+
+        return new ServiceDiscoveryListener($serviceRegistry, $services);
+    }
+
+    #[Bean]
+    public function consulAgent(ContainerInterface $container): ConsulAgent
+    {
+        $clientFactory = new HttpProxyClientFactory(
+            $container->get('consulHttpClient'),
+            $container->get(NormalizerInterface::class)
+        );
+
+        return $clientFactory->create(ConsulAgent::class);
     }
 
     #[Bean]
@@ -83,7 +122,7 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
 
     #[Bean]
     #[AllConditions(
-        new ConditionalOnProperty('application.consul'),
+        new ConditionalOnProperty('application.consul.base_uri'),
         new ConditionalOnProperty('application.server.service_discovery.type', hasValue: 'consul', matchIfMissing: true)
     )]
     public function consulServerRegistry(ConsulAgent $consulAgent,
@@ -94,8 +133,8 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
 
     #[Bean]
     #[AllConditions(
-        new ConditionalOnProperty('application.consul'),
-        new ConditionalOnProperty('application.server.service_discovery.type', hasValue: 'consul', matchIfMissing: true)
+        new ConditionalOnProperty('application.consul.base_uri'),
+        new ConditionalOnProperty('application.client.service_discovery.type', hasValue: 'consul', matchIfMissing: true)
     )]
     public function consulServerResolver(ConsulAgent $consulAgent): ServiceResolverInterface
     {

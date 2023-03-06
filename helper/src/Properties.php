@@ -54,6 +54,11 @@ final class Properties extends ArrayIterator implements PropertyResolverInterfac
         return isset($this[$name]);
     }
 
+    public function with(string $key, callable $call): void
+    {
+        $call($this->getValue($key));
+    }
+
     /**
      * {@inheritdoc}
      */

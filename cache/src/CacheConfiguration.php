@@ -23,7 +23,11 @@ use kuiper\di\attribute\ConditionalOnClass;
 use kuiper\di\attribute\ConditionalOnProperty;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+
+use function kuiper\helper\env;
+
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\swoole\Application;
 use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\pool\ConnectionProxyGenerator;
 use kuiper\swoole\pool\PoolFactoryInterface;
@@ -43,6 +47,29 @@ class CacheConfiguration implements DefinitionConfiguration
 
     public function getDefinitions(): array
     {
+        if (class_exists(Application::class) && Application::hasInstance()) {
+            Application::getInstance()->getConfig()->mergeIfNotExists([
+                'application' => [
+                    'cache' => [
+                        'implementation' => env('CACHE_IMPLEMENTATION'),
+                        'namespace' => env('CACHE_NAMESPACE'),
+                        'lifetime' => (int) env('CACHE_LIFETIME', '0'),
+                        'memory' => [
+                            'lifetime' => (int) env('CACHE_MEMORY_LIFETIME', '5'),
+                            'max_items' => (int) env('CACHE_MEMORY_MAX_ITEMS', '1000'),
+                            'serialize' => 'true' === env('CACHE_MEMORY_SERIALIZE'),
+                        ],
+                    ],
+                    'redis' => [
+                        'host' => env('REDIS_HOST', 'localhost'),
+                        'port' => (int) env('REDIS_PORT', '6379'),
+                        'password' => env('REDIS_PASSWORD', env('REDIS_PASS')),
+                        'database' => (int) env('REDIS_DATABASE', '0'),
+                    ],
+                ],
+            ]);
+        }
+
         return [
             \Symfony\Contracts\Cache\CacheInterface::class => factory([$this, 'symfonyCacheItemPool']),
         ];

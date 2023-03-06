@@ -5,7 +5,7 @@ Kuiper 默认启动了 Web Server，http 请求使用 [Slim](https://www.slimfra
 ## 安装
 
 ```bash
-composer require kuiper/web:^0.6
+composer require kuiper/web:^0.8
 ```
 
 如果使用 twig 模板引擎，需要安装：
@@ -15,25 +15,21 @@ composer require twig/tiwg
 
 ## 路由
 
-我们推荐使用注解配置路由。在 DI 命名空间扫描时，会记录所有 `@kuiper\di\annotation\Controller` 标记的控制类，`kuiper\web\AnnotationProcessor` 会根据 `application.web.namespace` 配置处理指定命名空间下的控制器类。在控制器通过 `@RequestMapping` 注解标记的方法会作为路由方法添加到 Slim 应用中。例如： 
+我们推荐使用注解配置路由。在 DI 命名空间扫描时，会记录所有 `kuiper\di\attribute\Controller` 标记的控制类，`kuiper\web\AnnotationProcessor` 会根据 `application.web.namespace` 配置处理指定命名空间下的控制器类。在控制器通过 `RequestMapping` 注解标记的方法会作为路由方法添加到 Slim 应用中。例如： 
 
 ```php
 <?php
 
 namespace app\controller;
 
-use kuiper\di\annotation\Controller;
+use kuiper\di\attribute\Controller;
 use kuiper\web\AbstractController;
-use kuiper\web\annotation\GetMapping;
+use kuiper\web\attribute\GetMapping;
 
-/**
- * @Controller
- */
+#[Controller]
 class IndexController extends AbstractController
 {
-    /**
-     * @GetMapping("/")
-     */
+    #[GetMapping("/")]
     public function index(): void
     {
         $this->getResponse()->getBody()->write("<h1>it works!</h1>\n");
@@ -41,18 +37,18 @@ class IndexController extends AbstractController
 }
 ```
 
-`@RequestMapping` 可以使用 `method` 属性设置 请求的 http 方法，通常我们可以使用 `@GetMapping` , `@PostMapping` 指定请求方法。以下是注解和对应的代码路由注册示例：
+`RequestMapping` 可以使用 `method` 属性设置 请求的 http 方法，通常我们可以使用 `GetMapping` , `PostMapping` 指定请求方法。以下是注解和对应的代码路由注册示例：
 
 ```php
-@GetMapping("/books/{id}")               // $app->get("/books/{id}", 'Controller:method')
-@PostMapping("/books")                   // $app->post("/books", 'Controller:method')
-@PutMapping("/books/{id}")               // $app->put("/books/{id}", 'Controller:method')
-@DeleteMapping("/books/{id}")            // $app->delete("/books/{id}", 'Controller:method')
-@OptionsMapping("/books/{id}")           // $app->options("/books/{id}", 'Controller:method')
-@PatchMapping("/books/{id}")             // $app->patch("/books/{id}", 'Controller:method')
-@RequestMapping("/books/{id}")           // $app->any("/books/{id}", 'Controller:method')
-@RequestMapping("/books", method={"GET", "POST"})   // $app->map(["GET", "POST"], "/books", 'Controller:method')
-@GetMapping({"/page1", "/page2"})        // $app->get("/page1", 'Controller:method'); $app->get("/page2", 'Controller:method'); 
+#[GetMapping("/books/{id}")]               // $app->get("/books/{id}", 'Controller:method')
+#[PostMapping("/books")]                   // $app->post("/books", 'Controller:method')
+#[PutMapping("/books/{id}")]               // $app->put("/books/{id}", 'Controller:method')
+#[DeleteMapping("/books/{id}")]            // $app->delete("/books/{id}", 'Controller:method')
+#[OptionsMapping("/books/{id}")]           // $app->options("/books/{id}", 'Controller:method')
+#[PatchMapping("/books/{id}")]             // $app->patch("/books/{id}", 'Controller:method')
+#[RequestMapping("/books/{id}")]           // $app->any("/books/{id}", 'Controller:method')
+#[RequestMapping("/books", method={"GET", "POST"})]   // $app->map(["GET", "POST"], "/books", 'Controller:method')
+#[GetMapping({"/page1", "/page2"})]        // $app->get("/page1", 'Controller:method'); $app->get("/page2", 'Controller:method'); 
 ```
 
 路由上的 placeholder 可以通过控制器参数获取：
@@ -60,14 +56,10 @@ class IndexController extends AbstractController
 ```php
 <?php
 
-/**
- * @Controller
- */
+#[Controller]
 class BookController extends AbstractController
 {
-    /**
-     * @GetMapping("/books/{id}")
-     */
+    #[GetMapping("/books/{id}")]
     public function getBook(string $bookId): void
     {
     }
@@ -81,19 +73,15 @@ class BookController extends AbstractController
 
 use kuiper\web\ControllerTrait;
 
-/**
- * @Controller
- */
+#[Controller]
 class BookController extends AbstractController
 {
     use ControllerTrait;
     
-    /**
-     * @GetMapping("/hello/{name}", name="hello")
-     */
+    #[GetMapping("/hello/{name}", name: "hello")]
     public function hello(string $name): void
     {
-         echo $this->uriFor('hello', ['name' => 'Josh'], ['example' => 'name']);
+         echo $this->uriFor('hello', ['name' => 'Josh'], ['query1' => 'value']);
     }
 }
 ```
@@ -192,19 +180,15 @@ twig 模板配置选项：
 ```php
 <?php
 
-use kuiper\web\annotation\CsrfToken;
+use kuiper\web\attribute\CsrfToken;
 
-/**
- * @Controller
- */
+#[Controller]
 class BookController extends AbstractController
 {
     use ControllerTrait;
     
-    /**
-     * @PostMapping("/books")
-     * @CsrfToken
-     */
+    #[PostMapping("/books")]
+    #[CsrfToken]
     public function createBook(): void
     {
     }
@@ -244,16 +228,12 @@ class BookController extends AbstractController
 ```php
 <?php
 
-/**
- * @Controller
- */
+#[Controller]
 class BookController extends AbstractController
 {
     use ControllerTrait;
     
-    /**
-     * @PostMapping("/books")
-     */
+    #[PostMapping("/books")]
     public function createBook(): void
     {
         $this->getSession()->set('foo', 'bar');
@@ -307,16 +287,12 @@ class User implements UserIdentity
 
 use kuiper\web\security\SecurityContext;
 
-/**
- * @Controller
- */
+#[Controller]
 class LoginController extends AbstractController
 {
     use ControllerTrait;
     
-    /**
-     * @PostMapping("/login")
-     */
+    #[PostMapping("/login")]
     public function login(): void
     {
         $params = $this->request->getParsedBody();
@@ -325,9 +301,7 @@ class LoginController extends AbstractController
         }
     }
     
-    /**
-     * @GetMapping("/profile")
-     */
+    #[GetMapping("/profile")]
     public function profile(): void
     {
         $user = SecurityContext::getIdentity();
@@ -342,26 +316,22 @@ class LoginController extends AbstractController
 ## 授权
 
 Kuiper 提供简单的基于角色的权限判断。一个权限是由 `{resource}:{action}` 构成，例如 `blog:view` 
-是查看 blog 的权限。 通过 `@\kuiper\web\annotation\filter\PreAuthorize` 注解设置访问
+是查看 blog 的权限。 通过 `\kuiper\web\attribute\PreAuthorize` 注解设置访问
 该方法用户的权限。例如：
 
 ```php
 <?php
 
-use kuiper\di\annotation\Controller;
+use kuiper\di\attribute\Controller;
 use kuiper\web\AbstractController;
-use kuiper\web\annotation\PreAuthorize;
-use kuiper\web\annotation\GetMapping;
+use kuiper\web\attribute\PreAuthorize;
+use kuiper\web\attribute\GetMapping;
 
-/**
- * @Controller()
- */
+#[Controller]
 class BlogController extends AbstractController
 {
-    /**
-     * @GetMapping("/home")
-     * @PreAuthorize("blog:view")
-     */
+    #[GetMapping("/home")]
+    #[PreAuthorize("blog:view")]
     public function home(): void
     {
     }
@@ -441,3 +411,25 @@ $containerBuilder->addDefinitions([
     \Slim\Error\Renderers\JsonErrorRenderer::class => autowire(MyJsonErrorRenderer::class)
 ]);
 ```
+
+## 配置项
+
+
+| 配置项                          | 环境变量                         | 说明                           |
+|------------------------------|------------------------------|------------------------------|
+| web.log_file                 | WEB_LOG_FILE                 | 访问日志文件名，默认为 access.log       |
+| web.log_post_body            | WEB_LOG_POST_BODY            | 访问日志是否记录 POST 请求 body        |
+| web.middleware               |                              | web 中间件                      |
+| web.health_check_enabled     | WEB_HEALTH_CHECK_ENABLED     | 是否启用 health check 路由         |
+| web.namespace                | WEB_NAMESPACE                | web 路由规则扫描命名空间               |
+| web.context_url              | WEB_CONTEXT_URL              | 路由 URL 前缀                    |
+| web.error.display            | WEB_ERROR_DISPLAY            | 在出错时是否在页面显示错误详细信息            |
+| web.error.logging            | WEB_ERROR_LOGGING            | 在出错时是否将错误信息写入日志              |
+| web.error.include_stacktrace | WEB_ERROR_INCLUDE_STACKTRACE | 在出错时是否显示错误堆栈信息               |
+| web.error.handlers           |                              | 设置异常错误处理器                    |
+| web.view.engine              | WEB_VIEW_ENGINE              | 设置 view 引擎类型，目前支持 twig 和 php |
+| web.view.path                | WEB_VIEW_PATH                | 设置模板页面目录                     |
+| web.session.enabled          | WEB_SESSION_ENABLED          | 是否启用 session                 |
+| web.session.prefix           | WEB_SESSION_PREFIX           | 设置 session 存储key前缀           |
+| web.session.cookie_name      | WEB_SESSION_COOKIE_NAME      | 设置 session cookie 名          |
+| web.session.cookie_lifetime  | WEB_SESSION_COOKIE_LIFETIME  | 设置 session cookie 过期时间       |

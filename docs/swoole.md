@@ -5,7 +5,7 @@ Kuiper 对 Swoole 服务创建过程进行封装，使用 [PSR-14](https://www.p
 ## 安装
 
 ```bash
-composer install kuiper/swoole:^0.6
+composer install kuiper/swoole:^0.8
 ```
 
 创建启动文件 `src/index.php` ：
@@ -27,7 +27,7 @@ Application::run();
 在 `Application` 构造函数中会执行配置加载。配置加载方式有以下几种：
 
 1. 通过命令行参数 `--config config.ini` 指定配置文件，使用 `parse_ini_file` 解析
-2. 通过命令行参数 `--define key=value` 指定
+2. 通过命令行参数 `--define key=value` 或 `-D key=value` 指定
 3. 通过加载 `APP_PATH` 目录下的 `src/config.php` 
 
 需要注意的是配置项约定使用 `application.` 作为前缀，目的是方便通过容器获取配置，不会因为[配置不存在抛出异常](di.md#配置项) 。
@@ -52,10 +52,10 @@ return [
 > 配置使用的是 [Properties](helper.md#Properties) 对象存储。所以可以通过 `.` 方式获取配置值。
 
 在配置中我们可以使用 `\kuiper\helper\env()` 函数获取环境变量的值。环境变量的值配置可以通过 `.env` 文件设置。
-在不同运行环境下，我们需要加载不同的环境变量。运行环境可以通过环境变量 `ENV` 或者配置项 `application.env` 设置。
+在不同运行环境下，我们需要加载不同的环境变量。运行环境可以通过环境变量 `APP_ENV` 或者配置项 `application.env` 设置。
 例如：
 ```bash
-ENV=dev php src/index.php
+APP_ENV=dev php src/index.php
 php src/index.php --define env=dev
 ```
 
@@ -71,7 +71,7 @@ php src/index.php --define env=dev
 
 在入口文件 `src/index.php` 中 `Application::run()` 会创建 `\Symfony\Component\Console\Application` 对象，
 并执行默认任务。默认任务通过 `application.default_command` 配置，在 `\kuiper\swoole\config\ServerConfiguration` 中
-配置为 `\kuiper\swoole\ServerCommand`。所有 `application.commands` 中配置的命令和 `@\kuiper\di\annotation\Command`
+配置为 `\kuiper\swoole\ServerCommand`。所有 `application.commands` 中配置的命令和 `\kuiper\di\attribute\Command`
 注解标记的命令都可以加入到 Symfony Console Application 中被执行。
 
 `application.commands` 配置是一个数组，key 为命令名，value 为命令执行的 Command 类名。例如：
@@ -88,19 +88,17 @@ return [
 ];
 ```
 
-在 kuiper di 扫描命名空间中的类使用 `@Command` 注解可以自动添加到命令列表中，例如：
+在 kuiper di 扫描命名空间中的类使用 `\kuiper\di\attribute\Command` 注解可以自动添加到命令列表中，例如：
 
 ```php
 <?php
 
 namespace app\command;
 
-use kuiper\di\annotation\Command;
+use kuiper\di\attribute\Command;
 use Symfony\Component\Console\Command\Command as ConsoleCommand;
 
-/**
- * @Command("foo")
- */
+#[Command("foo")]
 class FooCommand extends ConsoleCommand {
 }
 ```
@@ -133,7 +131,6 @@ class FooCommand extends ConsoleCommand {
 - ReceiveEvent
 - PacketEvent
 - OpenEvent
-- HandShakeEvent
 - MessageEvent
 - PipeMessageEvent
 
@@ -147,7 +144,7 @@ class FooCommand extends ConsoleCommand {
 `\kuiper\swoole\listener\ManagerStartEventListener`,
 `\kuiper\swoole\listener\WorkerStartEventListener`, 
 和 `\kuiper\swoole\listener\TaskEventListener`。
-并通过命名空间扫描注解 `@\kuiper\event\annotation\EventListener` 自动添加监听器。
+还可以通过命名空间扫描注解 `#\kuiper\event\attribute\EventListener` 自动添加监听器。
 
 ## 协程
 
@@ -188,6 +185,20 @@ $poolFactory->create('db', function() {
 在 kuiper swoole 中提供了 swoole 服务器和简单的 php 内置服务器。我们在生产环境使用 swoole 服务器，在开发调试时可以使用 php 
 内置服务器。两种类型服务器通过 `application.server.enable_php_server` 配置开关切换。
 
+swoole 服务器的配置通过 `application.server.settings` 设置。例如：
+
+```php
+return [
+     'application' => [
+         'server' => [
+             'settings' => [
+                'package_max_length' => 10*1024*1024,
+             ]
+         ]
+     ]
+];
+```
+
 当使用 swoole 服务器时，可以监听多个端口。多端口配置通过 `application.server.ports` 配置设置：
 
 ```php
@@ -198,24 +209,20 @@ return [
          'server' => [
              'ports' => [
                  8000 => 'http',
-                 8001 => 'tcp'
+                 8001 => [
+                    'protocol' => 'tcp',
+                    'listener' => 'jsonRpcTcpReceiveEventListener'
+                 ]
              ]
          ]
      ]
 ];
 ```
 
-swoole 服务器的配置通过 `application.swoole` 设置。例如：
-
-```php
-return [
-     'application' => [
-         'swoole' => [
-             'package_max_length' => 10*1024*1024,
-         ]
-     ]
-];
-```
+服务端口配置项包括：
+- host 服务监听地址，默认为 0.0.0.0，监听所有 ip 地址
+- protocol 服务类型，目前支持 http 和 tcp 
+- listener 服务监听处理器，当 protocol 为 http 时，可以省略，使用默认监听处理器，其他情况根据服务类型进行配置，参考[RPC](rpc.md)服务
 
 ## Task
 
@@ -264,29 +271,24 @@ kuiper swoole 并没有具体服务实现，请通过使用 [kuiper/web](web.md)
 
 ## 配置项
 
-
-| 配置项                      | 说明             |
-|-----------------------------|------------------|
-| application.php_config_file |                  |
-| application.env             | prod;development |
-| application.name            | 应用名称         |
-| application.base_path       |                  |
-| application.logging         |                  |
-|                             |                  |
-
-服务相关配置 `application.server` ：
-
-| 配置项   | 说明 |
-|----------|------|
-| settings |      |
-|          |      |
+| 配置项                        | 环境变量                           | 说明                                                     |
+|----------------------------|--------------------------------|--------------------------------------------------------|
+| php_config_file            | APP_PHP_CONFIG_FILE            | 加载 php 配置文件名                                           |
+| env                        | APP_ENV                        | prod;development                                       |
+| name                       | APP_NAME                       | 应用名称                                                   |
+| enable_bootstrap_container | APP_ENABLE_BOOTSTRAP_CONTAINER | 是否在服务启动前使用单独容器对象（可实现重启worker时重新加载代码）                   |
+| server.enable_php_server   | SERVER_ENABLE_PHP_SERVER       | 是否使用 php 内置服务（只实现部分功能，仅开发测试使用）                         |
+| default_command            |                                | 缺省执行命令，默认值为 start                                      |
+| server.settings            |                                | swoole 服务配置项                                           |
+| server.port                | SERVER_PORT                    | 服务端口号                                                  |
+| server.ports               |                                | 多端口监听或复杂服务配置使用                                         |
+| server.http_factory        | SERVER_HTTP_FACTORY            | http factory 实现，支持 diactoros 和 guzzle 两种，默认为 diactoros |
 
 
 ## 命令行参数
 
-| 参数名                 | 说明                                     |
-|------------------------|------------------------------------------|
-| --config <config-file> | 值为 ini 配置文件路径                    |
+| 参数名                    | 说明                           |
+|------------------------|------------------------------|
+| --config <config-file> | 值为 ini 配置文件路径                |
 | --define=foo=value     | 定义配置值，自动添加 `application.` 前缀 |
-| －D foo=value          | --define 参数别名                        |
-|                        |                                          |
+| －D foo=value           | --define 参数别名                |

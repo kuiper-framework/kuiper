@@ -22,6 +22,9 @@ use kuiper\di\attribute\Bean;
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+
+use function kuiper\helper\env;
+
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\logger\CoroutineIdProcessor;
@@ -67,20 +70,20 @@ class LoggerConfiguration implements DefinitionConfiguration
         $config->mergeIfNotExists([
             'application' => [
                 'logging' => [
+                    'path' => env('LOGGING_PATH'),
                     'loggers' => [
                         'root' => [
-                            'console' => true,
-                            'level' => 'info',
+                            'console' => 'true' === env('LOGGING_CONSOLE'),
+                            'level' => env('LOGGING_LEVEL', 'info'),
+                            'log_file' => env('LOGGING_LOG_FILE', 'default.log'),
+                            'error_log_file' => env('LOGGING_ERROR_LOG_FILE', 'error.log'),
                         ],
-                    ],
-                    'level' => [
-                        'kuiper\\swoole' => 'info',
                     ],
                 ],
             ],
         ]);
-        $loggingConfig = $config->get('application.logging', []);
-        $loggingConfig['loggers']['root'] = $this->createRootLogger($container->get('application.name') ?? 'app', $loggingConfig);
+        $loggingConfig = $config->get('application.logging');
+        $loggingConfig['loggers']['root'] = $this->createRootLogger($config->get('application.name', 'app'), $loggingConfig);
 
         return new LoggerFactory($container, $loggingConfig);
     }
@@ -108,25 +111,28 @@ class LoggerConfiguration implements DefinitionConfiguration
             ];
         }
         if (isset($config['path'])) {
-            $handlers[] = [
-                'handler' => [
-                    'class' => StreamHandler::class,
-                    'constructor' => [
-                        'stream' => $config['path'].'/default.log',
-                        'level' => $loggerLevel,
+            if (!empty($rootLoggerConfig['log_file'])) {
+                $handlers[] = [
+                    'handler' => [
+                        'class' => StreamHandler::class,
+                        'constructor' => [
+                            'stream' => $config['path'].'/'.$rootLoggerConfig['log_file'],
+                            'level' => $loggerLevel,
+                        ],
                     ],
-                ],
-            ];
-
-            $handlers[] = [
-                'handler' => [
-                    'class' => StreamHandler::class,
-                    'constructor' => [
-                        'stream' => $config['path'].'/error.log',
-                        'level' => Level::Error,
+                ];
+            }
+            if (!empty($rootLoggerConfig['error_log_file'])) {
+                $handlers[] = [
+                    'handler' => [
+                        'class' => StreamHandler::class,
+                        'constructor' => [
+                            'stream' => $config['path'].'/'.$rootLoggerConfig['error_log_file'],
+                            'level' => Level::Error,
+                        ],
                     ],
-                ],
-            ];
+                ];
+            }
         }
 
         return [

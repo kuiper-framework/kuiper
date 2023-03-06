@@ -17,9 +17,9 @@
     "require": {
         "php": ">=8.1",
         "ext-json": "*",
+        "ext-pcntl": "*",
         "ext-pdo": "*",
         "ext-posix": "*",
-        "ext-pcntl": "*",
         "aura/sqlquery": "^2.0",
         "monolog/monolog": "^3.0",
         "php-di/php-di": "^7.0",
@@ -28,6 +28,7 @@
         "psr/http-server-middleware": "^1.0",
         "psr/simple-cache": "^3.0",
         "symfony/event-dispatcher": "^6.0",
+        "tedivm/stash": "*",
         "webmozart/assert": "^1.0"
     },
     "require-dev": {

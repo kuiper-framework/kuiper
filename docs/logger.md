@@ -6,7 +6,7 @@
 ## 安装
 
 ```bash
-composer require kuiper/logger:^0.6
+composer require kuiper/logger:^0.8
 ```
 
 ## 使用方法
@@ -30,11 +30,11 @@ $logger = $loggerFactory->create(MyClass::class);
 $logger->info("test");
 ```
 
-配置中 `loggers` 用于配置 Logger 对象，必须包含 root 配置，配置方式见下文。
+配置中 `loggers` 用于创建 Logger 对象，配置方式见下文。`loggers` 中必须包含名为 root 的配置。 
 
 `level` 用于设置日志等级，可以按命名空间设置，也可以设置具体某个类。
 
-`logger` 用于配置类使用的 Logger 对象。key 是命名空间或者具体类名，value 是 `loggers` 中的 key。
+`logger` 用于类使用的 Logger 对象。key 是命名空间或者具体类名，value 是 `loggers` 中的 key。
 
 调用 `\kuiper\logger\LoggerFactory::create($className)` 方法时，首先按类名和命名空间查找到 `logger` 中配置的 Logger。
 如果存在则使用该 Logger 对象，否则使用 root 对应的 Logger 对象。
@@ -80,5 +80,15 @@ handlers 配置中可以配置 handler 和 formatter。handler, formatter, proce
 ## LoggerConfiguration
 
 当使用 [DI](di.md) 创建项目容器，可以使用 `\kuiper\logger\LoggerConfiguration` 进行日志配置。配置 `application.logging.path` 用于设置日志目录，日志文件 default.log 中包含所有日志，error.log 中只包含 ERROR 级别的日志。
+
+配置项说明：
+
+| 配置项                                 | 环境变量                   | 说明          |
+|-------------------------------------|------------------------|-------------|
+| logging.path                        | LOGGING_PATH           | 日志目录        |
+| logging.loggers.root.console        | LOGGING_CONSOLE        | 是否输出日志到标准输出 |
+| logging.loggers.root.level          | LOGGING_LEVEL          | 日志过滤等级      |
+| logging.loggers.root.log_file       | LOGGING_LOG_FILE       | 日志文件名       |
+| logging.loggers.root.error_log_file | LOGGING_ERROR_LOG_FILE | 错误日志文件名     |
 
 下一节：[Reflection](reflection.md)

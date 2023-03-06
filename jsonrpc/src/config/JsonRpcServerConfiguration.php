@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\config;
 
+use DI\Attribute\Inject;
+
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
@@ -23,6 +25,10 @@ use kuiper\di\attribute\Configuration;
 use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+
+use function kuiper\helper\env;
+
+use kuiper\helper\Properties;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\jsonrpc\attribute\JsonRpcService;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
@@ -57,19 +63,31 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
 
     public function getDefinitions(): array
     {
-        $this->addAccessLogger();
         $config = Application::getInstance()->getConfig();
-        $config->merge([
+        $config->mergeIfNotExists([
             'application' => [
                 'jsonrpc' => [
                     'server' => [
-                        'middleware' => [
-                            'jsonrpcServerRequestLog',
-                        ],
+                        'log_file' => env('JSONRPC_SERVER_LOG_FILE', '{application.logging.path}/jsonrpc-server.json'),
+                        'log_params' => 'true' === env('JSONRPC_SERVER_LOG_PARAMS'),
+                        'out_params' => false,
+                    ],
+                ],
+                'logging' => [
+                    'loggers' => [
+                        'JsonRpcServerRequestLogger' => LoggerConfiguration::createJsonLogger('{application.jsonrpc.server.log_file}'),
+                    ],
+                    'logger' => [
+                        'JsonRpcServerRequestLogger' => 'JsonRpcServerRequestLogger',
                     ],
                 ],
             ],
         ]);
+        $config->with('application.jsonrpc.server', function (Properties $value) {
+            $value->merge([
+                'middleware' => ['jsonrpcServerRequestLog'],
+            ]);
+        });
         $definitions = [];
         $definitions['jsonRpcHttpRequestHandler'] = factory([JsonRpcServerFactory::class, 'createHttpRequestHandler']);
         $definitions['jsonRpcHttpRequestListener'] = autowire(HttpRequestEventListener::class)
@@ -91,7 +109,6 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         return array_merge($definitions, [
             JsonRpcServerFactory::class => factory([JsonRpcServerFactory::class, 'createFromContainer']),
             'registerServices' => get('jsonrpcServices'),
-            'jsonrpcServerRequestLogFormatter' => autowire(RpcRequestJsonLogFormatter::class),
             'jsonrpcServerRequestLog' => autowire(AccessLog::class)
                 ->constructorParameter(0, get('jsonrpcServerRequestLogFormatter'))
                 ->method('setLogger', factory(function (LoggerFactoryInterface $loggerFactory) {
@@ -100,43 +117,41 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         ]);
     }
 
-    #[Bean('jsonrpcServices')]
-    public function jsonrpcServices(ContainerInterface $container, ServerConfig $serverConfig, PropertyResolverInterface $config): array
-    {
-        $weight = (int) $config->get('application.jsonrpc.server.weight');
-        if ($this->jsonrpcOnHttp($config)) {
-            return $this->getJsonrpcServices($container, $serverConfig, ServerType::HTTP, $weight);
-        }
-
-        return $this->getJsonrpcServices($container, $serverConfig, ServerType::TCP, $weight);
-    }
-
     private function jsonrpcOnHttp(PropertyResolverInterface $config): bool
     {
-        if ('http' === $config->get('application.jsonrpc.server.protocol')) {
-            return true;
-        }
         foreach ($config->get('application.server.ports', []) as $portConfig) {
-            $serverType = is_string($portConfig) ? $portConfig : $portConfig['protocol'] ?? ServerType::HTTP->value;
-            if (ServerType::from($serverType)->isHttpProtocol()) {
-                return true;
+            if (in_array($portConfig['listener'] ?? null, ['jsonRpcTcpReceiveEventListener', 'jsonRpcHttpRequestListener'], true)) {
+                $serverType = is_string($portConfig) ? $portConfig : $portConfig['protocol'] ?? ServerType::HTTP->value;
+                if (ServerType::from($serverType)->isHttpProtocol()) {
+                    return true;
+                }
             }
         }
 
         return false;
     }
 
-    protected function getJsonrpcServices(ContainerInterface $container, ServerConfig $serverConfig, ServerType $serverType, int $weight): array
+    #[Bean('jsonrpcServerRequestLogFormatter')]
+    public function jsonrpcServerRequestLogFormatter(#[Inject('application.jsonrpc.server')] array $config): RpcRequestJsonLogFormatter
     {
+        return new RpcRequestJsonLogFormatter(
+            extra: !empty($config['log_params']) ? ['params', 'pid'] : ['pid']
+        );
+    }
+
+    #[Bean('jsonrpcServices')]
+    public function jsonrpcServices(ContainerInterface $container, ServerConfig $serverConfig, PropertyResolverInterface $config): array
+    {
+        $weight = (int) $config->get('application.jsonrpc.server.weight');
         $serverPort = null;
         foreach ($serverConfig->getPorts() as $port) {
-            if ($port->getServerType() === $serverType) {
+            if (in_array($port->getListener(), ['jsonRpcTcpReceiveEventListener', 'jsonRpcHttpRequestListener'], true)) {
                 $serverPort = $port;
                 break;
             }
         }
         if (null === $serverPort) {
-            throw new InvalidArgumentException('Cannot find port use http protocol');
+            throw new InvalidArgumentException('Cannot find port serve jsonrpc service');
         }
         if ('0.0.0.0' === $serverPort->getHost()) {
             $serverPort = new ServerPort(gethostbyname(gethostname()), $serverPort->getPort(), $serverPort->getServerType());
@@ -227,27 +242,5 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         }
 
         return $middlewares;
-    }
-
-    private function addAccessLogger(): void
-    {
-        $config = Application::getInstance()->getConfig();
-        $path = $config->get('application.logging.path');
-        if (null === $path) {
-            return;
-        }
-        $config->merge([
-            'application' => [
-                'logging' => [
-                    'loggers' => [
-                        'JsonRpcServerRequestLogger' => LoggerConfiguration::createJsonLogger(
-                            $config->get('application.jsonrpc.server.log_file', $path.'/jsonrpc-server.log')),
-                    ],
-                    'logger' => [
-                        'JsonRpcServerRequestLogger' => 'JsonRpcServerRequestLogger',
-                    ],
-                ],
-            ],
-        ]);
     }
 }

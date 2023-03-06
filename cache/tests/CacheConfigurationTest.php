@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
-use function kuiper\helper\env;
-
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 use Redis;
@@ -24,25 +22,12 @@ class CacheConfigurationTest extends CacheTestCase
 {
     public function testCheckConfigCondition(): void
     {
-        $container = $this->createContainer([
-            'application' => [
-                'cache' => [
-                    'memory' => [],
-                ],
-            ],
-        ]);
-        $this->assertTrue($container->has(CacheItemPoolInterface::class));
+        $this->assertTrue($this->createContainer()->has(CacheItemPoolInterface::class));
     }
 
     public function testRedis(): void
     {
-        $redis = $this->createContainer([
-            'application' => [
-                'redis' => [
-                    'host' => env('REDIS_HOST'),
-                ],
-            ],
-        ])->get(Redis::class);
+        $redis = $this->createContainer()->get(Redis::class);
         $this->assertInstanceOf(Redis::class, $redis);
         $ret = $redis->set('foo', 'bar');
         $this->assertTrue($ret);
@@ -51,38 +36,29 @@ class CacheConfigurationTest extends CacheTestCase
 
     public function testCachePsr6(): void
     {
-        $cache = $this->createContainer([
-            'application' => [
-                'redis' => [
-                    'host' => env('REDIS_HOST'),
-                ],
-            ],
-        ])->get(CacheItemPoolInterface::class);
-        $item = $cache->getItem('foo');
-        $item->set((object) ['a' => 1]);
-        $cache->save($item);
-    }
-
-    public function testCacheUsingSymfony(): void
-    {
         $container = $this->createContainer([
             'application' => [
                 'cache' => [
-                    'implementation' => 'symfony',
+                    'namespace' => 'test',
                 ],
             ],
         ]);
         $cache = $container->get(CacheItemPoolInterface::class);
+        $item = $cache->getItem('foo');
+        $item->set((object) ['a' => 1]);
+        $cache->save($item);
+        $this->assertTrue((bool) $container->get(Redis::class)->exists('test:foo'));
+    }
+
+    public function testCacheUsingSymfony(): void
+    {
+        $cache = $this->createContainer()->get(CacheItemPoolInterface::class);
         $this->assertInstanceOf(AdapterInterface::class, $cache);
     }
 
     public function testSimpleCache(): void
     {
-        $cache = $this->createContainer([
-            'application' => [
-                'cache' => [],
-            ],
-        ])->get(CacheInterface::class);
+        $cache = $this->createContainer()->get(CacheInterface::class);
         $key = 'foo';
         $cache->delete($key);
         $value = $cache->get($key);
@@ -92,19 +68,6 @@ class CacheConfigurationTest extends CacheTestCase
         // var_export([$value, $newValue]);
         $this->assertNull($value);
         $this->assertNotNull($newValue);
-    }
-
-    public function testMemoryCache(): void
-    {
-        $container = $this->createContainer([
-            'application' => [
-                'cache' => [
-                    'memory' => [],
-                ],
-            ],
-        ]);
-        $cache = $container->get(CacheInterface::class);
-        $cache->delete('foo');
         $this->assertInstanceOf(SimpleCache::class, $cache);
     }
 }

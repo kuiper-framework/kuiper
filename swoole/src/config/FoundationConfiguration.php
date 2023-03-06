@@ -50,6 +50,11 @@ class FoundationConfiguration implements DefinitionConfiguration
         $config = Application::getInstance()->getConfig();
         $this->containerBuilder->addAwareInjection(AwareInjection::create(ContainerAwareInterface::class));
         $this->containerBuilder->addDefinitions(new PropertiesDefinitionSource($config));
+        $this->containerBuilder->defer(function () {
+            Application::getInstance()->getConfig()->replacePlaceholder(static function (string $key) {
+                return !str_starts_with($key, 'ENV.');
+            });
+        }, 0);
 
         return [
             PropertyResolverInterface::class => value($config),

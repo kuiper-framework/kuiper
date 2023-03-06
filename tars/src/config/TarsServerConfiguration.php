@@ -38,7 +38,6 @@ use kuiper\swoole\Application;
 use kuiper\swoole\attribute\BootstrapConfiguration;
 use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\constants\ServerType;
-use kuiper\swoole\event\ReceiveEvent;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use kuiper\swoole\ServerPort;
 use kuiper\tars\attribute\TarsServant;
@@ -79,7 +78,6 @@ class TarsServerConfiguration implements DefinitionConfiguration
         $this->addTarsRequestLog();
         $config = Application::getInstance()->getConfig();
         $listeners = [
-            ReceiveEvent::class => TarsTcpReceiveEventListener::class,
             KeepAlive::class,
         ];
         if ($config->getBool('application.tars.client.enable_stat')) {
@@ -227,10 +225,14 @@ class TarsServerConfiguration implements DefinitionConfiguration
         }
         $config->mergeIfNotExists([
             'application' => [
+                'tars' => [
+                    'server' => [
+                        'log_file' => '{application.logging.path}/tars-server.json',
+                    ],
+                ],
                 'logging' => [
                     'loggers' => [
-                        'TarsServerRequestLogger' => LoggerConfiguration::createJsonLogger(
-                            $config->getString('application.tars.server.log_file', $path.'/tars-server.log')),
+                        'TarsServerRequestLogger' => LoggerConfiguration::createJsonLogger('{application.tars.server.log_file}'),
                     ],
                     'logger' => [
                         'TarsServerRequestLogger' => 'TarsServerRequestLogger',
