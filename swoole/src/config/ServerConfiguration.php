@@ -73,10 +73,14 @@ class ServerConfiguration implements DefinitionConfiguration
                 ],
                 'server' => [
                     'port' => env('SERVER_PORT'),
-                    'type' => env('SERVER_TYPE'),
                 ],
             ],
         ]);
+        if (empty($config->get('application.server.ports'))) {
+            $config->set('application.server.ports', [
+                $config->get('application.server.port', env('SERVER_PORT', '8000')) => 'http',
+            ]);
+        }
         $config->merge([
             'application' => [
                 'bootstrap_listeners' => [
@@ -194,12 +198,7 @@ class ServerConfiguration implements DefinitionConfiguration
             ServerSetting::DAEMONIZE => false,
         ];
         $settings = array_merge($mainSettings, $config->get('application.server.settings', $config->get('application.swoole', [])));
-        $allPortConfig = $config->get('application.server.ports');
-        if (empty($allPortConfig)) {
-            $allPortConfig = [
-                $config->get('application.server.port', env('SERVER_PORT', '8000')) => 'http',
-            ];
-        }
+        $allPortConfig = $config->get('application.server.ports', []);
 
         $ports = [];
         foreach ($allPortConfig as $port => $portConfig) {

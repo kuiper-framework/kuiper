@@ -23,7 +23,6 @@ use kuiper\di\DefinitionConfiguration;
 
 use function kuiper\helper\env;
 
-use kuiper\helper\Properties;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\http\client\HttpProxyClientFactory;
 use kuiper\rpc\client\middleware\ServiceDiscovery;
@@ -61,19 +60,11 @@ class RpcRegistryConfiguration implements DefinitionConfiguration
                         'load_balance' => env('CLIENT_SERVICE_DISCOVERY_LOAD_BALANCE'),
                     ],
                 ],
-                'bootstrap_listeners' => [
-                    ServiceDiscoveryListener::class,
-                ],
                 'consul' => [
                     'base_uri' => env('CONSUL_BASE_URI'),
                 ],
             ],
         ]);
-        $config->with('application.bootstrap_listeners', function (Properties $value) {
-            if (!in_array(ServiceDiscoveryListener::class, $value->toArray(), true)) {
-                $value->append(ServiceDiscoveryListener::class);
-            }
-        });
 
         return [
         ];
