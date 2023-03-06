@@ -16,7 +16,7 @@ then
 fi
 
 if [ "$1" = "" ]; then
-    REPOS="cache db di event helper http-client jsonrpc logger reflection resilience rpc rpc-registry serializer swoole tars web"
+    REPOS="cache db di event helper http-client jsonrpc logger reflection resilience rpc rpc-registry serializer swoole tars web tracing-client"
 else
     REPOS="$@"
 fi
