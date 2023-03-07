@@ -21,7 +21,6 @@ use kuiper\di\DefinitionConfiguration;
 
 use function kuiper\helper\env;
 
-use kuiper\helper\Properties;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
@@ -46,45 +45,23 @@ class TracingConfiguration implements DefinitionConfiguration
                     'tracing' => [
                         'reporting_url' => env('TRACING_REPORTING_URL'),
                     ],
-                    'listeners' => [
-                        TraceDbQuery::class,
-                    ],
                 ],
             ]);
+            $config->appendTo('application.listeners', TraceDbQuery::class);
             if ($config->get('application.tracing.reporting_url')) {
-                $config->with('application.tars.client', function (?Properties $properties) {
-                    $properties?->merge([
-                        'middleware' => [TraceClientRequest::class],
-                    ]);
-                });
-                $config->with('application.jsonrpc.client', function (?Properties $properties) {
-                    $properties?->merge([
-                        'middleware' => [middleware\rpc\TraceClientRequest::class],
-                    ]);
-                });
+                $config->appendTo('application.tars.client.middleware', TraceClientRequest::class);
+                $config->appendTo('application.jsonrpc.client.middleware', middleware\rpc\TraceClientRequest::class);
                 foreach ($config->get('application.server.ports', []) as $port) {
                     if (is_array($port)) {
                         if (isset($port['listener'])) {
                             if ('jsonRpcHttpRequestListener' === $port['listener']) {
-                                $config->with('application.jsonrpc.server', function (?Properties $properties) {
-                                    $properties?->merge([
-                                      'middleware' => [TraceServerRequest::class],
-                                    ]);
-                                });
+                                $config->appendTo('application.jsonrpc.server.middleware', TraceServerRequest::class);
                             } elseif (TarsTcpReceiveEventListener::class === $port['listener']) {
-                                $config->with('application.tars.server', function (?Properties $properties) {
-                                    $properties?->merge([
-                                      'middleware' => [middleware\tars\TraceServerRequest::class],
-                                    ]);
-                                });
+                                $config->appendTo('application.tars.server.middleware', middleware\tars\TraceServerRequest::class);
                             }
                         }
                     } else {
-                        $config->with('application.web', function (?Properties $properties) {
-                            $properties?->merge([
-                                'middleware' => [TraceWebRequest::class],
-                            ]);
-                        });
+                        $config->appendTo('application.web.middleware', TraceWebRequest::class);
                     }
                 }
             }

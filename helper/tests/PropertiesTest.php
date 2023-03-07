@@ -134,6 +134,16 @@ class PropertiesTest extends TestCase
         $this->assertEquals($p->get('app'), ['foo' => ['one', 'two'], 'bar' => 'bar_value']);
     }
 
+    public function testMergeIfNotExistsExistArray(): void
+    {
+        $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);
+        $p->mergeIfNotExists([
+            'app' => [
+                'foo' => ['foo_value'],
+            ], ]);
+        $this->assertEquals($p->get('app'), ['foo' => ['one', 'two']]);
+    }
+
     public function testSetExistKey(): void
     {
         $p = Properties::create(['app' => ['foo' => ['one', 'two']]]);

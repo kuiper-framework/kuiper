@@ -288,4 +288,14 @@ final class Properties extends ArrayIterator implements PropertyResolverInterfac
 
         return true;
     }
+
+    public function appendTo(string $key, string $value): void
+    {
+        $val = $this->getValue($key);
+        if (null === $val) {
+            $this->set($key, [$value]);
+        } else {
+            $val->append($value);
+        }
+    }
 }
