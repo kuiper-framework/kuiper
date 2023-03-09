@@ -28,7 +28,6 @@ use kuiper\di\DefinitionConfiguration;
 use function kuiper\helper\env;
 
 use kuiper\helper\Properties;
-use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\attribute\JsonRpcClient;
 use kuiper\jsonrpc\attribute\JsonRpcService;
@@ -43,9 +42,7 @@ use kuiper\rpc\client\RequestIdGenerator;
 use kuiper\rpc\client\RequestIdGeneratorInterface;
 use kuiper\rpc\RpcRequestJsonLogFormatter;
 use kuiper\rpc\server\middleware\AccessLog;
-use kuiper\rpc\transporter\Endpoint;
 use kuiper\swoole\Application;
-use kuiper\swoole\constants\ServerType;
 use Psr\Container\ContainerInterface;
 
 class JsonRpcClientConfiguration implements DefinitionConfiguration
@@ -86,6 +83,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         return array_merge($this->createJsonRpcClients(), [
             ProxyGeneratorInterface::class => autowire(ProxyGenerator::class),
             JsonRpcClientFactory::class => autowire(JsonRpcClientFactory::class)
+                ->constructorParameter('defaultOptions', get('application.jsonrpc.client'))
                 ->constructorParameter('middlewares', get('jsonrpcClientMiddlewares'))
                 ->constructorParameter('httpClientFactory', factory(function (ContainerInterface $container) {
                     return $container->has(HttpClientFactoryInterface::class) ? $container->get(HttpClientFactoryInterface::class) : null;
@@ -132,7 +130,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
             }
             $name = $annotation->getComponentId();
             $definitions[$name] = factory(function (JsonRpcClientFactory $factory) use ($annotation) {
-                return $this->createJsonRpcClient($factory, $annotation->getTargetClass());
+                return $factory->create($annotation->getTargetClass());
             });
         }
 
@@ -145,26 +143,11 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
             }
             $options['name'] = $componentId = is_string($name) ? $name : $options['class'];
             $definitions[$componentId] = factory(function (JsonRpcClientFactory $factory) use ($options) {
-                return $this->createJsonRpcClient($factory, $options['class'], $options);
+                return $factory->create($options['class'], $options);
             });
         }
 
         return $definitions;
-    }
-
-    public function createJsonRpcClient(JsonRpcClientFactory $factory, string $clientClass, array $options = []): object
-    {
-        $config = Application::getInstance()->getConfig()->get('application.jsonrpc.client');
-        $clientOptions = $config['options'] ?? [];
-        $options = array_merge($options, $clientOptions[$options['name'] ?? $clientClass] ?? []);
-        $options['protocol'] = $this->getProtocol($options) ?? $config['protocol'] ?? 'http';
-        if (ServerType::from($options['protocol'])->isHttpProtocol()) {
-            $options = array_merge($config['http_options'] ?? [], $options);
-        } else {
-            $options = array_merge($config['tcp_options'] ?? [], $options);
-        }
-
-        return $factory->create($clientClass, $options);
     }
 
     private function getServices(): array
@@ -177,26 +160,6 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
         }
 
         return $services;
-    }
-
-    private function getProtocol(array $options): ?string
-    {
-        if (isset($options['protocol']) && null !== ServerType::tryFrom($options['protocol'])) {
-            return $options['protocol'];
-        }
-
-        if (isset($options['base_uri'])) {
-            return ServerType::HTTP->value;
-        }
-
-        if (isset($options['endpoint'])) {
-            $protocol = Endpoint::fromString($options['endpoint'])->getProtocol();
-            if (Text::isNotEmpty($protocol) && null !== ServerType::tryFrom($protocol)) {
-                return $protocol;
-            }
-        }
-
-        return null;
     }
 
     #[Bean('jsonrpcClientMiddlewares')]

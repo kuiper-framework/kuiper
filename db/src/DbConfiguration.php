@@ -64,6 +64,7 @@ class DbConfiguration implements DefinitionConfiguration
                         'user' => env('DB_USER'),
                         'password' => env('DB_PASSWORD', env('DB_PASS')),
                         'name' => env('DB_NAME'),
+                        'charset' => env('DB_CHARSET', 'utf8mb4'),
                         'table_prefix' => env('DB_TABLE_PREFIX'),
                         'logging' => 'true' === env('DB_LOGGING'),
                     ],

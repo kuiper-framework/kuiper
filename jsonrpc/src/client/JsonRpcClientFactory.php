@@ -15,6 +15,7 @@ namespace kuiper\jsonrpc\client;
 
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
+use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\logger\LoggerFactoryInterface;
@@ -60,6 +61,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
         private readonly PoolFactoryInterface $poolFactory,
         private readonly RequestIdGeneratorInterface $requestIdGenerator,
         private readonly array $middlewares,
+        private readonly array $defaultOptions,
         private readonly ?HttpClientFactoryInterface $httpClientFactory = null)
     {
     }
@@ -131,11 +133,20 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
      *
      * @throws ReflectionException
      */
-    public function create(string $className, array $options)
+    public function create(string $className, array $options = [])
     {
         $proxyClass = $this->proxyGenerator->generate($className);
         $proxyClass->eval();
         $class = $proxyClass->getClassName();
+
+        $clientOptions = $this->defaultOptions['options'] ?? [];
+        $options = array_merge($options, $clientOptions[$options['name'] ?? $className] ?? []);
+        $options['protocol'] = $this->getProtocol($options) ?? $config['protocol'] ?? 'http';
+        if (ServerType::from($options['protocol'])->isHttpProtocol()) {
+            $options = array_merge($config['http_options'] ?? [], $options);
+        } else {
+            $options = array_merge($config['tcp_options'] ?? [], $options);
+        }
         if (isset($options['endpoint'])) {
             // Laminas\Diactoros\Uri cannot accept tcp scheme
             $options['endpoint'] = Endpoint::removeTcpScheme($options['endpoint']);
@@ -155,5 +166,25 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
         }
 
         return new $class($rpcExecutorFactory);
+    }
+
+    private function getProtocol(array $options): ?string
+    {
+        if (isset($options['protocol']) && null !== ServerType::tryFrom($options['protocol'])) {
+            return $options['protocol'];
+        }
+
+        if (isset($options['base_uri'])) {
+            return ServerType::HTTP->value;
+        }
+
+        if (isset($options['endpoint'])) {
+            $protocol = Endpoint::fromString($options['endpoint'])->getProtocol();
+            if (Text::isNotEmpty($protocol) && null !== ServerType::tryFrom($protocol)) {
+                return $protocol;
+            }
+        }
+
+        return null;
     }
 }
