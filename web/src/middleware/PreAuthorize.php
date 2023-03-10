@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\web\middleware;
 
+use BackedEnum;
 use kuiper\web\security\AclInterface;
 use kuiper\web\security\PermissionEvaluator;
 use kuiper\web\security\SecurityContext;
@@ -22,7 +23,6 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Exception\HttpForbiddenException;
 use Slim\Exception\HttpUnauthorizedException;
-use StringBackedEnum;
 
 class PreAuthorize implements MiddlewareInterface
 {
@@ -44,9 +44,9 @@ class PreAuthorize implements MiddlewareInterface
 
     private static function fixAuthorities(array $authorities): array
     {
-        return array_map(static function ($authority) {
-            if ($authority instanceof StringBackedEnum) {
-                return $authority->value;
+        return array_map(static function ($authority): string {
+            if ($authority instanceof BackedEnum) {
+                return (string) $authority->value;
             }
 
             return (string) $authority;
