@@ -19,13 +19,14 @@ use kuiper\web\middleware\PreAuthorize as PreAuthorizeMiddleware;
 use kuiper\web\security\AclInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\MiddlewareInterface;
+use StringBackedEnum;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class PreAuthorize extends AbstractMiddlewareFactory
 {
     /**
-     * @param string[] $requiredAuthorities
-     * @param string[] $anyAuthorities
+     * @param string[]|StringBackedEnum[] $requiredAuthorities
+     * @param string[]|StringBackedEnum[] $anyAuthorities
      */
     public function __construct(
         private readonly array $requiredAuthorities,

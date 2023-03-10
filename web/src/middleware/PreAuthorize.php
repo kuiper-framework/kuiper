@@ -22,17 +22,35 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Exception\HttpForbiddenException;
 use Slim\Exception\HttpUnauthorizedException;
+use StringBackedEnum;
 
 class PreAuthorize implements MiddlewareInterface
 {
     private readonly PermissionEvaluator $permissionEvaluator;
 
+    private readonly array $requiredAuthorities;
+
+    private readonly array $anyAuthorities;
+
     public function __construct(
         AclInterface $acl,
-        private readonly array $requiredAuthorities,
-        private readonly array $anyAuthorities)
+        array $requiredAuthorities,
+        array $anyAuthorities)
     {
         $this->permissionEvaluator = new PermissionEvaluator($acl);
+        $this->requiredAuthorities = self::fixAuthorities($requiredAuthorities);
+        $this->anyAuthorities = self::fixAuthorities($anyAuthorities);
+    }
+
+    private static function fixAuthorities(array $authorities): array
+    {
+        return array_map(static function ($authority) {
+            if ($authority instanceof StringBackedEnum) {
+                return $authority->value;
+            }
+
+            return (string) $authority;
+        }, $authorities);
     }
 
     /**
