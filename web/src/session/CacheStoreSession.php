@@ -208,9 +208,9 @@ class CacheStoreSession implements SessionInterface
     /**
      * @param string $data
      *
-     * @return array|mixed
+     * @return array
      */
-    protected function decode($data)
+    protected function decode($data): array
     {
         if ($this->compatibleMode) {
             $_SESSION = [];
@@ -218,7 +218,9 @@ class CacheStoreSession implements SessionInterface
 
             return $_SESSION;
         } else {
-            return @unserialize($data) ?? [];
+            $sessionData = @unserialize($data, ['allowed_classes' => true]);
+
+            return !is_array($sessionData) ? [] : $sessionData;
         }
     }
 

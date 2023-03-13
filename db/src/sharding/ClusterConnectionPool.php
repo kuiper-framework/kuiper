@@ -27,12 +27,12 @@ class ClusterConnectionPool implements ConnectionPoolInterface
 
     public function hasConnection(): bool
     {
-        return $this->connectionId > 0;
+        return $this->connectionId >= 0;
     }
 
     public function getConnectionId(): int
     {
-        if ($this->connectionId < 0) {
+        if (!$this->hasConnection()) {
             throw new InvalidArgumentException('Connection id not set yet');
         }
 
@@ -49,7 +49,7 @@ class ClusterConnectionPool implements ConnectionPoolInterface
 
     public function take(): ConnectionInterface
     {
-        if ($this->connectionId < 0) {
+        if (!$this->hasConnection()) {
             throw new InvalidArgumentException('connection id not set');
         }
 

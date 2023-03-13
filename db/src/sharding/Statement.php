@@ -80,6 +80,9 @@ class Statement extends \kuiper\db\Statement implements StatementInterface
 
     public function tableAlias(string $alias): static
     {
+        if ($this->cluster->hasConnection()) {
+            throw new InvalidArgumentException('table alias must be set before shardBy');
+        }
         $this->setTableAlias($alias);
 
         return $this;

@@ -140,7 +140,6 @@ class Statement implements StatementInterface
         return $this->table;
     }
 
-    /** @noinspection PhpUnused */
     public function useIndex(string $indexName): static
     {
         $query = $this->query;
