@@ -20,15 +20,18 @@ use kuiper\rpc\RpcResponseInterface;
 
 class NamespaceAsHost implements MiddlewareInterface
 {
-    public function __construct(private readonly ?int $port = null)
-    {
+    public function __construct(
+        private readonly ?int $port = null,
+        private readonly ?string $subDomain = null
+    ) {
     }
 
     public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $handler): RpcResponseInterface
     {
         $uri = $request->getUri();
         if ('' === $uri->getHost()) {
-            $newUri = $uri->withHost($request->getRpcMethod()->getServiceLocator()->getNamespace());
+            $host = $request->getRpcMethod()->getServiceLocator()->getNamespace();
+            $newUri = $uri->withHost($host.$this->subDomain);
             if (isset($this->port)) {
                 $newUri = $newUri->withPort($this->port);
             }
