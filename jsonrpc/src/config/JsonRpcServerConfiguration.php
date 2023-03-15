@@ -37,6 +37,8 @@ use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\attribute\Ignore;
 use kuiper\rpc\RpcRequestJsonLogFormatter;
+use kuiper\rpc\server\admin\AdminServant;
+use kuiper\rpc\server\admin\AdminServantImpl;
 use kuiper\rpc\server\middleware\AccessLog;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocatorImpl;
@@ -66,6 +68,9 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         $config = Application::getInstance()->getConfig();
         $config->mergeIfNotExists([
             'application' => [
+                'server' => [
+                    'enable_admin_servant' => 'true' === env('SERVER_ENABLE_ADMIN_SERVANT'),
+                ],
                 'jsonrpc' => [
                     'server' => [
                         'log_file' => env('JSONRPC_SERVER_LOG_FILE', '{application.logging.path}/jsonrpc-server.json'),
@@ -83,6 +88,19 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
                 ],
             ],
         ]);
+        if ($config->getBool('application.server.enable_admin_servant')) {
+            $config->mergeIfNotExists([
+                'application' => [
+                    'jsonrpc' => [
+                        'server' => [
+                            'services' => [
+                                'AdminObj' => AdminServant::class,
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+        }
         $config->with('application.jsonrpc.server', function (Properties $value) {
             $value->merge([
                 'middleware' => ['jsonrpcServerRequestLog'],
@@ -107,6 +125,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         }
 
         return array_merge($definitions, [
+            AdminServant::class => autowire(AdminServantImpl::class),
             JsonRpcServerFactory::class => factory([JsonRpcServerFactory::class, 'createFromContainer']),
             'registerServices' => get('jsonrpcServices'),
             'jsonrpcServerRequestLog' => autowire(AccessLog::class)
