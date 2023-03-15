@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Kuiper package.
  *
@@ -9,7 +11,6 @@
  * file that was distributed with this source code.
  */
 
-
 namespace kuiper\tracing\codec;
 
 use kuiper\tars\client\TarsRequest;
@@ -17,7 +18,7 @@ use kuiper\tracing\SpanContext;
 
 class TarsRequestCodec
 {
-    public function __construct(private readonly TextCodec $textCodec
+    public function __construct(private readonly TextCodec $textCodec)
     {
     }
 
@@ -31,6 +32,6 @@ class TarsRequestCodec
 
     public function extract(TarsRequest $carrier): ?SpanContext
     {
-        return $this->textCodec->extract($carrier->ge());
+        return $this->textCodec->extract($carrier->getStatus());
     }
 }

@@ -35,11 +35,12 @@ class GuzzleSwooleRequestBridge implements SwooleRequestBridgeInterface
 
         $factory = new HttpFactory();
         $serverRequest = $factory->createServerRequest($server['REQUEST_METHOD'], $server['REQUEST_URI'], $server);
+        /** @var ServerRequestInterface $serverRequest */
         $serverRequest = Utils::modifyRequest($serverRequest, [
             'set_headers' => $headers,
         ]);
         if (!empty($swooleRequest->files)) {
-            $serverRequest->withUploadedFiles(ServerRequest::normalizeFiles($swooleRequest->files));
+            $serverRequest = $serverRequest->withUploadedFiles(ServerRequest::normalizeFiles($swooleRequest->files));
         }
         if (!empty($swooleRequest->get)) {
             $serverRequest = $serverRequest->withQueryParams($swooleRequest->get);

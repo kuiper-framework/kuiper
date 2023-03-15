@@ -21,6 +21,7 @@ use kuiper\di\DefinitionConfiguration;
 
 use function kuiper\helper\env;
 
+use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
@@ -48,7 +49,7 @@ class TracingConfiguration implements DefinitionConfiguration
                 ],
             ]);
             $config->appendTo('application.listeners', TraceDbQuery::class);
-            if ($config->get('application.tracing.reporting_url')) {
+            if (Text::isNotEmpty($config->get('application.tracing.reporting_url'))) {
                 $config->appendTo('application.tars.client.middleware', TraceClientRequest::class);
                 $config->appendTo('application.jsonrpc.client.middleware', middleware\rpc\TraceClientRequest::class);
                 foreach ($config->get('application.server.ports', []) as $port) {

@@ -141,11 +141,11 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
 
         $clientOptions = $this->defaultOptions['options'] ?? [];
         $options = array_merge($options, $clientOptions[$options['name'] ?? $className] ?? []);
-        $options['protocol'] = $this->getProtocol($options) ?? $config['protocol'] ?? 'http';
+        $options['protocol'] = $this->getProtocol($options) ?? $this->defaultOptions['protocol'] ?? 'http';
         if (ServerType::from($options['protocol'])->isHttpProtocol()) {
-            $options = array_merge($config['http_options'] ?? [], $options);
+            $options = array_merge($this->defaultOptions['http_options'] ?? [], $options);
         } else {
-            $options = array_merge($config['tcp_options'] ?? [], $options);
+            $options = array_merge($this->defaultOptions['tcp_options'] ?? [], $options);
         }
         if (isset($options['endpoint'])) {
             // Laminas\Diactoros\Uri cannot accept tcp scheme

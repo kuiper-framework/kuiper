@@ -16,12 +16,11 @@ namespace kuiper\db\converter;
 use BackedEnum;
 use InvalidArgumentException;
 use kuiper\db\metadata\ColumnInterface;
+use kuiper\helper\EnumHelper;
 use UnitEnum;
 
 class EnumConverter implements AttributeConverterInterface
 {
-    private static array $ENUM_CASES = [];
-
     public function __construct()
     {
     }
@@ -52,29 +51,12 @@ class EnumConverter implements AttributeConverterInterface
         $enumType = $column->getType()->getName();
 
         if (is_a($enumType, BackedEnum::class, true)) {
-            return $enumType::tryFrom($dbData);
+            return EnumHelper::tryFrom($enumType, $dbData);
         }
 
         if (is_a($enumType, UnitEnum::class, true)) {
-            return self::tryFromEnum($enumType, $dbData);
+            return EnumHelper::tryFromName($enumType, $dbData);
         }
         throw new InvalidArgumentException('attribute is not enum type');
-    }
-
-    /**
-     * @param class-string<UnitEnum> $enumType
-     * @param string                 $enumName
-     *
-     * @return UnitEnum|null
-     */
-    private static function tryFromEnum(string $enumType, string $enumName): ?UnitEnum
-    {
-        if (!isset(self::$ENUM_CASES[$enumType])) {
-            foreach ($enumType::cases() as $enum) {
-                self::$ENUM_CASES[$enumType][$enum->name] = $enum;
-            }
-        }
-
-        return self::$ENUM_CASES[$enumType][$enumName] ?? null;
     }
 }

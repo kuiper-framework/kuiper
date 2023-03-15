@@ -96,6 +96,11 @@ parameters:
 			path: http-client/src/HttpClientConfiguration.php
 
 		-
+			message: "#^Call to an undefined method Reflector\\:\\:getAttributes\\(\\)\\.$#"
+			count: 1
+			path: http-client/src/HttpRpcRequestFactory.php
+
+		-
 			message: "#^Parameter \\#1 \\$class of static method kuiper\\\\jsonrpc\\\\config\\\\JsonRpcServerConfiguration\\:\\:getServiceClass\\(\\) expects ReflectionClass, Reflector given\\.$#"
 			count: 1
 			path: jsonrpc/src/config/JsonRpcClientConfiguration.php
@@ -304,6 +309,51 @@ parameters:
 			message: "#^Method kuiper\\\\tars\\\\server\\\\TarsTcpReceiveEventListener\\:\\:createInvalidTarsRequestResponse\\(\\) is unused\\.$#"
 			count: 1
 			path: tars/src/server/TarsTcpReceiveEventListener.php
+
+		-
+			message: "#^Method kuiper\\\\tracing\\\\Config\\:\\:getLocalAgentReportingHost\\(\\) is unused\\.$#"
+			count: 1
+			path: tracing-client/src/Config.php
+
+		-
+			message: "#^Method kuiper\\\\tracing\\\\Config\\:\\:getLocalAgentReportingPort\\(\\) is unused\\.$#"
+			count: 1
+			path: tracing-client/src/Config.php
+
+		-
+			message: "#^Method kuiper\\\\tracing\\\\Config\\:\\:getMaxBufferLength\\(\\) is unused\\.$#"
+			count: 1
+			path: tracing-client/src/Config.php
+
+		-
+			message: "#^Variable method call on \\$this\\(kuiper\\\\tracing\\\\Span\\)\\.$#"
+			count: 1
+			path: tracing-client/src/Span.php
+
+		-
+			message: "#^Variable \\$tags on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 3
+			path: tracing-client/src/Tracer.php
+
+		-
+			message: "#^Method kuiper\\\\tracing\\\\codec\\\\TarsRequestCodec\\:\\:inject\\(\\) has parameter \\$carrier with no type specified\\.$#"
+			count: 1
+			path: tracing-client/src/codec/TarsRequestCodec.php
+
+		-
+			message: "#^Method kuiper\\\\tracing\\\\middleware\\\\AbstractClientMiddleware\\:\\:handle\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: tracing-client/src/middleware/AbstractClientMiddleware.php
+
+		-
+			message: "#^Method kuiper\\\\tracing\\\\middleware\\\\AbstractServerMiddleware\\:\\:handle\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: tracing-client/src/middleware/AbstractServerMiddleware.php
+
+		-
+			message: "#^Call to an undefined method Psr\\\\Http\\\\Message\\\\RequestInterface\\:\\:getRpcMethod\\(\\)\\.$#"
+			count: 1
+			path: tracing-client/src/middleware/rpc/TraceClientRequest.php
 
 		-
 			message: "#^Anonymous function uses \\$this assigned to variable \\$self\\. Use \\$this directly in the function body\\.$#"

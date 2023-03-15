@@ -11,6 +11,29 @@ use ReflectionException;
 class EnumHelper
 {
     /**
+     * @template T extends BackedEnum
+     *
+     * @param class-string<T> $enumClass
+     * @param string|int      $value
+     *
+     * @return T
+     *
+     * @throws ReflectionException
+     */
+    public static function tryFrom(string $enumClass, string|int $value): mixed
+    {
+        $reflectionEnum = new ReflectionEnum($enumClass);
+        if (!$reflectionEnum->isBacked()) {
+            throw new InvalidArgumentException("Enum $enumClass is not backed");
+        }
+        if ('string' === (string) $reflectionEnum->getBackingType()) {
+            return $enumClass::tryFrom((string) $value);
+        }
+
+        return $enumClass::tryFrom((int) $value);
+    }
+
+    /**
      * @template T
      *
      * @param class-string<T> $enumClass
