@@ -13,16 +13,21 @@ declare(strict_types=1);
 
 namespace kuiper\serializer;
 
+use DateTime;
 use kuiper\helper\Enum;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\serializer\fixtures\Company;
 use kuiper\serializer\fixtures\Customer;
+use kuiper\serializer\fixtures\EnumGender;
+use kuiper\serializer\fixtures\EnumStatus;
 use kuiper\serializer\fixtures\Gender;
 use kuiper\serializer\fixtures\Member;
 use kuiper\serializer\fixtures\Organization;
 use kuiper\serializer\normalizer\DateTimeNormalizer;
 use kuiper\serializer\normalizer\EnumNormalizer;
+use kuiper\serializer\normalizer\PhpEnumNormalizer;
 use PHPUnit\Framework\TestCase;
+use UnitEnum;
 
 /**
  * TestCase for Serializer.
@@ -32,8 +37,9 @@ class SerializerTest extends TestCase
     public function createSerializer()
     {
         return new Serializer(ReflectionDocBlockFactory::getInstance(), [
-            \DateTime::class => new DateTimeNormalizer(),
+            DateTime::class => new DateTimeNormalizer(),
             Enum::class => new EnumNormalizer(),
+            UnitEnum::class => new PhpEnumNormalizer(),
         ]);
     }
 
@@ -142,7 +148,7 @@ class SerializerTest extends TestCase
         $str = $serializer->toJson($user);
         $obj = $serializer->fromJson($str, fixtures\User::class);
         // print_r($obj);
-        $this->assertInstanceOf(\DateTime::class, $obj->getBirthday());
+        $this->assertInstanceOf(DateTime::class, $obj->getBirthday());
     }
 
     public function testDateTimeJsonSerialize(): void
@@ -154,7 +160,7 @@ class SerializerTest extends TestCase
         /** @var fixtures\User $obj */
         $obj = $serializer->fromJson($str, fixtures\User::class);
         // print_r($obj);
-        $this->assertInstanceOf(\DateTime::class, $obj->getBirthday());
+        $this->assertInstanceOf(DateTime::class, $obj->getBirthday());
         $this->assertEquals(Gender::MALE(), $obj->getGender());
     }
 
@@ -162,8 +168,17 @@ class SerializerTest extends TestCase
     {
         $user = new fixtures\User();
         $user->setId(1)
-            ->setBirthday(new \DateTime())
+            ->setBirthday(new DateTime())
             ->setGender(Gender::MALE());
+
+        return $user;
+    }
+
+    private function createUser2(): fixtures\User2
+    {
+        $user = new fixtures\User2();
+        $user->setId(1)
+            ->setGender(EnumGender::MALE);
 
         return $user;
     }
@@ -174,5 +189,24 @@ class SerializerTest extends TestCase
         $customer = $serializer->denormalize(['id' => '1'], Customer::class);
         // print_r($customer);
         $this->assertInstanceOf(Customer::class, $customer);
+    }
+
+    public function testBackedEnum()
+    {
+        $serializer = $this->createSerializer();
+        $data = $serializer->normalize($this->createUser2());
+        $this->assertEquals('{"id":1,"birthday":null,"gender":"male"}', json_encode($data));
+        $obj = $serializer->denormalize($data, fixtures\User2::class);
+        $this->assertInstanceOf(fixtures\User2::class, $obj);
+        $this->assertEquals(EnumGender::MALE, $obj->getGender());
+    }
+
+    public function testEnum()
+    {
+        $serializer = $this->createSerializer();
+        $data = $serializer->toJson(['status' => EnumStatus::RUNNING, 'foo' => 1]);
+        $this->assertEquals('{"status":"RUNNING","foo":1}', $data);
+        // $this->assertEquals('', 'a');
+        // $this->assertEquals('', json_encode(['status' => EnumStatus::RUNNING, 'foo' => 1], JSON_THROW_ON_ERROR));
     }
 }

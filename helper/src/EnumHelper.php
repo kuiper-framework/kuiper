@@ -11,7 +11,7 @@ use ReflectionException;
 class EnumHelper
 {
     /**
-     * @template T extends BackedEnum
+     * @template T
      *
      * @param class-string<T> $enumClass
      * @param string|int      $value

@@ -32,7 +32,7 @@ interface NormalizerInterface
     /**
      * Turn data back into an object of the given class.
      *
-     * @param string|array                   $data
+     * @param mixed                          $data
      * @param string|ReflectionTypeInterface $className
      *
      * @return mixed

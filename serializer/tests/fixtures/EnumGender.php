@@ -11,16 +11,11 @@
 
 declare(strict_types=1);
 
-namespace kuiper\jsonrpc\core;
+namespace kuiper\serializer\fixtures;
 
-final class JsonRpcProtocol
+
+enum EnumGender: string
 {
-    public const EOF = "\r\n";
-
-    public const NS = 'jsonrpc';
-
-    public static function encode(array $data): string
-    {
-        return json_encode($data, JSON_THROW_ON_ERROR).self::EOF;
-    }
+    case MALE = 'male';
+    case FEMALE = 'female';
 }
