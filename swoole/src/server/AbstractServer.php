@@ -16,6 +16,7 @@ namespace kuiper\swoole\server;
 use kuiper\event\EventDispatcherAwareInterface;
 use kuiper\event\EventDispatcherAwareTrait;
 use kuiper\helper\Properties;
+use kuiper\swoole\constants\Event;
 use kuiper\swoole\event\AbstractServerEvent;
 use kuiper\swoole\event\MessageInterface;
 use kuiper\swoole\event\ServerEventFactory;
@@ -38,18 +39,18 @@ abstract class AbstractServer implements ServerInterface, LoggerAwareInterface, 
         $this->serverEventFactory = new ServerEventFactory();
     }
 
-    public function dispatch(string $eventName, array $args): ?AbstractServerEvent
+    public function dispatch(Event $eventName, array $args): ?AbstractServerEvent
     {
         array_unshift($args, $this);
         $event = $this->serverEventFactory->create($eventName, $args);
         if (null !== $event) {
-            $this->logger->debug(static::TAG."dispatch event $eventName using ".get_class($event));
+            $this->logger->debug(static::TAG."dispatch event $eventName->value using ".get_class($event));
 
             /* @noinspection PhpIncompatibleReturnTypeInspection */
             return $this->getEventDispatcher()->dispatch($event);
         }
 
-        $this->logger->debug(static::TAG."unhandled event $eventName");
+        $this->logger->debug(static::TAG."unhandled event $eventName->value");
 
         return null;
     }

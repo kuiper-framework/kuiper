@@ -37,7 +37,7 @@ class TaskWorker extends AbstractWorker
                 throw new InvalidArgumentException("TaskWorker only accept task message: type=$msgType");
             }
             $this->task = $task;
-            $this->dispatch(Event::TASK->value, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
+            $this->dispatch(Event::TASK, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
             unset($this->task);
             $this->getChannel()->push([MessageType::TASK_FINISH, $task]);
         }

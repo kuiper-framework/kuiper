@@ -63,7 +63,7 @@ class SingleWorkerManager extends AbstractWorkerManager
 
         try {
             $this->listen();
-            $this->dispatch(Event::WORKER_START->value, [$this->getWorkerId()]);
+            $this->dispatch(Event::WORKER_START, [$this->getWorkerId()]);
             $socket = $this->getResource();
             $this->sockets[(int) $socket] = $socket;
             $this->setErrorHandler();
@@ -74,7 +74,7 @@ class SingleWorkerManager extends AbstractWorkerManager
                 $this->dispatchTask();
             }
             $this->restoreErrorHandler();
-            $this->dispatch(Event::WORKER_STOP->value, [$this->getWorkerId()]);
+            $this->dispatch(Event::WORKER_STOP, [$this->getWorkerId()]);
         } catch (Exception $e) {
             $this->logger->error(static::TAG.'start fail', [
                 'error' => $e->getMessage(),
@@ -93,13 +93,13 @@ class SingleWorkerManager extends AbstractWorkerManager
             foreach ($read as $socket) {
                 if ($socket === $this->getResource()) {
                     if ($clientSocketId = $this->accept()) {
-                        $this->dispatch(Event::CONNECT->value, [$clientSocketId, 0]);
+                        $this->dispatch(Event::CONNECT, [$clientSocketId, 0]);
                     }
                 } else {
                     $data = $this->read($socket, $this->socketBufferSize);
                     if (!empty($data)) {
                         $this->clients[(int) $socket]['last_time'] = time();
-                        $this->dispatch(Event::RECEIVE->value, [(int) $socket, 0, $data]);
+                        $this->dispatch(Event::RECEIVE, [(int) $socket, 0, $data]);
                     } else {
                         $this->closeConnection((int) $socket);
                     }
@@ -157,7 +157,7 @@ class SingleWorkerManager extends AbstractWorkerManager
                 $task->setTaskId($this->taskId++);
                 $task->setTaskWorkerId($this->getWorkerId());
                 $this->currentTask = $task;
-                $this->dispatch(Event::TASK->value, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
+                $this->dispatch(Event::TASK, [$task->getTaskId(), $task->getFromWorkerId(), $task->getData()]);
             } finally {
                 $this->currentTask = null;
             }
@@ -189,7 +189,7 @@ class SingleWorkerManager extends AbstractWorkerManager
             fclose($this->sockets[$clientId]);
         }
         unset($this->sockets[$clientId], $this->clients[$clientId]);
-        $this->dispatch(Event::CLOSE->value, [$clientId, 0]);
+        $this->dispatch(Event::CLOSE, [$clientId, 0]);
     }
 
     private function accept(): bool|int

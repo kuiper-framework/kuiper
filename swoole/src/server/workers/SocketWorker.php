@@ -57,13 +57,13 @@ class SocketWorker extends AbstractWorker
                 if ($socket === $this->resource) {
                     if ($clientSocketId = $this->accept()) {
                         $this->clients[$clientSocketId]['connect_time'] = time();
-                        $this->dispatch(Event::CONNECT->value, [$clientSocketId, 0]);
+                        $this->dispatch(Event::CONNECT, [$clientSocketId, 0]);
                     }
                 } else {
                     $data = $this->read($socket, $this->getSettings()->getInt(ServerSetting::SOCKET_BUFFER_SIZE));
                     if (!empty($data)) {
                         $this->clients[(int) $socket]['last_time'] = time();
-                        $this->dispatch(Event::RECEIVE->value, [(int) $socket, 0, $data]);
+                        $this->dispatch(Event::RECEIVE, [(int) $socket, 0, $data]);
                     } else {
                         $this->close((int) $socket);
                     }
@@ -161,7 +161,7 @@ class SocketWorker extends AbstractWorker
             fclose($this->sockets[$socketId]);
         }
         unset($this->sockets[$socketId], $this->clients[$socketId]);
-        $this->dispatch(Event::CLOSE->value, [$socketId, 0]);
+        $this->dispatch(Event::CLOSE, [$socketId, 0]);
     }
 
     public function getConnectionInfo(int $clientId): ?ConnectionInfo

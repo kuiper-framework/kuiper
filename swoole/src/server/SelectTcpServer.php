@@ -53,8 +53,8 @@ class SelectTcpServer extends AbstractServer
             ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
         ]);
         $this->masterPid = getmypid();
-        $this->dispatch(Event::BOOTSTRAP->value, []);
-        $this->dispatch(Event::START->value, []);
+        $this->dispatch(Event::BOOTSTRAP, []);
+        $this->dispatch(Event::START, []);
 
         if (1 === $this->getSettings()->getInt(ServerSetting::WORKER_NUM)) {
             $this->workerManager = new SingleWorkerManager($this, $this->logger);
@@ -63,7 +63,7 @@ class SelectTcpServer extends AbstractServer
         }
         $this->workerManager->loop();
 
-        $this->dispatch(Event::SHUTDOWN->value, []);
+        $this->dispatch(Event::SHUTDOWN, []);
     }
 
     /**

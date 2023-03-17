@@ -17,6 +17,7 @@ use Exception;
 use kuiper\swoole\Application;
 use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\Event;
+use kuiper\swoole\coroutine\Coroutine;
 use kuiper\swoole\event\MessageInterface;
 use kuiper\swoole\event\RequestEvent;
 use kuiper\swoole\http\HttpMessageFactoryHolder;
@@ -91,7 +92,8 @@ class SwooleServer extends AbstractServer
     public function start(): void
     {
         self::check();
-        $this->dispatch(Event::BOOTSTRAP->value, []);
+        $this->dispatch(Event::BOOTSTRAP, []);
+        Coroutine::enable();
         $ports = $this->getServerConfig()->getPorts();
         $this->createSwooleServer(array_shift($ports));
         foreach ($ports as $adapter) {
@@ -105,9 +107,9 @@ class SwooleServer extends AbstractServer
      */
     public function reload(): void
     {
-        $this->dispatch(Event::BEFORE_RELOAD->value, []);
+        $this->dispatch(Event::BEFORE_RELOAD, []);
         $this->resource->reload();
-        $this->dispatch(Event::AFTER_RELOAD->value, []);
+        $this->dispatch(Event::AFTER_RELOAD, []);
     }
 
     /**
@@ -195,7 +197,7 @@ class SwooleServer extends AbstractServer
     {
         $data = serialize($message);
         if ($workerId === $this->resource->worker_id) {
-            $this->dispatch(Event::PIPE_MESSAGE->value, [$workerId, $data]);
+            $this->dispatch(Event::PIPE_MESSAGE, [$workerId, $data]);
         } else {
             $this->resource->sendMessage($data, $workerId);
         }
@@ -246,17 +248,17 @@ class SwooleServer extends AbstractServer
         }
     }
 
-    private function createEventHandler(string $eventName): callable
+    private function createEventHandler(Event $eventName): callable
     {
         return function () use ($eventName) {
-            $this->logger->debug(static::TAG.'receive event '.$eventName);
+            $this->logger->debug(static::TAG.'receive event '.$eventName->value);
             $args = func_get_args();
-            if (Event::REQUEST->value === $eventName) {
+            if (Event::REQUEST === $eventName) {
                 $this->onRequest(...$args);
 
                 return;
             }
-            if ((Event::WORKER_START->value === $eventName)
+            if ((Event::WORKER_START === $eventName)
                 && Application::getInstance()->isBootstrapContainerEnabled()) {
                 // recreate container if necessarily
                 Application::getInstance()->getContainer();
@@ -272,14 +274,14 @@ class SwooleServer extends AbstractServer
     private function attach(Event $event): void
     {
         $this->logger->debug(static::TAG."attach $event->value to server");
-        $this->resource->on($event->value, $this->createEventHandler($event->value));
+        $this->resource->on($event->value, $this->createEventHandler($event));
     }
 
     private function onRequest($request, $response): void
     {
         try {
             /** @var RequestEvent $event */
-            $event = $this->dispatch(Event::REQUEST->value, [$this->getSwooleRequestBridge()->create($request)]);
+            $event = $this->dispatch(Event::REQUEST, [$this->getSwooleRequestBridge()->create($request)]);
             if ($event) {
                 $this->getSwooleResponseBridge()->update($event->getResponse() ?? $this->getResponseFactory()
                         ->createResponse(500), $response);

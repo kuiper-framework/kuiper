@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\swoole\server\workers;
 
 use kuiper\helper\Properties;
+use kuiper\swoole\constants\Event;
 use kuiper\swoole\event\AbstractServerEvent;
 use kuiper\swoole\exception\ServerStateException;
 use kuiper\swoole\server\SelectTcpServer;
@@ -81,7 +82,7 @@ abstract class AbstractWorkerManager implements LoggerAwareInterface, WorkerMana
         pcntl_signal(SIGCHLD, [$this, 'signalHandler']);
     }
 
-    public function dispatch(string $event, array $args): ?AbstractServerEvent
+    public function dispatch(Event $event, array $args): ?AbstractServerEvent
     {
         return $this->server->dispatch($event, $args);
     }

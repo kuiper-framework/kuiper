@@ -69,7 +69,7 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
         $this->installSignal();
 
         $this->onStart();
-        $this->dispatch(Event::WORKER_START->value, [$this->workerId]);
+        $this->dispatch(Event::WORKER_START, [$this->workerId]);
         while (!$this->stopped) {
             pcntl_signal_dispatch();
             $this->setErrorHandler();
@@ -78,7 +78,7 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
         }
         $this->channel->close();
         $this->onStop();
-        $this->dispatch(Event::WORKER_STOP->value, [$this->workerId]);
+        $this->dispatch(Event::WORKER_STOP, [$this->workerId]);
     }
 
     public function tick(int $millisecond, callable $callback): int
@@ -121,7 +121,7 @@ abstract class AbstractWorker implements WorkerInterface, LoggerAwareInterface
         }
     }
 
-    protected function dispatch(string $event, array $args): ?AbstractServerEvent
+    protected function dispatch(Event $event, array $args): ?AbstractServerEvent
     {
         return $this->manager->dispatch($event, $args);
     }

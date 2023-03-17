@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
+use kuiper\swoole\constants\Event;
 use kuiper\swoole\server\ServerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Swoole\Http\Request;
@@ -21,9 +22,9 @@ use Swoole\WebSocket\Frame;
 
 class ServerEventFactory
 {
-    public function create(string $eventName, array $args): ?AbstractServerEvent
+    public function create(Event $eventName, array $args): ?AbstractServerEvent
     {
-        $method = sprintf('create%sEvent', $eventName);
+        $method = sprintf('create%sEvent', $eventName->value);
         if (method_exists($this, $method)) {
             $server = array_shift($args);
             /** @phpstan-ignore-next-line */

@@ -15,6 +15,7 @@ namespace kuiper\swoole\server\workers;
 
 use kuiper\helper\Properties;
 use kuiper\swoole\ConnectionInfo;
+use kuiper\swoole\constants\Event;
 use kuiper\swoole\event\AbstractServerEvent;
 use kuiper\swoole\ServerConfig;
 
@@ -75,7 +76,7 @@ interface WorkerManagerInterface
      */
     public function getConnectionInfo(int $clientId): ?ConnectionInfo;
 
-    public function dispatch(string $event, array $args): ?AbstractServerEvent;
+    public function dispatch(Event $event, array $args): ?AbstractServerEvent;
 
     public function getServerConfig(): ServerConfig;
 

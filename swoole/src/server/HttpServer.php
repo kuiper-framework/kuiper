@@ -96,12 +96,12 @@ class HttpServer extends SelectTcpServer
         $this->responseBuilder = $responseBuilder;
     }
 
-    public function dispatch(string $eventName, array $args): ?AbstractServerEvent
+    public function dispatch(Event $eventName, array $args): ?AbstractServerEvent
     {
-        if (in_array($eventName, [Event::CONNECT->value, Event::CLOSE->value], true)) {
+        if (in_array($eventName, [Event::CONNECT, Event::CLOSE], true)) {
             return null;
         }
-        if (Event::RECEIVE->value === $eventName) {
+        if (Event::RECEIVE === $eventName) {
             $this->onReceive(...$args);
 
             return null;
@@ -127,7 +127,7 @@ class HttpServer extends SelectTcpServer
         }
         if ($requestParser->isCompleted()) {
             /** @var RequestEvent $event */
-            $event = $this->dispatch(Event::REQUEST->value, [$requestParser->getRequest()]);
+            $event = $this->dispatch(Event::REQUEST, [$requestParser->getRequest()]);
             $this->sendResponse($clientId, $event->getRequest(), $event->getResponse()
                 ?? $this->getResponseFactory()->createResponse(500));
         }

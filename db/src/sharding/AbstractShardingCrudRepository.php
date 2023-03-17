@@ -21,6 +21,7 @@ use kuiper\db\DateTimeFactoryInterface;
 use kuiper\db\exception\MetaModelException;
 use kuiper\db\metadata\MetaModelFactoryInterface;
 use kuiper\helper\Arrays;
+use PDO;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Webmozart\Assert\Assert;
 
@@ -90,6 +91,29 @@ abstract class AbstractShardingCrudRepository extends AbstractCrudRepository
         }
 
         return Arrays::flatten($result);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function findByNaturalId(object $example): ?object
+    {
+        $this->checkEntityClassMatch($example);
+
+        $criteria = $this->metaModel->getNaturalIdValues($example);
+        if (!isset($criteria)) {
+            throw new InvalidArgumentException('Cannot extract unique constraint from input');
+        }
+        /** @var StatementInterface $stmt */
+        $stmt = $this->buildQueryStatement($criteria)->limit(1)
+            ->offset(0);
+        $stmt->shardBy($this->getShardFields($example));
+        $row = $this->doQuery($stmt)->fetch(PDO::FETCH_ASSOC);
+        if (!empty($row)) {
+            return $this->metaModel->thaw($row);
+        }
+
+        return null;
     }
 
     /**
