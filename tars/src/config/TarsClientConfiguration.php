@@ -15,7 +15,6 @@ namespace kuiper\tars\config;
 
 use DI\Attribute\Inject;
 
-use function DI\autowire;
 use function DI\factory;
 
 use kuiper\di\attribute\Bean;
@@ -23,6 +22,9 @@ use kuiper\di\ComponentCollection;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
 use kuiper\helper\Arrays;
+
+use function kuiper\helper\env;
+
 use kuiper\helper\Text;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
@@ -105,10 +107,7 @@ class TarsClientConfiguration implements DefinitionConfiguration
             ],
         ]);
 
-        return array_merge($this->createTarsClients(), [
-            'tarsClientRequestLogFormatter' => autowire(TarsRequestJsonLogFormatter::class)
-                ->constructorParameter('fields', RpcRequestJsonLogFormatter::CLIENT),
-        ]);
+        return $this->createTarsClients();
     }
 
     #[Bean]
@@ -117,15 +116,27 @@ class TarsClientConfiguration implements DefinitionConfiguration
         return new RequestIdGenerator(new SwooleAtomicCounter());
     }
 
+    #[Bean('tarsClientRequestLogFormatter')]
+    public function tarsClientRequestLogFormatter(): TarsRequestJsonLogFormatter
+    {
+        $config = Application::getInstance()->getConfig();
+
+        return new TarsRequestJsonLogFormatter(
+            fields: RpcRequestJsonLogFormatter::CLIENT,
+            extra: $config->getBool('application.tars.client.log_params') ? ['params', 'pid'] : ['pid'],
+        );
+    }
+
     #[Bean('tarsClientRequestLog')]
     public function tarsRequestLog(
         #[Inject('tarsClientRequestLogFormatter')] RequestLogFormatterInterface $requestLogFormatter,
         LoggerFactoryInterface $loggerFactory): AccessLog
     {
-        $excludeRegexp = Application::getInstance()->getConfig()->getString('application.tars.client.log_excludes', '#^tars.tarsnode#');
+        $config = Application::getInstance()->getConfig();
+        $excludeRegexp = $config->getString('application.tars.client.log_excludes', '#^tars.tarsnode#');
         $middleware = new AccessLog($requestLogFormatter, static function (RpcRequestInterface $request) use ($excludeRegexp) {
             return !preg_match($excludeRegexp, $request->getRpcMethod()->getServiceLocator()->getName());
-        });
+        }, $config->getFloat('application.tars.client.log_sample_rate'));
         $middleware->setLogger($loggerFactory->create('TarsRequestLogger'));
 
         return $middleware;
@@ -136,9 +147,9 @@ class TarsClientConfiguration implements DefinitionConfiguration
      */
     public function createTarsClient(TarsProxyFactory $factory, string $clientClass, string $name = null, array $options = []): object
     {
-        $config = Application::getInstance()->getConfig();
-        $clientOptions = $config->get('application.tars.client.options', []);
-        $options = array_merge($options, $clientOptions['default'] ?? [], $clientOptions[$name ?? $clientClass] ?? []);
+        if (isset($name)) {
+            $options['name'] = $name;
+        }
 
         return $factory->create($clientClass, $options);
     }
@@ -284,6 +295,8 @@ class TarsClientConfiguration implements DefinitionConfiguration
                 'tars' => [
                     'client' => [
                         'log_file' => '{application.logging.path}/tars-client.json',
+                        'log_params' => 'true' === env('TARS_CLIENT_LOG_PARAMS'),
+                        'log_sample_rate' => (float) env('TARS_CLIENT_LOG_SAMPLE_RATE', '1.0'),
                     ],
                 ],
                 'logging' => [

@@ -78,6 +78,20 @@ class HttpClientConfiguration implements DefinitionConfiguration
         return $httpClientFactory->create($options ?? []);
     }
 
+    private function envOptions(string $componentId): array
+    {
+        $prefix = 'HTTP_CLIENT_'.str_replace(['.', '\\'], '_', strtoupper($componentId)).'__';
+        $options = [];
+        foreach ($_ENV as $key => $value) {
+            if (str_starts_with($key, $prefix)) {
+                $name = strtolower(substr($key, strlen($prefix)));
+                $options[$name] = $value;
+            }
+        }
+
+        return $options;
+    }
+
     private function createHttpClientProxy(): array
     {
         $self = $this;
@@ -89,10 +103,15 @@ class HttpClientConfiguration implements DefinitionConfiguration
                 /** @noinspection AmbiguousMethodsCallsInArrayMappingInspection */
                 $componentId = $attribute->getComponentId();
                 if (isset($options[$componentId])) {
+                    $clientOptions = array_merge(
+                        $options['default'] ?? [],
+                        $this->envOptions($componentId),
+                        $options[$componentId] ?? []
+                    );
                     $httpClient = $self->httpClient(
                         $container,
                         $container->get(HttpClientFactoryInterface::class),
-                        array_merge($options['default'] ?? [], $options[$componentId] ?? [])
+                        $clientOptions
                     );
                 } else {
                     $httpClient = $container->get(ClientInterface::class);

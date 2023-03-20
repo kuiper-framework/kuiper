@@ -161,16 +161,17 @@ $result = $container->get(FooService::class)->foo();
 
 ### 配置项
 
-| 配置项                            | 环境变量                      | 说明                             |
-|--------------------------------|---------------------------|--------------------------------|
-| jsonrpc.client.log_file        | JSONRPC_CLIENT_LOG_FILE   | 请求日志文件                         |
-| jsonrpc.client.log_params      | JSONRPC_CLIENT_LOG_PARAMS | 请求日志是否记录请求参数                   |
-| jsonrpc.client.protocol        | JSONRPC_CLIENT_PROTOCOL   | 服务传输协议，支持 http 和 tcp，默认值为 http |
-| jsonrpc.client.middleware      |                           | 中间件                            |
-| jsonrpc.client.http_options    |                           | 设置公共 http 配置参数                 |
-| jsonrpc.client.tcp_options     |                           | 设置公共 tcp 配置参数                  |
-| jsonrpc.client.clients         |                           | 注册客户端                          |
-| jsonrpc.client.options         |                           | 客户端配置                          |
+| 配置项                            | 环境变量                           | 说明                             |
+|--------------------------------|--------------------------------|--------------------------------|
+| jsonrpc.client.log_file        | JSONRPC_CLIENT_LOG_FILE        | 请求日志文件                         |
+| jsonrpc.client.log_sample_rate | JSONRPC_CLIENT_LOG_SAMPLE_RATE | 记录日志取样率，默认为1，设置为0不记录日志         |
+| jsonrpc.client.log_params      | JSONRPC_CLIENT_LOG_PARAMS      | 请求日志是否记录请求参数                   |
+| jsonrpc.client.protocol        | JSONRPC_CLIENT_PROTOCOL        | 服务传输协议，支持 http 和 tcp，默认值为 http |
+| jsonrpc.client.middleware      |                                | 中间件                            |
+| jsonrpc.client.http_options    |                                | 设置公共 http 配置参数                 |
+| jsonrpc.client.tcp_options     |                                | 设置公共 tcp 配置参数                  |
+| jsonrpc.client.clients         |                                | 注册客户端                          |
+| jsonrpc.client.options         |                                | 客户端配置                          |
 
 `http_options` 可配置参数参考 [HttpClient](http-client.md)，`tcp_options` 可配置参数参考 swoole tcp 配置参数。
 

@@ -58,6 +58,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                     'client' => [
                         'log_file' => env('JSONRPC_CLIENT_LOG_FILE', '{application.logging.path}/jsonrpc.json'),
                         'log_params' => 'true' === env('JSONRPC_CLIENT_LOG_PARAMS'),
+                        'log_sample_rate' => (float) env('JSONRPC_CLIENT_LOG_SAMPLE_RATE', '1.0'),
                         'protocol' => env('JSONRPC_CLIENT_PROTOCOL', 'http'),
                     ],
                 ],
@@ -88,11 +89,6 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 ->constructorParameter('httpClientFactory', factory(function (ContainerInterface $container) {
                     return $container->has(HttpClientFactoryInterface::class) ? $container->get(HttpClientFactoryInterface::class) : null;
                 })),
-            'jsonrpcRequestLog' => autowire(AccessLog::class)
-                ->constructorParameter(0, get('jsonrpcClientRequestLogFormatter'))
-                ->method('setLogger', factory(function (LoggerFactoryInterface $loggerFactory) {
-                    return $loggerFactory->create('JsonRpcRequestLogger');
-                })),
         ]);
     }
 
@@ -100,6 +96,18 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
     public function requestIdGenerator(): RequestIdGeneratorInterface
     {
         return new RequestIdGenerator(new SwooleAtomicCounter());
+    }
+
+    #[Bean('jsonrpcRequestLog')]
+    public function jsonrpcRequestLog(
+        #[Inject('jsonrpcClientRequestLogFormatter')] RpcRequestJsonLogFormatter $requestLogFormatter,
+        LoggerFactoryInterface $loggerFactory,
+        #[Inject('application.jsonrpc.client.log_sample_rate')] float $sampleRate
+    ): AccessLog {
+        $accessLog = new AccessLog($requestLogFormatter, null, $sampleRate);
+        $accessLog->setLogger($loggerFactory->create('JsonRpcRequestLogger'));
+
+        return $accessLog;
     }
 
     #[Bean('jsonrpcClientRequestLogFormatter')]

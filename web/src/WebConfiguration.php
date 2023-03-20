@@ -16,6 +16,7 @@ namespace kuiper\web;
 use DI\Attribute\Inject;
 
 use function DI\autowire;
+use function DI\factory;
 
 use kuiper\di\attribute\AnyCondition;
 use kuiper\di\attribute\Bean;
@@ -90,6 +91,7 @@ class WebConfiguration implements DefinitionConfiguration
                 'web' => [
                     'log_file' => env('WEB_LOG_FILE', '{application.logging.path}/access.log'),
                     'log_post_body' => 'true' === env('WEB_LOG_POST_BODY'),
+                    'log_sample_rate' => (float) env('WEB_LOG_SAMPLE_RATE', '1.0'),
                     'namespace' => env('WEB_NAMESPACE'),
                     'context_url' => env('WEB_CONTEXT_URL'),
                     'health_check_enabled' => 'true' === env('WEB_HEALTH_CHECK_ENABLED'),
@@ -129,6 +131,11 @@ class WebConfiguration implements DefinitionConfiguration
         return [
             ErrorRendererInterface::class => autowire(LogErrorRenderer::class),
             AclInterface::class => autowire(Acl::class),
+            AccessLog::class => factory(function (ContainerInterface $container) use ($config) {
+                $sampleRate = $config->get('application.web.log_sample_rate');
+
+                return new AccessLog($container->get(RequestLogFormatterInterface::class), null, $sampleRate);
+            }),
         ];
     }
 
@@ -247,7 +254,7 @@ class WebConfiguration implements DefinitionConfiguration
     #[Bean]
     #[AnyCondition(
         new ConditionalOnClass(Twig::class),
-        new ConditionalOnProperty('application.web.view.engine', hasValue: 'twig', matchIfMissing: true)
+        new ConditionalOnProperty('application.web.view.engine', hasValue: 'twig')
     )]
     public function twigView(LoaderInterface $twigLoader, #[Inject('application.web.view')] ?array $options): ViewInterface
     {

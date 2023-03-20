@@ -90,6 +90,11 @@ final class Properties extends ArrayIterator implements PropertyResolverInterfac
         return (int) $this->get($key, $default);
     }
 
+    public function getFloat(string $key, float $default = 0.0): float
+    {
+        return (float) $this->get($key, $default);
+    }
+
     public function getBool(string $key, bool $default = false): bool
     {
         return (bool) $this->get($key, $default);

@@ -116,6 +116,20 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
         return new RpcExecutorFactory($this->createRpcRequestFactory($className, $options), $rpcClient, $this->middlewares);
     }
 
+    private function envOptions(string $componentId): array
+    {
+        $prefix = 'JSONRPC_CLIENT_'.str_replace(['.', '\\'], '_', strtoupper($componentId)).'__';
+        $options = [];
+        foreach ($_ENV as $key => $value) {
+            if (str_starts_with($key, $prefix)) {
+                $name = strtolower(substr($key, strlen($prefix)));
+                $options[$name] = $value;
+            }
+        }
+
+        return $options;
+    }
+
     /**
      * options:
      * - protocol tcp|http
@@ -140,7 +154,8 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
         $class = $proxyClass->getClassName();
 
         $clientOptions = $this->defaultOptions['options'] ?? [];
-        $options = array_merge($options, $clientOptions[$options['name'] ?? $className] ?? []);
+        $componentId = $options['name'] ?? $className;
+        $options = array_merge($options, $this->envOptions($componentId), $clientOptions[$componentId] ?? []);
         $options['protocol'] = $this->getProtocol($options) ?? $this->defaultOptions['protocol'] ?? 'http';
         if (ServerType::from($options['protocol'])->isHttpProtocol()) {
             $options = array_merge($this->defaultOptions['http_options'] ?? [], $options);

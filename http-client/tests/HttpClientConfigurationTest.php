@@ -37,6 +37,33 @@ use Psr\Log\LoggerInterface;
 
 class HttpClientConfigurationTest extends TestCase
 {
+    public function testEnv()
+    {
+        $_ENV['HTTP_CLIENT_KUIPER_HTTP_CLIENT_FIXTURES_GITHUBSERVICE__BASE_URI'] = 'http://github.com';
+        $mock = new MockHandler([
+            new Response(200, [
+                'content-type' => 'application/json',
+            ], json_encode([['name' => 'proj1']])),
+        ]);
+        $requests = [];
+        $history = Middleware::history($requests);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+
+        $service = $this->createContainer([
+            'application' => [
+                'http_client' => [
+                    GithubService::class => [
+                        'handler' => $handlerStack,
+                    ],
+                ],
+            ],
+        ])->get(GithubService::class);
+        $repos = $service->listRepos('john');
+        $request = $requests[0]['request'];
+        $this->assertEquals('http://github.com/users/john/list', (string) $request->getUri());
+    }
+
     public function testName(): void
     {
         $mock = new MockHandler([

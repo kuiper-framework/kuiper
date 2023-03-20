@@ -75,7 +75,8 @@ class TarsProxyFactory implements ContainerAwareInterface
         private readonly PoolFactoryInterface $poolFactory,
         private readonly RequestIdGeneratorInterface $requestIdGenerator,
         private readonly ?LoggerFactoryInterface $loggerFactory,
-        private readonly array $middlewares = []
+        private readonly array $middlewares = [],
+        private readonly array $options = []
     ) {
     }
 
@@ -89,7 +90,8 @@ class TarsProxyFactory implements ContainerAwareInterface
             $container->get(PoolFactoryInterface::class),
             $container->get(RequestIdGeneratorInterface::class),
             $container->get(LoggerFactoryInterface::class),
-            $middlewares
+            $middlewares,
+            $container->get('application.tars.client.options') ?? []
         );
         $tarsProxyFactory->setContainer($container);
 
@@ -186,6 +188,20 @@ class TarsProxyFactory implements ContainerAwareInterface
         );
     }
 
+    private function envOptions(string $componentId): array
+    {
+        $prefix = 'TARS_CLIENT_'.str_replace(['.', '\\'], '_', strtoupper($componentId)).'__';
+        $options = [];
+        foreach ($_ENV as $key => $value) {
+            if (str_starts_with($key, $prefix)) {
+                $name = strtolower(substr($key, strlen($prefix)));
+                $options[$name] = $value;
+            }
+        }
+
+        return $options;
+    }
+
     /**
      * @param string $className
      * @param array  $options
@@ -196,6 +212,11 @@ class TarsProxyFactory implements ContainerAwareInterface
      */
     public function create(string $className, array $options = [])
     {
+        $clientOptions = array_merge($this->options['default'] ?? [], $this->envOptions($className), $this->options[$className] ?? []);
+        if (isset($options['name'])) {
+            $clientOptions = array_merge($clientOptions, $this->envOptions($options['name']), $this->options[$options['name']] ?? []);
+        }
+        $options = array_merge($clientOptions, $options);
         $class = new ReflectionClass($className);
         if (isset($options['endpoint'])) {
             if (preg_match('#^\w+://#', $options['endpoint'])) {

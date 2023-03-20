@@ -75,7 +75,8 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
                     'server' => [
                         'log_file' => env('JSONRPC_SERVER_LOG_FILE', '{application.logging.path}/jsonrpc-server.json'),
                         'log_params' => 'true' === env('JSONRPC_SERVER_LOG_PARAMS'),
-                        'out_params' => false,
+                        'log_sample_rate' => (float) env('JSONRPC_SERVER_LOG_SAMPLE_RATE', '1.0'),
+                        'out_params' => 'true' === env('JSONRPC_SERVER_OUT_PARAMS'),
                     ],
                 ],
                 'logging' => [
@@ -128,11 +129,6 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             AdminServant::class => autowire(AdminServantImpl::class),
             JsonRpcServerFactory::class => factory([JsonRpcServerFactory::class, 'createFromContainer']),
             'registerServices' => get('jsonrpcServices'),
-            'jsonrpcServerRequestLog' => autowire(AccessLog::class)
-                ->constructorParameter(0, get('jsonrpcServerRequestLogFormatter'))
-                ->method('setLogger', factory(function (LoggerFactoryInterface $loggerFactory) {
-                    return $loggerFactory->create('JsonRpcServerRequestLogger');
-                })),
         ]);
     }
 
@@ -148,6 +144,18 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         }
 
         return false;
+    }
+
+    #[Bean('jsonrpcServerRequestLog')]
+    public function jsonrpcServerRequestLog(
+        #[Inject('jsonrpcServerRequestLogFormatter')] RpcRequestJsonLogFormatter $requestLogFormatter,
+        LoggerFactoryInterface $loggerFactory,
+        #[Inject('application.jsonrpc.server.log_sample_rate')] float $sampleRate
+    ): AccessLog {
+        $accessLog = new AccessLog($requestLogFormatter, null, $sampleRate);
+        $accessLog->setLogger($loggerFactory->create('JsonRpcServerRequestLogger'));
+
+        return $accessLog;
     }
 
     #[Bean('jsonrpcServerRequestLogFormatter')]

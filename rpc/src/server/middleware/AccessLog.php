@@ -36,7 +36,8 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
 
     public function __construct(
         private readonly RequestLogFormatterInterface $formatter,
-        callable $requestFilter = null)
+        callable $requestFilter = null,
+        private readonly float $sampleRate = 1.0)
     {
         $this->requestFilter = $requestFilter;
         $this->logContext = new LogContextImpl();
@@ -47,16 +48,22 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
      */
     public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $handler): RpcResponseInterface
     {
-        $this->logContext->setRequest($request);
         try {
             $response = $handler->handle($request);
-            if (null === $this->requestFilter || (bool) call_user_func($this->requestFilter, $request, $response)) {
-                $this->logContext->setResponse($response);
-                $this->logger->info(...$this->formatter->format($this->logContext));
+            if (null !== $this->requestFilter && !call_user_func($this->requestFilter, $request, $response)) {
+                return $response;
             }
+
+            if ($this->sampleRate < 1 && ($this->sampleRate <= 0 || random_int(0, PHP_INT_MAX) / PHP_INT_MAX > $this->sampleRate)) {
+                return $response;
+            }
+            $this->logContext->setRequest($request);
+            $this->logContext->setResponse($response);
+            $this->logger->info(...$this->formatter->format($this->logContext));
 
             return $response;
         } catch (Exception $error) {
+            $this->logContext->setRequest($request);
             $this->logContext->setError($error);
             $this->logger->info(...$this->formatter->format($this->logContext));
             throw $error;

@@ -419,6 +419,7 @@ $containerBuilder->addDefinitions([
 |------------------------------|------------------------------|------------------------------|
 | web.log_file                 | WEB_LOG_FILE                 | 访问日志文件名，默认为 access.log       |
 | web.log_post_body            | WEB_LOG_POST_BODY            | 访问日志是否记录 POST 请求 body        |
+| web.log_sample_rate          | WEB_LOG_SAMPLE_RATE          | 记录日志取样率，默认为1，设置为0不记录日志       |
 | web.middleware               |                              | web 中间件                      |
 | web.health_check_enabled     | WEB_HEALTH_CHECK_ENABLED     | 是否启用 health check 路由         |
 | web.namespace                | WEB_NAMESPACE                | web 路由规则扫描命名空间               |
