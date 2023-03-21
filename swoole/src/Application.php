@@ -28,7 +28,6 @@ use function kuiper\helper\env;
 use kuiper\helper\Properties;
 use kuiper\helper\Text;
 use kuiper\swoole\attribute\BootstrapConfiguration;
-use Laminas\Diactoros\ServerRequestFactory;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use ReflectionClass;
@@ -195,7 +194,7 @@ class Application
                 ],
                 'server' => [
                     'enable_php_server' => 'true' === env('SERVER_ENABLE_PHP_SERVER'),
-                    'http_factory' => env('SERVER_HTTP_FACTOR', class_exists(ServerRequestFactory::class) ? 'diactoros' : 'guzzle'),
+                    'http_factory' => env('SERVER_HTTP_FACTOR'),
                 ],
             ],
             'ENV' => array_merge($_ENV, $_SERVER),
