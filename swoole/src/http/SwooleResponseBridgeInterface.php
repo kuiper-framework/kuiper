@@ -21,5 +21,5 @@ interface SwooleResponseBridgeInterface
     /**
      * send psr-7 http response with swoole response.
      */
-    public function update(ResponseInterface $response, Response $swooleResponse): void;
+    public function update(ResponseInterface $response, Response $swooleResponse, bool $withContent = true): void;
 }

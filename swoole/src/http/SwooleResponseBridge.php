@@ -30,7 +30,7 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
     /**
      * {@inheritdoc}
      */
-    public function update(ResponseInterface $response, Response $swooleResponse): void
+    public function update(ResponseInterface $response, Response $swooleResponse, bool $withContent = true): void
     {
         $swooleResponse->status($response->getStatusCode());
         foreach ($response->getHeaders() as $name => $values) {
@@ -58,8 +58,7 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
                 @unlink($tempFile);
             }, $this->tempFileDelay);
         } else {
-            if ($contentLength > 0) {
-                // $response->end($body) 在 1.9.8 版出现错误
+            if ($withContent) {
                 $swooleResponse->write((string) $body);
             }
             $swooleResponse->end();
