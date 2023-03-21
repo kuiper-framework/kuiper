@@ -37,7 +37,8 @@
             "configuration": [
                 "kuiper\\swoole\\config\\FoundationConfiguration",
                 "kuiper\\swoole\\config\\GuzzleHttpMessageFactoryConfiguration",
-                "kuiper\\swoole\\config\\DiactorosHttpMessageFactoryConfiguration"
+                "kuiper\\swoole\\config\\DiactorosHttpMessageFactoryConfiguration",
+                "kuiper\\swoole\\config\\NyholmHttpMessageFactoryConfiguration"
             ]
         }
     }

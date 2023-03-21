@@ -18,7 +18,6 @@
         "psr/http-message": "^1.0",
         "psr/http-server-handler": "^1.0",
         "psr/http-server-middleware": "^1.0",
-        "laminas/laminas-diactoros": "^2.4",
         "kuiper/swoole": "^0.8"
     },
     "autoload": {
