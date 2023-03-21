@@ -57,10 +57,9 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
             $this->defer(static function () use ($tempFile): void {
                 @unlink($tempFile);
             }, $this->tempFileDelay);
+        } elseif ($withContent) {
+            $swooleResponse->end((string) $body);
         } else {
-            if ($withContent) {
-                $swooleResponse->write((string) $body);
-            }
             $swooleResponse->end();
         }
     }
