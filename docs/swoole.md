@@ -33,7 +33,7 @@ Application::run();
 需要注意的是配置项约定使用 `application.` 作为前缀，目的是方便通过容器获取配置，不会因为[配置不存在抛出异常](di.md#配置项) 。
 命令行使用 `--define` 指定配置时不需要包括 `application.` 前缀，例如 `--define env=dev` 设置 `application.env` 配置项的值为 dev。
 
-通过命令行 `--config` 选项指定配置文件示例：
+通过命令行 `--config` 选项指定配置文件，配置文件使用 ini 格式，例如：
 ```
 application.name=DemoApp
 ```

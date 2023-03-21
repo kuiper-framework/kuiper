@@ -10,7 +10,7 @@ composer require kuiper/web:^0.8
 
 如果使用 twig 模板引擎，需要安装：
 ```bash
-composer require twig/tiwg
+composer require twig/twig
 ```
 
 ## 路由
@@ -212,7 +212,7 @@ class BookController extends AbstractController
                 'auto_start' => true,
             ]
         ]
-    ]    
+    ]
 ]
 ```
 
@@ -386,18 +386,16 @@ $containerBuilder->addDefinitions([
 - include_stacktrace: 日志记录时是否记录堆栈信息，可选值 never(不记录), always(记录), on_trace_param(在请求中有trace参数时记录)，默认 never
 - handlers: 设置指定异常的处理类
 
-配置中 `application.web.error.handlers` 可以配置指定异常的处理类，在项目中也可以通过 `@\kuiper\web\annotation\ErrorHandler` 注解
+配置中 `application.web.error.handlers` 可以配置指定异常的处理类，在项目中也可以通过 `\kuiper\web\attribute\ErrorHandler` 注解
 标记异常处理类，例如：
 
 ```php
 <?php
 
 use kuiper\web\handler\AbstractErrorHandler;
-use kuiper\web\annotation\ErrorHandler;
+use kuiper\web\attribute\ErrorHandler;
 
-/**
- * @ErrorHandler(FooException::class)
- */
+#[ErrorHandler(FooException::class)] 
 class FooExceptionHandler extends AbstractErrorHandler
 {
 }

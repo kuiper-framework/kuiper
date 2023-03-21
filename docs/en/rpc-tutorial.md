@@ -1,18 +1,22 @@
 # RPC Tutorial
 
-RPC(Remote Procedure Call) 远程过程调用是分布式系统常见的通信方法。RPC 框架存在的目的是为了让分布式服务系统中不同服务之间的调用像本地调用一样简单。下面我们使用一个简单的例子演示如何使用 Kuiper 开发一个 RPC 服务。
+RPC (Remote Procedure Call) Remote procedure call is a common communication method in distributed systems.
+The RPC framework exists to make calls between different services in a distributed service system as simple as local calls.
+Let's use a simple example to demonstrate how to develop an RPC service using Kuiper.
 
-RPC 的实现都包含传输协议和序列化协议两个部分。这里我们使用简单的 [JsonRPC](https://www.jsonrpc.org/specification) 作为序列化协议，使用 http 协议作为传输协议实现 jsonrpc 服务。
+The implementation of RPC consists of two parts: a transport protocol and a serialization protocol.
+Here we use simple [JsonRPC](https://www.jsonrpc.org/specification) as the serialization protocol
+and http protocol as the transport protocol to implement the jsonRPC service.
 
-## 创建项目
+## Create the project
 
-我们还是使用项目模板创建项目：
+We still create a project using a project template:
 
 ```bash
 composer create-project kuiper/skeleton:^0.2 app
 ```
 
-这次我们选择第2项 JsonRPC Web 服务：
+This time we choose the JsonRPC Web server:
 
 ```
 Choose server type: 
@@ -24,10 +28,9 @@ Choose server type:
 Make your selection (1): 2
 ```
 
+## File directory structure
 
-## 文件目录结构
-
-生成项目目录结构如下：
+The build project directory structure is as follows:
 
 ```
 .
@@ -50,7 +53,7 @@ Make your selection (1): 2
         `-- HelloServantImpl.php
 ```
 
-项目文件与 Web 项目基本相同。jsonrpc 服务通过 `#JsonRpcService` 注解标记：
+The project file is essentially the same as a Web project. The jsonrpc service is marked with `#JsonRpcService` annotations:
 
 ```php
 <?php
@@ -75,10 +78,12 @@ interface HelloServant
 
 }
 ```
-这个文件是通过 `composer gen` 命令，根据 `tars/serant/hello.tars` 文件生成的。
 
-再看 `application/HelloServantImpl.php`
-```
+This file is generated from the `tars/serant/hello.tars` file via the `composer gen` command.
+
+Let's check out `application/HelloServantImpl.php`
+
+```php
 <?php
 
 declare(strict_types=1);
@@ -101,29 +106,29 @@ class HelloServantImpl implements HelloServant
 }
 ```
 
-使用 `composer serve` 启动服务后，通过 cURL 命令来验证我们的服务：
+After starting the service with `composer serve`, verify our service via the cURL command:
 
 ```bash
 $ curl -d '{"jsonrpc": "2.0", "id": 1, "method": "HelloObj.say", "params": ["kuiper"]}' localhost:7000
 {"jsonrpc":"2.0","id":1,"result":"hello kuiper"}
 ```
 
-## 客户端调用
+## Client invocation
 
-我们通过新建另一个项目来调用启用的服务。
+We invoke the service by creating another new project.
 
 ```bash
 composer create-project kuiper/skeleton:^0.2 app2
 ```
 
-选择第1项 Http Server 作为服务类型。添加依赖：
+Select Http Server as the service type for item 1. Then add a dependency:
 
 ```bash
 cd app2
 composer require kuiper/rpc-client:^0.8 
 ```
 
-新建文件 src/integration/HelloServant.php 如下：
+Add file src/integration/HelloServant.php as follows:
 
 ```php
 <?php
@@ -142,16 +147,17 @@ interface HelloServant
 }
 ```
 
-我们在 HelloService 上添加 `#kuiper\jsonrpc\attribute\JsonRpcClient` 注解，并设置注解的 service 属性为我们启动服务的服务名称。
+We add the `#JsonRpcClient` annotation on HelloService and set the service property
+of the annotation to the service name of the service that starts the service.
 
-在 `src/config.php` 中添加配置，设置服务调用地址：
+Add a configuration in `src/config.php` to set the service endpoint:
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-use function kuiper\helper\env;
+use function kuiperhelperenv;
 
 use app2\integration\HelloSerant;
 
@@ -161,7 +167,7 @@ return [
             'client' => [
                 'options' => [
                     HelloServant::class => [
-                        'endpoint' => 'tcp://localhost:7000'
+                        'endpoint' => 'http://localhost:7000'
                     ]
                 ],
             ]
@@ -170,7 +176,7 @@ return [
 ];
 ```
 
-最后我们写一个测试脚本 `test.php`，验证服务调用过程：
+Finally, we write a test script 'test.php' to verify the service call process:
 
 ```php
 <?php
@@ -180,15 +186,15 @@ require __DIR__ . '/vendor/autoload.php';
 use kuiper\swoole\Application;
 use app2\integration\HelloServant;
 
-$service = Application::create()->getContainer()->get(HelloServant::class);
-echo $service->say('kuiper'), "\n";
+$service = Application::create()->getContainer()-> get(HelloServant::class);
+echo $service->say('kuiper'), "n";
 ```
 
-执行 `php test.php` 查看 RPC 调用结果：
+Execute 'php test.php' to see the RPC call results:
 
 ```bash
 $ php test.php
 hello kuiper
 ```
 
-下一节：[TARS Tutorial](tars-tutorial.md)
+Next: [TARS Tutorial](tars-tutorial.md)

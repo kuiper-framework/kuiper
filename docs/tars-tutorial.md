@@ -198,7 +198,7 @@ return [
 
 declare(strict_types=1);
 
-namespace wenbinye\app2\application\controller;
+namespace app2\application\controller;
 
 use kuiper\di\annotation\Controller;
 use kuiper\web\AbstractController;

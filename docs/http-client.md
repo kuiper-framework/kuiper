@@ -77,7 +77,7 @@ http 头可以通过 `\kuiper\http\client\attribute\HttpHeader` 注解设置，v
 interface GithubService
 {
     #[GetMapping("/users/{user}/list")]
-    #[RequestHeander("Authorization: Bearer {token}")]
+    #[HttpHeader("Authorization", "Bearer {token}")]
     public function listRepos(string $user, string $token): array;
 }
 ```

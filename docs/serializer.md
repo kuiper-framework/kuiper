@@ -16,16 +16,17 @@ composer require kuiper/serializer:^0.8
 首先我们需要创建出 `\kuiper\serializer\Serializer` 对象：
 
 ```php
+<?php
+
 use kuiper\annotations\AnnotationReader;
-use kuiper\helper\Enum;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\serializer\normalizer\DateTimeNormalizer;
-use kuiper\serializer\normalizer\EnumNormalizer;
+use kuiper\serializer\normalizer\PhpEnumNormalizer;
 use kuiper\serializer\Serializer;
 
-$serializer = new Serializer(AnnotationReader::getInstance(), ReflectionDocBlockFactory::getInstance(), [
-    \DateTimeInterface::class => new DateTimeNormalizer(),
-    Enum::class => new EnumNormalizer() 
+$serializer = new Serializer(ReflectionDocBlockFactory::getInstance(), [
+    DateTimeInterface::class => new DateTimeNormalizer(),
+    \UnitEnum::class => new PhpEnumNormalizer() 
 ]); 
 ```
 

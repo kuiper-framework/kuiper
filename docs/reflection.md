@@ -39,6 +39,9 @@ $fullClassName = $resolver->resolve('Foo', $namespace);
 `ReflectionNamespace` 可以通过 `ReflectionNamespaceFactory` 创建：
 
 ```php
+<?php
+use kuiper\reflection\ReflectionNamespaceFactory;
+
 $factory = ReflectionNamespaceFactory::getInstance();
 $factory->register('my\\app', '/path/to/src/my/app');
 $reflectionNamespace = $factory->create('my\\app');
@@ -100,12 +103,14 @@ $reflectionType->sanitize($value);
 使用方法：
 
 ```php
-$reflectPropertyDocBlock = ReflectionDocBlockFactory::getInstance()
-    ->createPropertyDocBlock(new ReflectionProperty($class, $propertyName));
+<?php
+use kuiper\reflection\ReflectionDocBlockFactory;
+$factory = ReflectionDocBlockFactory::getInstance();
+
+$reflectPropertyDocBlock = $factory->createPropertyDocBlock(new ReflectionProperty($class, $propertyName));
 $reflectPropertyDocBlock->getType();
 
-$reflectMethodDocBlock = ReflectionDocBlockFactory::getInstance()
-    ->createMethodDocBlock(new ReflectionMethod($class, $methodName));
+$reflectMethodDocBlock = $factory->createMethodDocBlock(new ReflectionMethod($class, $methodName));
 $reflectMethodDocBlock->getParameterTypes();
 $reflectMethodDocBlock->getReturnType();
 ```

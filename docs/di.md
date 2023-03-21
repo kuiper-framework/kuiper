@@ -63,7 +63,7 @@ class Configuration
 ```
 
 在 php-di 中，factory 通过参数类型解析参数。如果参数不是一个 class 类型或者容器中定义名不是 class 类型，则需要使用
-`\DI\Attribute\Inject` 注解来设置参数。注解的使用方式参考 [php-di 文档](https://php-di.org/doc/annotations.html#inject) 。
+`\DI\Attribute\Inject` 注解来设置参数。注解的使用方式参考 [php-di 文档](https://php-di.org/doc/attributes.html#inject) 。
 
 如果需要使用 php-di 提供的方法来创建定义，可以通过实现 `\kuiper\di\DefinitionConfiguration` 接口进行定义声明，例如：
 
@@ -138,7 +138,7 @@ class UserServiceImpl implement UserService
 
 当开发一个公共库或者一个开源组件时，我们希望应用可以根据用户配置或者用户引入的包自动进行配置。
 在 Kuiper DI 中可以使用条件注解设置定义生效的条件。目前支持的条件注解包括：
-``
+
 - `\kuiper\di\attribute\ConditionalOnClass` 当指定的类存在时生效
 - `\kuiper\di\attribute\ConditionalOnMissingClass` 当指定类不存在才生效
 - `\kuiper\di\attribute\ConditionalOnBean` 当容器中指定的名字的定义存在时生效
