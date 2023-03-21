@@ -282,7 +282,7 @@ kuiper swoole 并没有具体服务实现，请通过使用 [kuiper/web](web.md)
 | server.settings            |                                | swoole 服务配置项                                           |
 | server.port                | SERVER_PORT                    | 服务端口号                                                  |
 | server.ports               |                                | 多端口监听或复杂服务配置使用                                         |
-| server.http_factory        | SERVER_HTTP_FACTORY            | http factory 实现，支持 diactoros 和 guzzle 两种，默认为 diactoros |
+| server.http_factory        | SERVER_HTTP_FACTORY            | http factory 实现，支持 diactoros, guzzle, nyholm，默认为 diactoros |
 
 
 ## 命令行参数

@@ -53,6 +53,7 @@ use kuiper\tars\integration\QueryFServant;
 use Laminas\Diactoros\RequestFactory;
 use Laminas\Diactoros\ResponseFactory;
 use Laminas\Diactoros\StreamFactory;
+use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -121,7 +122,12 @@ class TarsProxyFactory implements ContainerAwareInterface
 
     private static function createWithResolver(ServiceResolverInterface $serviceResolver): self
     {
-        if (class_exists(HttpFactory::class)) {
+        if (class_exists(Psr17Factory::class)) {
+            $factory = new Psr17Factory();
+            $httpRequestFactory = $factory;
+            $httpResponseFactory = $factory;
+            $streamFactory = $factory;
+        } elseif (class_exists(HttpFactory::class)) {
             $factory = new HttpFactory();
             $httpRequestFactory = $factory;
             $httpResponseFactory = $factory;
