@@ -6,6 +6,7 @@ namespace kuiper\resilience;
 
 use function DI\autowire;
 use function DI\value;
+
 use kuiper\di\ContainerBuilder;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\resilience\circuitbreaker\CircuitBreakerFactory;
@@ -13,6 +14,7 @@ use kuiper\resilience\core\TryCall;
 use kuiper\resilience\retry\RetryFactory;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\FoundationConfiguration;
+use Mockery;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -39,7 +41,9 @@ class ResilienceConfigurationTest extends TestCase
         };
         $result = TryCall::call([$retry, 'call'], $callGenerator(0));
         $this->assertTrue($result->isFailure());
-        $this->assertCount(3, $this->events);
+        $this->assertCount(3, array_filter($this->events, function ($event) {
+            return str_starts_with(get_class($event), 'kuiper\resilience\retry\event');
+        }));
 
         $this->events = [];
         $result = TryCall::call([$retry, 'call'], $callGenerator(1));
@@ -90,7 +94,7 @@ class ResilienceConfigurationTest extends TestCase
     {
         $_SERVER['APP_PATH'] = dirname(__DIR__, 2);
         $builder = new ContainerBuilder();
-        $eventDispatcher = \Mockery::mock(EventDispatcherInterface::class);
+        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
         $builder->addDefinitions([
             EventDispatcherInterface::class => value($eventDispatcher),
             \Symfony\Component\EventDispatcher\EventDispatcherInterface::class => autowire(EventDispatcher::class),
@@ -100,7 +104,7 @@ class ResilienceConfigurationTest extends TestCase
         $builder->addConfiguration(new ResilienceConfiguration());
         $this->events = [];
         $eventDispatcher->shouldReceive('dispatch')
-            ->with(\Mockery::on(function ($event) {
+            ->with(Mockery::on(function ($event) {
                 $this->events[] = $event;
 
                 return true;

@@ -11,10 +11,9 @@
 
 declare(strict_types=1);
 
-namespace kuiper\helper\view;
+namespace kuiper\web\view;
 
 use kuiper\web\TestCase;
-use kuiper\web\view\TwigView;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 

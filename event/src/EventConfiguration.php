@@ -52,7 +52,11 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
                 }
             }
         });
-        $eventDispatcher = Application::getInstance()->getEventDispatcher();
+        if (class_exists(Application::class) && Application::hasInstance()) {
+            $eventDispatcher = Application::getInstance()->getEventDispatcher();
+        } else {
+            $eventDispatcher = new EventDispatcher();
+        }
 
         return [
             PsrEventDispatcher::class => value(new AsyncEventDispatcher($eventDispatcher)),
@@ -95,10 +99,12 @@ class EventConfiguration implements DefinitionConfiguration, Bootstrap
         foreach ($config->get('application.bootstrap_listeners', []) as $key => $listener) {
             $addListener(is_string($key) ? $key : null, $listener);
         }
-        if (!Application::getInstance()->isBootstrapping()) {
-            foreach ($config->get('application.listeners', []) as $key => $listener) {
-                $addListener(is_string($key) ? $key : null, $listener);
-            }
+        if (class_exists(Application::class) && Application::hasInstance()
+            && Application::getInstance()->isBootstrapping()) {
+            return;
+        }
+        foreach ($config->get('application.listeners', []) as $key => $listener) {
+            $addListener(is_string($key) ? $key : null, $listener);
         }
     }
 }

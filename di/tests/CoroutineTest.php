@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace kuiper\di;
 
 use DI\DependencyException;
+
 use function DI\factory;
+
 use PHPUnit\Framework\TestCase;
 use Swoole\Coroutine;
 
@@ -22,9 +24,7 @@ class CoroutineTest extends TestCase
 {
     public function testNoLock(): void
     {
-        $containerBuilder = new \DI\ContainerBuilder();
-
-        $errors = $this->check($containerBuilder);
+        $errors = $this->check(new \DI\ContainerBuilder());
         $this->assertCount(1, $errors);
     }
 
@@ -34,30 +34,31 @@ class CoroutineTest extends TestCase
         $this->assertEmpty($errors);
     }
 
-    public function check(object $containerBuilder): array
+    public function check($containerBuilder): array
     {
-        $container = null;
-        $containerBuilder->addDefinitions([
-            'bar' => 1,
-            'foo' => factory(function () use (&$container) {
-                usleep(5000);
-
-                return $container->get('bar') + 1;
-            }),
-        ]);
-        $container = $containerBuilder->build();
-        \kuiper\swoole\coroutine\Coroutine::enable();
-        $c = 2;
         $errors = [];
-        while ($c--) {
-            go(static function () use ($container, &$errors) {
+        Coroutine\run(function () use ($containerBuilder, &$errors) {
+            $container = null;
+            $containerBuilder->addDefinitions([
+                'bar' => 1,
+                'foo' => factory(function () use (&$container) {
+                    usleep(5000);
+
+                    return $container->get('bar') + 1;
+                }),
+            ]);
+            $container = $containerBuilder->build();
+            \kuiper\swoole\coroutine\Coroutine::enable();
+            $call = static function () use ($container, &$errors) {
                 try {
                     echo sprintf("cid=%d, foo=%d\n", Coroutine::getCid(), $container->get('foo'));
                 } catch (DependencyException $e) {
                     $errors[] = $e;
                 }
-            });
-        }
+            };
+            Coroutine::create($call);
+            Coroutine::create($call);
+        });
 
         return $errors;
     }

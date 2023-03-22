@@ -16,9 +16,8 @@ Kuiper 框架中大量使用了 PHP 8 Attribute，可以让配置更加简洁。
 
 ## 服务器要求
 
-Kuiper 0.8 版本支持 PHP 8.1 以上版本，swoole PHP 扩展 >=4.5，以及以下扩展：
+Kuiper 0.8 版本支持 PHP 8.1 以上版本，swoole PHP 扩展 >=5.0，以及以下扩展：
 - JSON PHP 扩展
-- Pcntl PHP 扩展
 - PDO 扩展(如果需要使用 db 组件)
 - Redis 扩展(如果需要使用 redis 缓存)
 

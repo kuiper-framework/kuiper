@@ -17,6 +17,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
 use kuiper\rpc\registry\TestCase;
+use Mockery;
 
 class ConsoleAgentTest extends TestCase
 {
@@ -40,7 +41,7 @@ class ConsoleAgentTest extends TestCase
     protected function getDefinitions(): array
     {
         return [
-            'consulHttpClient' => $this->httpClient = \Mockery::mock(ClientInterface::class),
+            'consulHttpClient' => $this->httpClient = Mockery::mock(ClientInterface::class),
         ];
     }
 
@@ -84,7 +85,7 @@ class ConsoleAgentTest extends TestCase
     public function testRegister()
     {
         $this->httpClient->shouldReceive('send')
-            ->withArgs([\Mockery::capture($argRequest)])
+            ->withArgs([Mockery::capture($argRequest)])
             ->andReturn(new Response(200, ['content-type' => 'application/json'], '{}'));
         $agent = $this->getContainer()->get(ConsulAgent::class);
         $request = new RegisterServiceRequest();
@@ -107,7 +108,7 @@ class ConsoleAgentTest extends TestCase
             'TaggedAddresses' => null,
             'Meta' => null,
             'Kind' => '',
-            'EnableTagOverride' => null,
+            'EnableTagOverride' => false,
             'Check' => null,
             'Checks' => null,
             'Weights' => null,
@@ -117,7 +118,7 @@ class ConsoleAgentTest extends TestCase
     public function testDeregister()
     {
         $this->httpClient->shouldReceive('send')
-            ->withArgs([\Mockery::capture($argRequest)])
+            ->withArgs([Mockery::capture($argRequest)])
             ->andReturn(new Response(200, ['content-type' => 'application/json'], '{}'));
         $agent = $this->getContainer()->get(ConsulAgent::class);
         $agent->deregisterService('app.service.CalculatorService');
@@ -127,7 +128,7 @@ class ConsoleAgentTest extends TestCase
     public function testServiceHealth()
     {
         $this->httpClient->shouldReceive('send')
-            ->withArgs([\Mockery::capture($argRequest)])
+            ->withArgs([Mockery::capture($argRequest)])
             ->andReturn(new Response(200, ['content-type' => 'application/json'],
                 file_get_contents(__DIR__.'/../fixtures/service_health.json')));
         $agent = $this->getContainer()->get(ConsulAgent::class);

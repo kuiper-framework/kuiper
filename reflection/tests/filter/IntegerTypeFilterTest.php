@@ -24,7 +24,7 @@ class IntegerTypeFilterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($valid, $filter->isValid($value));
     }
 
-    public function valuesForValidate()
+    public static function valuesForValidate()
     {
         foreach (['1', 1, 0] as $value) {
             yield [$value, true];
@@ -43,7 +43,7 @@ class IntegerTypeFilterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $filter->sanitize($value));
     }
 
-    public function valuesForSanitize()
+    public static function valuesForSanitize()
     {
         foreach (['1', 'true', 'on', 'yes', true] as $value) {
             yield [$value, true];

@@ -23,7 +23,7 @@ class TextTest extends TestCase
         $this->assertEquals($expect, Text::camelCase($str, $delimiter));
     }
 
-    public function camelizeCase(): array
+    public static function camelizeCase(): array
     {
         return [
             ['coco_bongo', null, 'CocoBongo'],
@@ -40,7 +40,7 @@ class TextTest extends TestCase
         $this->assertEquals($expect, Text::snakeCase($str, $delimiter));
     }
 
-    public function uncamelizeCase(): array
+    public static function uncamelizeCase(): array
     {
         return [
             ['CocoBongo', null, 'coco_bongo'],
@@ -59,7 +59,7 @@ class TextTest extends TestCase
         $this->assertEquals($expect, Text::startsWith($str, $needle, $case));
     }
 
-    public function startsWithCase(): array
+    public static function startsWithCase(): array
     {
         return [
             ['Hello', 'He', true, true],
@@ -76,7 +76,7 @@ class TextTest extends TestCase
         $this->assertEquals($expect, Text::endsWith($str, $needle, $case));
     }
 
-    public function endsWithCase(): array
+    public static function endsWithCase(): array
     {
         return [
             ['Hello', 'llo', true, true],

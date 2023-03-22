@@ -24,7 +24,7 @@ class BooleanTypeFilterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($valid, $filter->isValid($value));
     }
 
-    public function valuesForValidate()
+    public static function valuesForValidate()
     {
         foreach (['1', 'true', 'on', 'yes', true, '0', 'false', 'off', 'no', '', false, null] as $value) {
             yield [$value, true];
@@ -46,7 +46,7 @@ class BooleanTypeFilterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $filter->sanitize($value));
     }
 
-    public function valuesForSanitize()
+    public static function valuesForSanitize()
     {
         foreach (['1', 'true', 'on', 'yes', true] as $value) {
             yield [$value, true];

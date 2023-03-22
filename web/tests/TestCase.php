@@ -13,20 +13,18 @@ declare(strict_types=1);
 
 namespace kuiper\web;
 
-use kuiper\annotations\AnnotationReader;
-use kuiper\annotations\AnnotationReaderInterface;
-use kuiper\di\AwareInjection;
+use BadMethodCallException;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\helper\PropertyResolverInterface;
+use kuiper\logger\LoggerConfiguration;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\swoole\Application;
 use kuiper\swoole\config\DiactorosHttpMessageFactoryConfiguration;
 use Laminas\Diactoros\ServerRequestFactory;
+use Mockery;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerInterface;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
@@ -45,18 +43,17 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         });
         $config = Application::getInstance()->getConfig();
         $config->merge($configArr);
+        $config->set('application.logging.path', __DIR__.'/logs');
         $builder->addDefinitions(new PropertiesDefinitionSource($config));
+        $builder->addConfiguration(new LoggerConfiguration());
         $builder->addConfiguration(new DiactorosHttpMessageFactoryConfiguration());
         /** @var ReflectionNamespaceFactory $reflectionNs */
         $reflectionNs = ReflectionNamespaceFactory::getInstance();
         $reflectionNs->register(__NAMESPACE__.'\\fixtures', __DIR__.'/fixtures');
         $builder->setReflectionNamespaceFactory($reflectionNs);
         $builder->componentScan([__NAMESPACE__.'\\fixtures']);
-        $builder->addAwareInjection(AwareInjection::create(LoggerAwareInterface::class));
         $builder->addDefinitions([
-            LoggerInterface::class => \kuiper\logger\Logger::nullLogger(),
             PropertyResolverInterface::class => $config,
-            AnnotationReaderInterface::class => AnnotationReader::getInstance(),
         ]);
 
         return $app->getContainer();
@@ -70,7 +67,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     protected function getContainer(): ContainerInterface
     {
         if (!$this->container) {
-            throw new \BadMethodCallException('call createContainer first');
+            throw new BadMethodCallException('call createContainer first');
         }
 
         return $this->container;
@@ -85,7 +82,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        \Mockery::close();
+        Mockery::close();
     }
 
     public function createRequest($req): ServerRequestInterface

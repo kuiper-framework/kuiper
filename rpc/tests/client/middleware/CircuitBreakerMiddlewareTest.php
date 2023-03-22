@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\rpc\client\middleware;
 
 use GuzzleHttp\Psr7\Response;
+use InvalidArgumentException;
 use kuiper\di\ContainerBuilder;
 use kuiper\di\PropertiesDefinitionSource;
 use kuiper\event\InMemoryEventDispatcher;
@@ -33,6 +34,7 @@ use kuiper\rpc\transporter\SimpleSession;
 use kuiper\rpc\transporter\TransporterInterface;
 use kuiper\swoole\pool\PoolFactory;
 use kuiper\swoole\pool\PoolFactoryInterface;
+use Mockery;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\RequestInterface;
 
@@ -44,7 +46,7 @@ class CircuitBreakerMiddlewareTest extends TestCase
         $class = $proxyGenerator->generate(HelloService::class);
         $class->eval();
         $className = $class->getClassName();
-        $transporter = \Mockery::mock(TransporterInterface::class);
+        $transporter = Mockery::mock(TransporterInterface::class);
         $transporter->shouldReceive('createSession')
             ->andReturnUsing(function (RequestInterface $req) use (&$c) {
                 static $c = [];
@@ -53,7 +55,7 @@ class CircuitBreakerMiddlewareTest extends TestCase
                 $count = $c[$args[0]] ?? 0;
                 $c[$args[0]] = $count + 1;
                 if ($args[0] % 2 && $count < 2) {
-                    throw new \InvalidArgumentException("invalid arg $args[0]");
+                    throw new InvalidArgumentException("invalid arg $args[0]");
                 }
 
                 return new SimpleSession(new Response());
@@ -70,7 +72,7 @@ class CircuitBreakerMiddlewareTest extends TestCase
                         'default' => [
                         ],
                         HelloService::class => [
-                            'minimum_number_of_calls' => 2,
+                            'minimum_number_of_calls' => 3,
                         ],
                     ],
                 ],

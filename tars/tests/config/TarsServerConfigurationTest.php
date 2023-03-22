@@ -14,9 +14,12 @@ declare(strict_types=1);
 namespace kuiper\tars\config;
 
 use kuiper\serializer\Serializer;
+use kuiper\swoole\config\FoundationConfiguration;
+use kuiper\swoole\config\ServerConfiguration;
 use kuiper\tars\server\ClientProperties;
 use kuiper\tars\server\Config;
 use kuiper\tars\server\ServerProperties;
+use kuiper\tars\server\TarsTcpReceiveEventListener;
 use kuiper\tars\TestCase;
 
 class TarsServerConfigurationTest extends TestCase
@@ -40,8 +43,26 @@ class TarsServerConfigurationTest extends TestCase
     protected function getConfigurations(): array
     {
         return [
+            new FoundationConfiguration(),
+            new ServerConfiguration(),
             new TarsClientConfiguration(),
             new TarsServerConfiguration(),
+        ];
+    }
+
+    protected function getConfig(): array
+    {
+        return [
+            'application' => [
+                'server' => [
+                    'ports' => [
+                        3000 => [
+                            'protocol' => 'tcp',
+                            'listener' => TarsTcpReceiveEventListener::class,
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 }

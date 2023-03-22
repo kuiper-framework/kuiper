@@ -23,7 +23,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\AbstractLogger;
 use Psr\Log\Test\TestLogger;
+use Stringable;
 
 class AccessLogTest extends TestCase
 {
@@ -42,7 +44,18 @@ class AccessLogTest extends TestCase
     protected function setUp(): void
     {
         $accessLog = new AccessLog(new RequestLogTextFormatter());
-        $logger = new TestLogger();
+        $logger = new class() extends AbstractLogger {
+            public $records = [];
+
+            public function log($level, string|Stringable $message, array $context = []): void
+            {
+                $this->records[] = [
+                    'level' => $level,
+                    'message' => $message,
+                    'context' => $context,
+                ];
+            }
+        };
         $accessLog->setLogger($logger);
         $this->accessLog = $accessLog;
         $this->logger = $logger;

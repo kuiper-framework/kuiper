@@ -19,6 +19,7 @@ use kuiper\tars\fixtures\RequestWithDefault;
 use kuiper\tars\type\PrimitiveType;
 use kuiper\tars\type\TypeParser;
 use PHPUnit\Framework\TestCase;
+use TUPAPI;
 
 class TarsInputStreamCompatTest extends TestCase
 {
@@ -77,7 +78,7 @@ class TarsInputStreamCompatTest extends TestCase
     {
         $type = PrimitiveType::long();
         $os = TarsOutputStream::pack($type, $num);
-        $payload = \TUPAPI::putInt64((string) 0, $num, 3);
+        $payload = TUPAPI::putInt64((string) 0, $num, 3);
         $is = new TarsInputStream($payload);
         var_export($payload);
         var_export($is->tokenize());
@@ -93,7 +94,7 @@ class TarsInputStreamCompatTest extends TestCase
     {
         $num = 1.2;
         $os = TarsOutputStream::pack(PrimitiveType::float(), $num);
-        $payload = \TUPAPI::putFloat((string) 0, $num, 3);
+        $payload = TUPAPI::putFloat((string) 0, $num, 3);
         $is = new TarsInputStream($payload);
         var_export($payload);
         var_export($is->tokenize());
@@ -106,7 +107,7 @@ class TarsInputStreamCompatTest extends TestCase
     {
         $num = 1.2;
         $os = TarsOutputStream::pack(PrimitiveType::double(), $num);
-        $payload = \TUPAPI::putDouble((string) 0, $num, 3);
+        $payload = TUPAPI::putDouble((string) 0, $num, 3);
         $is = new TarsInputStream($payload);
         var_export($payload);
         var_export($is->tokenize());
@@ -120,11 +121,11 @@ class TarsInputStreamCompatTest extends TestCase
         $num = TarsConst::MIN_INT32 - 1;
         $type = PrimitiveType::long();
         $os = TarsOutputStream::pack($type, $num);
-        $payload = \TUPAPI::putInt64((string) 0, $num, 3);
+        $payload = TUPAPI::putInt64((string) 0, $num, 3);
         $is = new TarsInputStream($payload);
 
         $buffer = self::toPayload('', $payload);
-        $ret = \TUPAPI::getInt64('', $buffer, false, 3);
+        $ret = TUPAPI::getInt64('', $buffer, false, 3);
         var_export([$ret]);
 
         var_export($payload);
@@ -138,15 +139,15 @@ class TarsInputStreamCompatTest extends TestCase
 
     public static function toPayload(string $name, string $payload): string
     {
-        $requestBuf = \TUPAPI::encode(3, 1, '',
+        $requestBuf = TUPAPI::encode(3, 1, '',
             '', 0, 0, 0,
             [], [], [$name => $payload]);
-        $decodeRet = \TUPAPI::decode($requestBuf);
+        $decodeRet = TUPAPI::decode($requestBuf);
 
         return $decodeRet['sBuffer'];
     }
 
-    public function intNumbers(): array
+    public static function intNumbers(): array
     {
         return Arrays::flatten(array_map(function ($num) {
             return [[$num], [$num + 1], [$num - 1]];

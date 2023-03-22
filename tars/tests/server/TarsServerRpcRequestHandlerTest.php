@@ -26,6 +26,7 @@ use kuiper\tars\stream\RequestPacket;
 use kuiper\tars\stream\TarsOutputStream;
 use kuiper\tars\type\MapType;
 use kuiper\tars\type\PrimitiveType;
+use Mockery;
 use PHPUnit\Framework\TestCase;
 
 class TarsServerRpcRequestHandlerTest extends TestCase
@@ -33,7 +34,7 @@ class TarsServerRpcRequestHandlerTest extends TestCase
     public function testName()
     {
         $user = new User(name: 'john');
-        $userServant = \Mockery::mock(UserServant::class);
+        $userServant = Mockery::mock(UserServant::class);
         $userServant->shouldReceive('findAllUser')
             ->andReturnUsing(function (&$total) use ($user) {
                 $total = 3;
@@ -55,7 +56,7 @@ class TarsServerRpcRequestHandlerTest extends TestCase
         $handler = new RpcServerRpcRequestHandler($services, $responseFactory, new ErrorHandler($httpFactory), []);
         $rpcMethodFactory = new TarsServerMethodFactory($serverProperties->getServerName(), $services);
         $requestFactory = new TarsServerRequestFactory($rpcMethodFactory, $services);
-        $httpRequest = $httpFactory->createRequest('GET', 'tcp://localhost:8003');
+        $httpRequest = $httpFactory->createServerRequest('GET', 'tcp://localhost:8003');
         $requestPacket = new RequestPacket();
         $requestPacket->sServantName = 'PHPDemo.PHPTcpServer.UserObj';
         $requestPacket->sFuncName = 'findAllUser';

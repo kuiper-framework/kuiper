@@ -21,7 +21,7 @@ class RegisterServiceRequest
     /**
      * @var string[]
      */
-    public ?array $Tags = [];
+    public ?array $Tags = null;
 
     public ?string $Address = null;
 

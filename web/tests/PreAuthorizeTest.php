@@ -17,7 +17,6 @@ use kuiper\web\fixtures\User;
 use kuiper\web\security\SecurityContext;
 use kuiper\web\session\EphemeralSession;
 use Psr\Http\Server\RequestHandlerInterface;
-use Slim\Exception\HttpForbiddenException;
 
 class PreAuthorizeTest extends TestCase
 {
@@ -27,17 +26,16 @@ class PreAuthorizeTest extends TestCase
         ->withAttribute(SecurityContext::SESSION, new EphemeralSession());
         SecurityContext::setIdentity(new User('u', ['book:view']), $request);
         $response = $this->getContainer()->get(RequestHandlerInterface::class)->handle($request);
-        $this->assertTrue(true);
+        $this->assertEquals(200, $response->getStatusCode());
     }
 
     public function testAnyPermissionHasNone()
     {
-        $this->expectException(HttpForbiddenException::class);
         $request = $this->createRequest('GET /auth/index')
             ->withAttribute(SecurityContext::SESSION, new EphemeralSession());
         SecurityContext::setIdentity(new User('u', ['blog:edit']), $request);
         $response = $this->getContainer()->get(RequestHandlerInterface::class)->handle($request);
-        $this->assertTrue(true);
+        $this->assertEquals(403, $response->getStatusCode());
     }
 
     public function testAllPermissionAny()
@@ -46,7 +44,7 @@ class PreAuthorizeTest extends TestCase
             ->withAttribute(SecurityContext::SESSION, new EphemeralSession());
         SecurityContext::setIdentity(new User('u', ['book:*']), $request);
         $response = $this->getContainer()->get(RequestHandlerInterface::class)->handle($request);
-        $this->assertTrue(true);
+        $this->assertEquals(200, $response->getStatusCode());
     }
 
     public function testAllPermissionSuperadmin()
@@ -55,7 +53,7 @@ class PreAuthorizeTest extends TestCase
             ->withAttribute(SecurityContext::SESSION, new EphemeralSession());
         SecurityContext::setIdentity(new User('u', ['admin']), $request);
         $response = $this->getContainer()->get(RequestHandlerInterface::class)->handle($request);
-        $this->assertTrue(true);
+        $this->assertEquals(200, $response->getStatusCode());
     }
 
     public function testAllPermissionAll()
@@ -64,15 +62,15 @@ class PreAuthorizeTest extends TestCase
             ->withAttribute(SecurityContext::SESSION, new EphemeralSession());
         SecurityContext::setIdentity(new User('u', ['book:edit', 'book:view']), $request);
         $response = $this->getContainer()->get(RequestHandlerInterface::class)->handle($request);
-        $this->assertTrue(true);
+        $this->assertEquals(200, $response->getStatusCode());
     }
 
     public function testNoPermission()
     {
-        $this->expectException(HttpForbiddenException::class);
         $request = $this->createRequest('GET /auth/index')
             ->withAttribute(SecurityContext::SESSION, new EphemeralSession());
         SecurityContext::setIdentity(new User('u', []), $request);
         $response = $this->getContainer()->get(RequestHandlerInterface::class)->handle($request);
+        $this->assertEquals(403, $response->getStatusCode());
     }
 }

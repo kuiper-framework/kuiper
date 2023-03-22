@@ -28,7 +28,7 @@ class SwooleServerEventFactoryTest extends TestCase
 
     public function testCreate(): void
     {
-        $event = $this->factory->create(Event::START->value, []);
+        $event = $this->factory->create(Event::START, []);
         $this->assertInstanceOf(StartEvent::class, $event);
     }
 
@@ -36,7 +36,7 @@ class SwooleServerEventFactoryTest extends TestCase
     {
         $message = new FooMessage('key');
         /** @var PipeMessageEvent $event */
-        $event = $this->factory->create(Event::PIPE_MESSAGE->value, [null, 1, serialize($message)]);
+        $event = $this->factory->create(Event::PIPE_MESSAGE, [null, 1, serialize($message)]);
         // print_r($event->getMessage());
         $this->assertInstanceOf(FooMessage::class, $event->getMessage());
     }

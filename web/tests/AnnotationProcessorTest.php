@@ -14,11 +14,11 @@ declare(strict_types=1);
 namespace kuiper\web;
 
 use function DI\autowire;
-use kuiper\annotations\AnnotationReader;
+
 use kuiper\di\ContainerBuilder;
 use kuiper\reflection\ReflectionNamespaceFactory;
-use kuiper\swoole\config\DiactorosHttpMessageFactoryConfiguration;
 use kuiper\swoole\config\FoundationConfiguration;
+use kuiper\swoole\config\NyholmHttpMessageFactoryConfiguration;
 use kuiper\web\security\Acl;
 use kuiper\web\security\AclInterface;
 
@@ -28,7 +28,7 @@ class AnnotationProcessorTest extends TestCase
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->addConfiguration(new FoundationConfiguration());
-        $containerBuilder->addConfiguration(new DiactorosHttpMessageFactoryConfiguration());
+        $containerBuilder->addConfiguration(new NyholmHttpMessageFactoryConfiguration());
         /** @var ReflectionNamespaceFactory $reflectionNs */
         $reflectionNs = ReflectionNamespaceFactory::getInstance();
         $reflectionNs->register(__NAMESPACE__.'\\fixtures', __DIR__.'/fixtures');
@@ -38,10 +38,9 @@ class AnnotationProcessorTest extends TestCase
             AclInterface::class => autowire(Acl::class),
         ]);
         $container = $containerBuilder->build();
-        $annotationReader = AnnotationReader::getInstance();
         $app = SlimAppFactory::create($container);
 
-        $processor = new AttributeProcessor($container, $annotationReader, $app);
+        $processor = new AttributeProcessor($container, $app);
         $processor->process();
         $response = $app->handle($this->createRequest('GET /index'));
         $this->assertEquals(200, $response->getStatusCode());

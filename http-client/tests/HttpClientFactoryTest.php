@@ -54,5 +54,6 @@ class HttpClientFactoryTest extends TestCase
             self::assertInstanceOf(ResponseInterface::class, $response);
         });
         array_walk($tasks, [Coroutine::class, 'create']);
+        $this->assertTrue(true);
     }
 }

@@ -34,7 +34,7 @@ class TwigView implements ViewInterface
     {
         try {
             if (null !== $this->extension
-                && str_ends_with($name, $this->extension)
+                && !str_ends_with($name, $this->extension)
                 && '' === pathinfo($name, PATHINFO_EXTENSION)) {
                 $name .= $this->extension;
             }

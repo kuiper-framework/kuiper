@@ -70,13 +70,18 @@ class ProxyGenerator implements ProxyGeneratorInterface
         if (!$class->isInterface()) {
             throw new InvalidArgumentException("$interfaceName should be an interface");
         }
-        if (false !== $class->getFileName()) {
-            $hash = md5_file($class->getFileName());
+        if (isset($context['className'])) {
+            $className = $context['className'];
         } else {
-            $hash = md5(uniqid('', true));
+            if (false !== $class->getFileName()) {
+                $hash = md5_file($class->getFileName());
+            } else {
+                $hash = md5(uniqid('', true));
+            }
+            $className = $class->getShortName().$hash;
         }
         $phpClass = new ClassGenerator(
-            $class->getShortName().$hash,
+            $className,
             Text::isNotEmpty($class->getNamespaceName()) ? $class->getNamespaceName() : null
         );
 

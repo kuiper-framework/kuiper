@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use GuzzleHttp\Psr7\HttpFactory;
-use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\ServerRequest;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\rpc\fixtures\User;
@@ -28,6 +28,7 @@ use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\ServerPort;
 use Laminas\Diactoros\ResponseFactory;
 use Laminas\Diactoros\StreamFactory;
+use Mockery;
 use PHPUnit\Framework\TestCase;
 
 class ServerRequestHandlerTest extends TestCase
@@ -38,12 +39,12 @@ class ServerRequestHandlerTest extends TestCase
         $user->setId(1);
         $user->setName('john');
 
-        $userService = \Mockery::mock(UserService::class);
+        $userService = Mockery::mock(UserService::class);
         $userService->shouldReceive('findUser')
             ->with(1)
             ->andReturn($user);
         $userService->shouldReceive('saveUser')
-            ->with(\Mockery::capture($savedUser));
+            ->with(Mockery::capture($savedUser));
 
         $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
         $normalizer = new Serializer($reflectionDocBlockFactory);
@@ -54,7 +55,7 @@ class ServerRequestHandlerTest extends TestCase
             new ErrorHandler(new ResponseFactory(), new StreamFactory(), new ExceptionNormalizer())
         );
 
-        $request = new Request('POST', '/', [], json_encode([
+        $request = new ServerRequest('POST', '/', [], json_encode([
             'jsonrpc' => '2.0',
             'id' => 1,
             'method' => 'kuiper.rpc.fixtures.UserService.findUser',
@@ -65,7 +66,7 @@ class ServerRequestHandlerTest extends TestCase
         $response = $handler->handle($requestFactory->createRequest($request));
         $this->assertEquals('{"jsonrpc":"2.0","id":1,"result":[{"id":1,"name":"john"}]}'.JsonRpcProtocol::EOF, (string) $response->getBody());
 
-        $request = new Request('POST', '/', [], json_encode([
+        $request = new ServerRequest('POST', '/', [], json_encode([
             'jsonrpc' => '2.0',
             'id' => 1,
             'method' => 'kuiper.rpc.fixtures.UserService.saveUser',
@@ -85,12 +86,12 @@ class ServerRequestHandlerTest extends TestCase
 
         $httpFactory = new HttpFactory();
 
-        $userService = \Mockery::mock(UserService::class);
+        $userService = Mockery::mock(UserService::class);
         $userService->shouldReceive('findUser')
             ->with(1)
             ->andReturn($user);
         $userService->shouldReceive('saveUser')
-            ->with(\Mockery::capture($savedUser));
+            ->with(Mockery::capture($savedUser));
 
         $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
         $normalizer = new Serializer($reflectionDocBlockFactory);
@@ -103,7 +104,7 @@ class ServerRequestHandlerTest extends TestCase
             new ErrorHandler($httpFactory, $httpFactory, new ExceptionNormalizer())
         );
 
-        $request = new Request('POST', '/', [], json_encode([
+        $request = new ServerRequest('POST', '/', [], json_encode([
             'jsonrpc' => '2.0',
             'id' => 1,
             'method' => 'kuiper.rpc.fixtures.UserService.findUser',

@@ -1,7 +1,7 @@
 namespace kuiper\tars\fixtures;
 
 #[\kuiper\tars\attribute\TarsServant("demo.app.HelloObj")]
-class HelloService34248ea1aac865c1b1d31385bf4a633e implements HelloService
+class HelloServiceProxy implements HelloService
 {
     private $rpcExecutorFactory = null;
 

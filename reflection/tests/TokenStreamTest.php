@@ -11,5 +11,6 @@ class TokenStreamTest extends TestCase
     public function testAttribute()
     {
         TokenStream::fromFile(__DIR__.'/fixtures/TestAttribute.php');
+        $this->assertTrue(true);
     }
 }

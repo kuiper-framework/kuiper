@@ -62,6 +62,7 @@ class HttpClientConfigurationTest extends TestCase
         $repos = $service->listRepos('john');
         $request = $requests[0]['request'];
         $this->assertEquals('http://github.com/users/john/list', (string) $request->getUri());
+        unset($_ENV['HTTP_CLIENT_KUIPER_HTTP_CLIENT_FIXTURES_GITHUBSERVICE__BASE_URI']);
     }
 
     public function testName(): void

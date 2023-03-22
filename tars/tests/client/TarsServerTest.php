@@ -67,7 +67,7 @@ class TarsServerTest extends TestCase
         $serverRequestFactory = new TarsServerRequestFactory($rpcMethodFactory, $services);
         $serverRequestFactory->setLogger($logger);
 
-        $request = $httpFactory->createRequest('POST', sprintf('//%s:%d', 'localhost', 7000));
+        $request = $httpFactory->createServerRequest('POST', sprintf('//%s:%d', 'localhost', 7000));
 
         $packet = new RequestPacket();
         $packet->iRequestId = 1;

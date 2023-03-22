@@ -1,8 +1,7 @@
 <?php
-
-declare(strict_types=1);
-
 namespace foo;
+
+use My\Full\Classname as Another;
 
 trait MyTrait
 {
@@ -14,3 +13,5 @@ class Foo
 }
 
 namespace bar;
+
+use My\Full\Classname;

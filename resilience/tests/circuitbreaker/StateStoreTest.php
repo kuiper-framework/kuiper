@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\resilience\circuitbreaker;
 
 use PHPUnit\Framework\TestCase;
+use Redis;
 
 class StateStoreTest extends TestCase
 {
@@ -32,9 +33,9 @@ class StateStoreTest extends TestCase
         $this->assertTrue($store->getOpenAt($name) > 0);
     }
 
-    public function stores(): array
+    public static function stores(): array
     {
-        $redis = new \Redis();
+        $redis = new Redis();
         $redis->connect('localhost');
         $store = new RedisStateStore($redis);
 

@@ -14,6 +14,7 @@ class TarsProxyGeneratorTest extends TestCase
         $generator = new TarsProxyGenerator();
         $class = $generator->generate(HelloService::class, [
             'service' => 'demo.app.HelloObj',
+            'className' => 'HelloServiceProxy',
         ]);
         // echo $class->getCode();
         $this->assertStringEqualsFile(__DIR__.'/../fixtures/HelloServiceProxy.txt', trim($class->getCode()));

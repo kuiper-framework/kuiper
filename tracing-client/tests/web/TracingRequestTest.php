@@ -6,6 +6,7 @@ namespace kuiper\tracing\web;
 
 use kuiper\tracing\Config;
 use kuiper\tracing\Constants;
+use kuiper\tracing\middleware\web\TraceWebRequest;
 use kuiper\tracing\Tracer;
 use Laminas\Diactoros\Response;
 use Laminas\Diactoros\ServerRequest;
@@ -29,8 +30,8 @@ class TracingRequestTest extends TestCase
                 ],
             ],
             'test',
-            $logger
         );
+        $config->setLogger($logger);
         Tracer::set(function () use ($config) {
             return $config->createTracer();
         });
@@ -59,8 +60,8 @@ class TracingRequestTest extends TestCase
                 ],
             ],
             'test',
-            $logger
         );
+        $config->setLogger($logger);
         Tracer::set(function () use ($config) {
             return $config->createTracer();
         });

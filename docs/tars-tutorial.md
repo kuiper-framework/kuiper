@@ -200,25 +200,18 @@ declare(strict_types=1);
 
 namespace app2\application\controller;
 
-use kuiper\di\annotation\Controller;
+use kuiper\di\attribute\Controller;
 use kuiper\web\AbstractController;
-use kuiper\web\annotation\GetMapping;
+use kuiper\web\attribute\GetMapping;
 use app2\integration\app\HelloServant;
 
-/**
- * @Controller
- */
+#[Controller]
 class IndexController extends AbstractController
 {
-    /**
-     * @Inject
-     * @var HelloServant
-     */
-    private $helloServant;
+    #[Inject] 
+    private ?HelloServant $helloServant = null;
 
-    /**
-     * @GetMapping("/")
-     */
+    #[GetMapping("/")]
     public function index(): void
     {
         $this->getResponse()->getBody()->write($this->helloServant->hello("kuiper"));

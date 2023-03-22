@@ -15,6 +15,7 @@ namespace kuiper\swoole;
 
 use function DI\autowire;
 use function DI\factory;
+
 use kuiper\di\AwareInjection;
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerBuilder;
@@ -46,7 +47,7 @@ abstract class SwooleServerTestCase extends TestCase
             ->addAwareInjection(AwareInjection::create(ContainerAwareInterface::class))
             ->addDefinitions([
                 ServerConfig::class => new ServerConfig('test_server', [
-                    new ServerPort('0.0.0.0', 9876, ServerType::HTTP, [
+                    new ServerPort('0.0.0.0', 9876, ServerType::HTTP, null, [
                         ServerSetting::DAEMONIZE => 0,
                         ServerSetting::TASK_WORKER_NUM => 1,
                         ServerSetting::WORKER_NUM => 1,

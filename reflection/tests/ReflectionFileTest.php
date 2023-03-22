@@ -30,7 +30,9 @@ class ReflectionFileTest extends TestCase
     public function testAttribute(): void
     {
         $reflectionFile = $this->createReflectionFile(__DIR__.'/fixtures/TestAttribute.php');
-        $this->assertEquals([], $reflectionFile->getClasses());
+        $this->assertEquals([
+            'demo\integration\demo\CalculatorServant',
+        ], $reflectionFile->getClasses());
     }
 
     public function testGetClasses(): void

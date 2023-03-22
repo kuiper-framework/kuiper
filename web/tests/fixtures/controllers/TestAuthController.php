@@ -13,31 +13,25 @@ declare(strict_types=1);
 
 namespace kuiper\web\fixtures\controllers;
 
-use kuiper\di\annotation\Controller;
+use kuiper\di\attribute\Controller;
 use kuiper\web\AbstractController;
-use kuiper\web\annotation\GetMapping;
-use kuiper\web\annotation\PreAuthorize;
-use kuiper\web\annotation\RequestMapping;
+use kuiper\web\attribute\GetMapping;
+use kuiper\web\attribute\PreAuthorize;
+use kuiper\web\attribute\RequestMapping;
 
-/**
- * @Controller()
- * @RequestMapping("/auth")
- */
+#[Controller]
+#[RequestMapping("/auth")]
 class TestAuthController extends AbstractController
 {
-    /**
-     * @GetMapping("/home")
-     * @PreAuthorize({"book:view", "book:edit"})
-     */
+    #[GetMapping("/home")]
+    #[PreAuthorize(["book:view", "book:edit"])]
     public function home(): void
     {
         $this->response->getBody()->write("hello\n");
     }
 
-    /**
-     * @RequestMapping("/index")
-     * @PreAuthorize(any={"book:view", "book:edit"})
-     */
+    #[RequestMapping("/index")]
+    #[PreAuthorize([], ["book:view", "book:edit"])]
     public function index(): void
     {
         $this->response->getBody()->write(__METHOD__);

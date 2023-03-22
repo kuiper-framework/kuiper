@@ -36,7 +36,7 @@ class PermissionEvaluatorTest extends TestCase
         $this->assertEquals($result, $evaluator->hasAnyPermission(new User('u', $authorities), $resources));
     }
 
-    public function hasPermissionData()
+    public static function hasPermissionData()
     {
         return [
             [['book:*'], 'book:view', true],
@@ -49,7 +49,7 @@ class PermissionEvaluatorTest extends TestCase
         ];
     }
 
-    public function hasAnyPermissionData()
+    public static function hasAnyPermissionData()
     {
         return [
             [['book:*'], ['book:view'], true],

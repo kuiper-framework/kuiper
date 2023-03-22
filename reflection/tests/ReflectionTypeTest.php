@@ -16,6 +16,9 @@ namespace kuiper\reflection;
 use kuiper\reflection\fixtures\ReflectionTypes;
 use kuiper\reflection\type\ArrayType;
 use kuiper\reflection\type\IntegerType;
+use ReflectionNamedType;
+use ReflectionProperty;
+use ReflectionUnionType;
 
 class ReflectionTypeTest extends TestCase
 {
@@ -28,7 +31,7 @@ class ReflectionTypeTest extends TestCase
         $this->assertEquals((string) $type, $typeName ?: $typeString);
     }
 
-    public function scalarTypes()
+    public static function scalarTypes()
     {
         return [
             ['bool'],
@@ -83,18 +86,18 @@ class ReflectionTypeTest extends TestCase
 
     public function testPhpArrayType()
     {
-        $prop = new \ReflectionProperty(ReflectionTypes::class, 'arrayOpt');
+        $prop = new ReflectionProperty(ReflectionTypes::class, 'arrayOpt');
         $type = $prop->getType();
-        $this->assertInstanceOf(\ReflectionNamedType::class, $type);
+        $this->assertInstanceOf(ReflectionNamedType::class, $type);
         $this->assertTrue($type->allowsNull());
         $this->assertEquals('?array', (string) $type);
     }
 
     public function testPhpUnionType()
     {
-        $prop = new \ReflectionProperty(ReflectionTypes::class, 'union');
+        $prop = new ReflectionProperty(ReflectionTypes::class, 'union');
         $type = $prop->getType();
-        $this->assertInstanceOf(\ReflectionUnionType::class, $type);
+        $this->assertInstanceOf(ReflectionUnionType::class, $type);
         $this->assertTrue($type->allowsNull());
         $this->assertEquals('string|float|null', (string) $type);
         $this->assertEquals(['string', 'float', 'null'], array_map(static function (\ReflectionType $t) {

@@ -18,7 +18,6 @@ use kuiper\jsonrpc\config\JsonRpcServerConfiguration;
 use kuiper\jsonrpc\fixtures\service\CalculatorService;
 use kuiper\jsonrpc\TestCase;
 use Laminas\Diactoros\ServerRequestFactory;
-use Psr\Http\Server\RequestHandlerInterface;
 
 class ServerConfigTest extends TestCase
 {
@@ -32,7 +31,7 @@ class ServerConfigTest extends TestCase
                 'params' => [1, 2.1],
             ])));
         $response = $this->getContainer()
-            ->get(RequestHandlerInterface::class)
+            ->get('jsonRpcHttpRequestHandler')
             ->handle($request);
         // echo $response->getBody();
         $this->assertEquals(200, $response->getStatusCode());
@@ -47,6 +46,21 @@ class ServerConfigTest extends TestCase
     {
         return [
             new JsonRpcServerConfiguration(),
+        ];
+    }
+
+    public function getConfig(): array
+    {
+        return [
+            'application' => [
+                'server' => [
+                    'ports' => [
+                        3000 => [
+                            'listener' => 'jsonRpcHttpRequestListener',
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 }

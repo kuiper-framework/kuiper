@@ -65,7 +65,7 @@ class LoggerFactoryTest extends TestCase
         ]);
     }
 
-    public function dataProvider(): array
+    public static function dataProvider(): array
     {
         return [
             // ['Foo', LogLevel::DEBUG],

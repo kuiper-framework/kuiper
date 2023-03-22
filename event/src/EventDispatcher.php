@@ -39,4 +39,9 @@ class EventDispatcher implements EventDispatcherInterface, EventRegistryInterfac
     {
         $this->delegateEventDispatcher = new SymfonyEventDispatcher();
     }
+
+    public function getDelegateEventDispatcher(): SymfonyEventDispatcher
+    {
+        return $this->delegateEventDispatcher;
+    }
 }

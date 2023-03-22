@@ -16,6 +16,7 @@ namespace NamespaceA
 
 namespace NamespaceB
 {
+    use NamespaceA\ClassA;
     class ClassB
     {
     }

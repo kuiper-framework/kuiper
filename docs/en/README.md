@@ -16,9 +16,8 @@ The Kuiper framework makes extensive use of PHP 8 Attribute, which can make conf
 
 ## Server requirements
 
-Kuiper version 0.8 requires PHP 8.1 and above, swoole PHP extension >=4.5, and the following extensions:
+Kuiper version 0.8 requires PHP 8.1 and above, swoole PHP extension >=5.0, and the following extensions:
 - JSON PHP extension
-- Pcntl PHP extension
 - PDO extension (if db component required)
 - Redis extensions (if Redis cache is required)
 

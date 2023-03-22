@@ -24,6 +24,7 @@ class TwigViewTest extends TestCase
             'application' => [
                 'web' => [
                     'view' => [
+                        'path' => __DIR__.'/fixtures/views',
                         'engine' => null,
                     ],
                 ],
