@@ -72,4 +72,9 @@ class EnumHelper
 
         return null;
     }
+
+    public static function hasName(string $enumClass, string $name): bool
+    {
+        return (new ReflectionEnum($enumClass))->hasCase($name);
+    }
 }
