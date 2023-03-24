@@ -282,17 +282,11 @@ class SwooleServer extends AbstractServer
         try {
             /** @var RequestEvent $event */
             $event = $this->dispatch(Event::REQUEST, [$this->getSwooleRequestBridge()->create($request)]);
-            $psrResponse = $event?->getResponse() ?? $this->getResponseFactory()
-                ->createResponse(500);
+            $psrResponse = $event?->getResponse() ?? $this->getResponseFactory()->createResponse(500);
         } catch (Exception $e) {
             $this->logger->error(static::TAG.'handle http request failed: '.$e->getMessage()."\n"
                 .$e->getTraceAsString());
-            if (isset($event) && null !== $event->getResponse()) {
-                $psrResponse = $event->getResponse();
-            } else {
-                $psrResponse = $this->getResponseFactory()
-                    ->createResponse(500);
-            }
+            $psrResponse = $this->getResponseFactory()->createResponse(500);
         } finally {
             $this->getSwooleResponseBridge()->update($psrResponse, $response, 'HEAD' !== $request->server['request_method']);
         }

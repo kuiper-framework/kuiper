@@ -20,7 +20,7 @@ class RequestEvent extends AbstractServerEvent
 {
     private ServerRequestInterface $request;
 
-    private ResponseInterface $response;
+    private ?ResponseInterface $response = null;
 
     public function getRequest(): ServerRequestInterface
     {
