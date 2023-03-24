@@ -27,12 +27,7 @@ class DiactorosSwooleRequestBridge implements SwooleRequestBridgeInterface
      */
     public function create(Request $swooleRequest): ServerRequestInterface
     {
-        $server = array_change_key_case($swooleRequest->server, CASE_UPPER);
-        $headers = $swooleRequest->header;
-        foreach ($headers as $key => $val) {
-            $server['HTTP_'.str_replace('-', '_', strtoupper($key))] = $val;
-        }
-        $server['HTTP_COOKIE'] = isset($swooleRequest->cookie) ? $this->cookieString($swooleRequest->cookie) : '';
+        $server = MessageUtil::extractServerParams($swooleRequest);
         $serverRequest = ServerRequestFactory::fromGlobals(
             $server,
             $swooleRequest->get,
@@ -48,15 +43,5 @@ class DiactorosSwooleRequestBridge implements SwooleRequestBridgeInterface
         }
 
         return $serverRequest;
-    }
-
-    /**
-     * Converts array to cookie string.
-     */
-    private function cookieString(array $cookie): string
-    {
-        return implode('; ', array_map(static function ($key, $value): string {
-            return $key.'='.$value;
-        }, array_keys($cookie), array_values($cookie)));
     }
 }
