@@ -35,7 +35,7 @@ class SwooleResponseBridge implements SwooleResponseBridgeInterface
         $swooleResponse->status($response->getStatusCode());
         foreach ($response->getHeaders() as $name => $values) {
             foreach ($values as $value) {
-                if (in_array($name, ['content-length', 'transfer-encoding'], true)) {
+                if (in_array(strtolower($name), ['content-length', 'transfer-encoding'], true)) {
                     continue;
                 }
                 $swooleResponse->header($name, $value);
