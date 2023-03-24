@@ -15,14 +15,11 @@ namespace kuiper\web;
 
 use DI\Attribute\Inject;
 
-use kuiper\di\attribute\AllConditions;
 use function DI\autowire;
-use function DI\factory;
 
-use kuiper\di\attribute\AnyCondition;
+use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\ConditionalOnClass;
-use kuiper\di\attribute\ConditionalOnMissingClass;
 use kuiper\di\attribute\ConditionalOnProperty;
 use kuiper\di\attribute\Configuration;
 use kuiper\di\ComponentCollection;
@@ -92,9 +89,9 @@ class WebConfiguration implements DefinitionConfiguration
                 'web' => [
                     'log_file' => env('WEB_LOG_FILE', '{application.logging.path}/access.log'),
                     'log_post_body' => 'true' === env('WEB_LOG_POST_BODY'),
-                    'log_sample_rate' => (float)env('WEB_LOG_SAMPLE_RATE', '1.0'),
+                    'log_sample_rate' => (float) env('WEB_LOG_SAMPLE_RATE', '1.0'),
                     'namespace' => env('WEB_NAMESPACE'),
-                    'context_url' => env('WEB_CONTEXT_URL'),
+                    'context_url' => env('WEB_CONTEXT_URL', ''),
                     'health_check_enabled' => 'true' === env('WEB_HEALTH_CHECK_ENABLED'),
                     'error' => [
                         'display' => 'true' === env('WEB_ERROR_DISPLAY'),
@@ -136,12 +133,13 @@ class WebConfiguration implements DefinitionConfiguration
     }
 
     #[Bean]
-    public function accessLog(RequestLogFormatterInterface                       $requestLogFormatter,
-                              LoggerFactoryInterface                             $loggerFactory,
+    public function accessLog(RequestLogFormatterInterface $requestLogFormatter,
+                              LoggerFactoryInterface $loggerFactory,
                               #[Inject('application.web.log_sample_rate')] float $sampleRate): AccessLog
     {
         $log = new AccessLog($requestLogFormatter, null, $sampleRate);
         $log->setLogger($loggerFactory->create(AccessLog::class));
+
         return $log;
     }
 
@@ -176,8 +174,8 @@ class WebConfiguration implements DefinitionConfiguration
 
     #[Bean]
     public function annotationProcessor(
-        ContainerInterface                  $container,
-        App                                 $app,
+        ContainerInterface $container,
+        App $app,
         #[Inject('application.web')] ?array $options): AttributeProcessorInterface
     {
         return new AttributeProcessor(
@@ -190,17 +188,17 @@ class WebConfiguration implements DefinitionConfiguration
 
     #[Bean]
     public function errorMiddleware(
-        ContainerInterface                        $container,
-        App                                       $app,
-        LoggerFactoryInterface                    $loggerFactory,
-        ErrorHandlerInterface                     $defaultErrorHandler,
+        ContainerInterface $container,
+        App $app,
+        LoggerFactoryInterface $loggerFactory,
+        ErrorHandlerInterface $defaultErrorHandler,
         #[Inject('application.web.error')] ?array $options): ErrorMiddleware
     {
         $errorMiddleware = new ErrorMiddleware(
             $app->getCallableResolver(),
             $app->getResponseFactory(),
-            (bool)($options['display'] ?? $options['display_error'] ?? false),
-            (bool)($options['logging'] ?? $options['log_error'] ?? true),
+            (bool) ($options['display'] ?? $options['display_error'] ?? false),
+            (bool) ($options['logging'] ?? $options['log_error'] ?? true),
             false,
             $loggerFactory->create(ErrorMiddleware::class)
         );
@@ -234,10 +232,10 @@ class WebConfiguration implements DefinitionConfiguration
 
     #[Bean]
     public function defaultErrorHandler(
-        ResponseFactoryInterface                                      $responseFactory,
-        LoggerFactoryInterface                                        $loggerFactory,
-        ErrorRendererInterface                                        $logErrorRenderer,
-        #[Inject('webErrorRenderers')] array                          $errorRenderers,
+        ResponseFactoryInterface $responseFactory,
+        LoggerFactoryInterface $loggerFactory,
+        ErrorRendererInterface $logErrorRenderer,
+        #[Inject('webErrorRenderers')] array $errorRenderers,
         #[Inject('application.web.error.include_stacktrace')] ?string $includeStacktrace): ErrorHandlerInterface
     {
         $logger = $loggerFactory->create(ErrorHandler::class);
@@ -288,7 +286,7 @@ class WebConfiguration implements DefinitionConfiguration
 
     #[Bean]
     public function sessionFactory(
-        CacheItemPoolInterface                      $cache,
+        CacheItemPoolInterface $cache,
         #[Inject('application.web.session')] ?array $sessionConfig): SessionFactoryInterface
     {
         $sessionConfig = ($sessionConfig ?? []) + [
@@ -300,7 +298,7 @@ class WebConfiguration implements DefinitionConfiguration
 
     #[Bean]
     public function loginUrlBuilder(
-        #[Inject('application.web.login.url')] ?string            $loginUrl,
+        #[Inject('application.web.login.url')] ?string $loginUrl,
         #[Inject('application.web.login.redirect_param')] ?string $redirectParam): LoginUrlBuilderInterface
     {
         return new DefaultLoginUrlBuilder($loginUrl ?? '/login', $redirectParam ?? 'redirect');

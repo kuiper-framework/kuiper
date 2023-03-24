@@ -244,7 +244,7 @@ class SwooleServer extends AbstractServer
 
         foreach ($port->getServerType()->handledEvents() as $event) {
             $this->logger->debug(static::TAG."attach $event->value to port ".$port->getPort());
-            $swoolePort->on($event->value, $this->createEventHandler($event->value));
+            $swoolePort->on($event->value, $this->createEventHandler($event));
         }
     }
 
