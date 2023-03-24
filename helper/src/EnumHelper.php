@@ -59,7 +59,7 @@ class EnumHelper
      * @param class-string<T> $enumClass
      * @param string          $name
      *
-     * @return T
+     * @return T|null
      *
      * @throws ReflectionException
      */
