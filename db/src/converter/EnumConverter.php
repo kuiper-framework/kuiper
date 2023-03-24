@@ -37,6 +37,21 @@ class EnumConverter implements AttributeConverterInterface
         if ($attribute instanceof UnitEnum) {
             return $attribute->name;
         }
+
+        $enumType = $column->getType()->getName();
+        if (is_a($enumType, BackedEnum::class, true)) {
+            if (EnumHelper::tryFrom($enumType, $attribute)) {
+                return $attribute;
+            }
+            throw new InvalidArgumentException("enum $enumType does not has value $attribute");
+        }
+
+        if (is_a($enumType, UnitEnum::class, true)) {
+            if (EnumHelper::hasName($enumType, $attribute)) {
+                return $attribute;
+            }
+            throw new InvalidArgumentException("enum $enumType does not has name $attribute");
+        }
         throw new InvalidArgumentException('attribute is not enum type');
     }
 
