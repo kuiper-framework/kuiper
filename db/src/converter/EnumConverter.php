@@ -13,44 +13,29 @@ declare(strict_types=1);
 
 namespace kuiper\db\converter;
 
-use BackedEnum;
 use InvalidArgumentException;
 use kuiper\db\metadata\ColumnInterface;
-use kuiper\helper\EnumHelper;
-use UnitEnum;
+use kuiper\helper\Enum;
 
 class EnumConverter implements AttributeConverterInterface
 {
-    public function __construct()
+    /**
+     * @var bool
+     */
+    private $ordinal;
+
+    public function __construct(bool $ordinal)
     {
+        $this->ordinal = $ordinal;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseColumn(mixed $attribute, ColumnInterface $column): mixed
+    public function convertToDatabaseColumn($attribute, ColumnInterface $column): int|string
     {
-        if ($attribute instanceof BackedEnum) {
-            return $attribute->value;
-        }
-
-        if ($attribute instanceof UnitEnum) {
-            return $attribute->name;
-        }
-
-        $enumType = $column->getType()->getName();
-        if (is_a($enumType, BackedEnum::class, true)) {
-            if (EnumHelper::tryFrom($enumType, $attribute)) {
-                return $attribute;
-            }
-            throw new InvalidArgumentException("enum $enumType does not has value $attribute");
-        }
-
-        if (is_a($enumType, UnitEnum::class, true)) {
-            if (EnumHelper::hasName($enumType, $attribute)) {
-                return $attribute;
-            }
-            throw new InvalidArgumentException("enum $enumType does not has name $attribute");
+        if ($attribute instanceof Enum) {
+            return $this->ordinal ? $attribute->ordinal() : $attribute->name();
         }
         throw new InvalidArgumentException('attribute is not enum type');
     }
@@ -58,20 +43,13 @@ class EnumConverter implements AttributeConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convertToEntityAttribute(mixed $dbData, ColumnInterface $column): mixed
+    public function convertToEntityAttribute($dbData, ColumnInterface $column): ?object
     {
         if (null === $dbData || '' === $dbData) {
             return null;
         }
         $enumType = $column->getType()->getName();
 
-        if (is_a($enumType, BackedEnum::class, true)) {
-            return EnumHelper::tryFrom($enumType, $dbData);
-        }
-
-        if (is_a($enumType, UnitEnum::class, true)) {
-            return EnumHelper::tryFromName($enumType, $dbData);
-        }
-        throw new InvalidArgumentException('attribute is not enum type');
+        return call_user_func([$enumType, $this->ordinal ? 'fromOrdinal' : 'fromName'], $dbData);
     }
 }

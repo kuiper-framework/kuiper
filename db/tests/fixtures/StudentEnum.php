@@ -6,12 +6,13 @@ use kuiper\db\attribute\Column;
 use kuiper\db\attribute\Enumerated;
 use kuiper\db\attribute\Id;
 
-class Student
+class StudentEnum
 {
     #[Id]
     private ?int $id = null;
 
-    private ?Gender $gender = null;
+    #[Enumerated]
+    private ?GenderEnum $gender = null;
 
     /**
      * @return int|null
@@ -30,17 +31,17 @@ class Student
     }
 
     /**
-     * @return Gender|null
+     * @return GenderEnum|null
      */
-    public function getGender(): ?Gender
+    public function getGender(): ?GenderEnum
     {
         return $this->gender;
     }
 
     /**
-     * @param Gender|null $gender
+     * @param GenderEnum|null $gender
      */
-    public function setGender(?Gender $gender): void
+    public function setGender(?GenderEnum $gender): void
     {
         $this->gender = $gender;
     }

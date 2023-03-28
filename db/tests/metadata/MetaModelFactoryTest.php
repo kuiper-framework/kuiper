@@ -18,6 +18,11 @@ use kuiper\db\AbstractRepositoryTestCase;
 use kuiper\db\fixtures\Department;
 use kuiper\db\fixtures\Door;
 use kuiper\db\fixtures\DoorId;
+use kuiper\db\fixtures\Gender;
+use kuiper\db\fixtures\GenderEnum;
+use kuiper\db\fixtures\Student;
+use kuiper\db\fixtures\StudentEnum;
+use kuiper\db\fixtures\StudentEnumString;
 use kuiper\db\fixtures\User;
 use kuiper\reflection\ReflectionDocBlockFactory;
 
@@ -103,5 +108,32 @@ class MetaModelFactoryTest extends AbstractRepositoryTestCase
         $this->assertEquals([
             'dob' => '2020-03-01',
         ], $row);
+    }
+
+    public function testPhpEnumField()
+    {
+        $metaModel = $this->metaModelFactory->create(Student::class);
+        $student = new Student();
+        $student->setGender(Gender::FEMALE);
+        $row = $metaModel->freeze($student);
+        $this->assertEquals(['gender' => 'FEMALE'], $row);
+    }
+
+    public function testEnumField()
+    {
+        $metaModel = $this->metaModelFactory->create(StudentEnum::class);
+        $student = new StudentEnum();
+        $student->setGender(GenderEnum::FEMALE());
+        $row = $metaModel->freeze($student);
+        $this->assertEquals(['gender' => 1], $row);
+    }
+
+    public function testEnumStringField()
+    {
+        $metaModel = $this->metaModelFactory->create(StudentEnumString::class);
+        $student = new StudentEnumString();
+        $student->setGender(GenderEnum::FEMALE());
+        $row = $metaModel->freeze($student);
+        $this->assertEquals(['gender' => 'FEMALE'], $row);
     }
 }

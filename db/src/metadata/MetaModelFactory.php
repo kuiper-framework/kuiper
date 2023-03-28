@@ -18,12 +18,14 @@ use kuiper\db\attribute\Attribute;
 use kuiper\db\attribute\Column as ColumnAttribute;
 use kuiper\db\attribute\Convert;
 use kuiper\db\attribute\Embeddable;
+use kuiper\db\attribute\Enumerated;
 use kuiper\db\attribute\Repository;
 use kuiper\db\attribute\Table;
 use kuiper\db\attribute\Transient;
 use kuiper\db\converter\AttributeConverterInterface;
 use kuiper\db\converter\AttributeConverterRegistry;
 use kuiper\db\converter\EnumConverter;
+use kuiper\db\converter\PhpEnumConverter;
 use kuiper\db\exception\MetaModelException;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use ReflectionAttribute;
@@ -175,7 +177,12 @@ class MetaModelFactory implements MetaModelFactoryInterface
         }
         if ($metaProperty->getType()->isClass()
                 && is_a($metaProperty->getType()->getName(), UnitEnum::class, true)) {
-            return new EnumConverter();
+            return new PhpEnumConverter();
+        }
+        /** @var Enumerated|null $enumerated */
+        $enumerated = $metaProperty->getAttribute(Enumerated::class);
+        if (null !== $enumerated) {
+            return new EnumConverter(Enumerated::ORDINAL === $enumerated->value);
         }
 
         return $this->attributeConverterRegistry->get($metaProperty->getType()->getName());
