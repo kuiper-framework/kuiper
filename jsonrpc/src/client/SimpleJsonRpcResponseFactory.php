@@ -38,7 +38,7 @@ class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
         $result = json_decode((string) $response->getBody(), true);
         if (false === $result
             || !isset($result['jsonrpc'])
-            || JsonRpcRequestInterface::JSONRPC_VERSION !== $result['jsonrpc']
+            || !in_array($result['jsonrpc'], ['1.0', '2.0'], true)
             || !array_key_exists('id', $result)) {
             throw new BadResponseException($request, $response);
         }
