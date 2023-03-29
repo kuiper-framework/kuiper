@@ -35,7 +35,6 @@ use DI\Proxy\ProxyFactory;
 use InvalidArgumentException;
 use JsonException;
 use kuiper\di\attribute\Configuration;
-use kuiper\reflection\ReflectionFileFactory;
 use kuiper\reflection\ReflectionNamespaceFactory;
 use kuiper\reflection\ReflectionNamespaceFactoryInterface;
 use LogicException;
@@ -194,6 +193,9 @@ class ContainerBuilder implements ContainerBuilderInterface
         $this->locked = true;
         $containerClass = $this->containerClass;
         $container = new $containerClass($source, $proxyFactory, $this->wrapperContainer);
+        if (isset($this->classLoader) && !$container->has(ClassLoader::class)) {
+            $container->set(ClassLoader::class, $this->classLoader);
+        }
         if (null !== $this->conditionalDefinitionSource) {
             $this->conditionalDefinitionSource->setContainer($container);
         }
@@ -500,7 +502,7 @@ class ContainerBuilder implements ContainerBuilderInterface
     public function getReflectionNamespaceFactory(): ReflectionNamespaceFactoryInterface
     {
         if (!isset($this->reflectionNamespaceFactory)) {
-            $reflectionNamespaceFactory = new ReflectionNamespaceFactory(ReflectionFileFactory::getInstance());
+            $reflectionNamespaceFactory = ReflectionNamespaceFactory::getInstance();
             $reflectionNamespaceFactory->registerLoader($this->getClassLoader());
             $this->reflectionNamespaceFactory = $reflectionNamespaceFactory;
         }
