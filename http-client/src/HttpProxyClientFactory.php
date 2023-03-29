@@ -22,7 +22,7 @@ use kuiper\rpc\client\RpcExecutorFactory;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\client\RpcResponseNormalizer;
 use kuiper\rpc\RpcMethodFactory;
-use kuiper\rpc\transporter\HttpTransporter;
+use kuiper\rpc\transporter\GuzzleHttpTransporter;
 use kuiper\serializer\NormalizerInterface;
 use ReflectionException;
 
@@ -99,7 +99,7 @@ class HttpProxyClientFactory
         $generatedClass->eval();
         $class = $generatedClass->getClassName();
 
-        $rpcClient = new RpcClient(new HttpTransporter($this->httpClient), $this->getRpcResponseFactory());
+        $rpcClient = new RpcClient(new GuzzleHttpTransporter($this->httpClient), $this->getRpcResponseFactory());
         $requestFactory = new HttpRpcRequestFactory($this->normalizer, new RpcMethodFactory());
         $rpcExecutorFactory = new RpcExecutorFactory($requestFactory, $rpcClient);
 

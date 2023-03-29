@@ -31,7 +31,7 @@ use kuiper\rpc\client\RpcResponseNormalizer;
 use kuiper\rpc\fixtures\HelloService;
 use kuiper\rpc\fixtures\User;
 use kuiper\rpc\fixtures\UserService;
-use kuiper\rpc\transporter\HttpTransporter;
+use kuiper\rpc\transporter\GuzzleHttpTransporter;
 use kuiper\serializer\normalizer\ExceptionNormalizer;
 use kuiper\serializer\Serializer;
 use Laminas\Diactoros\RequestFactory;
@@ -62,7 +62,7 @@ class JsonRpcClientTest extends TestCase
         $handlerStack->push($history);
         $client = new Client(['handler' => $handlerStack]);
 
-        $transporter = new HttpTransporter($client);
+        $transporter = new GuzzleHttpTransporter($client);
         $rpcMethodFactory = new JsonRpcMethodFactory();
         $httpFactory = new HttpFactory();
         $requestFactory = new JsonRpcRequestFactory(new RequestFactory(), $httpFactory, $rpcMethodFactory, new RequestIdGenerator(new SimpleCounter(), 0), '/');

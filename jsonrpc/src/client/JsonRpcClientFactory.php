@@ -28,7 +28,7 @@ use kuiper\rpc\client\RpcRequestFactoryInterface;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\client\RpcResponseNormalizer;
 use kuiper\rpc\transporter\Endpoint;
-use kuiper\rpc\transporter\HttpTransporter;
+use kuiper\rpc\transporter\GuzzleHttpTransporter;
 use kuiper\rpc\transporter\PooledTransporter;
 use kuiper\rpc\transporter\SwooleCoroutineTcpTransporter;
 use kuiper\rpc\transporter\SwooleTcpTransporter;
@@ -89,7 +89,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
     protected function createHttpRpcExecutorFactory(string $className, array $options): RpcExecutorFactoryInterface
     {
         $responseFactory = $this->createRpcResponseFactory($options['out_params'] ?? false);
-        $transporter = new HttpTransporter($this->httpClientFactory->create($options));
+        $transporter = new GuzzleHttpTransporter($this->httpClientFactory->create($options));
         $rpcClient = new RpcClient($transporter, $responseFactory);
 
         return new RpcExecutorFactory($this->createRpcRequestFactory($className, $options), $rpcClient, array_merge($options['middleware'] ?? [], $this->middlewares));
