@@ -50,7 +50,7 @@ class Component implements \kuiper\di\Component, ContainerBuilderAwareInterface
                 $names = [$className];
             }
         }
-        $this->setComponentId($names[0]);
+        $this->setComponentId($className);
         $definitions = [];
         foreach ($names as $name) {
             if ($name === $className) {
