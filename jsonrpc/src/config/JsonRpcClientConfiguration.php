@@ -60,6 +60,12 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                         'log_params' => 'true' === env('JSONRPC_CLIENT_LOG_PARAMS'),
                         'log_sample_rate' => (float) env('JSONRPC_CLIENT_LOG_SAMPLE_RATE', '1.0'),
                         'protocol' => env('JSONRPC_CLIENT_PROTOCOL', 'http'),
+                        'http_options' => [
+                            'timeout' => (float) env('JSONRPC_CLIENT_HTTP_TIMEOUT', '5'),
+                        ],
+                        'tcp_options' => [
+                            'timeout' => (float) env('JSONRPC_CLIENT_TCP_TIMEOUT', '5'),
+                        ],
                     ],
                 ],
                 'logging' => [
