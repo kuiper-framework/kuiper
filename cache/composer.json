@@ -16,7 +16,6 @@
     ],
     "require": {
         "php": ">=8.1",
-        "psr/simple-cache": "^3.0",
         "symfony/cache": "^6.0"
     }
     ,
