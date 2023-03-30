@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
-use DateInterval;
 use Psr\SimpleCache\CacheInterface;
 
 /**
@@ -64,7 +63,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function get(string $key, mixed $default = null): mixed
+    public function get($key, $default = null): mixed
     {
         $result = $this->values[$key] ?? null;
         if (isset($result) && $this->currentTime() < $result[self::KEY_EXPIRE]) {
@@ -77,7 +76,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
+    public function set($key, $value, $ttl = null): bool
     {
         $this->values[$key] = [
             self::KEY_DATA => $value,
@@ -93,7 +92,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function delete(string $key): bool
+    public function delete($key): bool
     {
         unset($this->values[$key]);
 
@@ -113,7 +112,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function getMultiple(iterable $keys, mixed $default = null): iterable
+    public function getMultiple($keys, $default = null): iterable
     {
         $values = [];
         foreach ($keys as $key) {
@@ -126,7 +125,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
+    public function setMultiple($values, $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);
@@ -138,7 +137,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function deleteMultiple(iterable $keys): bool
+    public function deleteMultiple($keys): bool
     {
         foreach ($keys as $key) {
             $this->delete($key);
@@ -150,7 +149,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
-    public function has(string $key): bool
+    public function has($key): bool
     {
         $result = $this->values[$key] ?? null;
 

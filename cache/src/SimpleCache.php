@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\cache;
 
-use DateInterval;
 use InvalidArgumentException;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
@@ -31,7 +30,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function get(string $key, mixed $default = null): mixed
+    public function get($key, $default = null): mixed
     {
         $cacheItem = $this->pool->getItem($key);
 
@@ -41,7 +40,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
+    public function set($key, $value, $ttl = null): bool
     {
         $cacheItem = $this->pool->getItem($key);
         $cacheItem->set($value);
@@ -55,7 +54,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function delete(string $key): bool
+    public function delete($key): bool
     {
         return $this->pool->deleteItem($key);
     }
@@ -71,7 +70,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function getMultiple(iterable $keys, mixed $default = null): iterable
+    public function getMultiple($keys, $default = null): iterable
     {
         if ($keys instanceof Traversable) {
             $keys = iterator_to_array($keys, false);
@@ -93,7 +92,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
+    public function setMultiple($values, $ttl = null): bool
     {
         $valuesIsArray = \is_array($values);
         if (!$valuesIsArray && !$values instanceof Traversable) {
@@ -115,7 +114,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function deleteMultiple(iterable $keys): bool
+    public function deleteMultiple($keys): bool
     {
         if ($keys instanceof Traversable) {
             $keys = iterator_to_array($keys, false);
@@ -129,7 +128,7 @@ class SimpleCache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function has(string $key): bool
+    public function has($key): bool
     {
         return $this->pool->hasItem($key);
     }
