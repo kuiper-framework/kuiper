@@ -15,13 +15,18 @@ namespace kuiper\event;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 
-class NullEventDispatcher implements EventDispatcherInterface
+class NullEventDispatcher implements EventDispatcherInterface, EventRegistryInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function dispatch(object $event): object
     {
         return $event;
+    }
+
+    public function addListener(string $eventName, callable $listener, int $priority = 0): void
+    {
+    }
+
+    public function reset(): void
+    {
     }
 }

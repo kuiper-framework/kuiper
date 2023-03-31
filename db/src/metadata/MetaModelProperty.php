@@ -113,8 +113,9 @@ class MetaModelProperty
     {
         if (null !== $this->column) {
             return [
-                $this->column->getName() => $this->column->getConverter()
-                    ->convertToDatabaseColumn($propertyValue, $this->column),
+                $this->column->getName() => isset($propertyValue)
+                    ? $this->column->getConverter()->convertToDatabaseColumn($propertyValue, $this->column)
+                    : null,
             ];
         }
         if (!is_object($propertyValue)) {
