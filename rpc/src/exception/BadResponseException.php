@@ -13,12 +13,11 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\exception;
 
-use Exception;
 use kuiper\rpc\RpcRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
-class BadResponseException extends Exception
+class BadResponseException extends ServerException
 {
     public function __construct(
         private readonly RpcRequestInterface $request,

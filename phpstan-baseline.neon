@@ -71,6 +71,11 @@ parameters:
 			path: db/src/sharding/Statement.php
 
 		-
+			message: "#^Call to an undefined method kuiper\\\\reflection\\\\ReflectionNamespaceFactoryInterface\\:\\:registerLoader\\(\\)\\.$#"
+			count: 1
+			path: di/src/ContainerBuilder.php
+
+		-
 			message: "#^Instanceof between mixed and ArrayAccess will always evaluate to false\\.$#"
 			count: 1
 			path: helper/src/Arrays.php
@@ -226,6 +231,11 @@ parameters:
 			path: rpc/src/RpcResponse.php
 
 		-
+			message: "#^Only booleans are allowed in a negated boolean, mixed given\\.$#"
+			count: 1
+			path: rpc/src/server/middleware/AccessLog.php
+
+		-
 			message: "#^Only booleans are allowed in &&, mixed given on the right side\\.$#"
 			count: 1
 			path: rpc/src/transporter/SwooleTcpTransporter.php
@@ -359,6 +369,11 @@ parameters:
 			message: "#^Anonymous function uses \\$this assigned to variable \\$self\\. Use \\$this directly in the function body\\.$#"
 			count: 1
 			path: web/src/AttributeProcessor.php
+
+		-
+			message: "#^Only booleans are allowed in a negated boolean, mixed given\\.$#"
+			count: 1
+			path: web/src/middleware/AccessLog.php
 
 		-
 			message: "#^Call to an undefined method SessionHandlerInterface\\:\\:create_sid\\(\\)\\.$#"

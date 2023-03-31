@@ -40,7 +40,7 @@ class PhpEnumConverter implements AttributeConverterInterface
 
         $enumType = $column->getType()->getName();
         if (is_a($enumType, BackedEnum::class, true)) {
-            if (EnumHelper::tryFrom($enumType, $attribute)) {
+            if (null !== EnumHelper::tryFrom($enumType, $attribute)) {
                 return $attribute;
             }
             throw new InvalidArgumentException("enum $enumType does not has value $attribute");

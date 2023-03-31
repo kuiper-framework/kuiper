@@ -16,7 +16,7 @@ namespace kuiper\rpc\exception;
 use Exception;
 use kuiper\rpc\transporter\TransporterInterface;
 
-abstract class CommunicationException extends Exception
+abstract class CommunicationException extends ClientException
 {
     public function __construct(
         private readonly TransporterInterface $connection,

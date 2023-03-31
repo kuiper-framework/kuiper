@@ -16,6 +16,7 @@ namespace kuiper\rpc\client\middleware;
 use InvalidArgumentException;
 use kuiper\helper\Arrays;
 use kuiper\helper\Text;
+use kuiper\rpc\exception\ResolveAddressFailedException;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
@@ -53,9 +54,13 @@ class ServiceDiscovery implements MiddlewareInterface
         if (Text::isNotEmpty($host) && $host !== $serviceLocator->getName()) {
             return $handler->handle($request);
         }
-        $serviceEndpoint = $this->getServiceEndpoint($serviceLocator);
-        $endpoint = $serviceEndpoint->getEndpoint($this->lb[(string) $serviceLocator]->select());
-        Assert::notNull($endpoint);
+        try {
+            $serviceEndpoint = $this->getServiceEndpoint($serviceLocator);
+            $endpoint = $serviceEndpoint->getEndpoint($this->lb[(string) $serviceLocator]->select());
+            Assert::notNull($endpoint);
+        } catch (InvalidArgumentException $e) {
+            throw new ResolveAddressFailedException($request, $e->getMessage(), $e->getCode(), $e);
+        }
 
         return $handler->handle($request->withUri(
             $request->getUri()->withHost($endpoint->getHost())

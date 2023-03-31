@@ -191,6 +191,11 @@ class MessageUtil
         return self::marshalIpv6HostAndPort($server, $port);
     }
 
+    /**
+     * @param string|string[] $host
+     *
+     * @return array
+     */
     private static function marshalHostAndPortFromHeader($host): array
     {
         if (is_array($host)) {
