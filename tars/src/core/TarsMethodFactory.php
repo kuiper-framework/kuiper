@@ -154,25 +154,35 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
      */
     protected function getTarsServantAnnotation(ReflectionClass $reflectionClass): TarsServant
     {
-        $attributes = $reflectionClass->getAttributes(TarsServant::class);
-        if (0 === count($attributes)) {
+        $tarsServant = $this->getAttribute($reflectionClass);
+        if (null === $tarsServant) {
             $interfaceName = ProxyGenerator::getInterfaceName($reflectionClass->getName());
             if (null !== $interfaceName) {
-                $attributes = (new ReflectionClass($interfaceName))->getAttributes(TarsServant::class);
+                $tarsServant = $this->getAttribute(new ReflectionClass($interfaceName));
             } else {
                 foreach ($reflectionClass->getInterfaceNames() as $servantInterface) {
-                    $attributes = (new ReflectionClass($servantInterface))->getAttributes(TarsServant::class);
-                    if (count($attributes) > 0) {
+                    $tarsServant = $this->getAttribute(new ReflectionClass($servantInterface));
+                    if (null !== $tarsServant) {
                         break;
                     }
                 }
             }
         }
+        if (null === $tarsServant) {
+            throw new InvalidMethodException(sprintf('%s does not contain valid method definition, '."check it's interfaces should annotated with @TarsServant", $reflectionClass->getName()));
+        }
+
+        return $tarsServant;
+    }
+
+    private function getAttribute(ReflectionClass $reflectionClass): ?TarsServant
+    {
+        $attributes = $reflectionClass->getAttributes(TarsServant::class, ReflectionAttribute::IS_INSTANCEOF);
         if (count($attributes) > 0) {
             return $attributes[0]->newInstance();
         }
 
-        throw new InvalidMethodException(sprintf('%s does not contain valid method definition, '."check it's interfaces should annotated with @TarsServant", $reflectionClass->getName()));
+        return null;
     }
 
     /**

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\rpc\transporter;
 
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use kuiper\rpc\exception\ConnectionException;
 use kuiper\rpc\exception\TimedOutException;
@@ -33,7 +34,7 @@ class GuzzleHttpTransporter implements TransporterInterface
     {
         try {
             return new SimpleSession($this->httpClient->send($request));
-        } catch (RequestException $e) {
+        } catch (ConnectException|RequestException $e) {
             if (str_contains($e->getMessage(), 'Operation timed out')) {
                 throw new TimedOutException($this, $e->getMessage(), $e->getCode(), $e);
             }
