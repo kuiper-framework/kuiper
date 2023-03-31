@@ -71,7 +71,7 @@ class CacheConfiguration implements DefinitionConfiguration
         }
 
         return [
-            \Symfony\Contracts\Cache\CacheInterface::class => factory([$this, 'symfonyCacheItemPool']),
+            \Symfony\Contracts\Cache\CacheInterface::class => factory([$this, 'symfonyRedisCache']),
         ];
     }
 
