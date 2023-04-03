@@ -132,7 +132,11 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
 
     private static function getDocTagRegexp(string $annotationTag): string
     {
-        return '/@'.$annotationTag.'\s+(\S+)/';
+        if ('return' === $annotationTag) {
+            return '#@return\s+(.*?)\s*$#ms';
+        }
+
+        return '/@'.$annotationTag.'\s+(.*?)\s*\$/ms';
     }
 
     /**
@@ -166,8 +170,6 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
         /** @var ArrayType|CompositeType $type */
         if ($type->isArray()) {
             $valueType = $this->resolveFqcn($type->getValueType(), $declaringClass);
-
-            return new ArrayType($valueType, $type->getDimension(), $type->allowsNull());
         }
 
         if ($type->isComposite()) {

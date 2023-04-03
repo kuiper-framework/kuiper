@@ -35,6 +35,9 @@ class PhpstanTypeParserTest extends TestCase
             [
                 'array<int, string[]>', new MapType(new IntegerType(), new ArrayType(new StringType())),
             ],
+            [
+                'array<string, string>[]', new ArrayType(new MapType(new StringType(), new StringType())),
+            ],
         ];
     }
 }
