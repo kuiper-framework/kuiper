@@ -15,9 +15,9 @@ namespace kuiper\serializer\normalizer;
 
 use Exception;
 use kuiper\reflection\ReflectionTypeInterface;
+use kuiper\serializer\exception\UnexpectedValueException;
 use kuiper\serializer\NormalizerInterface;
 use ReflectionClass;
-use RuntimeException;
 use Serializable;
 
 class ExceptionNormalizer implements NormalizerInterface
@@ -49,12 +49,14 @@ class ExceptionNormalizer implements NormalizerInterface
     {
         $exception = unserialize(base64_decode($data, true), ['allowed_classes' => true]);
         if (false === $exception) {
-            return new RuntimeException('Bad exception data: '.json_encode($data));
+            throw new UnexpectedValueException('Bad exception data: '.json_encode($data));
         }
         if ($exception instanceof Exception) {
             return $exception;
         }
-        if (is_array($exception) && isset($exception['class'], $exception['message'], $exception['code'])) {
+        if (is_array($exception)
+            && isset($exception['class'], $exception['message'], $exception['code'])
+            && class_exists($exception['class'])) {
             $exceptionClass = $exception['class'];
             $class = new ReflectionClass($exceptionClass);
             $constructor = $class->getConstructor();
@@ -70,6 +72,6 @@ class ExceptionNormalizer implements NormalizerInterface
             }
         }
 
-        return new RuntimeException('Bad exception data: '.json_encode($exception));
+        throw new UnexpectedValueException('Bad exception data: '.json_encode($exception));
     }
 }

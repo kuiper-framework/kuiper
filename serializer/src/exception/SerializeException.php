@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\exception;
 
-use RuntimeException;
+use Exception;
 
-class SerializeException extends RuntimeException
+class SerializeException extends Exception
 {
 }
