@@ -92,7 +92,7 @@ class Config
                     $adapters[] = $adapter;
                     unset($arr['server'][$key]);
                 } elseif (is_string($key) && ServerSetting::has($key)) {
-                    $serverSettings[$key] = ReflectionType::forName(ServerSetting::type($key))->sanitize($value);
+                    $serverSettings[$key] = ReflectionType::parse(ServerSetting::type($key))->sanitize($value);
                 }
             }
             if (empty($serverSettings[ServerSetting::WORKER_NUM])) {

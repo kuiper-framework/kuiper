@@ -16,23 +16,22 @@ namespace kuiper\reflection\type;
 use kuiper\reflection\ReflectionType;
 use kuiper\reflection\ReflectionTypeInterface;
 
-class ArrayType extends ReflectionType
+class MapType extends ReflectionType
 {
     public function __construct(
+        private readonly ReflectionTypeInterface $keyType,
         private readonly ReflectionTypeInterface $valueType,
-        private readonly int $dimension = 1,
         bool $allowsNull = false)
     {
         parent::__construct($allowsNull);
     }
 
-    public static function create(ReflectionTypeInterface $valueType, bool $allowsNull = false, int $dimension = 1): self
+    /**
+     * @return ReflectionTypeInterface
+     */
+    public function getKeyType(): ReflectionTypeInterface
     {
-        if ($valueType instanceof self) {
-            return self::create($valueType->valueType, $allowsNull, $dimension + $valueType->dimension);
-        }
-
-        return new self($valueType, $dimension, $allowsNull);
+        return $this->keyType;
     }
 
     public function getValueType(): ReflectionTypeInterface
@@ -40,19 +39,9 @@ class ArrayType extends ReflectionType
         return $this->valueType;
     }
 
-    public function getDimension(): int
-    {
-        return $this->dimension;
-    }
-
     public function getName(): string
     {
-        return $this->valueType->getName().str_repeat('[]', $this->dimension);
-    }
-
-    protected function getDisplayString(): string
-    {
-        return 1 === $this->dimension && $this->valueType instanceof MixedType ? 'array' : $this->getName();
+        return sprintf('array<%s, %s>', $this->keyType, $this->valueType);
     }
 
     public function isArray(): bool

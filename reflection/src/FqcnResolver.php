@@ -36,7 +36,7 @@ class FqcnResolver
         if ($this->isFqcn($name)) {
             return ltrim($name, ReflectionNamespaceInterface::NAMESPACE_SEPARATOR);
         }
-        if (!ReflectionType::isClassName($name)) {
+        if (!SimpleTypeParser::isClassName($name)) {
             throw new InvalidArgumentException("Invalid class name '{$name}'");
         }
         $namespaces = $this->reflectionFile->getNamespaces();

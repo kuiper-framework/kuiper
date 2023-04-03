@@ -29,6 +29,8 @@ interface ReflectionTypeInterface extends TypeFilterInterface
      */
     public function allowsNull(): bool;
 
+    public function withAllowsNull(bool $allowsNull): ReflectionTypeInterface;
+
     /**
      * @return string
      */

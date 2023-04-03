@@ -19,7 +19,7 @@ class ArrayTypeFilterTest extends \PHPUnit\Framework\TestCase
 {
     public function testValidate()
     {
-        $filter = new ArrayTypeFilter(ReflectionType::forName('int[]'));
+        $filter = new ArrayTypeFilter(ReflectionType::parse('int[]'));
         $this->assertTrue($filter->isValid([1]));
         $this->assertFalse($filter->isValid(['a']));
     }

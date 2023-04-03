@@ -127,7 +127,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
             return $this->parseType($matches[1], $declaringClass);
         }
 
-        return ReflectionType::forName('mixed');
+        return ReflectionType::parse('mixed');
     }
 
     private static function getDocTagRegexp(string $annotationTag): string
@@ -144,7 +144,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
             throw new InvalidArgumentException('Type cannot be empty');
         }
         if (in_array($type, ['self', 'static', '$this'], true)) {
-            return ReflectionType::forName($declaringClass->getName());
+            return ReflectionType::parse($declaringClass->getName());
         }
         $reflectionType = ReflectionType::parse($type);
         try {
@@ -152,7 +152,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
         } catch (ReflectionException $e) {
             trigger_error('Parse type error: '.$e->getMessage());
 
-            return ReflectionType::forName('mixed');
+            return ReflectionType::parse('mixed');
         }
     }
 
@@ -164,10 +164,10 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
     private function resolveFqcn(ReflectionTypeInterface $type, ReflectionClass $declaringClass): ReflectionTypeInterface
     {
         /** @var ArrayType|CompositeType $type */
-        if ($type->isArray() && $type->getValueType()->isClass()) {
+        if ($type->isArray()) {
             $valueType = $this->resolveFqcn($type->getValueType(), $declaringClass);
 
-            return new ArrayType($valueType, $type->getDimension());
+            return new ArrayType($valueType, $type->getDimension(), $type->allowsNull());
         }
 
         if ($type->isComposite()) {

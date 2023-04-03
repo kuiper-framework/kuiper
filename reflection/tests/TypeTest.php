@@ -26,61 +26,61 @@ class TypeTest extends TestCase
 
     public function testIsArray()
     {
-        $this->assertTrue(ReflectionType::forName('array')->isArray());
-        $this->assertTrue(ReflectionType::forName('int[]')->isArray());
-        $this->assertTrue(ReflectionType::forName('int[][]')->isArray());
+        $this->assertTrue(ReflectionType::parse('array')->isArray());
+        $this->assertTrue(ReflectionType::parse('int[]')->isArray());
+        $this->assertTrue(ReflectionType::parse('int[][]')->isArray());
     }
 
     public function testIsScalar()
     {
-        $this->assertTrue(ReflectionType::forName('bool')->isScalar());
-        $this->assertTrue(ReflectionType::forName('int')->isScalar());
-        $this->assertTrue(ReflectionType::forName('string')->isScalar());
-        $this->assertTrue(ReflectionType::forName('float')->isScalar());
+        $this->assertTrue(ReflectionType::parse('bool')->isScalar());
+        $this->assertTrue(ReflectionType::parse('int')->isScalar());
+        $this->assertTrue(ReflectionType::parse('string')->isScalar());
+        $this->assertTrue(ReflectionType::parse('float')->isScalar());
     }
 
     public function testIsCompound()
     {
-        $this->assertTrue(ReflectionType::forName('array')->isCompound());
-        $this->assertTrue(ReflectionType::forName('object')->isCompound());
-        $this->assertTrue(ReflectionType::forName('callable')->isCompound());
-        $this->assertTrue(ReflectionType::forName('iterable')->isCompound());
+        $this->assertTrue(ReflectionType::parse('array')->isCompound());
+        $this->assertTrue(ReflectionType::parse('object')->isCompound());
+        $this->assertTrue(ReflectionType::parse('callable')->isCompound());
+        $this->assertTrue(ReflectionType::parse('iterable')->isCompound());
     }
 
     public function testIsPseudo()
     {
-        $this->assertTrue(ReflectionType::forName('mixed')->isPseudo());
-        $this->assertTrue(ReflectionType::forName('number')->isPseudo());
-        $this->assertTrue(ReflectionType::forName('void')->isPseudo());
+        $this->assertTrue(ReflectionType::parse('mixed')->isPseudo());
+        $this->assertTrue(ReflectionType::parse('number')->isPseudo());
+        $this->assertTrue(ReflectionType::parse('void')->isPseudo());
     }
 
     public function testIsNull()
     {
-        $this->assertTrue(ReflectionType::forName('null')->isNull());
+        $this->assertTrue(ReflectionType::parse('null')->isNull());
     }
 
     public function testIsResource()
     {
-        $this->assertTrue(ReflectionType::forName('resource')->isResource());
+        $this->assertTrue(ReflectionType::parse('resource')->isResource());
     }
 
     public function testIsClass()
     {
-        $this->assertTrue(ReflectionType::forName('\ArrayAccess')->isClass());
+        $this->assertTrue(ReflectionType::parse('\ArrayAccess')->isClass());
     }
 
     public function testIsPrimitive()
     {
-        $this->assertFalse(ReflectionType::forName('\ArrayAccess')->isPrimitive());
+        $this->assertFalse(ReflectionType::parse('\ArrayAccess')->isPrimitive());
     }
 
     public function testValidate()
     {
-        $this->assertTrue(ReflectionType::forName('int')->isValid(1));
+        $this->assertTrue(ReflectionType::parse('int')->isValid(1));
     }
 
     public function testSanitize()
     {
-        $this->assertEquals(ReflectionType::forName('int')->sanitize('1.0'), 1);
+        $this->assertEquals(ReflectionType::parse('int')->sanitize('1.0'), 1);
     }
 }

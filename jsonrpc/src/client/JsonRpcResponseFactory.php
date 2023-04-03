@@ -31,12 +31,12 @@ class JsonRpcResponseFactory extends SimpleJsonRpcResponseFactory
     protected function handleError(JsonRpcRequestInterface $request, int $code, string $message, $data): RpcResponseInterface
     {
         if (null === $data) {
-            parent::handleError($request, $code, $message, $data);
+            return parent::handleError($request, $code, $message, $data);
         }
         try {
             $exception = $this->exceptionNormalizer->denormalize($data, '');
         } catch (Exception $e) {
-            parent::handleError($request, $code, $message, $data);
+            return parent::handleError($request, $code, $message, $data);
         }
         throw $exception;
     }

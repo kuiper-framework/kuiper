@@ -21,6 +21,7 @@ use kuiper\reflection\ReflectionType;
 use kuiper\reflection\ReflectionTypeInterface;
 use kuiper\reflection\type\ArrayType;
 use kuiper\reflection\type\CompositeType;
+use kuiper\reflection\type\MapType;
 use kuiper\serializer\exception\MalformedJsonException;
 use kuiper\serializer\exception\SerializeException;
 use kuiper\serializer\exception\UnexpectedValueException;
@@ -135,8 +136,17 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
             if (!is_array($value)) {
                 throw new UnexpectedValueException('Expects array, got '.ReflectionType::describe($value));
             }
+            if ($type instanceof ArrayType) {
+                return $this->toArrayType($value, $type->getValueType(), $type->getDimension());
+            }
+            if ($type instanceof MapType) {
+                $result = [];
+                foreach ($value as $key => $item) {
+                    $value[$key] = $this->toType($item, $type->getValueType());
+                }
 
-            return $this->toArrayType($value, $type->getValueType(), $type->getDimension());
+                return $result;
+            }
         }
 
         if ($type->isScalar() || $type->isValid($value)) {
@@ -150,12 +160,12 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
     {
         $result = [];
         if (1 === $dimension) {
-            foreach ($value as $key => $item) {
-                $result[$key] = $this->toType($item, $valueType);
+            foreach ($value as $item) {
+                $result[] = $this->toType($item, $valueType);
             }
         } else {
-            foreach ($value as $key => $item) {
-                $result[$key] = $this->toArrayType($item, $valueType, $dimension - 1);
+            foreach ($value as $item) {
+                $result[] = $this->toArrayType($item, $valueType, $dimension - 1);
             }
         }
 

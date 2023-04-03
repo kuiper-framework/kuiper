@@ -27,7 +27,7 @@ class ReflectionTypeTest extends TestCase
      */
     public function testType($typeString, $typeName = null)
     {
-        $type = ReflectionType::forName($typeString);
+        $type = ReflectionType::parse($typeString);
         $this->assertEquals((string) $type, $typeName ?: $typeString);
     }
 
@@ -68,7 +68,7 @@ class ReflectionTypeTest extends TestCase
     public function testParseArray()
     {
         /** @var ArrayType $type */
-        $type = ReflectionType::forName('int[][]');
+        $type = ReflectionType::parse('int[][]');
         $this->assertInstanceOf(ArrayType::class, $type);
         $this->assertEquals(2, $type->getDimension());
         $this->assertInstanceOf(IntegerType::class, $type->getValueType());
@@ -77,7 +77,7 @@ class ReflectionTypeTest extends TestCase
     public function testParseNullableArray()
     {
         /** @var ArrayType $type */
-        $type = ReflectionType::forName('?int[][]');
+        $type = ReflectionType::parse('?int[][]');
         $this->assertInstanceOf(ArrayType::class, $type);
         $this->assertEquals(2, $type->getDimension());
         $this->assertInstanceOf(IntegerType::class, $type->getValueType());
