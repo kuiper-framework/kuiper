@@ -13,18 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\exception;
 
-use kuiper\rpc\RpcRequestInterface;
-use Throwable;
-
 class RequestException extends ClientException
 {
-    public function __construct(private readonly RpcRequestInterface $request, string $message = '', int $code = 0, ?Throwable $previous = null)
-    {
-        parent::__construct($message, $code, $previous);
-    }
-
-    public function getRequest(): RpcRequestInterface
-    {
-        return $this->request;
-    }
 }

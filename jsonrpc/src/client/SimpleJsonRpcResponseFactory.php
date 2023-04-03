@@ -15,10 +15,10 @@ namespace kuiper\jsonrpc\client;
 
 use InvalidArgumentException;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
-use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\exception\BadResponseException;
 use kuiper\rpc\exception\RequestIdMismatchException;
+use kuiper\rpc\exception\ServerException;
 use kuiper\rpc\RpcMethodInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponse;
@@ -78,10 +78,10 @@ class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
      *
      * @return RpcResponseInterface
      *
-     * @throws JsonRpcRequestException
+     * @throws ServerException
      */
     protected function handleError(JsonRpcRequestInterface $request, int $code, string $message, $data): RpcResponseInterface
     {
-        throw new JsonRpcRequestException($request->getRequestId(), $message, $code);
+        throw new ServerException($message, $code);
     }
 }

@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\exception;
 
-use InvalidArgumentException;
+use kuiper\rpc\exception\ServerException;
 
-class JsonRpcRequestException extends InvalidArgumentException
+class JsonRpcRequestException extends ServerException
 {
     public function __construct(private readonly ?int $requestId, string $message, int $code)
     {

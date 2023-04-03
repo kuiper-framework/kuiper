@@ -38,8 +38,11 @@ class GuzzleHttpTransporter implements TransporterInterface
             if (str_contains($e->getMessage(), 'Operation timed out')) {
                 throw new TimedOutException($this, $e->getMessage(), $e->getCode(), $e);
             }
+            if ($e instanceof ConnectException) {
+                throw new ConnectionException($this, $e->getMessage(), $e->getCode(), $e);
+            }
 
-            throw new ConnectionException($this, $e->getMessage(), $e->getCode(), $e);
+            throw new \kuiper\rpc\exception\RequestException($e->getMessage(), $e->getCode(), $e);
         }
     }
 }

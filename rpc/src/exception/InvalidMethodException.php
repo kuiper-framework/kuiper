@@ -15,6 +15,9 @@ namespace kuiper\rpc\exception;
 
 use Exception;
 
+/**
+ * @internal
+ */
 class InvalidMethodException extends Exception
 {
 }

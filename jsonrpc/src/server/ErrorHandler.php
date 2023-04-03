@@ -43,7 +43,7 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
      */
     public function handleInvalidRequest(RequestInterface $request, Exception $exception): ResponseInterface
     {
-        return $this->createResponse($this->createRequestErrorResponse($exception));
+        return $this->createResponse($this->createRequestErrorResponse($exception), 400);
     }
 
     public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface
@@ -78,9 +78,9 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
         ]);
     }
 
-    private function createResponse(string $body): ResponseInterface
+    private function createResponse(string $body, int $statusCode = 200): ResponseInterface
     {
-        return $this->responseFactory->createResponse(400)
+        return $this->responseFactory->createResponse($statusCode)
             ->withBody($this->streamFactory->createStream($body));
     }
 
