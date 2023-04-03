@@ -37,10 +37,15 @@ class EnumNormalizer implements NormalizerInterface
      */
     public function denormalize(mixed $data, string|ReflectionTypeInterface $className): mixed
     {
+        $className = is_string($className) ? $className : $className->getName();
+        /** @var Enum $className */
+        if ($className::hasValue($data)) {
+            return $className::fromValue($data);
+        }
         if (!is_string($data)) {
             throw new InvalidArgumentException('Expected string, got '.gettype($data));
         }
 
-        return call_user_func([$className, 'fromName'], $data);
+        return $className::fromName($data);
     }
 }
