@@ -15,6 +15,7 @@ namespace kuiper\jsonrpc\client;
 
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
+use kuiper\helper\Properties;
 use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
@@ -89,7 +90,9 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
     protected function createHttpRpcExecutorFactory(string $className, array $options): RpcExecutorFactoryInterface
     {
         $responseFactory = $this->createRpcResponseFactory($options['out_params'] ?? false);
-        $transporter = new GuzzleHttpTransporter($this->httpClientFactory->create($options));
+        $transporter = new GuzzleHttpTransporter($this->httpClientFactory->create(array_merge($options, [
+            'middleware' => $options['http_middleware'] ?? [],
+        ])));
         $rpcClient = new RpcClient($transporter, $responseFactory);
 
         return new RpcExecutorFactory($this->createRpcRequestFactory($className, $options), $rpcClient, array_merge($options['middleware'] ?? [], $this->middlewares));
@@ -152,38 +155,46 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
         $proxyClass = $this->proxyGenerator->generate($className);
         $proxyClass->eval();
         $class = $proxyClass->getClassName();
+        $config = Properties::create();
 
         $clientOptions = $this->defaultOptions['options'] ?? [];
         $componentId = $options['name'] ?? $className;
-        $options = array_merge($options, $this->envOptions($componentId), $clientOptions[$componentId] ?? []);
-        $options['protocol'] = $this->getProtocol($options) ?? $this->defaultOptions['protocol'] ?? 'http';
-        if (ServerType::from($options['protocol'])->isHttpProtocol()) {
-            $options = array_merge($this->defaultOptions['http_options'] ?? [], $options);
+        $config->merge($clientOptions[$componentId] ?? []);
+        $config->mergeIfNotExists($this->envOptions($componentId));
+        $config->mergeIfNotExists($options);
+        $config['protocol'] = $this->getProtocol($config) ?? $this->defaultOptions['protocol'] ?? 'http';
+        if (ServerType::from($config['protocol'])->isHttpProtocol()) {
+            $httpOptions = $this->defaultOptions['http_options'] ?? [];
+            if (isset($httpOptions['middleware'])) {
+                $httpOptions['http_middleware'] = $httpOptions['middleware'];
+                unset($httpOptions['middleware']);
+            }
+            $config->mergeIfNotExists($httpOptions);
         } else {
-            $options = array_merge($this->defaultOptions['tcp_options'] ?? [], $options);
+            $config->mergeIfNotExists($this->defaultOptions['tcp_options'] ?? []);
         }
-        if (isset($options['endpoint'])) {
+        if (isset($config['endpoint'])) {
             // Laminas\Diactoros\Uri cannot accept tcp scheme
-            $options['endpoint'] = Endpoint::removeTcpScheme($options['endpoint']);
+            $config['endpoint'] = Endpoint::removeTcpScheme($config['endpoint']);
         }
-        if (isset($options['middleware'])) {
-            foreach ($options['middleware'] as $i => $middleware) {
+        if (isset($config['middleware'])) {
+            foreach ($config['middleware'] as $i => $middleware) {
                 if (is_string($middleware)) {
-                    $options['middleware'][$i] = $this->container->get($middleware);
+                    $config['middleware'][$i] = $this->container->get($middleware);
                 }
             }
         }
 
-        if (ServerType::TCP->value === ($options['protocol'] ?? ServerType::TCP->value)) {
-            $rpcExecutorFactory = $this->createTcpRpcExecutorFactory($className, $options);
+        if (ServerType::TCP->value === ($config['protocol'] ?? ServerType::TCP->value)) {
+            $rpcExecutorFactory = $this->createTcpRpcExecutorFactory($className, $config->toArray());
         } else {
-            $rpcExecutorFactory = $this->createHttpRpcExecutorFactory($className, $options);
+            $rpcExecutorFactory = $this->createHttpRpcExecutorFactory($className, $config->toArray());
         }
 
         return new $class($rpcExecutorFactory);
     }
 
-    private function getProtocol(array $options): ?string
+    private function getProtocol(Properties $options): ?string
     {
         if (isset($options['protocol']) && null !== ServerType::tryFrom($options['protocol'])) {
             return $options['protocol'];
