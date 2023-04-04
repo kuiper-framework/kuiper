@@ -111,7 +111,7 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
         return new RpcRequest($request, $invokingMethod);
     }
 
-    private function getRequestOptions(HttpRequestInterface $request, RequestMapping $mapping, array $parameters): array
+    private function getRequestOptions(HttpRequestInterface &$request, RequestMapping $mapping, array $parameters): array
     {
         $params = [];
         $query = [];
@@ -145,10 +145,6 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
             return ['query' => array_merge($params, $query)];
         }
 
-        if (str_contains($request->getHeaderLine('content-type'), 'application/json')) {
-            return ['json' => $params, 'query' => $query];
-        }
-
         if ($hasResource || str_contains($request->getHeaderLine('content-type'), 'multipart/form-data')) {
             $multipart = [];
             foreach ($params as $name => $value) {
@@ -163,8 +159,13 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
                 }
                 $multipart[] = $content;
             }
+            $request = $request->withoutHeader('content-type');
 
             return ['multipart' => $multipart, 'query' => $query];
+        }
+
+        if (str_contains($request->getHeaderLine('content-type'), 'application/json')) {
+            return ['json' => $params, 'query' => $query];
         }
 
         return ['form_params' => $params, 'query' => $query];
