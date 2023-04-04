@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\reflection;
 
+use Exception;
 use kuiper\reflection\type\ArrayType;
 use kuiper\reflection\type\CompositeType;
 use kuiper\reflection\type\MapType;
@@ -77,7 +78,7 @@ class PhpstanTypeParser implements TypeParserInterface
                 $types[] = $this->fromTypeNode($type);
             }
 
-            return new CompositeType($types);
+            return CompositeType::create($types);
         }
 
         return new MixedType();
@@ -85,9 +86,13 @@ class PhpstanTypeParser implements TypeParserInterface
 
     public function parse(string $typeString): ReflectionTypeInterface
     {
-        $tokens = new TokenIterator($this->typeLexer->tokenize($typeString));
-        $typeNode = $this->typeParser->parse($tokens);
+        try {
+            $tokens = new TokenIterator($this->typeLexer->tokenize($typeString));
+            $typeNode = $this->typeParser->parse($tokens);
 
-        return $this->fromTypeNode($typeNode);
+            return $this->fromTypeNode($typeNode);
+        } catch (Exception $e) {
+            return $this->simpleTypeParser->parse($typeString);
+        }
     }
 }

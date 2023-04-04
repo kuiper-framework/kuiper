@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuiper\reflection;
 
 use kuiper\reflection\type\ArrayType;
+use kuiper\reflection\type\ClassType;
 use kuiper\reflection\type\IntegerType;
 use kuiper\reflection\type\MapType;
 use kuiper\reflection\type\StringType;
@@ -20,7 +21,7 @@ class PhpstanTypeParserTest extends TestCase
         $parser = new PhpstanTypeParser();
 
         $this->assertEquals($type, $parser->parse($typeString));
-        $this->assertEquals($typeString, (string) $type);
+        $this->assertEquals(preg_replace('/(\w+)\|null$/', '?\1', $typeString), (string) $type);
     }
 
     public static function types()
@@ -37,6 +38,9 @@ class PhpstanTypeParserTest extends TestCase
             ],
             [
                 'array<string, string>[]', new ArrayType(new MapType(new StringType(), new StringType())),
+            ],
+            [
+                'Foo|null', new ClassType('Foo', true),
             ],
         ];
     }

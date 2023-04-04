@@ -110,13 +110,8 @@ class SimpleTypeParser implements TypeParserInterface
     {
         if (str_contains($typeString, '|')) {
             $parts = explode('|', $typeString);
-            if (2 === count($parts) && in_array('null', $parts, true)) {
-                $typeString = str_replace(['|null', 'null|'], '', $typeString);
 
-                return static::forName($typeString, true);
-            }
-
-            return new CompositeType(array_map(static function ($typeString): ReflectionTypeInterface {
+            return CompositeType::create(array_map(static function ($typeString): ReflectionTypeInterface {
                 return static::forName($typeString);
             }, $parts));
         }

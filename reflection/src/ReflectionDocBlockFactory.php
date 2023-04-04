@@ -19,6 +19,7 @@ use kuiper\reflection\exception\ReflectionException;
 use kuiper\reflection\type\ArrayType;
 use kuiper\reflection\type\ClassType;
 use kuiper\reflection\type\CompositeType;
+use kuiper\reflection\type\MapType;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -132,11 +133,11 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
 
     private static function getDocTagRegexp(string $annotationTag): string
     {
-        if ('return' === $annotationTag) {
-            return '#@return\s+(.*?)\s*$#ms';
+        if ('param' === $annotationTag) {
+            return '/@param\s+(.*?)\s*\$/ms';
         }
 
-        return '/@'.$annotationTag.'\s+(.*?)\s*\$/ms';
+        return '#@'.$annotationTag.'\s+(.*?)\s*$#ms';
     }
 
     /**
@@ -170,6 +171,12 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
         /** @var ArrayType|CompositeType $type */
         if ($type->isArray()) {
             $valueType = $this->resolveFqcn($type->getValueType(), $declaringClass);
+            if ($type instanceof ArrayType) {
+                return new ArrayType($valueType, $type->getDimension(), $type->allowsNull());
+            }
+            if ($type instanceof MapType) {
+                return new MapType($type->getKeyType(), $valueType);
+            }
         }
 
         if ($type->isComposite()) {

@@ -26,6 +26,23 @@ class CompositeType extends ReflectionType
         parent::__construct(false);
     }
 
+    public static function create(array $types): ReflectionTypeInterface
+    {
+        if (1 === count($types)) {
+            return $types[0];
+        }
+        if (2 === count($types)) {
+            if ($types[0] instanceof NullType) {
+                return $types[1]->withAllowsNull(true);
+            }
+            if ($types[1] instanceof NullType) {
+                return $types[0]->withAllowsNull(true);
+            }
+        }
+
+        return new self($types);
+    }
+
     /**
      * @return ReflectionTypeInterface[]
      */
