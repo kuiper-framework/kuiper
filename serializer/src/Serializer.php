@@ -142,7 +142,7 @@ class Serializer implements NormalizerInterface, JsonSerializerInterface, Logger
             if ($type instanceof MapType) {
                 $result = [];
                 foreach ($value as $key => $item) {
-                    $value[$key] = $this->toType($item, $type->getValueType());
+                    $result[$key] = $this->toType($item, $type->getValueType());
                 }
 
                 return $result;
