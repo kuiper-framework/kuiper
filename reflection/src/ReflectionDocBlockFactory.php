@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\reflection;
 
 use InvalidArgumentException;
+use kuiper\helper\Text;
 use kuiper\reflection\exception\ClassNotFoundException;
 use kuiper\reflection\exception\ReflectionException;
 use kuiper\reflection\type\ArrayType;
@@ -207,7 +208,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
     private function getMethodDocComment(ReflectionMethod $method): array
     {
         $doc = (string) $method->getDocComment();
-        if (false !== stripos($doc, '@inheritdoc')) {
+        if (Text::isEmpty($doc) || false !== stripos($doc, '@inheritdoc')) {
             $name = $method->getName();
             $class = $method->getDeclaringClass();
             if ((false !== ($parent = $class->getParentClass())) && $parent->hasMethod($name)) {
