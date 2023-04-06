@@ -67,7 +67,7 @@ class ExceptionNormalizer implements NormalizerInterface
                     $paramNames[$param->getName()] = true;
                 }
                 if (isset($paramNames['message'], $paramNames['code'])) {
-                    return new $exceptionClass($exception['message'], $exception['code']);
+                    return new $exceptionClass($exception['message'], (int) $exception['code']);
                 }
             }
         }
