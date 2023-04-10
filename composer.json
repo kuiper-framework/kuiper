@@ -48,7 +48,7 @@
         "predis/predis": "^2.0",
         "roave/security-advisories": "dev-latest",
         "slim/slim": "^4.5",
-        "swoft/swoole-ide-helper": "^4.4",
+        "swoole/ide-helper": "^5.0",
         "symfony/cache": "^6.0",
         "symfony/serializer": "^6.0",
         "symfony/validator": "^6.0",
