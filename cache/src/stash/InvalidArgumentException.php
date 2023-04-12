@@ -11,10 +11,8 @@
 
 declare(strict_types=1);
 
-namespace kuiper\rpc\exception;
+namespace kuiper\cache\stash;
 
-use Exception;
-
-class ClientException extends Exception
+class InvalidArgumentException extends \InvalidArgumentException implements \Psr\Cache\InvalidArgumentException
 {
 }

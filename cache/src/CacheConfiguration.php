@@ -17,6 +17,10 @@ use DI\Attribute\Inject;
 
 use function DI\get;
 
+use kuiper\cache\stash\CacheItemPool;
+use kuiper\cache\stash\driver\Composite;
+use kuiper\cache\stash\driver\Ephemeral;
+use kuiper\cache\stash\driver\RedisDriver;
 use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\ConditionalOnClass;
@@ -143,7 +147,7 @@ class CacheConfiguration implements DefinitionConfiguration
     #[Bean]
     #[AllConditions(
         new ConditionalOnClass(ChainAdapter::class),
-        new ConditionalOnProperty('application.cache.implementation', 'symfony', true)
+        new ConditionalOnProperty('application.cache.implementation', 'symfony')
     )]
     public function symfonyCacheItemPool(ContainerInterface $container): CacheItemPoolInterface
     {
@@ -151,6 +155,26 @@ class CacheConfiguration implements DefinitionConfiguration
             $container->get(ArrayAdapter::class),
             $container->get('symfonyRedisCache'),
         ]);
+    }
+
+    #[Bean]
+    #[ConditionalOnProperty('application.cache.implementation', 'kuiper', matchIfMissing: true)]
+    public function kuiperCacheItemPool(ContainerInterface $container): CacheItemPoolInterface
+    {
+        $options = $container->get('application.cache');
+        $cacheItemPool = new CacheItemPool(new Composite([
+            new Ephemeral($options['memory'] ?? []),
+            new RedisDriver(array_merge([
+                'redis' => $container->get(Redis::class),
+                'prefix' => $options['namespace'] ?? '',
+            ])),
+        ]));
+        $lifetime = (int) ($cacheConfig['lifetime'] ?? 0);
+        if ($lifetime > 0) {
+            $cacheItemPool->setDefaultTtl($lifetime);
+        }
+
+        return $cacheItemPool;
     }
 
     #[Bean]
