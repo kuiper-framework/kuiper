@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\transporter;
 
+use kuiper\reflection\ReflectionType;
 use kuiper\rpc\exception\ErrorCode;
 use kuiper\swoole\constants\ClientSettings;
 use Psr\Http\Message\ResponseInterface;
@@ -47,7 +48,7 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
         parent::setOptions($options);
         foreach ($this->options as $name => $value) {
             if (ClientSettings::has($name)) {
-                $this->clientOptions[$name] = $value;
+                $this->clientOptions[$name] = ReflectionType::parse(ClientSettings::type($name))->sanitize($value);
             }
         }
     }
@@ -68,7 +69,7 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
         $isConnected = @$client->connect(
             $this->getEndpoint()->getHost(),
             $this->getEndpoint()->getPort(),
-            $this->getEndpoint()->getConnectTimeout() ?? $this->options[ClientSettings::CONNECT_TIMEOUT]
+            $this->getEndpoint()->getConnectTimeout() ?? $this->clientOptions[ClientSettings::CONNECT_TIMEOUT]
         );
         if (!$isConnected) {
             if ($client->isConnected()) {
@@ -115,7 +116,7 @@ class SwooleTcpTransporter extends AbstractTcpTransporter
         if (null === $client) {
             $this->onConnectionError(ErrorCode::SOCKET_CLOSED);
         }
-        $response = $this->doRecv($this->getEndpoint()->getReceiveTimeout() ?? $this->options[ClientSettings::RECV_TIMEOUT]);
+        $response = $this->doRecv($this->getEndpoint()->getReceiveTimeout() ?? $this->clientOptions[ClientSettings::RECV_TIMEOUT]);
         if (is_string($response) && '' !== $response) {
             return $this->createResponse($response);
         }

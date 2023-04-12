@@ -30,8 +30,8 @@ final class ClientSettings
     {
         return match ($name) {
             self::OPEN_EOF_CHECK, self::OPEN_LENGTH_CHECK, self::OPEN_MQTT_PROTOCOL => 'bool',
-            self::PACKAGE_LENGTH_OFFSET, self::PACKAGE_BODY_OFFSET, self::CONNECT_TIMEOUT,
-            self::PACKAGE_MAX_LENGTH, self::RECV_TIMEOUT => 'int',
+            self::PACKAGE_LENGTH_OFFSET, self::PACKAGE_BODY_OFFSET, self::PACKAGE_MAX_LENGTH, => 'int',
+            self::CONNECT_TIMEOUT,self::RECV_TIMEOUT => 'float',
             default => 'string'
         };
     }

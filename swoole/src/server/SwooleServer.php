@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\server;
 
-use Exception;
 use kuiper\swoole\Application;
 use kuiper\swoole\ConnectionInfo;
 use kuiper\swoole\constants\Event;
@@ -28,6 +27,7 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use RuntimeException;
 use Swoole\Server;
 use Swoole\Timer;
+use Throwable;
 
 class SwooleServer extends AbstractServer
 {
@@ -283,7 +283,7 @@ class SwooleServer extends AbstractServer
             /** @var RequestEvent $event */
             $event = $this->dispatch(Event::REQUEST, [$this->getSwooleRequestBridge()->create($request)]);
             $psrResponse = $event?->getResponse() ?? $this->getResponseFactory()->createResponse(500);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logger->error(static::TAG.'handle http request failed: '.$e->getMessage()."\n"
                 .$e->getTraceAsString());
             $psrResponse = $this->getResponseFactory()->createResponse(500);

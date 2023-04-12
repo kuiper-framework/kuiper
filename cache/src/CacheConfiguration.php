@@ -15,7 +15,7 @@ namespace kuiper\cache;
 
 use DI\Attribute\Inject;
 
-use function DI\factory;
+use function DI\get;
 
 use kuiper\di\attribute\AllConditions;
 use kuiper\di\attribute\Bean;
@@ -71,7 +71,7 @@ class CacheConfiguration implements DefinitionConfiguration
         }
 
         return [
-            \Symfony\Contracts\Cache\CacheInterface::class => factory([$this, 'symfonyRedisCache']),
+            \Symfony\Contracts\Cache\CacheInterface::class => get('symfonyCache'),
         ];
     }
 
@@ -121,8 +121,21 @@ class CacheConfiguration implements DefinitionConfiguration
         $namespace = $config['namespace'] ?? '';
         $defaultLifeTime = (int) ($config['lifetime'] ?? 0);
 
+        $redisAdapter = new RedisAdapter($container->get(Redis::class), $namespace, $defaultLifeTime);
+        $redisAdapter->setLogger($container->get(LoggerFactoryInterface::class)->create(RedisAdapter::class));
+
+        return $redisAdapter;
+    }
+
+    #[Bean('symfonyCache')]
+    public function symfonyCache(ContainerInterface $container): \Symfony\Contracts\Cache\CacheInterface
+    {
+        $config = $container->get('application.cache');
+        $namespace = $config['namespace'] ?? '';
+        $defaultLifeTime = (int) ($config['lifetime'] ?? 0);
+
         $redisAdapter = new RedisTagAwareAdapter($container->get(Redis::class), $namespace, $defaultLifeTime);
-        $redisAdapter->setLogger($container->get(LoggerFactoryInterface::class)->create(__CLASS__));
+        $redisAdapter->setLogger($container->get(LoggerFactoryInterface::class)->create(RedisTagAwareAdapter::class));
 
         return $redisAdapter;
     }
