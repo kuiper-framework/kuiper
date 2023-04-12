@@ -23,6 +23,8 @@ class CacheStoreSession implements SessionInterface
     use SessionTrait;
 
     private ?string $sessionId = null;
+
+    private string|false|null $sessionDataRead = null;
     private array $sessionData = [];
 
     public function __construct(
@@ -47,7 +49,8 @@ class CacheStoreSession implements SessionInterface
         $cookies = $this->request->getCookieParams();
         if (isset($cookies[$this->cookieName]) && $this->validateSessionId($cookies[$this->cookieName])) {
             $this->sessionId = $cookies[$this->cookieName];
-            $this->sessionData = $this->decode($this->sessionHandler->read($this->sessionId));
+            $this->sessionDataRead = $this->sessionHandler->read($this->sessionId);
+            $this->sessionData = $this->decode($this->sessionDataRead);
         } else {
             $this->sessionId = null;
             $this->sessionData = [];
@@ -247,7 +250,10 @@ class CacheStoreSession implements SessionInterface
         if ($this->isStarted()) {
             $sid = $this->getId();
             if (!empty($this->sessionData)) {
-                $this->sessionHandler->write($sid, $this->encode($this->sessionData));
+                $sessionDataWrite = $this->encode($this->sessionData);
+                if ($this->sessionDataRead !== $sessionDataWrite) {
+                    $this->sessionHandler->write($sid, $sessionDataWrite);
+                }
             }
             $attributes = ['Path' => ini_get('session.cookie_path')];
             $domain = ini_get('session.cookie_domain');
