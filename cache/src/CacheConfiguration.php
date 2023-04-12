@@ -163,11 +163,13 @@ class CacheConfiguration implements DefinitionConfiguration
     {
         $options = $container->get('application.cache');
         $cacheItemPool = new CacheItemPool(new Composite([
-            new Ephemeral($options['memory'] ?? []),
-            new RedisDriver(array_merge([
-                'redis' => $container->get(Redis::class),
-                'prefix' => $options['namespace'] ?? '',
-            ])),
+            'drivers' => [
+                new Ephemeral($options['memory'] ?? []),
+                new RedisDriver(array_merge([
+                    'redis' => $container->get(Redis::class),
+                    'prefix' => $options['namespace'] ?? '',
+                ])),
+            ],
         ]));
         $lifetime = (int) ($cacheConfig['lifetime'] ?? 0);
         if ($lifetime > 0) {
