@@ -121,11 +121,6 @@ parameters:
 			path: jsonrpc/src/config/JsonRpcServerConfiguration.php
 
 		-
-			message: "#^Dead catch \\- kuiper\\\\jsonrpc\\\\exception\\\\JsonRpcRequestException is never thrown in the try block\\.$#"
-			count: 1
-			path: jsonrpc/src/server/JsonRpcHttpRequestHandler.php
-
-		-
 			message: "#^Call to an undefined method kuiper\\\\rpc\\\\RpcRequestInterface\\:\\:getRequestId\\(\\)\\.$#"
 			count: 1
 			path: jsonrpc/src/server/JsonRpcServerResponse.php

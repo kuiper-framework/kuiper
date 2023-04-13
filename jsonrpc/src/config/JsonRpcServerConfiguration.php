@@ -32,6 +32,7 @@ use kuiper\helper\Properties;
 use kuiper\helper\PropertyResolverInterface;
 use kuiper\jsonrpc\attribute\JsonRpcService;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
+use kuiper\jsonrpc\server\ErrorHandler;
 use kuiper\jsonrpc\server\JsonRpcServerFactory;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
@@ -40,6 +41,7 @@ use kuiper\rpc\RpcRequestJsonLogFormatter;
 use kuiper\rpc\server\admin\AdminServant;
 use kuiper\rpc\server\admin\AdminServantImpl;
 use kuiper\rpc\server\middleware\AccessLog;
+use kuiper\rpc\server\middleware\Error;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\swoole\Application;
@@ -104,7 +106,10 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         }
         $config->with('application.jsonrpc.server', function (Properties $value) {
             $value->merge([
-                'middleware' => ['jsonrpcServerRequestLog'],
+                'middleware' => [
+                    'jsonrpcServerErrorMiddleware',
+                    'jsonrpcServerRequestLog',
+                ],
             ]);
         });
         $definitions = [];
@@ -126,6 +131,9 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         }
 
         return array_merge($definitions, [
+            'jsonrpcServerErrorMiddleware' => autowire(Error::class)
+                ->constructorParameter(0, get('jsonrpcServerErrorHandler')),
+            'jsonrpcServerErrorHandler' => autowire(ErrorHandler::class),
             AdminServant::class => autowire(AdminServantImpl::class),
             JsonRpcServerFactory::class => factory([JsonRpcServerFactory::class, 'createFromContainer']),
             'registerServices' => get('jsonrpcServices'),

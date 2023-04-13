@@ -13,11 +13,10 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\server;
 
-use Exception;
 use kuiper\rpc\DelegateRequestHandler;
-use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\exception\ErrorCode;
 use kuiper\rpc\exception\InvalidRequestException;
+use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\MiddlewareSupport;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
@@ -29,10 +28,14 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
 {
     use MiddlewareSupport;
 
+    /**
+     * @param array<string, Service>            $services
+     * @param RpcServerResponseFactoryInterface $responseFactory
+     * @param MiddlewareInterface[]             $middlewares
+     */
     public function __construct(
         private readonly array $services,
         private readonly RpcServerResponseFactoryInterface $responseFactory,
-        private readonly ErrorHandlerInterface $errorHandler,
         array $middlewares = [])
     {
         $this->middlewares = $middlewares;
@@ -72,11 +75,7 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
                 $parameters[] = $args[$i] ?? null;
             }
         }
-        try {
-            $return = call_user_func_array([$target, $method->getMethodName()], $parameters);
-        } catch (Exception $e) {
-            return $this->errorHandler->handle($request, $e);
-        }
+        $return = call_user_func_array([$target, $method->getMethodName()], $parameters);
         $request = $request->withRpcMethod($method->withResult(array_merge([$return], $out)));
 
         return $this->responseFactory->createResponse($request);
@@ -91,6 +90,6 @@ class RpcServerRpcRequestHandler implements RpcRequestHandlerInterface
             throw new InvalidRequestException($request, "Service {$serviceName} not found", ErrorCode::INVALID_ARGUMENT);
         }
 
-        return $this->services[$serviceName];
+        return $this->services[$serviceName]->getService();
     }
 }

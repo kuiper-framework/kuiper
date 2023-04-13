@@ -37,8 +37,12 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
     public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface
     {
         if ($error instanceof InvalidArgumentException) {
-            $this->logger->info(sprintf('process %s#%s failed: %s',
-                $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(), $error));
+            $this->logger->info(sprintf('process %s#%s failed: %s: %s in %s:%d',
+                $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(),
+                get_class($error),
+                $error->getMessage(),
+                $error->getFile(),
+                $error->getLine()));
         } else {
             $this->logger->error(sprintf('process %s#%s failed: %s',
                 $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(), $error));

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\tars\server;
 
-use Exception;
 use kuiper\event\EventListenerInterface;
 use kuiper\rpc\exception\InvalidRequestException;
 use kuiper\rpc\RpcRequestHandlerInterface;
@@ -44,6 +43,9 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
         Assert::isInstanceOf($event, ReceiveEvent::class);
         /** @var ReceiveEvent $event */
         $server = $event->getServer();
+        $sender = static function (string $data) use ($event, $server) {
+            $server->send($event->getClientId(), $data);
+        };
 
         $connectionInfo = $server->getConnectionInfo($event->getClientId());
         Assert::notNull($connectionInfo, 'cannot get connection info');
@@ -54,21 +56,16 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
             /** @var TarsRequestInterface|RpcServerRequestInterface $serverRequest */
             $serverRequest = $this->serverRequestFactory->createRequest($request);
         } catch (TarsRequestException $e) {
-            $server->send($event->getClientId(), (string) $this->createInvalidTarsRequestResponse($e)->encode());
+            $sender((string) $this->createInvalidTarsRequestResponse($e)->encode());
 
             return;
         } catch (InvalidRequestException $e) {
-            $server->send($event->getClientId(), (string) $this->createInvalidRequestResponse($e)->encode());
+            $sender((string) $this->createInvalidRequestResponse($e)->encode());
 
             return;
         }
-        try {
-            ServerRequestHolder::setRequest($serverRequest);
-            $response = $this->requestHandler->handle($serverRequest);
-            $server->send($event->getClientId(), (string) $response->getBody());
-        } catch (Exception $e) {
-            $server->send($event->getClientId(), (string) $this->createErrorResponse($serverRequest, $e)->encode());
-        }
+        ServerRequestHolder::setRequest($serverRequest);
+        $sender((string) $this->requestHandler->handle($serverRequest)->getBody());
     }
 
     public function getSubscribedEvent(): string
@@ -85,16 +82,6 @@ class TarsTcpReceiveEventListener implements EventListenerInterface
         $packet->iVersion = $requestPacket->iVersion;
         $packet->cPacketType = $requestPacket->cPacketType;
         $packet->iMessageType = $requestPacket->iMessageType;
-        $packet->iRet = $e->getCode();
-        $packet->sResultDesc = $e->getMessage();
-        $packet->sBuffer = '';
-
-        return $packet;
-    }
-
-    private function createErrorResponse(TarsRequestInterface $request, Exception $e): ResponsePacket
-    {
-        $packet = ResponsePacket::createFromRequest($request);
         $packet->iRet = $e->getCode();
         $packet->sResultDesc = $e->getMessage();
         $packet->sBuffer = '';

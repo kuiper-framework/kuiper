@@ -62,6 +62,7 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                         'protocol' => env('JSONRPC_CLIENT_PROTOCOL', 'http'),
                         'http_options' => [
                             'timeout' => (float) env('JSONRPC_CLIENT_HTTP_TIMEOUT', '5'),
+                            'http_errors' => false,
                         ],
                         'tcp_options' => [
                             'timeout' => (float) env('JSONRPC_CLIENT_TCP_TIMEOUT', '5'),

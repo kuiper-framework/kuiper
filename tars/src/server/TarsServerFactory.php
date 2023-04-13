@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace kuiper\tars\server;
 
 use kuiper\logger\LoggerFactoryInterface;
-use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
@@ -67,17 +66,9 @@ class TarsServerFactory
         return $tarsServerRequestFactory;
     }
 
-    public function createErrorHandler(): ErrorHandlerInterface
-    {
-        $errorHandler = new ErrorHandler($this->httpResponseFactory);
-        $errorHandler->setLogger($this->loggerFactory->create(ErrorHandler::class));
-
-        return $errorHandler;
-    }
-
     public function getRequestHandler(): RpcRequestHandlerInterface
     {
-        return new RpcServerRpcRequestHandler($this->services, $this->createServerResponseFactory(), $this->createErrorHandler(), $this->middlewares);
+        return new RpcServerRpcRequestHandler($this->services, $this->createServerResponseFactory(), $this->middlewares);
     }
 
     public static function createFromContainer(ContainerInterface $container): self

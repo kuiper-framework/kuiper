@@ -31,6 +31,7 @@ use kuiper\helper\PropertyResolverInterface;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\rpc\server\middleware\AccessLog;
+use kuiper\rpc\server\middleware\Error;
 use kuiper\rpc\server\Service;
 use kuiper\rpc\ServiceLocatorImpl;
 use kuiper\serializer\NormalizerInterface;
@@ -45,6 +46,7 @@ use kuiper\tars\core\TarsRequestJsonLogFormatter;
 use kuiper\tars\server\Adapter;
 use kuiper\tars\server\AdminServantImpl;
 use kuiper\tars\server\ClientProperties;
+use kuiper\tars\server\ErrorHandler;
 use kuiper\tars\server\listener\KeepAlive;
 use kuiper\tars\server\listener\RequestStat;
 use kuiper\tars\server\listener\ServiceMonitor;
@@ -91,6 +93,7 @@ class TarsServerConfiguration implements DefinitionConfiguration
                 'tars' => [
                     'server' => [
                         'middleware' => [
+                            'tarsServerErrorMiddleware',
                             'tarsServerRequestLog',
                         ],
                         'monitors' => [
@@ -112,6 +115,9 @@ class TarsServerConfiguration implements DefinitionConfiguration
             MonitorInterface::class => autowire(Monitor::class)
                 ->constructorParameter('collectors', get('monitorCollectors')),
             'tarsServerRequestLogFormatter' => autowire(TarsRequestJsonLogFormatter::class),
+            'tarsServerErrorMiddleware' => autowire(Error::class)
+                ->constructorParameter(0, get('tarsServerErrorHandler')),
+            'tarsServerErrorHandler' => autowire(ErrorHandler::class),
             TarsTcpReceiveEventListener::class => factory([TarsServerFactory::class, 'createTcpReceiveEventListener']),
         ];
     }

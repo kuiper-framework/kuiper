@@ -13,16 +13,15 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\server;
 
-use Exception;
 use kuiper\event\EventListenerInterface;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
-use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcServerRequestInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
 use kuiper\rpc\server\ServerRequestHolder;
 use kuiper\swoole\event\ReceiveEvent;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Webmozart\Assert\Assert;
 
@@ -32,8 +31,7 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface
         private readonly ServerRequestFactoryInterface $httpRequestFactory,
         private readonly RpcServerRequestFactoryInterface $serverRequestFactory,
         private readonly RpcRequestHandlerInterface $requestHandler,
-        private readonly InvalidRequestHandlerInterface $invalidRequestHandler,
-        private readonly ErrorHandlerInterface $errorHandler)
+        private readonly InvalidRequestHandlerInterface $invalidRequestHandler)
     {
     }
 
@@ -45,6 +43,9 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface
         Assert::isInstanceOf($event, ReceiveEvent::class);
         /** @var ReceiveEvent $event */
         $server = $event->getServer();
+        $sender = static function (ResponseInterface $response) use ($server, $event) {
+            $server->send($event->getClientId(), (string) $response->getBody());
+        };
 
         $connectionInfo = $server->getConnectionInfo($event->getClientId());
         Assert::notNull($connectionInfo, 'cannot get connection info');
@@ -55,19 +56,12 @@ class JsonRpcTcpReceiveEventListener implements EventListenerInterface
             /** @var JsonRpcRequestInterface|RpcServerRequestInterface $serverRequest */
             $serverRequest = $this->serverRequestFactory->createRequest($request);
         } catch (JsonRpcRequestException $e) {
-            $server->send($event->getClientId(), (string) $this->invalidRequestHandler->handleInvalidRequest($request, $e)
-                ->getBody());
+            $sender($this->invalidRequestHandler->handleInvalidRequest($request, $e));
 
             return;
         }
-        try {
-            ServerRequestHolder::setRequest($serverRequest);
-            $response = $this->requestHandler->handle($serverRequest);
-            $server->send($event->getClientId(), (string) $response->getBody());
-        } catch (Exception $e) {
-            $server->send($event->getClientId(), (string) $this->errorHandler->handle($serverRequest, $e)
-                ->getBody());
-        }
+        ServerRequestHolder::setRequest($serverRequest);
+        $sender($this->requestHandler->handle($serverRequest));
     }
 
     public function getSubscribedEvent(): string

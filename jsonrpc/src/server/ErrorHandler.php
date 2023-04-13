@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use Exception;
+use InvalidArgumentException;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
@@ -26,11 +27,15 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Throwable;
 use Webmozart\Assert\Assert;
 
-class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterface
+class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterface, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     public function __construct(
         private readonly ResponseFactoryInterface $responseFactory,
         private readonly StreamFactoryInterface $streamFactory,
@@ -48,6 +53,17 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
 
     public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface
     {
+        if ($error instanceof InvalidArgumentException) {
+            $this->logger->info(sprintf('process %s#%s failed: %s: %s in %s:%d',
+                $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(),
+                get_class($error),
+                $error->getMessage(),
+                $error->getFile(),
+                $error->getLine()));
+        } else {
+            $this->logger->error(sprintf('process %s#%s failed: %s',
+                $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(), $error));
+        }
         Assert::isInstanceOf($request, JsonRpcRequestInterface::class);
         /** @var JsonRpcRequestInterface|RpcRequestInterface $request */
         return new RpcResponse($request, $this->createResponse($this->createErrorResponse($error, $request)));
@@ -78,7 +94,7 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
         ]);
     }
 
-    private function createResponse(string $body, int $statusCode = 200): ResponseInterface
+    private function createResponse(string $body, int $statusCode = 500): ResponseInterface
     {
         return $this->responseFactory->createResponse($statusCode)
             ->withBody($this->streamFactory->createStream($body));

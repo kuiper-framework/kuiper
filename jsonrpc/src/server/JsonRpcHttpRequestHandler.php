@@ -15,8 +15,6 @@ namespace kuiper\jsonrpc\server;
 
 use Exception;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
-use kuiper\jsonrpc\exception\JsonRpcRequestException;
-use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcServerRequestInterface;
 use kuiper\rpc\server\RpcServerRequestFactoryInterface;
@@ -34,7 +32,6 @@ class JsonRpcHttpRequestHandler implements RequestHandlerInterface
         private readonly RpcServerRequestFactoryInterface $requestFactory,
         private readonly RpcRequestHandlerInterface $requestHandler,
         private readonly InvalidRequestHandlerInterface $invalidRequestHandler,
-        private readonly ErrorHandlerInterface $errorHandler
     ) {
     }
 
@@ -43,16 +40,12 @@ class JsonRpcHttpRequestHandler implements RequestHandlerInterface
         try {
             /** @var JsonRpcRequestInterface|RpcServerRequestInterface $rpcRequest */
             $rpcRequest = $this->requestFactory->createRequest($request);
-        } catch (JsonRpcRequestException $e) {
+        } catch (Exception $e) {
             return $this->invalidRequestHandler->handleInvalidRequest($request, $e);
         }
-        try {
-            ServerRequestHolder::setRequest($rpcRequest);
+        ServerRequestHolder::setRequest($rpcRequest);
 
-            return $this->requestHandler->handle($rpcRequest);
-        } catch (Exception $e) {
-            return $this->errorHandler->handle($rpcRequest, $e);
-        }
+        return $this->requestHandler->handle($rpcRequest);
     }
 
     /**
@@ -69,21 +62,5 @@ class JsonRpcHttpRequestHandler implements RequestHandlerInterface
     public function getRequestHandler(): RpcRequestHandlerInterface
     {
         return $this->requestHandler;
-    }
-
-    /**
-     * @return InvalidRequestHandlerInterface
-     */
-    public function getInvalidRequestHandler(): InvalidRequestHandlerInterface
-    {
-        return $this->invalidRequestHandler;
-    }
-
-    /**
-     * @return ErrorHandlerInterface
-     */
-    public function getErrorHandler(): ErrorHandlerInterface
-    {
-        return $this->errorHandler;
     }
 }
