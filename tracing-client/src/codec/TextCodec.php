@@ -152,7 +152,7 @@ class TextCodec implements CodecInterface
             return null;
         }
 
-        return new SpanContext($traceId, $spanId, $parentId, $flags, $baggage);
+        return new SpanContext($traceId, $spanId, $parentId, $flags, $baggage, $debugId);
     }
 
     /**

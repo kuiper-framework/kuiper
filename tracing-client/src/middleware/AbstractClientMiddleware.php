@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\tracing\middleware;
 
+use function kuiper\helper\describe_error;
+
 use kuiper\rpc\HasRequestIdInterface;
 use kuiper\tracing\Tracer;
 use OpenTracing\NoopSpan;
@@ -20,6 +22,7 @@ use OpenTracing\NoopSpan;
 use const OpenTracing\Tags\PEER_ADDRESS;
 
 use Psr\Http\Message\RequestInterface;
+use Throwable;
 
 abstract class AbstractClientMiddleware
 {
@@ -42,12 +45,7 @@ abstract class AbstractClientMiddleware
 
         $tracer->inject($scope->getSpan()->getContext(), $this->format, $request);
 
-        $response = null;
-        try {
-            $response = $next($request);
-
-            return $response;
-        } finally {
+        $update = function ($response, $error = null) use ($request, $span, $scope) {
             $span->setTag(PEER_ADDRESS, $request->getUri()->getHost().':'.$request->getUri()->getPort());
             if ($request instanceof HasRequestIdInterface) {
                 $span->setTag('peer.request_id', $request->getRequestId());
@@ -57,7 +55,19 @@ abstract class AbstractClientMiddleware
                 $span->setTag('peer.return_code', $response->getStatusCode());
                 $span->setTag('peer.response_size', $response->getBody()->getSize());
             }
+            if (isset($error)) {
+                $span->setTag('error', describe_error($error));
+            }
             $scope->close();
+        };
+        try {
+            $response = $next($request);
+            $update($response);
+
+            return $response;
+        } catch (Throwable $e) {
+            $update(null, $e);
+            throw $e;
         }
     }
 }

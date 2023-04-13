@@ -14,6 +14,9 @@ declare(strict_types=1);
 namespace kuiper\tars\server;
 
 use InvalidArgumentException;
+
+use function kuiper\helper\describe_error;
+
 use kuiper\rpc\ErrorHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
@@ -37,12 +40,9 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
     public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface
     {
         if ($error instanceof InvalidArgumentException) {
-            $this->logger->info(sprintf('process %s#%s failed: %s: %s in %s:%d',
+            $this->logger->info(sprintf('process %s#%s failed: %s',
                 $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(),
-                get_class($error),
-                $error->getMessage(),
-                $error->getFile(),
-                $error->getLine()));
+                describe_error($error)));
         } else {
             $this->logger->error(sprintf('process %s#%s failed: %s',
                 $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(), $error));

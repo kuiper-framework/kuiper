@@ -243,7 +243,7 @@ class SwooleServer extends AbstractServer
         $swoolePort->set($port->getSettings());
 
         foreach ($port->getServerType()->handledEvents() as $event) {
-            $this->logger->debug(static::TAG."attach $event->value to port ".$port->getPort());
+            // $this->logger->debug(static::TAG."attach $event->value to port ".$port->getPort());
             $swoolePort->on($event->value, $this->createEventHandler($event));
         }
     }
@@ -251,7 +251,7 @@ class SwooleServer extends AbstractServer
     private function createEventHandler(Event $eventName): callable
     {
         return function () use ($eventName) {
-            $this->logger->debug(static::TAG.'receive event '.$eventName->value);
+            // $this->logger->debug(static::TAG.'receive event '.$eventName->value);
             $args = func_get_args();
             if (Event::REQUEST === $eventName) {
                 $this->onRequest(...$args);

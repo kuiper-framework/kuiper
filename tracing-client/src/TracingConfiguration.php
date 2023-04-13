@@ -14,6 +14,9 @@ declare(strict_types=1);
 namespace kuiper\tracing;
 
 use DI\Attribute\Inject;
+
+use function DI\value;
+
 use kuiper\di\attribute\Bean;
 use kuiper\di\attribute\Configuration;
 use kuiper\di\ContainerBuilderAwareTrait;
@@ -29,6 +32,7 @@ use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\ServerConfig;
 use kuiper\tars\server\TarsTcpReceiveEventListener;
 use kuiper\tracing\listener\TraceDbQuery;
+use kuiper\tracing\middleware\httpclient\TraceGuzzleRequest;
 use kuiper\tracing\middleware\rpc\TraceServerRequest;
 use kuiper\tracing\middleware\tars\TraceClientRequest;
 use kuiper\tracing\middleware\web\TraceWebRequest;
@@ -46,6 +50,13 @@ class TracingConfiguration implements DefinitionConfiguration
                 'application' => [
                     'tracing' => [
                         'reporting_url' => env('TRACING_REPORTING_URL'),
+                    ],
+                    'http_client' => [
+                        'default' => [
+                            'middleware' => [
+                                'guzzleTraceRequestMiddleware',
+                            ],
+                        ],
                     ],
                 ],
             ]);
@@ -69,7 +80,11 @@ class TracingConfiguration implements DefinitionConfiguration
             }
         }
 
-        return [];
+        return [
+            'guzzleTraceRequestMiddleware' => value(static function (callable $handler) {
+                return new TraceGuzzleRequest($handler);
+            }),
+        ];
     }
 
     #[Bean]

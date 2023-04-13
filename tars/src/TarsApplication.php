@@ -26,16 +26,7 @@ class TarsApplication extends Application
      */
     protected function parseConfig(string $configFile): Properties
     {
-        return Config::parseFile($configFile);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    protected function addDefaultConfig(): void
-    {
-        parent::addDefaultConfig();
-        $config = $this->getConfig();
+        $config = Config::parseFile($configFile);
         $config->merge([
             'application' => [
                 'env' => $config->getString('application.tars.server.env', 'prod'),
@@ -67,6 +58,8 @@ class TarsApplication extends Application
                 ],
             ],
         ]);
+
+        return $config;
     }
 
     /**

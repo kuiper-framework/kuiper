@@ -18,6 +18,7 @@ use InvalidArgumentException;
 use kuiper\swoole\coroutine\Coroutine;
 use kuiper\tracing\codec\CodecInterface;
 use kuiper\tracing\codec\Psr6RequestCodec;
+use kuiper\tracing\codec\TarsRequestCodec;
 use kuiper\tracing\codec\TextCodec;
 use kuiper\tracing\reporter\ReporterInterface;
 use kuiper\tracing\sampler\SamplerInterface;
@@ -166,13 +167,15 @@ class Tracer implements OTTracer
 
         $this->debugIdHeader = $debugIdHeader;
 
+        $textCodec = new TextCodec(
+            false,
+            $traceIdHeader,
+            $baggageHeaderPrefix,
+            $debugIdHeader
+        );
         $this->codecs = [
-            TEXT_MAP => new TextCodec(
-                false,
-                $traceIdHeader,
-                $baggageHeaderPrefix,
-                $debugIdHeader
-            ),
+            Constants::CODEC_TARS => new TarsRequestCodec($textCodec),
+            TEXT_MAP => $textCodec,
             HTTP_HEADERS => new Psr6RequestCodec(
                 true,
                 $traceIdHeader,

@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace kuiper\tracing\codec;
 
+use Exception;
 use kuiper\tars\client\TarsRequest;
+use kuiper\tars\server\TarsServerRequest;
 use kuiper\tracing\SpanContext;
 
-class TarsRequestCodec
+class TarsRequestCodec implements CodecInterface
 {
     public function __construct(private readonly TextCodec $textCodec)
     {
@@ -30,7 +32,14 @@ class TarsRequestCodec
         $carrier->setStatus($status);
     }
 
-    public function extract(TarsRequest $carrier): ?SpanContext
+    /**
+     * @param TarsRequest|TarsServerRequest $carrier
+     *
+     * @return SpanContext|null
+     *
+     * @throws Exception
+     */
+    public function extract($carrier): ?SpanContext
     {
         return $this->textCodec->extract($carrier->getStatus());
     }

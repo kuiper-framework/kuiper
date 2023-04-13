@@ -48,7 +48,7 @@ class TraceServerRequest extends AbstractServerMiddleware implements MiddlewareI
             return $handler->handle($request);
         }
 
-        return $this->handle($request, function (RpcRequestInterface $request) use ($handler) {
+        return $this->handleRequest($request, function (RpcRequestInterface $request) use ($handler) {
             return $handler->handle($request);
         });
     }

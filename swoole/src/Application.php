@@ -126,10 +126,14 @@ class Application
         } else {
             $this->config = Properties::create();
         }
-
-        $this->addDefaultConfig();
+        $this->config->mergeIfNotExists([
+            'application' => [
+                'env' => env('APP_ENV', 'prod'),
+            ],
+        ]);
         $this->addCommandLineOptions($properties);
         $this->loadEnv();
+        $this->addDefaultConfig();
         $configFile = $this->config->getString('application.php_config_file');
         if (file_exists($configFile)) {
             $this->config->merge(require $configFile);
@@ -181,16 +185,12 @@ class Application
     {
         $this->config->mergeIfNotExists([
             'application' => [
-                'env' => env('APP_ENV', 'prod'),
                 'enable_bootstrap_container' => 'true' === env('APP_ENABLE_BOOTSTRAP_CONTAINER', 'true'),
                 'name' => env('APP_NAME', 'app'),
                 'php_config_file' => env('APP_PHP_CONFIG_FILE', $this->getBasePath().'/src/config.php'),
                 'base_path' => $this->getBasePath(),
                 'logging' => [
                     'path' => env('LOGGING_PATH', $this->getBasePath().'/logs'),
-                    'level' => [
-                        'kuiper\\swoole' => 'info',
-                    ],
                 ],
                 'server' => [
                     'enable_php_server' => 'true' === env('SERVER_ENABLE_PHP_SERVER'),

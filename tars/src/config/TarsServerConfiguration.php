@@ -209,7 +209,8 @@ class TarsServerConfiguration implements DefinitionConfiguration
     public function tarsServerMiddlewares(ContainerInterface $container): array
     {
         $middlewares = [];
-        foreach (Application::getInstance()->getConfig()->get('application.tars.server.middleware', []) as $middleware) {
+        $middlewareList = Application::getInstance()->getConfig()->get('application.tars.server.middleware', []);
+        foreach ($middlewareList as $middleware) {
             $middlewares[] = $container->get($middleware);
         }
 
