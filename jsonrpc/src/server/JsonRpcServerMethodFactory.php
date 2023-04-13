@@ -20,9 +20,9 @@ use kuiper\rpc\exception\InvalidMethodException;
 use kuiper\rpc\RpcMethod;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
+use kuiper\rpc\server\Service;
 use kuiper\serializer\NormalizerInterface;
 use ReflectionException;
-use ReflectionMethod;
 
 class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
 {
@@ -31,6 +31,11 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
      */
     private array $cachedTypes;
 
+    /**
+     * @param array<string, Service>             $services
+     * @param NormalizerInterface                $normalizer
+     * @param ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory
+     */
     public function __construct(
         private readonly array $services,
         private readonly NormalizerInterface $normalizer,
@@ -55,7 +60,7 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
             throw new InvalidMethodException("jsonrpc method $service.$method not found");
         }
         try {
-            $arguments = $this->resolveParams($serviceObject->getService(), $method, $args);
+            $arguments = $this->resolveParams($serviceObject, $method, $args);
         } catch (Exception $e) {
             throw new InvalidMethodException("create method $service.$method parameters fail: ".$e->getMessage());
         }
@@ -63,13 +68,9 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
         return new RpcMethod($serviceObject->getService(), $serviceObject->getServiceLocator(), $method, $arguments);
     }
 
-    /**
-     * @throws ReflectionException
-     * @throws ClassNotFoundException
-     */
-    private function resolveParams(object $target, string $methodName, array $params): array
+    private function resolveParams(Service $service, string $methodName, array $params): array
     {
-        $paramTypes = $this->getParameterTypes($target, $methodName);
+        $paramTypes = $this->getParameterTypes($service, $methodName);
         $ret = [];
         foreach ($paramTypes as $i => $type) {
             $ret[] = $this->normalizer->denormalize($params[$i], $type);
@@ -82,21 +83,21 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
      * @throws ReflectionException
      * @throws ClassNotFoundException
      */
-    private function getParameterTypes(object $target, string $methodName): array
+    private function getParameterTypes(Service $service, string $methodName): array
     {
-        $key = get_class($target).'::'.$methodName;
+        $key = $service->getServiceName().'::'.$methodName;
         if (isset($this->cachedTypes[$key])) {
             return $this->cachedTypes[$key];
         }
 
-        $reflectionMethod = new ReflectionMethod($target, $methodName);
+        $reflectionMethod = $service->getMethod($methodName);
         $reflectionMethodDocBlock = $this->reflectionDocBlockFactory->createMethodDocBlock($reflectionMethod);
 
         return $this->cachedTypes[$key] = array_values($reflectionMethodDocBlock->getParameterTypes());
     }
 
     /**
-     * @return array
+     * @return array<string, Service>
      */
     public function getServices(): array
     {

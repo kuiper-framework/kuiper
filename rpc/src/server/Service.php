@@ -13,11 +13,20 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\server;
 
+use InvalidArgumentException;
 use kuiper\rpc\ServiceLocator;
 use kuiper\swoole\ServerPort;
+use ReflectionMethod;
 
 class Service
 {
+    /**
+     * @param ServiceLocator                  $serviceLocator
+     * @param object                          $service
+     * @param array<string, ReflectionMethod> $methods
+     * @param ServerPort                      $serverPort
+     * @param int                             $weight
+     */
     public function __construct(
         private readonly ServiceLocator $serviceLocator,
         private readonly object $service,
@@ -68,16 +77,25 @@ class Service
     }
 
     /**
-     * @return string[]
+     * @return ReflectionMethod[]
      */
     public function getMethods(): array
     {
-        return $this->methods;
+        return array_values($this->methods);
     }
 
     public function hasMethod(string $method): bool
     {
-        return in_array($method, $this->methods, true);
+        return isset($this->methods[$method]);
+    }
+
+    public function getMethod(string $methodName): ReflectionMethod
+    {
+        if (!$this->hasMethod($methodName)) {
+            throw new InvalidArgumentException("method $methodName not found");
+        }
+
+        return $this->methods[$methodName];
     }
 
     /**

@@ -25,6 +25,7 @@ use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
+use kuiper\swoole\config\ServerConfiguration;
 use kuiper\swoole\ServerConfig;
 use kuiper\tars\server\TarsTcpReceiveEventListener;
 use kuiper\tracing\listener\TraceDbQuery;
@@ -32,7 +33,7 @@ use kuiper\tracing\middleware\rpc\TraceServerRequest;
 use kuiper\tracing\middleware\tars\TraceClientRequest;
 use kuiper\tracing\middleware\web\TraceWebRequest;
 
-#[Configuration]
+#[Configuration(dependOn: [ServerConfiguration::class])]
 class TracingConfiguration implements DefinitionConfiguration
 {
     use ContainerBuilderAwareTrait;

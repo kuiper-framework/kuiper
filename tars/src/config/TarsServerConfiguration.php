@@ -160,7 +160,13 @@ class TarsServerConfiguration implements DefinitionConfiguration
 
             /** @var ReflectionClass $targetClass */
             $targetClass = $annotation->getTarget();
-            $methods = Arrays::pull($targetClass->getMethods(ReflectionMethod::IS_PUBLIC), 'name');
+            $methods = [];
+            foreach ($targetClass->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+                if ($method->isStatic() || $method->isConstructor() || $method->isDestructor()) {
+                    continue;
+                }
+                $methods[$method->getName()] = $method;
+            }
             $services[$servantName] = new Service(
                 new ServiceLocatorImpl($servantName),
                 $serviceImpl,

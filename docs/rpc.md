@@ -72,7 +72,8 @@ return [
 
 `application.jsonrpc.server.services` 的配置 key 值为服务名称。value 可以时字符或者是一个数组，数组可包含以下配置：
 - service 服务名
-- class 服务实现类在容器中的注册 ID
+- class 服务接口类
+- implementation 服务实现在容器中的注册 ID 
 - version 服务版本号
 
 ### 配置项

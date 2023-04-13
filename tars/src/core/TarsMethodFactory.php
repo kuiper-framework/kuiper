@@ -83,29 +83,16 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
     {
         $reflectionClass = new ReflectionClass($servant);
         $servantAnnotation = $this->getTarsServantAnnotation($reflectionClass);
-        [$parameters, $returnValue] = $this->getParameters($servant, $method);
+        if (!$reflectionClass->hasMethod($method)) {
+            throw new InvalidMethodException(sprintf("%s does not contain method '$method'", $reflectionClass->getName()));
+        }
+        [$parameters, $returnValue] = $this->getParameters($reflectionClass->getMethod($method));
 
         return new TarsMethod($servant, $this->options['service'] ?? $servantAnnotation->getService(), $method, [], $parameters, $returnValue);
     }
 
-    /**
-     * @param object|string $servant
-     * @param string        $method
-     *
-     * @return array
-     *
-     * @throws InvalidMethodException
-     * @throws SyntaxErrorException
-     * @throws ReflectionException
-     */
-    protected function getParameters(object|string $servant, string $method): array
+    protected function getParameters(ReflectionMethod $reflectionMethod): array
     {
-        $reflectionClass = new ReflectionClass($servant);
-        if (!$reflectionClass->hasMethod($method)) {
-            throw new InvalidMethodException(sprintf("%s does not contain method '$method'", $reflectionClass->getName()));
-        }
-
-        $reflectionMethod = $this->getMethod($reflectionClass, $method);
         $namespace = $reflectionMethod->getDeclaringClass()->getNamespaceName();
         $parameters = [];
         foreach ($reflectionMethod->getParameters() as $i => $parameter) {
@@ -183,35 +170,5 @@ class TarsMethodFactory implements RpcMethodFactoryInterface
         }
 
         return null;
-    }
-
-    /**
-     * @throws ReflectionException
-     * @throws InvalidMethodException
-     */
-    protected function getMethod(ReflectionClass $reflectionClass, string $method): ReflectionMethod
-    {
-        $reflectionMethod = null;
-        if ($reflectionClass->isInterface()) {
-            $reflectionMethod = $reflectionClass->getMethod($method);
-        } else {
-            $proxyClass = ProxyGenerator::getInterfaceName($reflectionClass->getName());
-            if (null !== $proxyClass) {
-                $reflectionMethod = new ReflectionMethod($proxyClass, $method);
-            } else {
-                foreach ($reflectionClass->getInterfaceNames() as $interfaceName) {
-                    $attributes = (new ReflectionClass($interfaceName))->getAttributes(TarsServant::class, ReflectionAttribute::IS_INSTANCEOF);
-                    if (count($attributes) > 0) {
-                        $reflectionMethod = new ReflectionMethod($interfaceName, $method);
-                        break;
-                    }
-                }
-            }
-        }
-        if (null === $reflectionMethod) {
-            throw new InvalidMethodException("Cannot find method {$reflectionClass->getName()}::$method");
-        }
-
-        return $reflectionMethod;
     }
 }

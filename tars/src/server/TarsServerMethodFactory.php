@@ -17,6 +17,7 @@ use InvalidArgumentException;
 use kuiper\rpc\exception\InvalidMethodException;
 use kuiper\rpc\exception\ServiceNotFoundException;
 use kuiper\rpc\RpcMethodInterface;
+use kuiper\rpc\server\Service;
 use kuiper\tars\core\TarsMethod;
 use kuiper\tars\core\TarsMethodFactory;
 use kuiper\tars\exception\SyntaxErrorException;
@@ -30,6 +31,10 @@ use ReflectionException;
 
 class TarsServerMethodFactory extends TarsMethodFactory
 {
+    /**
+     * @param string                 $serverName
+     * @param array<string, Service> $services
+     */
     public function __construct(private readonly string $serverName, private readonly array $services)
     {
         parent::__construct();
@@ -58,10 +63,9 @@ class TarsServerMethodFactory extends TarsMethodFactory
             throw new ServiceNotFoundException("Cannot find tars servant $serviceName");
         }
         $serviceObject = $this->services[$serviceName];
-        $serviceImpl = $serviceObject->getService();
         try {
-            [$parameters, $returnValue] = $this->getParameters($serviceImpl, $method);
-        } catch (ReflectionException|SyntaxErrorException $e) {
+            [$parameters, $returnValue] = $this->getParameters($serviceObject->getMethod($method));
+        } catch (ReflectionException|SyntaxErrorException|InvalidArgumentException $e) {
             throw new InvalidMethodException('Cannot resolve method parameters', 0, $e);
         }
 
@@ -71,7 +75,7 @@ class TarsServerMethodFactory extends TarsMethodFactory
             throw new InvalidArgumentException('Unmarshal method parameters failed', 0, $e);
         }
 
-        return new TarsMethod($serviceImpl, $serviceName, $method, $arguments, $parameters, $returnValue);
+        return new TarsMethod($serviceObject->getService(), $serviceName, $method, $arguments, $parameters, $returnValue);
     }
 
     /**

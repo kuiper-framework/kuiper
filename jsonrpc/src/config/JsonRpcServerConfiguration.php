@@ -188,7 +188,7 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         /** @var JsonRpcService $annotation */
         foreach (ComponentCollection::getComponents(JsonRpcService::class) as $annotation) {
             $serviceName = $annotation->getService() ?? $this->getServiceName($annotation->getTarget());
-            $logger->debug(static::TAG."register jsonrpc service $serviceName which served by ".$annotation->getTargetClass());
+            $logger->debug(static::TAG."register jsonrpc service $serviceName which served by ".$annotation->getComponentId());
             $services[$serviceName] = new Service(
                 new ServiceLocatorImpl($serviceName, $annotation->getVersion() ?? '1.0', JsonRpcProtocol::NS),
                 $container->get($annotation->getComponentId()),
@@ -201,12 +201,18 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
             if (is_string($service)) {
                 $service = ['class' => $service];
             }
-            $serviceImpl = $container->get($service['class']);
-            $class = new ReflectionClass($serviceImpl);
+            if (!isset($service['class'])) {
+                throw new InvalidArgumentException("Missing class for jsonrpc service $serviceName");
+            }
+            if (!isset($service['implementation'])) {
+                $service['implementation'] = $service['class'];
+            }
+            $serviceImpl = $container->get($service['implementation']);
+            $class = new ReflectionClass($service['class']);
             if (!is_string($serviceName)) {
                 $serviceName = $service['service'] ?? $this->getServiceName($class);
             }
-            $logger->info(static::TAG."register jsonrpc service $serviceName which served by ".$service['class']);
+            $logger->info(static::TAG."register jsonrpc service $serviceName which served by ".$service['implementation']);
             $services[$serviceName] = new Service(
                 new ServiceLocatorImpl($serviceName, $service['version'] ?? '1.0', JsonRpcProtocol::NS),
                 $serviceImpl,
@@ -251,10 +257,13 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
         $methods = [];
         $class = new ReflectionClass(self::getServiceClass($class));
         foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-            if (count($method->getAttributes(Ignore::class)) > 0) {
+            if ($method->isConstructor()
+                || $method->isDestructor()
+                || $method->isStatic()
+                || count($method->getAttributes(Ignore::class)) > 0) {
                 continue;
             }
-            $methods[] = $method->getName();
+            $methods[$method->getName()] = $method;
         }
 
         return $methods;

@@ -35,7 +35,7 @@ class TarsServerFactory
      * @param StreamFactoryInterface        $streamFactory
      * @param ServerProperties              $serverProperties
      * @param LoggerFactoryInterface        $loggerFactory
-     * @param Service[]                     $services
+     * @param array<string, Service>        $services
      * @param MiddlewareInterface[]         $middlewares
      */
     public function __construct(
