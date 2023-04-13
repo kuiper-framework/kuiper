@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\rpc\server\middleware;
 
-use Exception;
 use kuiper\rpc\MiddlewareInterface;
 use kuiper\rpc\RpcRequestHandlerInterface;
 use kuiper\rpc\RpcRequestInterface;
@@ -22,6 +21,7 @@ use kuiper\swoole\logger\LogContextImpl;
 use kuiper\swoole\logger\RequestLogFormatterInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Throwable;
 
 class AccessLog implements MiddlewareInterface, LoggerAwareInterface
 {
@@ -48,6 +48,7 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
      */
     public function process(RpcRequestInterface $request, RpcRequestHandlerInterface $handler): RpcResponseInterface
     {
+        $context = $this->logContext->withRequest($request);
         try {
             $response = $handler->handle($request);
             if (null !== $this->requestFilter && !call_user_func($this->requestFilter, $request, $response)) {
@@ -57,15 +58,13 @@ class AccessLog implements MiddlewareInterface, LoggerAwareInterface
             if ($this->sampleRate < 1 && ($this->sampleRate <= 0 || random_int(0, PHP_INT_MAX) / PHP_INT_MAX > $this->sampleRate)) {
                 return $response;
             }
-            $this->logContext->setRequest($request);
-            $this->logContext->setResponse($response);
-            $this->logger->info(...$this->formatter->format($this->logContext));
+            $context->update($response);
+            $this->logger->info(...$this->formatter->format($context));
 
             return $response;
-        } catch (Exception $error) {
-            $this->logContext->setRequest($request);
-            $this->logContext->setError($error);
-            $this->logger->info(...$this->formatter->format($this->logContext));
+        } catch (Throwable $error) {
+            $context->update(null, $error);
+            $this->logger->info(...$this->formatter->format($context));
             throw $error;
         }
     }

@@ -25,38 +25,23 @@ class LogContextImpl implements LogContext
     private float $startTime = 0.0;
     private float $endTime = 0.0;
 
-    public function setRequest(RequestInterface $request): void
+    public function withRequest(RequestInterface $request): self
     {
-        $this->request = $request;
-        $this->startTime = microtime(true);
+        $context = clone $this;
+        $context->response = null;
+        $context->error = null;
+        $context->endTime = 0.0;
+        $context->request = $request;
+        $context->startTime = microtime(true);
+
+        return $context;
     }
 
-    public function setResponse(ResponseInterface $response): void
+    public function update(?ResponseInterface $response, ?Throwable $error = null): void
     {
         $this->response = $response;
-        $this->endTime = microtime(true);
-    }
-
-    public function setError(Throwable $error): void
-    {
         $this->error = $error;
         $this->endTime = microtime(true);
-    }
-
-    /**
-     * @param float $startTime
-     */
-    public function setStartTime(float $startTime): void
-    {
-        $this->startTime = $startTime;
-    }
-
-    /**
-     * @param float $endTime
-     */
-    public function setEndTime(float $endTime): void
-    {
-        $this->endTime = $endTime;
     }
 
     /**

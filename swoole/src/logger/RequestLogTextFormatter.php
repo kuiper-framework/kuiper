@@ -106,15 +106,17 @@ class RequestLogTextFormatter implements RequestLogFormatterInterface
 
         $request = $context->getRequest();
         $ipList = $this->getIpList($request);
-        if ($context->hasResponse()) {
-            $statusCode = $context->getResponse()->getStatusCode();
-        } else {
+        if ($context->hasError()) {
             $error = $context->getError();
             if (isset($error) && is_int($error->getCode()) && $error->getCode() > 0) {
                 $statusCode = $error->getCode();
             } else {
                 $statusCode = 500;
             }
+        } elseif ($context->hasResponse()) {
+            $statusCode = $context->getResponse()->getStatusCode();
+        } else {
+            $statusCode = -1;
         }
         $responseBodySize = $context->hasResponse() ? $context->getResponse()->getBody()->getSize() : 0;
         $requestBodySize = $request->getBody()->getSize();
