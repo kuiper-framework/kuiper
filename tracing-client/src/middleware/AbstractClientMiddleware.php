@@ -32,7 +32,7 @@ abstract class AbstractClientMiddleware
 
     abstract protected function getParamsData(RequestInterface $request): string;
 
-    protected function handle(RequestInterface $request, callable $next)
+    protected function handle(RequestInterface $request, callable $next): mixed
     {
         $tracer = Tracer::get();
         $span = $tracer->getActiveSpan();

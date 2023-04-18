@@ -33,7 +33,7 @@ abstract class AbstractServerMiddleware
 
     abstract protected function getMethodName(RequestInterface $request): string;
 
-    protected function handle(RequestInterface $request, callable $next)
+    protected function handle(RequestInterface $request, callable $next): mixed
     {
         $debugIdHeader = $this->config->getDebugIdHeaderKey();
         if ('' === $request->getHeaderLine($debugIdHeader)
@@ -44,7 +44,7 @@ abstract class AbstractServerMiddleware
         return $this->handleRequest($request, $next);
     }
 
-    protected function handleRequest(RequestInterface $request, callable $next)
+    protected function handleRequest(RequestInterface $request, callable $next): mixed
     {
         $tracer = Tracer::get();
         $root = $tracer->extract($this->format, $request);

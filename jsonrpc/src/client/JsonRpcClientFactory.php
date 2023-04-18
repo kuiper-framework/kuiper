@@ -128,7 +128,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
         foreach ($_ENV as $key => $value) {
             if (str_starts_with($key, $prefix)) {
                 $name = strtoupper(substr($key, strlen($prefix)));
-                if (null !== ($setting = EnumHelper::tryFromName($name, JsonRpcClientSettings::class))) {
+                if (null !== ($setting = EnumHelper::tryFromName(JsonRpcClientSettings::class, $name))) {
                     $value = ReflectionType::parse($setting->type())->sanitize($value);
                 } elseif (ClientSettings::has($name)) {
                     $value = ReflectionType::parse(ClientSettings::type($name))->sanitize($value);

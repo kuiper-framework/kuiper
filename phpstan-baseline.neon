@@ -121,11 +121,6 @@ parameters:
 			path: jsonrpc/src/config/JsonRpcServerConfiguration.php
 
 		-
-			message: "#^Call to an undefined method kuiper\\\\rpc\\\\RpcRequestInterface\\:\\:getRequestId\\(\\)\\.$#"
-			count: 1
-			path: jsonrpc/src/server/JsonRpcServerResponse.php
-
-		-
 			message: "#^Dead catch \\- kuiper\\\\jsonrpc\\\\exception\\\\JsonRpcRequestException is never thrown in the try block\\.$#"
 			count: 1
 			path: jsonrpc/src/server/JsonRpcTcpReceiveEventListener.php
@@ -339,21 +334,6 @@ parameters:
 			message: "#^Variable \\$tags on left side of \\?\\? always exists and is not nullable\\.$#"
 			count: 3
 			path: tracing-client/src/Tracer.php
-
-		-
-			message: "#^Method kuiper\\\\tracing\\\\codec\\\\TarsRequestCodec\\:\\:inject\\(\\) has parameter \\$carrier with no type specified\\.$#"
-			count: 1
-			path: tracing-client/src/codec/TarsRequestCodec.php
-
-		-
-			message: "#^Method kuiper\\\\tracing\\\\middleware\\\\AbstractClientMiddleware\\:\\:handle\\(\\) has no return type specified\\.$#"
-			count: 1
-			path: tracing-client/src/middleware/AbstractClientMiddleware.php
-
-		-
-			message: "#^Method kuiper\\\\tracing\\\\middleware\\\\AbstractServerMiddleware\\:\\:handle\\(\\) has no return type specified\\.$#"
-			count: 1
-			path: tracing-client/src/middleware/AbstractServerMiddleware.php
 
 		-
 			message: "#^Call to an undefined method Psr\\\\Http\\\\Message\\\\RequestInterface\\:\\:getRpcMethod\\(\\)\\.$#"
