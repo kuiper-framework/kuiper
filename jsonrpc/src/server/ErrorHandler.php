@@ -42,8 +42,8 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
     public function __construct(
         private readonly ResponseFactoryInterface $responseFactory,
         private readonly StreamFactoryInterface $streamFactory,
-        private readonly ExceptionNormalizer $exceptionNormalizer)
-    {
+        private readonly ExceptionNormalizer $exceptionNormalizer
+    ) {
     }
 
     /**
@@ -57,12 +57,19 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
     public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface
     {
         if ($error instanceof InvalidArgumentException) {
-            $this->logger->info(sprintf('process %s#%s failed: %s',
-                $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(),
-                describe_error($error)));
+            $this->logger->info(sprintf(
+                'process %s#%s failed: %s',
+                $request->getRpcMethod()->getTargetClass(),
+                $request->getRpcMethod()->getMethodName(),
+                describe_error($error)
+            ));
         } else {
-            $this->logger->error(sprintf('process %s#%s failed: %s',
-                $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(), $error));
+            $this->logger->error(sprintf(
+                'process %s#%s failed: %s',
+                $request->getRpcMethod()->getTargetClass(),
+                $request->getRpcMethod()->getMethodName(),
+                $error
+            ));
         }
         Assert::isInstanceOf($request, JsonRpcRequestInterface::class);
         /** @var JsonRpcRequestInterface|RpcRequestInterface $request */
@@ -72,7 +79,7 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
     private function createRequestErrorResponse(Exception $e): string
     {
         return JsonRpcProtocol::encode([
-            'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
+            'jsonrpc' => JsonRpcProtocol::VERSION,
             'id' => $e instanceof JsonRpcRequestException ? $e->getRequestId() : null,
             'error' => [
                 'code' => $e->getCode(),
@@ -84,7 +91,7 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
     private function createErrorResponse(Throwable $e, JsonRpcRequestInterface $rpcRequest): string
     {
         return JsonRpcProtocol::encode([
-            'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
+            'jsonrpc' => JsonRpcProtocol::VERSION,
             'id' => $rpcRequest->getRequestId(),
             'error' => [
                 'code' => $e->getCode(),

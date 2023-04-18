@@ -19,29 +19,4 @@ use kuiper\rpc\attribute\RpcClient;
 #[Attribute(Attribute::TARGET_CLASS)]
 class JsonRpcClient extends RpcClient
 {
-    public function __construct(
-        string $service = '',
-        string $version = '',
-        string $ns = '',
-        string $protocol = '',
-        string $endpoint = '',
-        private readonly bool $outParams = false)
-    {
-        parent::__construct($service, $version, $ns, $protocol, $endpoint);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isOutParams(): bool
-    {
-        return $this->outParams;
-    }
-
-    public function toArray(): array
-    {
-        return array_merge([
-            'out_params' => $this->outParams,
-        ], parent::toArray());
-    }
 }

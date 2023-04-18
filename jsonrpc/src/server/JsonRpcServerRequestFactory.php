@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use kuiper\helper\Text;
-use kuiper\jsonrpc\core\JsonRpcRequestInterface;
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\exception\ErrorCode;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\rpc\exception\InvalidMethodException;
@@ -42,7 +42,7 @@ class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
         if (!isset($requestData['jsonrpc'])) {
             throw new JsonRpcRequestException(null, 'Json RPC version not found', ErrorCode::ERROR_INVALID_REQUEST);
         }
-        if (JsonRpcRequestInterface::JSONRPC_VERSION !== $requestData['jsonrpc']) {
+        if (JsonRpcProtocol::VERSION !== $requestData['jsonrpc']) {
             throw new JsonRpcRequestException(null, "Json RPC version {$requestData['jsonrpc']} is invalid", ErrorCode::ERROR_INVALID_REQUEST);
         }
         $id = $requestData['id'] ?? null;

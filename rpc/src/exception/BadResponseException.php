@@ -21,8 +21,9 @@ class BadResponseException extends ServerException
 {
     public function __construct(
         private readonly RpcRequestInterface $request,
-        private readonly ResponseInterface $response, Throwable $prev = null)
-    {
+        private readonly ResponseInterface $response,
+        Throwable $prev = null
+    ) {
         parent::__construct('Cannot parse response', 0, $prev);
     }
 

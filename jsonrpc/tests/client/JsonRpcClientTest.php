@@ -19,7 +19,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
-use kuiper\jsonrpc\core\JsonRpcRequestInterface;
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\resilience\core\SimpleCounter;
 use kuiper\rpc\client\ProxyGenerator;
@@ -83,7 +83,7 @@ class JsonRpcClientTest extends TestCase
         $proxy = $this->createClient(HelloService::class);
         $this->mockHandler->append(
             new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
+                'jsonrpc' => JsonRpcProtocol::VERSION,
                 'id' => 1,
                 'result' => ['hello world'],
             ]))
@@ -108,17 +108,20 @@ class JsonRpcClientTest extends TestCase
 
         $this->mockHandler->append(
             new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
+                JsonRpcProtocol::EXTENDED => true,
+                'jsonrpc' => JsonRpcProtocol::VERSION,
                 'id' => 1,
                 'result' => [$user],
             ])),
             new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
+                JsonRpcProtocol::EXTENDED => true,
+                'jsonrpc' => JsonRpcProtocol::VERSION,
                 'id' => 2,
                 'result' => [[$user], 2],
             ])),
             new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
+                JsonRpcProtocol::EXTENDED => true,
+                'jsonrpc' => JsonRpcProtocol::VERSION,
                 'id' => 3,
                 'result' => [null],
             ]))
@@ -143,35 +146,6 @@ class JsonRpcClientTest extends TestCase
         $request = json_decode((string) $this->requests[2]['request']->getBody(), true);
         // print_r($request);
         $this->assertEquals('kuiper.rpc.fixtures.UserService.saveUser', $request['method']);
-        // echo $request->getBody();
-    }
-
-    public function testNoOutParam()
-    {
-        $reflectionDocBlockFactory = ReflectionDocBlockFactory::getInstance();
-        $normalizer = new Serializer($reflectionDocBlockFactory);
-        $responseFactory = new NoOutParamJsonRpcResponseFactory(new RpcResponseNormalizer($normalizer, $reflectionDocBlockFactory), new ExceptionNormalizer());
-        /** @var UserService $proxy */
-        $proxy = $this->createClient(UserService::class, $responseFactory);
-
-        $user = new User();
-        $user->setId(1);
-        $user->setName('john');
-
-        $this->mockHandler->append(
-            new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
-                'id' => 1,
-                'result' => $user,
-            ]))
-        );
-        $result = $proxy->findUser(1);
-        $this->assertInstanceOf(User::class, $result);
-
-        $request = json_decode((string) $this->requests[0]['request']->getBody(), true);
-        $this->assertEquals('kuiper.rpc.fixtures.UserService.findUser', $request['method']);
-        $this->assertEquals([1], $request['params']);
-
         // echo $request->getBody();
     }
 }

@@ -36,8 +36,8 @@ class RpcResponseNormalizer
      */
     public function __construct(
         private readonly NormalizerInterface $normalizer,
-        private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
-    {
+        private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory
+    ) {
     }
 
     /**
@@ -60,7 +60,7 @@ class RpcResponseNormalizer
             return [null];
         }
         $ret = [];
-        Assert::count($result, count($outParamTypes) + 1);
+        Assert::count($result, count($outParamTypes) + 1, 'JsonRPC result value not match');
         if (isset($result[''])) {
             if (null !== $returnType) {
                 $ret[] = $this->normalizer->denormalize($result[''], $returnType);

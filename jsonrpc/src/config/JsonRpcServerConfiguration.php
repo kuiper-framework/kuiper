@@ -78,7 +78,6 @@ class JsonRpcServerConfiguration implements DefinitionConfiguration
                         'log_file' => env('JSONRPC_SERVER_LOG_FILE', '{application.logging.path}/jsonrpc-server.json'),
                         'log_params' => 'true' === env('JSONRPC_SERVER_LOG_PARAMS'),
                         'log_sample_rate' => (float) env('JSONRPC_SERVER_LOG_SAMPLE_RATE', '1.0'),
-                        'out_params' => 'true' === env('JSONRPC_SERVER_OUT_PARAMS'),
                     ],
                 ],
                 'logging' => [

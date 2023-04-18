@@ -22,8 +22,8 @@ abstract class CommunicationException extends ClientException
         private readonly TransporterInterface $connection,
         string $message = null,
         int $code = null,
-        Exception $cause = null)
-    {
+        Exception $cause = null
+    ) {
         parent::__construct($message, $code, $cause);
     }
 

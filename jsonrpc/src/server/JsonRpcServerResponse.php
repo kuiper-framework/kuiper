@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\server;
 
 use kuiper\jsonrpc\core\JsonRpcProtocol;
-use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -28,8 +27,8 @@ class JsonRpcServerResponse extends RpcResponse
     public function __construct(
         RpcRequestInterface $request,
         ResponseInterface $httpResponse,
-        private readonly StreamFactoryInterface $streamFactory)
-    {
+        private readonly StreamFactoryInterface $streamFactory
+    ) {
         parent::__construct($request, $httpResponse);
     }
 
@@ -45,7 +44,8 @@ class JsonRpcServerResponse extends RpcResponse
     {
         if (null === $this->body) {
             $this->body = $this->streamFactory->createStream(JsonRpcProtocol::encode([
-                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
+                JsonRpcProtocol::EXTENDED => true,
+                'jsonrpc' => JsonRpcProtocol::VERSION,
                 'id' => $this->getRequest()->getRequestId(),
                 'result' => $this->getResult(),
             ]));
@@ -59,6 +59,6 @@ class JsonRpcServerResponse extends RpcResponse
      */
     protected function getResult(): mixed
     {
-        return $this->getRequest()->getRpcMethod()->getResult()[0];
+        return $this->getRequest()->getRpcMethod()->getResult();
     }
 }

@@ -81,18 +81,8 @@ The configuration key value for `application.jsonrpc.server.services` is the ser
 |---------------------------|---------------------------|---------------------------------|
 | jsonrpc.server.log_file   | JSONRPC_SERVER_LOG_FILE   | Access log file name, default to jsonrpc-server.json|
 | jsonrpc.server.log_params | JSONRPC_SERVER_LOG_PARAMS | Whether request parameters | are logged in the access log
-| jsonrpc.server.out_params |                           | Whether to enable input parameter assignment |
 | jsonrpc.server.middleware |                           | Middleware configuration |
 | jsonrpc.server.services   |                           | Register for the service |
-
-The `jsonrpc.server.out_params` configuration item is used to configure whether input parameter assignment is enabled. When our service statement contains input parameters that need to be assigned, for example:
-```php
-class RegistryService 
-{
-    public function getService(string $name, ?array &$result): int;
-}
-```
-By setting `out_params` to true, you can combine the function return value and input parameters into an array as the result response.
 
 ## Client
 
@@ -148,7 +138,6 @@ Client configuration items include:
 - endpoint Set the server address
 - protocol service transport protocol, supports HTTP and TCP, default is HTTP
 - service service name
-- out_params Whether to enable input parameter assignment, refer to the 'out_params' configuration instructions on the server
 - middleware sets up middleware
 - Additional HTTP or TCP configuration parameters
 

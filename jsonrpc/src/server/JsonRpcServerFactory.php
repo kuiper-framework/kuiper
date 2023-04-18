@@ -39,7 +39,6 @@ class JsonRpcServerFactory
     /**
      * @param array<string, Service>             $services
      * @param MiddlewareInterface[]              $middlewares
-     * @param bool                               $outParams
      * @param ServerRequestFactoryInterface      $httpRequestFactory
      * @param ResponseFactoryInterface           $httpResponseFactory
      * @param StreamFactoryInterface             $streamFactory
@@ -49,7 +48,6 @@ class JsonRpcServerFactory
     public function __construct(
         private readonly array $services,
         private readonly array $middlewares,
-        private readonly bool $outParams,
         private readonly ServerRequestFactoryInterface $httpRequestFactory,
         private readonly ResponseFactoryInterface $httpResponseFactory,
         private readonly StreamFactoryInterface $streamFactory,
@@ -60,9 +58,7 @@ class JsonRpcServerFactory
 
     public function getRpcResponseFactory(): RpcServerResponseFactoryInterface
     {
-        $responseClass = $this->outParams ? OutParamJsonRpcServerResponse::class : JsonRpcServerResponse::class;
-
-        return new JsonRpcServerResponseFactory($this->httpResponseFactory, $this->streamFactory, $responseClass);
+        return new JsonRpcServerResponseFactory($this->httpResponseFactory, $this->streamFactory);
     }
 
     /**
@@ -131,7 +127,6 @@ class JsonRpcServerFactory
         return new self(
             $container->get('jsonrpcServices'),
             $container->get('jsonrpcServerMiddlewares'),
-            (bool) $container->get('application.jsonrpc.server.out_params'),
             $container->get(ServerRequestFactoryInterface::class),
             $container->get(ResponseFactoryInterface::class),
             $container->get(StreamFactoryInterface::class),

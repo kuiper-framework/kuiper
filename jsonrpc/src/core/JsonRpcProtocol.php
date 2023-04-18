@@ -19,6 +19,10 @@ final class JsonRpcProtocol
 
     public const NS = 'jsonrpc';
 
+    public const EXTENDED = '@extended';
+
+    public const VERSION = '2.0';
+
     public static function encode(array $data): string
     {
         return json_encode($data, JSON_THROW_ON_ERROR).self::EOF;

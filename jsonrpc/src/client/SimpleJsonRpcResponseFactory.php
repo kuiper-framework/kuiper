@@ -33,8 +33,11 @@ class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
      */
     public function createResponse(RpcRequestInterface $request, ResponseInterface $response): RpcResponseInterface
     {
-        Assert::isInstanceOf($request, JsonRpcRequestInterface::class,
-            'request should implements '.JsonRpcRequestInterface::class);
+        Assert::isInstanceOf(
+            $request,
+            JsonRpcRequestInterface::class,
+            'request should implements '.JsonRpcRequestInterface::class
+        );
         $result = json_decode((string) $response->getBody(), true);
         if (false === $result
             || !isset($result['jsonrpc'])
@@ -54,9 +57,9 @@ class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
             return $this->handleError($request, (int) $result['error']['code'], (string) $result['error']['message'], $result['error']['data'] ?? null);
         }
         try {
-            $method = $request->getRpcMethod()->withResult($this->buildResult($request->getRpcMethod(), $result['result'] ?? []));
+            $method = $request->getRpcMethod()->withResult($this->buildResult($request->getRpcMethod(), $result['result'] ?? [], $result));
         } catch (InvalidArgumentException $e) {
-            throw new BadResponseException($request, $response);
+            throw new BadResponseException($request, $response, $e);
         }
 
         return new RpcResponse($request->withRpcMethod($method), $response);
@@ -65,7 +68,7 @@ class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
     /**
      * @param mixed $result
      */
-    protected function buildResult(RpcMethodInterface $method, $result): array
+    protected function buildResult(RpcMethodInterface $method, $result, array $context): array
     {
         return $result;
     }

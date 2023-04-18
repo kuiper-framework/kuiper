@@ -18,7 +18,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use kuiper\jsonrpc\config\JsonRpcClientConfiguration;
-use kuiper\jsonrpc\core\JsonRpcRequestInterface;
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\fixtures\service\CalculatorService;
 use kuiper\jsonrpc\TestCase;
 
@@ -35,7 +35,7 @@ class JsonRpcClientFactoryTest extends TestCase
             $data = json_decode((string) $req->getBody(), true);
 
             return new Response(200, [], json_encode([
-                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
+                'jsonrpc' => JsonRpcProtocol::VERSION,
                 'id' => $data['id'],
                 'result' => 4.1,
             ]));

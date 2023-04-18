@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\client;
 
 use Exception;
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\rpc\client\RpcResponseNormalizer;
 use kuiper\rpc\RpcMethodInterface;
@@ -24,8 +25,8 @@ class JsonRpcResponseFactory extends SimpleJsonRpcResponseFactory
 {
     public function __construct(
         private readonly RpcResponseNormalizer $normalizer,
-        private readonly ExceptionNormalizer $exceptionNormalizer)
-    {
+        private readonly ExceptionNormalizer $exceptionNormalizer
+    ) {
     }
 
     protected function handleError(JsonRpcRequestInterface $request, int $code, string $message, $data): RpcResponseInterface
@@ -41,8 +42,12 @@ class JsonRpcResponseFactory extends SimpleJsonRpcResponseFactory
         throw $exception;
     }
 
-    protected function buildResult(RpcMethodInterface $method, $result): array
+    protected function buildResult(RpcMethodInterface $method, $result, array $context): array
     {
-        return $this->normalizer->normalize($method, $result);
+        if (array_key_exists(JsonRpcProtocol::EXTENDED, $context)) {
+            return $this->normalizer->normalize($method, $result);
+        }
+
+        return $this->normalizer->normalize($method, [$result]);
     }
 }

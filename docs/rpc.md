@@ -82,18 +82,8 @@ return [
 |---------------------------|---------------------------|---------------------------------|
 | jsonrpc.server.log_file   | JSONRPC_SERVER_LOG_FILE   | 访问日志文件名，默认为 jsonrpc-server.json |
 | jsonrpc.server.log_params | JSONRPC_SERVER_LOG_PARAMS | 访问日志中是否记录请求参数                   |
-| jsonrpc.server.out_params |                           | 是否启用入参赋值                        |
 | jsonrpc.server.middleware |                           | 中间件配置                           |
 | jsonrpc.server.services   |                           | 注册服务                            |
-
-`jsonrpc.server.out_params` 配置项用于配置是否启用入参赋值。当我们的服务声明包含需要赋值的入参，例如：
-```php
-class RegistryService 
-{
-    public function getService(string $name, ?array &$result): int;
-}
-```
-通过设置 `out_params` 为 true 可以将函数返回值和入参，合并为数组作为结果响应。
 
 ## 客户端
 
@@ -149,7 +139,6 @@ return [
 - endpoint 设置服务器地址
 - protocol 服务传输协议，支持 http 和 tcp，默认为 http
 - service 服务名
-- out_params 是否启用入参赋值，参考服务端 `out_params` 配置说明
 - middleware 设置中间件
 - 其他 http 或 tcp 配置参数
 

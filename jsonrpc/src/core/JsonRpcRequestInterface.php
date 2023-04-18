@@ -17,8 +17,6 @@ use kuiper\rpc\HasRequestIdInterface;
 
 interface JsonRpcRequestInterface extends HasRequestIdInterface
 {
-    public const JSONRPC_VERSION = '2.0';
-
     /**
      * @return string
      */

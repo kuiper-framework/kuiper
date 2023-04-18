@@ -30,8 +30,8 @@ class JsonRpcRequest extends RpcRequest implements JsonRpcRequestInterface
         RpcMethodInterface $rpcMethod,
         private readonly StreamFactoryInterface $streamFactory,
         private readonly int $requestId,
-        private readonly string $version)
-    {
+        private readonly string $version
+    ) {
         parent::__construct($request, $rpcMethod);
     }
 
@@ -66,7 +66,7 @@ class JsonRpcRequest extends RpcRequest implements JsonRpcRequestInterface
         if (null === $this->body) {
             $this->body = $this->streamFactory->createStream(JsonRpcProtocol::encode([
                 'id' => $this->requestId,
-                'jsonrpc' => JsonRpcRequestInterface::JSONRPC_VERSION,
+                'jsonrpc' => JsonRpcProtocol::VERSION,
                 'method' => $this->getJsonRpcMethod(),
                 'params' => $this->getRpcMethod()->getArguments(),
             ]));

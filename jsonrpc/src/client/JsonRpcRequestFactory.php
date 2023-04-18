@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\jsonrpc\client;
 
-use kuiper\jsonrpc\core\JsonRpcRequestInterface;
+use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\rpc\client\RequestIdGeneratorInterface;
 use kuiper\rpc\client\RpcRequestFactoryInterface;
 use kuiper\rpc\RpcMethodFactoryInterface;
@@ -29,8 +29,8 @@ class JsonRpcRequestFactory implements RpcRequestFactoryInterface
         private readonly StreamFactoryInterface $streamFactory,
         private readonly RpcMethodFactoryInterface $rpcMethodFactory,
         private readonly RequestIdGeneratorInterface $requestIdGenerator,
-        private readonly string $baseUri = '/')
-    {
+        private readonly string $baseUri = '/'
+    ) {
     }
 
     public function createRequest(object $proxy, string $method, array $args): RpcRequestInterface
@@ -38,7 +38,7 @@ class JsonRpcRequestFactory implements RpcRequestFactoryInterface
         $invokingMethod = $this->rpcMethodFactory->create($proxy, $method, $args);
         $request = $this->httpRequestFactory->createRequest('POST', $this->createUri($invokingMethod));
 
-        return new JsonRpcRequest($request, $invokingMethod, $this->streamFactory, $this->requestIdGenerator->next(), JsonRpcRequestInterface::JSONRPC_VERSION);
+        return new JsonRpcRequest($request, $invokingMethod, $this->streamFactory, $this->requestIdGenerator->next(), JsonRpcProtocol::VERSION);
     }
 
     protected function createUri(RpcMethodInterface $method): string

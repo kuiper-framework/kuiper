@@ -15,11 +15,14 @@ namespace kuiper\jsonrpc\client;
 
 use kuiper\di\ContainerAwareInterface;
 use kuiper\di\ContainerAwareTrait;
+use kuiper\helper\EnumHelper;
 use kuiper\helper\Properties;
 use kuiper\helper\Text;
 use kuiper\http\client\HttpClientFactoryInterface;
+use kuiper\jsonrpc\attribute\JsonRpcClient;
 use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\logger\LoggerFactoryInterface;
+use kuiper\reflection\ReflectionType;
 use kuiper\rpc\client\ProxyGeneratorInterface;
 use kuiper\rpc\client\RequestIdGeneratorInterface;
 use kuiper\rpc\client\RpcClient;
@@ -44,6 +47,7 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use ReflectionClass;
 use ReflectionException;
 
 class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterface
@@ -63,15 +67,13 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
         private readonly RequestIdGeneratorInterface $requestIdGenerator,
         private readonly array $middlewares,
         private readonly array $defaultOptions,
-        private readonly ?HttpClientFactoryInterface $httpClientFactory = null)
-    {
+        private readonly ?HttpClientFactoryInterface $httpClientFactory = null
+    ) {
     }
 
-    protected function createRpcResponseFactory(bool $outParam): RpcResponseFactoryInterface
+    protected function createRpcResponseFactory(): RpcResponseFactoryInterface
     {
-        return $outParam
-            ? new JsonRpcResponseFactory($this->rpcResponseNormalizer, $this->exceptionNormalizer)
-            : new NoOutParamJsonRpcResponseFactory($this->rpcResponseNormalizer, $this->exceptionNormalizer);
+        return new JsonRpcResponseFactory($this->rpcResponseNormalizer, $this->exceptionNormalizer);
     }
 
     protected function createRpcRequestFactory(string $className, array $options): RpcRequestFactoryInterface
@@ -89,7 +91,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
 
     protected function createHttpRpcExecutorFactory(string $className, array $options): RpcExecutorFactoryInterface
     {
-        $responseFactory = $this->createRpcResponseFactory($options['out_params'] ?? false);
+        $responseFactory = $this->createRpcResponseFactory();
         $transporter = new GuzzleHttpTransporter($this->httpClientFactory->create(array_merge($options, [
             'middleware' => $options['http_middleware'] ?? [],
         ])));
@@ -100,7 +102,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
 
     protected function createTcpRpcExecutorFactory(string $className, array $options): RpcExecutorFactoryInterface
     {
-        $responseFactory = $this->createRpcResponseFactory($options['out_params'] ?? false);
+        $responseFactory = $this->createRpcResponseFactory();
         $logger = $this->loggerFactory->create($className);
         $transporter = new PooledTransporter($this->poolFactory->create($className, function ($connId) use ($logger, $options): TransporterInterface {
             $options = array_merge([
@@ -125,8 +127,13 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
         $options = [];
         foreach ($_ENV as $key => $value) {
             if (str_starts_with($key, $prefix)) {
-                $name = strtolower(substr($key, strlen($prefix)));
-                $options[$name] = $value;
+                $name = strtoupper(substr($key, strlen($prefix)));
+                if (null !== ($setting = EnumHelper::tryFromName($name, JsonRpcClientSettings::class))) {
+                    $value = ReflectionType::parse($setting->type())->sanitize($value);
+                } elseif (ClientSettings::has($name)) {
+                    $value = ReflectionType::parse(ClientSettings::type($name))->sanitize($value);
+                }
+                $options[strtolower($name)] = $value;
             }
         }
 
@@ -138,7 +145,7 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
      * - protocol tcp|http
      * - endpoint
      * - middleware
-     * - out_params
+     * - http_middleware
      * tcp options （all swoole client setting）：
      * - timeout
      * http options (all guzzle http client setting).
@@ -158,10 +165,16 @@ class JsonRpcClientFactory implements LoggerAwareInterface, ContainerAwareInterf
         $config = Properties::create();
 
         $clientOptions = $this->defaultOptions['options'] ?? [];
+        $jsonrpcClientAttributes = (new ReflectionClass($proxyClass))->getAttributes(JsonRpcClient::class);
+        if (count($jsonrpcClientAttributes) > 0) {
+            /** @var JsonRpcClient $jsonrpcClient */
+            $jsonrpcClient = $jsonrpcClientAttributes[0]->newInstance();
+            $config->merge($jsonrpcClient->toArray());
+        }
         $componentId = $options['name'] ?? $className;
         $config->merge($clientOptions[$componentId] ?? []);
-        $config->mergeIfNotExists($this->envOptions($componentId));
-        $config->mergeIfNotExists($options);
+        $config->merge($this->envOptions($componentId));
+        $config->merge($options);
         $config['protocol'] = $this->getProtocol($config) ?? $this->defaultOptions['protocol'] ?? 'http';
         if (ServerType::from($config['protocol'])->isHttpProtocol()) {
             $httpOptions = $this->defaultOptions['http_options'] ?? [];
