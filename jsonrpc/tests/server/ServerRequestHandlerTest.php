@@ -64,7 +64,19 @@ class ServerRequestHandlerTest extends TestCase
         $rpcMethodFactory = new JsonRpcServerMethodFactory($services, $normalizer, $reflectionDocBlockFactory);
         $requestFactory = new JsonRpcServerRequestFactory($rpcMethodFactory);
         $response = $handler->handle($requestFactory->createRequest($request));
-        $this->assertEquals('{"@extended":true,"jsonrpc":"2.0","id":1,"result":[{"id":1,"name":"john"}]}'.JsonRpcProtocol::EOF, (string) $response->getBody());
+        $this->assertEquals('{"jsonrpc":"2.0","id":1,"result":{"id":1,"name":"john"}}'.JsonRpcProtocol::EOF, (string) $response->getBody());
+
+        $request = new ServerRequest('POST', '/', [], json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'kuiper.rpc.fixtures.UserService.findUser',
+            'params' => [1],
+            '@extended' => '1.0',
+        ]));
+        $rpcMethodFactory = new JsonRpcServerMethodFactory($services, $normalizer, $reflectionDocBlockFactory);
+        $requestFactory = new JsonRpcServerRequestFactory($rpcMethodFactory);
+        $response = $handler->handle($requestFactory->createRequest($request));
+        $this->assertEquals('{"@extended":"1.0","jsonrpc":"2.0","id":1,"result":[{"id":1,"name":"john"}]}'.JsonRpcProtocol::EOF, (string) $response->getBody());
 
         $request = new ServerRequest('POST', '/', [], json_encode([
             'jsonrpc' => '2.0',

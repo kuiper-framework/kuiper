@@ -24,8 +24,9 @@ class JsonRpcServerRequest extends RpcServerRequest implements JsonRpcRequestInt
         ServerRequestInterface $httpRequest,
         RpcMethodInterface $rpcMethod,
         private readonly int $requestId,
-        private readonly string $version)
-    {
+        private readonly string $version,
+        private readonly ?string $extendedVersion = null
+    ) {
         parent::__construct($httpRequest, $rpcMethod);
     }
 
@@ -37,5 +38,13 @@ class JsonRpcServerRequest extends RpcServerRequest implements JsonRpcRequestInt
     public function getJsonRpcVersion(): string
     {
         return $this->version;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getExtendedVersion(): ?string
+    {
+        return $this->extendedVersion;
     }
 }

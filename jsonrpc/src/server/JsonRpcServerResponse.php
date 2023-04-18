@@ -19,6 +19,7 @@ use kuiper\rpc\RpcResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
+use Webmozart\Assert\Assert;
 
 class JsonRpcServerResponse extends RpcResponse
 {
@@ -43,12 +44,21 @@ class JsonRpcServerResponse extends RpcResponse
     public function getBody(): StreamInterface
     {
         if (null === $this->body) {
-            $this->body = $this->streamFactory->createStream(JsonRpcProtocol::encode([
-                JsonRpcProtocol::EXTENDED => true,
-                'jsonrpc' => JsonRpcProtocol::VERSION,
-                'id' => $this->getRequest()->getRequestId(),
-                'result' => $this->getResult(),
-            ]));
+            Assert::isInstanceOf($this->getRequest(), JsonRpcServerRequest::class);
+            if (JsonRpcProtocol::EXTENDED_VERSION === $this->getRequest()->getExtendedVersion()) {
+                $this->body = $this->streamFactory->createStream(JsonRpcProtocol::encode([
+                    JsonRpcProtocol::EXTENDED => JsonRpcProtocol::EXTENDED_VERSION,
+                    JsonRpcProtocol::JSONRPC => JsonRpcProtocol::VERSION,
+                    JsonRpcProtocol::ID => $this->getRequest()->getRequestId(),
+                    JsonRpcProtocol::RESULT => $this->getResult(),
+                ]));
+            } else {
+                $this->body = $this->streamFactory->createStream(JsonRpcProtocol::encode([
+                    JsonRpcProtocol::JSONRPC => JsonRpcProtocol::VERSION,
+                    JsonRpcProtocol::ID => $this->getRequest()->getRequestId(),
+                    JsonRpcProtocol::RESULT => $this->getResult()[0],
+                ]));
+            }
         }
 
         return $this->body;

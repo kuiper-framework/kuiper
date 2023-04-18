@@ -39,26 +39,28 @@ class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
         if (false === $requestData) {
             throw new JsonRpcRequestException(null, 'Malformed json: '.json_last_error_msg(), ErrorCode::ERROR_PARSE);
         }
-        if (!isset($requestData['jsonrpc'])) {
+        $version = $requestData[JsonRpcProtocol::JSONRPC];
+        if (!isset($version)) {
             throw new JsonRpcRequestException(null, 'Json RPC version not found', ErrorCode::ERROR_INVALID_REQUEST);
         }
-        if (JsonRpcProtocol::VERSION !== $requestData['jsonrpc']) {
-            throw new JsonRpcRequestException(null, "Json RPC version {$requestData['jsonrpc']} is invalid", ErrorCode::ERROR_INVALID_REQUEST);
+        if (JsonRpcProtocol::VERSION !== $version) {
+            throw new JsonRpcRequestException(null, "Json RPC version {$version} is invalid", ErrorCode::ERROR_INVALID_REQUEST);
         }
-        $id = $requestData['id'] ?? null;
+        $id = $requestData[JsonRpcProtocol::ID] ?? null;
         if (!is_int($id)) {
             throw new JsonRpcRequestException(null, "Json RPC id '{$id}' is invalid", ErrorCode::ERROR_INVALID_REQUEST);
         }
-        $method = $requestData['method'] ?? null;
+        $method = $requestData[JsonRpcProtocol::METHOD] ?? null;
         if (Text::isEmpty($method)) {
             throw new JsonRpcRequestException($id, "Json RPC method '{$method}' is invalid", ErrorCode::ERROR_INVALID_REQUEST);
         }
-        $params = $requestData['params'] ?? null;
+        $params = $requestData[JsonRpcProtocol::PARAMS] ?? null;
         if (!is_array($params)) {
             throw new JsonRpcRequestException($id, 'Json RPC params is invalid', ErrorCode::ERROR_INVALID_REQUEST);
         }
+        $extendedVersion = $requestData[JsonRpcProtocol::EXTENDED] ?? null;
 
-        return new JsonRpcServerRequest($request, $this->resolveMethod($id, $method, $params), $id, $requestData['jsonrpc']);
+        return new JsonRpcServerRequest($request, $this->resolveMethod($id, $method, $params), $id, $version, $extendedVersion);
     }
 
     /**

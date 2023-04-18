@@ -19,9 +19,18 @@ final class JsonRpcProtocol
 
     public const NS = 'jsonrpc';
 
-    public const EXTENDED = '@extended';
+    public const EXTENDED_VERSION = '1.0';
 
     public const VERSION = '2.0';
+
+    public const JSONRPC = 'jsonrpc';
+
+    public const ID = 'id';
+    public const METHOD = 'method';
+    public const PARAMS = 'params';
+    public const RESULT = 'result';
+
+    public const EXTENDED = '@extended';
 
     public static function encode(array $data): string
     {
