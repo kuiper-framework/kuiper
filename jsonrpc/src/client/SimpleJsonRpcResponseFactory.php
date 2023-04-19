@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\jsonrpc\client;
 
 use InvalidArgumentException;
+use JsonException;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\rpc\client\RpcResponseFactoryInterface;
 use kuiper\rpc\exception\BadResponseException;
@@ -38,12 +39,19 @@ class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
             JsonRpcRequestInterface::class,
             'request should implements '.JsonRpcRequestInterface::class
         );
-        $result = json_decode((string) $response->getBody(), true);
-        if (false === $result
-            || !isset($result['jsonrpc'])
-            || !in_array($result['jsonrpc'], ['1.0', '2.0'], true)
-            || !array_key_exists('id', $result)) {
-            throw new BadResponseException($request, $response);
+        try {
+            $result = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new BadResponseException('Json parse failed', $request, $response, $e);
+        }
+        if (!isset($result['jsonrpc'])) {
+            throw new BadResponseException('jsonrpc version is missing', $request, $response);
+        }
+        if (!in_array($result['jsonrpc'], ['1.0', '2.0'], true)) {
+            throw new BadResponseException('jsonrpc version not match, expected 2.0, got '.$response['jsonrpc'], $request, $response);
+        }
+        if (!array_key_exists('id', $result)) {
+            throw new BadResponseException('jsonrpc request id is missing', $request, $response);
         }
         /** @var JsonRpcRequestInterface|RpcRequestInterface $request */
         if (null !== $result['id'] && $result['id'] !== $request->getRequestId()) {
@@ -51,7 +59,7 @@ class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
         }
         if (isset($result['error'])) {
             if (!isset($result['error']['code'], $result['error']['message'])) {
-                throw new BadResponseException($request, $response);
+                throw new BadResponseException('jsonrpc error message is missing', $request, $response);
             }
             // todo: 错误处理
             return $this->handleError($request, (int) $result['error']['code'], (string) $result['error']['message'], $result['error']['data'] ?? null);
@@ -59,7 +67,7 @@ class SimpleJsonRpcResponseFactory implements RpcResponseFactoryInterface
         try {
             $method = $request->getRpcMethod()->withResult($this->buildResult($request->getRpcMethod(), $result['result'] ?? [], $result));
         } catch (InvalidArgumentException $e) {
-            throw new BadResponseException($request, $response, $e);
+            throw new BadResponseException('Parse result fail', $request, $response, $e);
         }
 
         return new RpcResponse($request->withRpcMethod($method), $response);

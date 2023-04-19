@@ -235,6 +235,8 @@ $container->get('redis.host');
 添加到容器配置中。所以对于通过 `ContainterBuilder::addConfiguration()` 添加的定义和 
 `ComponentBuilder::componentScan()` 扫描命名空间的定义，是扫描命名空间的定义优先，在顺序上是后面的覆盖前面。
 
+> 如果使用 Conditional 注解，优先级会低于未使用 Conditional 注解的定义。
+
 ## 根据项目配置容器
 
 通过使用 `Configuration` 类和 ComponentScan 可以完成容器的配置。我们可以把所有 `Configuration` 类名和需要扫描

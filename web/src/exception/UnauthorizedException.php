@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\web\exception;
 
-use RuntimeException;
-
-class UnauthorizedException extends RuntimeException
+class UnauthorizedException extends WebRequestException
 {
 }

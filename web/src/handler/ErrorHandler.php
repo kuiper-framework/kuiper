@@ -42,8 +42,8 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         ?ErrorRendererInterface $logErrorRenderer,
         ?LoggerInterface $logger,
         private readonly string $defaultContentType = MediaType::TEXT_HTML,
-        private readonly string $includeStacktraceStrategy = IncludeStacktrace::NEVER)
-    {
+        private readonly string $includeStacktraceStrategy = IncludeStacktrace::NEVER
+    ) {
         $this->logErrorRenderer = $logErrorRenderer ?? $errorRenderers[MediaType::TEXT_PLAIN] ?? null;
         if (!isset($errorRenderers[$this->defaultContentType])) {
             throw new InvalidArgumentException("error renderer for $this->defaultContentType not found");
@@ -59,8 +59,8 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         Throwable $exception,
         bool $displayErrorDetails,
         bool $logErrors,
-        bool $logErrorDetails): ResponseInterface
-    {
+        bool $logErrorDetails
+    ): ResponseInterface {
         if ($logErrors && null !== $this->logErrorRenderer) {
             $this->writeToErrorLog($request, $exception);
         }
@@ -93,12 +93,24 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
      */
     protected function writeToErrorLog(ServerRequestInterface $request, Throwable $exception): void
     {
-        $error = call_user_func($this->logErrorRenderer, $exception, $this->getIncludeStacktrace($request));
-        $this->logger->error($error);
+        if ($exception instanceof HttpException) {
+            $this->logger->info($this->renderError($request, $exception));
+        } else {
+            $this->logger->error($this->renderError($request, $exception));
+        }
     }
 
-    protected function getIncludeStacktrace(ServerRequestInterface $request): bool
+    protected function renderError(ServerRequestInterface $request, Throwable $exception): string
     {
+        return call_user_func($this->logErrorRenderer, $exception, $this->getIncludeStacktrace($request, $exception));
+    }
+
+    protected function getIncludeStacktrace(ServerRequestInterface $request, $exception): bool
+    {
+        if ($exception instanceof HttpException) {
+            return false;
+        }
+
         return match ($this->includeStacktraceStrategy) {
             IncludeStacktrace::ALWAYS => true,
             IncludeStacktrace::NEVER => false,

@@ -20,11 +20,12 @@ use Throwable;
 class BadResponseException extends ServerException
 {
     public function __construct(
+        string $message,
         private readonly RpcRequestInterface $request,
         private readonly ResponseInterface $response,
         Throwable $prev = null
     ) {
-        parent::__construct('Cannot parse response', 0, $prev);
+        parent::__construct($message, 0, $prev);
     }
 
     public function getRequest(): RpcRequestInterface

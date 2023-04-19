@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace kuiper\web\exception;
 
-use RuntimeException;
+use Exception;
 
-class SessionNotStartException extends RuntimeException
+class SessionNotStartException extends Exception
 {
 }

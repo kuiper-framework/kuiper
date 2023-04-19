@@ -14,9 +14,8 @@ declare(strict_types=1);
 namespace kuiper\web\exception;
 
 use InvalidArgumentException;
-use RuntimeException;
 
-class RedirectException extends RuntimeException
+class RedirectException extends WebRequestException
 {
     public function __construct(private readonly string $url, int $code = 302)
     {

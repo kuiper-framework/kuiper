@@ -30,8 +30,8 @@ class HttpJsonResponseFactory implements RpcResponseFactoryInterface
      */
     public function __construct(
         private readonly RpcResponseNormalizer $normalizer,
-        private readonly ?string $node = null)
-    {
+        private readonly ?string $node = null
+    ) {
     }
 
     public function createResponse(RpcRequestInterface $request, ResponseInterface $response): RpcResponseInterface
@@ -39,7 +39,7 @@ class HttpJsonResponseFactory implements RpcResponseFactoryInterface
         try {
             $method = $request->getRpcMethod()->withResult($this->buildResult($request->getRpcMethod(), $response));
         } catch (InvalidArgumentException $e) {
-            throw new BadResponseException($request, $response, $e);
+            throw new BadResponseException('Parse response result fail', $request, $response, $e);
         }
 
         return new RpcResponse($request->withRpcMethod($method), $response);
