@@ -16,6 +16,7 @@ namespace kuiper\jsonrpc\config;
 use DI\Attribute\Inject;
 
 use function DI\autowire;
+use function DI\decorate;
 use function DI\factory;
 use function DI\get;
 
@@ -32,6 +33,8 @@ use kuiper\http\client\HttpClientFactoryInterface;
 use kuiper\jsonrpc\attribute\JsonRpcClient;
 use kuiper\jsonrpc\attribute\JsonRpcService;
 use kuiper\jsonrpc\client\JsonRpcClientFactory;
+use kuiper\jsonrpc\core\BinaryString;
+use kuiper\jsonrpc\core\BinaryStringNormalizer;
 use kuiper\logger\LoggerConfiguration;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\resilience\core\SwooleAtomicCounter;
@@ -96,6 +99,11 @@ class JsonRpcClientConfiguration implements DefinitionConfiguration
                 ->constructorParameter('httpClientFactory', factory(function (ContainerInterface $container) {
                     return $container->has(HttpClientFactoryInterface::class) ? $container->get(HttpClientFactoryInterface::class) : null;
                 })),
+            'serializerNormalizers' => decorate(function (array $normalizers) {
+                $normalizers[BinaryString::class] = new BinaryStringNormalizer();
+
+                return $normalizers;
+            }),
         ]);
     }
 
