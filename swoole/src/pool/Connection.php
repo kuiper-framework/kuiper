@@ -21,8 +21,8 @@ class Connection implements ConnectionInterface
 
     public function __construct(
         private readonly int $id,
-        private readonly mixed $resource)
-    {
+        private readonly mixed $resource
+    ) {
         $this->createdAt = microtime(true);
     }
 
@@ -58,6 +58,5 @@ class Connection implements ConnectionInterface
                 }
             }
         }
-        unset($this->resource);
     }
 }
