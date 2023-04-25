@@ -156,8 +156,8 @@ class ServerConfiguration implements DefinitionConfiguration
         ContainerInterface $container,
         ServerConfig $serverConfig,
         EventDispatcherInterface $eventDispatcher,
-        LoggerFactoryInterface $loggerFactory): ServerInterface
-    {
+        LoggerFactoryInterface $loggerFactory
+    ): ServerInterface {
         $app = Application::getInstance();
         if ($app->isBootstrapContainerEnabled() && !$app->isBootstrapping()) {
             return $app->getBootstrapContainer()->get(ServerInterface::class);
@@ -194,6 +194,7 @@ class ServerConfiguration implements DefinitionConfiguration
         ];
         $mainSettings = [
             ServerSetting::WORKER_NUM => env('SERVER_WORKER_NUM'),
+            ServerSetting::TASK_WORKER_NUM => env('SERVER_TASK_WORKER_NUM'),
             ServerSetting::DISPATCH_MODE => 2,
             ServerSetting::DAEMONIZE => false,
         ];
