@@ -211,16 +211,6 @@ parameters:
 			path: resilience/src/core/TryCall.php
 
 		-
-			message: "#^Method kuiper\\\\rpc\\\\RpcResponse\\:\\:withResponse\\(\\) has no return type specified\\.$#"
-			count: 1
-			path: rpc/src/RpcResponse.php
-
-		-
-			message: "#^Return type \\(kuiper\\\\rpc\\\\RpcResponse\\) of method kuiper\\\\rpc\\\\RpcResponse\\:\\:withHeader\\(\\) should be covariant with return type \\(static\\(Psr\\\\Http\\\\Message\\\\MessageInterface\\)\\) of method Psr\\\\Http\\\\Message\\\\MessageInterface\\:\\:withHeader\\(\\)$#"
-			count: 3
-			path: rpc/src/RpcResponse.php
-
-		-
 			message: "#^Only booleans are allowed in a negated boolean, mixed given\\.$#"
 			count: 1
 			path: rpc/src/server/middleware/AccessLog.php

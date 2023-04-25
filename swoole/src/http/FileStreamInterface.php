@@ -17,5 +17,8 @@ use Psr\Http\Message\StreamInterface;
 
 interface FileStreamInterface extends StreamInterface
 {
+    /**
+     * @return string
+     */
     public function getFileName(): string;
 }

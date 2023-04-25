@@ -29,6 +29,8 @@ use kuiper\swoole\constants\ServerSetting;
 use kuiper\swoole\constants\ServerType;
 use kuiper\swoole\event\ReceiveEvent;
 use kuiper\swoole\event\RequestEvent;
+use kuiper\swoole\http\FileStreamFactory;
+use kuiper\swoole\http\FileStreamFactoryInterface;
 use kuiper\swoole\http\HttpMessageFactoryHolder;
 use kuiper\swoole\http\SwooleRequestBridgeInterface;
 use kuiper\swoole\http\SwooleResponseBridge;
@@ -101,6 +103,7 @@ class ServerConfiguration implements DefinitionConfiguration
 
         return [
             SwooleResponseBridgeInterface::class => autowire(SwooleResponseBridge::class),
+            FileStreamFactoryInterface::class => autowire(FileStreamFactory::class),
         ];
     }
 

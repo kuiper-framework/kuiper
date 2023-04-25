@@ -13,15 +13,14 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\http;
 
-use Laminas\Diactoros\Stream;
+use Psr\Http\Message\StreamInterface;
 
 class FileStream implements FileStreamInterface
 {
-    private readonly Stream $stream;
-
-    public function __construct(private readonly string $fileName)
-    {
-        $this->stream = new Stream($fileName);
+    public function __construct(
+        private readonly string $fileName,
+        private readonly StreamInterface $stream
+    ) {
     }
 
     /**

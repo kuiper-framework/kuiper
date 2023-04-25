@@ -105,7 +105,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
         return call_user_func($this->logErrorRenderer, $exception, $this->getIncludeStacktrace($request, $exception));
     }
 
-    protected function getIncludeStacktrace(ServerRequestInterface $request, $exception): bool
+    protected function getIncludeStacktrace(ServerRequestInterface $request, Throwable $exception): bool
     {
         if ($exception instanceof HttpException) {
             return false;
