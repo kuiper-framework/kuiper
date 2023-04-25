@@ -20,8 +20,8 @@ class RpcResponse implements RpcResponseInterface
 {
     public function __construct(
         private readonly RpcRequestInterface $request,
-        private ResponseInterface $httpResponse)
-    {
+        private ResponseInterface $httpResponse
+    ) {
     }
 
     public function getProtocolVersion(): string
@@ -29,7 +29,7 @@ class RpcResponse implements RpcResponseInterface
         return $this->httpResponse->getProtocolVersion();
     }
 
-    private function withResponse(ResponseInterface $response)
+    private function withResponse(ResponseInterface $response): static
     {
         $new = clone $this;
         $new->httpResponse = $response;
@@ -62,42 +62,42 @@ class RpcResponse implements RpcResponseInterface
         return $this->httpResponse->getHeaderLine($name);
     }
 
-    public function withHeader($name, $value): RpcResponse
+    public function withHeader($name, $value): static
     {
         return $this->withResponse($this->httpResponse->withHeader($name, $value));
     }
 
-    public function withAddedHeader($name, $value)
+    public function withAddedHeader($name, $value): static
     {
         return $this->withResponse($this->httpResponse->withAddedHeader($name, $value));
     }
 
-    public function withoutHeader($name)
+    public function withoutHeader($name): static
     {
         return $this->withResponse($this->httpResponse->withoutHeader($name));
     }
 
-    public function getBody()
+    public function getBody(): StreamInterface
     {
         return $this->httpResponse->getBody();
     }
 
-    public function withBody(StreamInterface $body)
+    public function withBody(StreamInterface $body): static
     {
         return $this->withResponse($this->httpResponse->withBody($body));
     }
 
-    public function getStatusCode()
+    public function getStatusCode(): int
     {
         return $this->httpResponse->getStatusCode();
     }
 
-    public function withStatus($code, $reasonPhrase = '')
+    public function withStatus($code, $reasonPhrase = ''): static
     {
         return $this->withResponse($this->httpResponse->withStatus($code, $reasonPhrase));
     }
 
-    public function getReasonPhrase()
+    public function getReasonPhrase(): string
     {
         return $this->httpResponse->getReasonPhrase();
     }

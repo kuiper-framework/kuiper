@@ -33,7 +33,7 @@ class JsonRpcServerResponse extends RpcResponse
         parent::__construct($request, $httpResponse);
     }
 
-    public function withBody(StreamInterface $body)
+    public function withBody(StreamInterface $body): static
     {
         $copy = clone $this;
         $copy->body = $body;

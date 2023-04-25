@@ -24,11 +24,11 @@ class RpcRequest implements RpcRequestInterface
     public function __construct(
         private RequestInterface $httpRequest,
         private RpcMethodInterface $rpcMethod,
-        private array $attributes = [])
-    {
+        private array $attributes = []
+    ) {
     }
 
-    public function getProtocolVersion()
+    public function getProtocolVersion(): string
     {
         return $this->httpRequest->getProtocolVersion();
     }
@@ -41,82 +41,82 @@ class RpcRequest implements RpcRequestInterface
         return $new;
     }
 
-    public function withProtocolVersion($version)
+    public function withProtocolVersion(string $version): static
     {
         return $this->withHttpRequest($this->httpRequest->withProtocolVersion($version));
     }
 
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return $this->httpRequest->getHeaders();
     }
 
-    public function hasHeader($name)
+    public function hasHeader($name): bool
     {
         return $this->httpRequest->hasHeader($name);
     }
 
-    public function getHeader($name)
+    public function getHeader($name): array
     {
         return $this->httpRequest->getHeader($name);
     }
 
-    public function getHeaderLine($name)
+    public function getHeaderLine($name): string
     {
         return $this->httpRequest->getHeaderLine($name);
     }
 
-    public function withHeader($name, $value)
+    public function withHeader($name, $value): static
     {
         return $this->withHttpRequest($this->httpRequest->withHeader($name, $value));
     }
 
-    public function withAddedHeader($name, $value)
+    public function withAddedHeader($name, $value): static
     {
         return $this->withHttpRequest($this->httpRequest->withAddedHeader($name, $value));
     }
 
-    public function withoutHeader($name)
+    public function withoutHeader($name): static
     {
         return $this->withHttpRequest($this->httpRequest->withoutHeader($name));
     }
 
-    public function getBody()
+    public function getBody(): StreamInterface
     {
         return $this->httpRequest->getBody();
     }
 
-    public function withBody(StreamInterface $body)
+    public function withBody(StreamInterface $body): static
     {
         return $this->withHttpRequest($this->httpRequest->withBody($body));
     }
 
-    public function getRequestTarget()
+    public function getRequestTarget(): string
     {
         return $this->httpRequest->getRequestTarget();
     }
 
-    public function withRequestTarget($requestTarget)
+    public function withRequestTarget($requestTarget): static
     {
         return $this->withHttpRequest($this->httpRequest->withRequestTarget($requestTarget));
     }
 
-    public function getMethod()
+    public function getMethod(): string
     {
         return $this->httpRequest->getMethod();
     }
 
-    public function withMethod($method)
+    public function withMethod($method): static
     {
         return $this->withHttpRequest($this->httpRequest->withMethod($method));
     }
 
-    public function getUri()
+    public function getUri(): UriInterface
     {
         return $this->httpRequest->getUri();
     }
 
-    public function withUri(UriInterface $uri, $preserveHost = false)
+    public function withUri(UriInterface $uri, $preserveHost = false): static
     {
         return $this->withHttpRequest($this->httpRequest->withUri($uri, $preserveHost));
     }
@@ -141,7 +141,7 @@ class RpcRequest implements RpcRequestInterface
     /**
      * {@inheritDoc}
      */
-    public function withAttribute(string $name, mixed $value)
+    public function withAttribute(string $name, mixed $value): static
     {
         $new = clone $this;
         $attributes = $this->attributes;
@@ -164,7 +164,7 @@ class RpcRequest implements RpcRequestInterface
     /**
      * {@inheritDoc}
      */
-    public function withRpcMethod(RpcMethodInterface $rpcMethod)
+    public function withRpcMethod(RpcMethodInterface $rpcMethod): static
     {
         $new = clone $this;
         $new->rpcMethod = $rpcMethod;

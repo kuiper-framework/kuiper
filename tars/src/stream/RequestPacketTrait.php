@@ -15,7 +15,7 @@ namespace kuiper\tars\stream;
 
 trait RequestPacketTrait
 {
-    private readonly RequestPacket $packet;
+    private RequestPacket $packet;
 
     public function getVersion(): int
     {

@@ -22,12 +22,12 @@ class RpcServerRequest extends RpcRequest implements RpcServerRequestInterface
     public function __construct(
         ServerRequestInterface $httpRequest,
         RpcMethodInterface $rpcMethod,
-        array $attributes = [])
-    {
+        array $attributes = []
+    ) {
         parent::__construct($httpRequest, $rpcMethod, $attributes);
     }
 
-    public function getServerParams()
+    public function getServerParams(): array
     {
         /** @var ServerRequestInterface $request */
         $request = $this->getHttpRequest();

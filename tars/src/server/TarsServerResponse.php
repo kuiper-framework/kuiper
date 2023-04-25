@@ -35,8 +35,8 @@ class TarsServerResponse extends RpcResponse implements TarsResponseInterface
     public function __construct(
         RpcRequestInterface $request,
         ResponseInterface $response,
-        private readonly StreamFactoryInterface $streamFactory)
-    {
+        private readonly StreamFactoryInterface $streamFactory
+    ) {
         /** @var RpcRequestInterface|TarsRequestInterface $request */
         parent::__construct($request, $response);
         $this->packet = ResponsePacket::createFromRequest($request);
@@ -47,7 +47,7 @@ class TarsServerResponse extends RpcResponse implements TarsResponseInterface
         return $this->packet;
     }
 
-    public function withBody(StreamInterface $body)
+    public function withBody(StreamInterface $body): static
     {
         $copy = clone $this;
         $copy->body = $body;

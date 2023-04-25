@@ -35,8 +35,8 @@ class TarsRequest extends RpcRequest implements TarsRequestInterface
         RequestInterface $request,
         TarsMethodInterface $rpcMethod,
         private readonly StreamFactoryInterface $streamFactory,
-        int $requestId)
-    {
+        int $requestId
+    ) {
         parent::__construct($request, $rpcMethod);
 
         $packet = new RequestPacket();
@@ -46,7 +46,7 @@ class TarsRequest extends RpcRequest implements TarsRequestInterface
         $this->packet = $packet;
     }
 
-    public function withBody(StreamInterface $body)
+    public function withBody(StreamInterface $body): static
     {
         $copy = clone $this;
         $copy->body = $body;
