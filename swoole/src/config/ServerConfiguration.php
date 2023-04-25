@@ -190,7 +190,6 @@ class ServerConfiguration implements DefinitionConfiguration
             ServerSetting::PACKAGE_BODY_OFFSET => 0,
             ServerSetting::MAX_WAIT_TIME => 60,
             ServerSetting::RELOAD_ASYNC => true,
-            ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
             ServerSetting::OPEN_TCP_NODELAY => true,
             ServerSetting::OPEN_EOF_CHECK => false,
             ServerSetting::OPEN_EOF_SPLIT => false,
@@ -199,6 +198,7 @@ class ServerConfiguration implements DefinitionConfiguration
             ServerSetting::WORKER_NUM => env('SERVER_WORKER_NUM'),
             ServerSetting::TASK_WORKER_NUM => env('SERVER_TASK_WORKER_NUM'),
             ServerSetting::DISPATCH_MODE => 2,
+            ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
             ServerSetting::DAEMONIZE => false,
         ];
         $settings = array_merge($mainSettings, $config->get('application.server.settings', $config->get('application.swoole', [])));
