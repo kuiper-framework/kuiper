@@ -50,7 +50,7 @@ class CacheItem implements CacheItemInterface
         $data = $this->driver->getData($this->key);
         $now = time();
         if (isset($data['expiration']) && $data['expiration'] > $now) {
-            $this->value = $data['data'];
+            $this->value = $data['data']['return'];
             $this->hit = true;
         } else {
             $this->value = null;
@@ -75,7 +75,10 @@ class CacheItem implements CacheItemInterface
             $expiration = time() + self::DEFAULT_TTL;
         }
 
-        return $this->driver->storeData($this->key, $this->value, $expiration);
+        return $this->driver->storeData($this->key, [
+            'return' => $this->value,
+            'createOn' => time(),
+        ], $expiration);
     }
 
     public function set(mixed $value): static

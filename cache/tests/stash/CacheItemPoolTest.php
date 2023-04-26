@@ -38,7 +38,7 @@ class CacheItemPoolTest extends TestCase
     {
         $redis = new Redis();
         $redis->connect('localhost');
-        error_log(spl_object_id($redis));
+        // error_log((string) spl_object_id($redis));
         $cache = new CacheItemPool(new RedisDriver([
             'redis' => $redis,
             'prefix' => 'test:',
