@@ -115,9 +115,10 @@ class MessageUtil
 
     public static function extractUri(UriInterface $uri, array $server): UriInterface
     {
-        $isHttps = false;
         if (array_key_exists('HTTPS', $server)) {
             $isHttps = self::marshalHttpsValue($server['HTTPS']);
+        } else {
+            $isHttps = 'https' === strtolower($server['HTTP_X_FORWARDED_PROTO'] ?? '');
         }
         $uri = $uri->withScheme($isHttps ? 'https' : 'http');
 
@@ -168,7 +169,7 @@ class MessageUtil
         /** @var array{string, null} $defaults */
         static $defaults = ['', null];
 
-        $host = $server['HTTP_HOST'] ?? '';
+        $host = $server['HTTP_X_FORWARDED_HOST'] ?? $server['HTTP_HOST'] ?? '';
         if ('' !== $host) {
             // Ignore obviously malformed host headers:
             // - Whitespace is invalid within a hostname and break the URI representation within HTTP.
@@ -177,7 +178,15 @@ class MessageUtil
             //   and might be used in an attack where a load balancer sees a different host header
             //   than Diactoros.
             if (!preg_match('/[\\t ,]/', $host)) {
-                return self::marshalHostAndPortFromHeader($host);
+                [$host, $port] = self::marshalHostAndPortFromHeader($host);
+                if (!isset($port)) {
+                    $port = $server['HTTP_X_FORWARDED_PORT'] ?? $server['SERVER_PORT'] ?? null;
+                    if (null !== $port) {
+                        $port = (int) $port;
+                    }
+                }
+
+                return [$host, $port];
             }
         }
 
