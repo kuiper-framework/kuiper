@@ -27,9 +27,11 @@ use kuiper\di\attribute\ConditionalOnClass;
 use kuiper\di\attribute\ConditionalOnProperty;
 use kuiper\di\ContainerBuilderAwareTrait;
 use kuiper\di\DefinitionConfiguration;
+use kuiper\helper\Arrays;
 
 use function kuiper\helper\env;
 
+use kuiper\helper\Text;
 use kuiper\logger\LoggerFactoryInterface;
 use kuiper\swoole\Application;
 use kuiper\swoole\attribute\BootstrapConfiguration;
@@ -59,7 +61,8 @@ class CacheConfiguration implements DefinitionConfiguration
                         'namespace' => env('CACHE_NAMESPACE'),
                         'lifetime' => (int) env('CACHE_LIFETIME', '0'),
                         'memory' => [
-                            'lifetime' => (int) env('CACHE_MEMORY_LIFETIME', '5'),
+                            'enabled' => 'true' === env('CACHE_MEMORY_ENABLED'),
+                            'lifetime' => (int) env('CACHE_MEMORY_LIFETIME', '1'),
                             'max_items' => (int) env('CACHE_MEMORY_MAX_ITEMS', '1000'),
                             'serialize' => 'true' === env('CACHE_MEMORY_SERIALIZE'),
                         ],
@@ -81,10 +84,12 @@ class CacheConfiguration implements DefinitionConfiguration
 
     public static function buildDsn(array $options): string
     {
-        $dsn = sprintf('redis://%s%s:%d',
+        $dsn = sprintf(
+            'redis://%s%s:%d',
             isset($options['password']) ? $options['password'].'@' : '',
             $options['host'] ?? 'localhost',
-            $options['port'] ?? 6379);
+            $options['port'] ?? 6379
+        );
         $database = (int) ($options['database'] ?? 0);
         if (0 !== $database) {
             $dsn .= '/'.$database;
@@ -108,7 +113,7 @@ class CacheConfiguration implements DefinitionConfiguration
     #[Bean]
     public function arrayCache(#[Inject('application.cache.memory')] ?array $config): ArrayAdapter
     {
-        $defaultLifetime = $config['lifetime'] ?? 2;
+        $defaultLifetime = $config['lifetime'] ?? 1;
 
         return new ArrayAdapter(
             $defaultLifetime,
@@ -116,6 +121,20 @@ class CacheConfiguration implements DefinitionConfiguration
             (int) ($config['max_lifetime'] ?? 2 * $defaultLifetime),
             (int) ($config['max_items'] ?? 618)
         );
+    }
+
+    #[Bean]
+    public function stashEphemeralDriver(#[Inject('application.cache.memory')] ?array $config): Ephemeral
+    {
+        $config = Arrays::mapKeys($config, static function ($key) {
+            return lcfirst(Text::camelCase($key));
+        });
+        $defaultLifetime = $config['lifetime'] ?? 1;
+        if (!isset($config['maxLifetime'])) {
+            $config['maxLifetime'] = $defaultLifetime * 2;
+        }
+
+        return new Ephemeral($config);
     }
 
     #[Bean('symfonyRedisCache')]
@@ -151,10 +170,15 @@ class CacheConfiguration implements DefinitionConfiguration
     )]
     public function symfonyCacheItemPool(ContainerInterface $container): CacheItemPoolInterface
     {
-        return new ChainAdapter([
-            $container->get(ArrayAdapter::class),
-            $container->get('symfonyRedisCache'),
-        ]);
+        $options = $container->get('application.cache');
+        if (isset($options['memory']['enabled']) && $options['memory']['enabled']) {
+            return new ChainAdapter([
+                $container->get(ArrayAdapter::class),
+                $container->get('symfonyRedisCache'),
+            ]);
+        } else {
+            return $container->get('symfonyRedisCache');
+        }
     }
 
     #[Bean]
@@ -162,15 +186,16 @@ class CacheConfiguration implements DefinitionConfiguration
     public function kuiperCacheItemPool(ContainerInterface $container): CacheItemPoolInterface
     {
         $options = $container->get('application.cache');
-        $cacheItemPool = new CacheItemPool(new Composite([
-            'drivers' => [
-                new Ephemeral($options['memory'] ?? []),
-                new RedisDriver(array_merge([
-                    'redis' => $container->get(Redis::class),
-                    'prefix' => $options['namespace'] ?? '',
-                ])),
-            ],
+        $redisDriver = new RedisDriver(array_merge([
+            'redis' => $container->get(Redis::class),
+            'prefix' => $options['namespace'] ?? '',
         ]));
+        if (isset($options['memory']['enabled']) && $options['memory']['enabled']) {
+            $drivers = [$container->get(Ephemeral::class), $redisDriver];
+        } else {
+            $drivers = [$redisDriver];
+        }
+        $cacheItemPool = new CacheItemPool(new Composite(['drivers' => $drivers]));
         $lifetime = (int) ($cacheConfig['lifetime'] ?? 0);
         if ($lifetime > 0) {
             $cacheItemPool->setDefaultTtl($lifetime);

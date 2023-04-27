@@ -26,6 +26,8 @@ class Ephemeral extends AbstractDriver
 
     private bool $serialized = true;
 
+    private int $maxLifetime = 0;
+
     private float $fillRate = 0.6;
 
     protected function setOptions(array $options = []): void
@@ -38,6 +40,9 @@ class Ephemeral extends AbstractDriver
         }
         if (isset($options['fillRate'])) {
             $this->fillRate = (float) $options['fillRate'];
+        }
+        if (isset($options['maxLifetime'])) {
+            $this->maxLifetime = (int) $options['maxLifetime'];
         }
         if (isset($options['timeFactory'])) {
             $this->timeFactory = $options['timeFactory'];
@@ -66,6 +71,9 @@ class Ephemeral extends AbstractDriver
         }
         if ($this->serialized) {
             $data = serialize($data);
+        }
+        if ($this->maxLifetime > 0) {
+            $expiration = min($expiration, $this->currentTime() + $this->maxLifetime);
         }
 
         $this->store[$key] = ['data' => $data, 'expiration' => $expiration];
