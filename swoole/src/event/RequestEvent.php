@@ -16,7 +16,7 @@ namespace kuiper\swoole\event;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class RequestEvent extends AbstractServerEvent
+class RequestEvent extends AbstractServerEvent implements RequestEventInterface
 {
     private ServerRequestInterface $request;
 

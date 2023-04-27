@@ -19,11 +19,14 @@ use kuiper\helper\Properties;
 use kuiper\swoole\constants\Event;
 use kuiper\swoole\event\AbstractServerEvent;
 use kuiper\swoole\event\MessageInterface;
+use kuiper\swoole\event\RequestEndEvent;
+use kuiper\swoole\event\RequestStartEvent;
 use kuiper\swoole\event\ServerEventFactory;
 use kuiper\swoole\ServerConfig;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Throwable;
 
 abstract class AbstractServer implements ServerInterface, LoggerAwareInterface, EventDispatcherAwareInterface
 {
@@ -46,8 +49,19 @@ abstract class AbstractServer implements ServerInterface, LoggerAwareInterface, 
         if (null !== $event) {
             $this->logger->debug(static::TAG."dispatch event $eventName->value using ".get_class($event));
 
-            /* @noinspection PhpIncompatibleReturnTypeInspection */
-            return $this->getEventDispatcher()->dispatch($event);
+            if (in_array($eventName, Event::requestEvents(), true)) {
+                $this->getEventDispatcher()->dispatch(new RequestStartEvent($event));
+            }
+            try {
+                /* @noinspection PhpIncompatibleReturnTypeInspection */
+                return $this->getEventDispatcher()->dispatch($event);
+            } catch (Throwable $error) {
+                throw $error;
+            } finally {
+                if (in_array($eventName, Event::requestEvents(), true)) {
+                    $this->eventDispatcher->dispatch(new RequestEndEvent($event, $error ?? null));
+                }
+            }
         }
 
         $this->logger->debug(static::TAG."unhandled event $eventName->value");

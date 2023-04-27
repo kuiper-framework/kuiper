@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\swoole\event;
 
-class ReceiveEvent extends AbstractServerEvent
+class ReceiveEvent extends AbstractServerEvent implements RequestEventInterface
 {
     private int $clientId;
 

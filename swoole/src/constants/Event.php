@@ -37,6 +37,10 @@ enum Event: string
     case BEFORE_RELOAD = 'beforeReload';
     case AFTER_RELOAD = 'afterReload';
 
+    case REQUEST_START = 'requestStart';
+
+    case REQUEST_END = 'requestEnd';
+
     public static function requestEvents(): array
     {
         return [self::REQUEST, self::MESSAGE, self::RECEIVE];
@@ -45,7 +49,7 @@ enum Event: string
     public function isSwooleEvent(): bool
     {
         return match ($this) {
-            self::BOOTSTRAP, self::BEFORE_RELOAD, self::AFTER_RELOAD => false,
+            self::BOOTSTRAP, self::BEFORE_RELOAD, self::AFTER_RELOAD, self::REQUEST_START, self::REQUEST_END => false,
             default => true,
         };
     }
