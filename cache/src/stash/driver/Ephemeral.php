@@ -60,8 +60,12 @@ class Ephemeral extends AbstractDriver
         if ($this->serialized && isset($data['data'])) {
             $data['data'] = unserialize($data['data'], ['allow_classes' => true]);
         }
+        $now = $this->currentTime();
+        if (isset($data['expiration']) && $data['expiration'] > $now) {
+            return $data;
+        }
 
-        return $data;
+        return [];
     }
 
     public function storeData(string $key, mixed $data, int $expiration): bool
