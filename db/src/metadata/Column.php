@@ -23,25 +23,13 @@ use kuiper\reflection\ReflectionTypeInterface;
 
 class Column implements ColumnInterface
 {
-    private bool $hasId;
-
-    private bool $hasNaturalId;
-
-    private bool $hasCreationTimestamp;
-
-    private bool $hasUpdateTimestamp;
-
     private ?string $generateStrategy;
 
     public function __construct(
         private readonly string $name,
         private readonly MetaModelProperty $property,
-        private readonly AttributeConverterInterface $converter)
-    {
-        $this->hasId = $property->hasAttribute(Id::class);
-        $this->hasNaturalId = $property->hasAttribute(NaturalId::class);
-        $this->hasCreationTimestamp = $property->hasAttribute(CreationTimestamp::class);
-        $this->hasUpdateTimestamp = $property->hasAttribute(UpdateTimestamp::class);
+        private readonly AttributeConverterInterface $converter
+    ) {
         $generatedValue = $property->getAttribute(GeneratedValue::class);
         if (null !== $generatedValue) {
             $this->generateStrategy = $generatedValue->getType();
@@ -89,29 +77,29 @@ class Column implements ColumnInterface
         return $this->property->getType();
     }
 
-    public function hasId(): bool
+    public function isId(): bool
     {
-        return $this->hasId;
+        return $this->property->hasAttribute(Id::class);
     }
 
-    public function hasGeneratedValue(): bool
+    public function isGeneratedValue(): bool
     {
         return isset($this->generateStrategy);
     }
 
-    public function hasNaturalId(): bool
+    public function isNaturalId(): bool
     {
-        return $this->hasNaturalId;
+        return $this->property->hasAttribute(NaturalId::class);
     }
 
-    public function hasCreationTimestamp(): bool
+    public function isCreationTimestamp(): bool
     {
-        return $this->hasCreationTimestamp;
+        return $this->property->hasAttribute(CreationTimestamp::class);
     }
 
-    public function hasUpdateTimestamp(): bool
+    public function isUpdateTimestamp(): bool
     {
-        return $this->hasUpdateTimestamp;
+        return $this->property->hasAttribute(UpdateTimestamp::class);
     }
 
     private function isNull(mixed $value): bool

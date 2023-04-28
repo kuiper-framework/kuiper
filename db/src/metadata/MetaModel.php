@@ -53,8 +53,8 @@ class MetaModel implements MetaModelInterface
     public function __construct(
         private readonly string $table,
         private readonly ReflectionClass $entityClass,
-        array $properties)
-    {
+        array $properties
+    ) {
         /** @var MetaModelProperty $property */
         foreach ($properties as $property) {
             $this->properties[$property->getName()] = $property;
@@ -70,14 +70,14 @@ class MetaModel implements MetaModelInterface
             }
             foreach ($property->getColumns() as $column) {
                 $this->columns[$column->getName()] = $column;
-                if ($column->hasId()) {
+                if ($column->isId()) {
                     $this->annotatedColumns[Id::class][] = $column;
-                } elseif ($column->hasNaturalId()) {
+                } elseif ($column->isNaturalId()) {
                     $this->annotatedColumns[NaturalId::class][] = $column;
                 }
-                if ($column->hasCreationTimestamp()) {
+                if ($column->isCreationTimestamp()) {
                     $this->annotatedColumns[CreationTimestamp::class] = $column;
-                } elseif ($column->hasUpdateTimestamp()) {
+                } elseif ($column->isUpdateTimestamp()) {
                     $this->annotatedColumns[UpdateTimestamp::class] = $column;
                 }
             }
@@ -204,7 +204,7 @@ class MetaModel implements MetaModelInterface
     {
         /** @var Column[] $idColumns */
         $idColumns = $this->annotatedColumns[Id::class];
-        if (1 === count($idColumns) && $idColumns[0]->hasGeneratedValue()) {
+        if (1 === count($idColumns) && $idColumns[0]->isGeneratedValue()) {
             return $idColumns[0]->getName();
         }
 

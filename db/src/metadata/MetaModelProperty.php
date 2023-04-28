@@ -54,8 +54,8 @@ class MetaModelProperty
         private readonly ReflectionProperty $property,
         private readonly ReflectionTypeInterface $type,
         private readonly ?MetaModelProperty $parent,
-        private readonly array $attributes)
-    {
+        private readonly array $attributes
+    ) {
         $this->path = (null !== $parent ? $parent->getPath().self::PATH_SEPARATOR : '').$property->getName();
 
         $ancestors = [];
@@ -176,9 +176,9 @@ class MetaModelProperty
         return $this->parent?->getAttribute($attributeName);
     }
 
-    public function hasAttribute(string $annotationName): bool
+    public function hasAttribute(string $attributeName): bool
     {
-        return null !== $this->getAttribute($annotationName);
+        return null !== $this->getAttribute($attributeName);
     }
 
     public function getEntityClass(): ReflectionClass
