@@ -65,8 +65,8 @@ class HttpClientConfiguration implements DefinitionConfiguration
     public function httpClient(
         ContainerInterface $container,
         HttpClientFactoryInterface $httpClientFactory,
-        #[Inject('application.http_client.default')] ?array $options): ClientInterface
-    {
+        #[Inject('application.http_client.default')] ?array $options
+    ): ClientInterface {
         if (isset($options['middleware'])) {
             foreach ($options['middleware'] as $i => $middleware) {
                 if (is_string($middleware)) {
@@ -102,20 +102,16 @@ class HttpClientConfiguration implements DefinitionConfiguration
                 $options = $container->get('application.http_client');
                 /** @noinspection AmbiguousMethodsCallsInArrayMappingInspection */
                 $componentId = $attribute->getComponentId();
-                if (isset($options[$componentId])) {
-                    $clientOptions = array_merge(
-                        $options['default'] ?? [],
-                        $this->envOptions($componentId),
-                        $options[$componentId] ?? []
-                    );
-                    $httpClient = $self->httpClient(
-                        $container,
-                        $container->get(HttpClientFactoryInterface::class),
-                        $clientOptions
-                    );
-                } else {
-                    $httpClient = $container->get(ClientInterface::class);
-                }
+                $clientOptions = array_merge(
+                    $options['default'] ?? [],
+                    $this->envOptions($componentId),
+                    $options[$componentId] ?? []
+                );
+                $httpClient = $self->httpClient(
+                    $container,
+                    $container->get(HttpClientFactoryInterface::class),
+                    $clientOptions
+                );
                 $factory = new HttpProxyClientFactory(
                     $httpClient,
                     $container->get(NormalizerInterface::class)
