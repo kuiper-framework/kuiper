@@ -22,7 +22,6 @@ use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
 use kuiper\rpc\server\Service;
 use kuiper\serializer\NormalizerInterface;
-use ReflectionException;
 
 class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
 {
@@ -39,8 +38,8 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
     public function __construct(
         private readonly array $services,
         private readonly NormalizerInterface $normalizer,
-        private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory)
-    {
+        private readonly ReflectionDocBlockFactoryInterface $reflectionDocBlockFactory
+    ) {
     }
 
     /**
@@ -72,15 +71,21 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
     {
         $paramTypes = $this->getParameterTypes($service, $methodName);
         $ret = [];
-        foreach ($paramTypes as $i => $type) {
-            $ret[] = $this->normalizer->denormalize($params[$i], $type);
+        $i = 0;
+        foreach ($paramTypes as $name => $type) {
+            $param = $params[$name] ?? $params[$i] ?? null;
+            if (isset($param)) {
+                $ret[] = $this->normalizer->denormalize($param, $type);
+            } else {
+                $ret[] = null;
+            }
+            ++$i;
         }
 
         return $ret;
     }
 
     /**
-     * @throws ReflectionException
      * @throws ClassNotFoundException
      */
     private function getParameterTypes(Service $service, string $methodName): array
@@ -93,7 +98,7 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
         $reflectionMethod = $service->getMethod($methodName);
         $reflectionMethodDocBlock = $this->reflectionDocBlockFactory->createMethodDocBlock($reflectionMethod);
 
-        return $this->cachedTypes[$key] = array_values($reflectionMethodDocBlock->getParameterTypes());
+        return $this->cachedTypes[$key] = $reflectionMethodDocBlock->getParameterTypes();
     }
 
     /**

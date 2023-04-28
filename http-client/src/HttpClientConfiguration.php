@@ -102,20 +102,17 @@ class HttpClientConfiguration implements DefinitionConfiguration
                 $options = $container->get('application.http_client');
                 /** @noinspection AmbiguousMethodsCallsInArrayMappingInspection */
                 $componentId = $attribute->getComponentId();
-                $clientOptions = array_merge(
-                    $options['default'] ?? [],
-                    $this->envOptions($componentId),
-                    $options[$componentId] ?? []
-                );
-                $httpClient = $self->httpClient(
-                    $container,
-                    $container->get(HttpClientFactoryInterface::class),
-                    $clientOptions
-                );
-                $factory = new HttpProxyClientFactory(
-                    $httpClient,
-                    $container->get(NormalizerInterface::class)
-                );
+                $clientOptions = array_merge($this->envOptions($componentId), $options[$componentId] ?? []);
+                if (empty($clientOptions)) {
+                    $httpClient = $container->get(ClientInterface::class);
+                } else {
+                    $httpClient = $self->httpClient(
+                        $container,
+                        $container->get(HttpClientFactoryInterface::class),
+                        array_merge($options['default'] ?? [], $clientOptions)
+                    );
+                }
+                $factory = new HttpProxyClientFactory($httpClient, $container->get(NormalizerInterface::class));
 
                 if ('' !== $attribute->getResponseParser()) {
                     $factory->setRpcResponseFactory($container->get($attribute->getResponseParser()));
