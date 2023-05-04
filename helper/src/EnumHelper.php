@@ -35,11 +35,15 @@ class EnumHelper
         if (!$reflectionEnum->isBacked()) {
             throw new InvalidArgumentException("Enum $enumClass is not backed");
         }
-        if ('string' === (string) $reflectionEnum->getBackingType()) {
-            return $enumClass::tryFrom((string) $value);
+        $backingType = (string) $reflectionEnum->getBackingType();
+        if (is_string($value) && 'string' === $backingType) {
+            return $enumClass::tryFrom($value);
+        }
+        if (is_int($value) && 'int' === $backingType) {
+            return $enumClass::tryFrom($value);
         }
 
-        return $enumClass::tryFrom((int) $value);
+        return null;
     }
 
     /**

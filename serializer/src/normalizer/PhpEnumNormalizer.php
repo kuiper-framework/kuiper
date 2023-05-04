@@ -45,13 +45,11 @@ class PhpEnumNormalizer implements NormalizerInterface
         /** @var class-string<UnitEnum> $class */
         $class = (string) $className;
         if (is_a($class, BackedEnum::class, true)) {
-            if (is_string($data)) {
-                return $class::tryFrom($data) ?? EnumHelper::tryFromName($class, $data);
+            if (is_string($data) && EnumHelper::hasName($class, $data)) {
+                return EnumHelper::tryFromName($class, $data);
             }
-            if (is_int($data)) {
-                return $class::tryFrom($data);
-            }
-            throw new InvalidArgumentException('Expected string or int, got '.gettype($data));
+
+            return EnumHelper::tryFrom($class, $data);
         }
 
         return EnumHelper::tryFromName($class, $data);

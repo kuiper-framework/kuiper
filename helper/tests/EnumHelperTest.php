@@ -17,10 +17,17 @@ class EnumHelperTest extends TestCase
         $this->assertEquals(EnumGender::MALE, $ret);
     }
 
-    public function testTryFromInt()
+    public function testTryFromIntTypeError()
     {
         // $ret = EnumStatus::tryFrom("0");
         $ret = EnumHelper::tryFrom(EnumStatus::class, '0');
+        $this->assertEquals(null, $ret);
+    }
+
+    public function testTryFromInt()
+    {
+        // $ret = EnumStatus::tryFrom("0");
+        $ret = EnumHelper::tryFrom(EnumStatus::class, 0);
         $this->assertEquals(EnumStatus::WAIT, $ret);
     }
 
