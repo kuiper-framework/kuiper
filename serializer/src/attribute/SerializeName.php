@@ -15,7 +15,7 @@ namespace kuiper\serializer\attribute;
 
 use Attribute;
 
-#[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_PROPERTY)]
+#[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_PROPERTY | Attribute::TARGET_PARAMETER)]
 final class SerializeName
 {
     public function __construct(private readonly string $name)

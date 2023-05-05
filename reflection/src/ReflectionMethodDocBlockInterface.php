@@ -18,7 +18,7 @@ interface ReflectionMethodDocBlockInterface extends ReflectionDocBlockInterface
     /**
      * Parses the docblock of the method to get all parameters type.
      *
-     * @return ReflectionTypeInterface[] the key of array is parameter name
+     * @return array<string, ReflectionTypeInterface> the key of array is parameter name
      *
      * @throws exception\ClassNotFoundException
      */

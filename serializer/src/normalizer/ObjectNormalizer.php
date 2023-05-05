@@ -27,8 +27,8 @@ class ObjectNormalizer implements NormalizerInterface
      */
     public function __construct(
         private readonly ClassMetadataFactory $classMetadataFactory,
-        private readonly NormalizerInterface $serializer)
-    {
+        private readonly NormalizerInterface $serializer
+    ) {
     }
 
     /**
@@ -58,7 +58,22 @@ class ObjectNormalizer implements NormalizerInterface
         }
         $metadata = $this->classMetadataFactory->create($className);
         $class = new ReflectionClass($className);
-        $object = $class->newInstanceWithoutConstructor();
+        if ($metadata->hasConstructor()) {
+            $args = [];
+            foreach ($metadata->getConstructorArgs() as $field) {
+                foreach ([$field->getSerializeName(),
+                             Text::snakeCase($field->getSerializeName()),
+                             Text::snakeCase($field->getSerializeName(), '-'), ] as $key) {
+                    if (isset($data[$key])) {
+                        $args[$field->getName()] = $this->serializer->denormalize($data[$key], $field->getType());
+                        break;
+                    }
+                }
+            }
+            $object = $class->newInstanceArgs($args);
+        } else {
+            $object = $class->newInstanceWithoutConstructor();
+        }
         foreach ($metadata->getSetters() as $setter) {
             foreach ([$setter->getSerializeName(),
                          Text::snakeCase($setter->getSerializeName()),

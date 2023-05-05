@@ -61,7 +61,10 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
             $type = ReflectionType::fromPhpType($property->getType());
             if ($type->isUnknown()) {
                 $type = $this->parseTypeFromDocBlock(
-                    (string) $property->getDocComment(), $this->getPropertyDeclaringClass($property), 'var');
+                    (string) $property->getDocComment(),
+                    $this->getPropertyDeclaringClass($property),
+                    'var'
+                );
             }
 
             return new ReflectionPropertyDocBlock($property, $type);
@@ -75,6 +78,11 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
         }, 'method:');
     }
 
+    /**
+     * @param ReflectionMethod $method
+     *
+     * @return array<string, ReflectionTypeInterface>
+     */
     private function getParameterTypes(ReflectionMethod $method): array
     {
         /** @var ReflectionTypeInterface[] $parameterTypes */

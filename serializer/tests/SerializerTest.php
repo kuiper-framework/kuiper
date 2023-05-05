@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\serializer;
 
 use DateTime;
+use DateTimeInterface;
 use kuiper\helper\Enum;
 use kuiper\reflection\ReflectionDocBlockFactory;
 use kuiper\serializer\fixtures\Company;
@@ -23,6 +24,7 @@ use kuiper\serializer\fixtures\EnumStatus;
 use kuiper\serializer\fixtures\Gender;
 use kuiper\serializer\fixtures\Member;
 use kuiper\serializer\fixtures\Organization;
+use kuiper\serializer\fixtures\User3;
 use kuiper\serializer\normalizer\DateTimeNormalizer;
 use kuiper\serializer\normalizer\EnumNormalizer;
 use kuiper\serializer\normalizer\PhpEnumNormalizer;
@@ -37,7 +39,7 @@ class SerializerTest extends TestCase
     public function createSerializer()
     {
         return new Serializer(ReflectionDocBlockFactory::getInstance(), [
-            DateTime::class => new DateTimeNormalizer(),
+            DateTimeInterface::class => new DateTimeNormalizer(),
             Enum::class => new EnumNormalizer(),
             UnitEnum::class => new PhpEnumNormalizer(),
         ]);
@@ -183,6 +185,11 @@ class SerializerTest extends TestCase
         return $user;
     }
 
+    private function createUser3(): User3
+    {
+        return new User3('1', new DateTime(), Gender::MALE());
+    }
+
     public function testStrictType(): void
     {
         $serializer = $this->createSerializer();
@@ -208,5 +215,16 @@ class SerializerTest extends TestCase
         $this->assertEquals('{"status":"RUNNING","foo":1}', $data);
         // $this->assertEquals('', 'a');
         // $this->assertEquals('', json_encode(['status' => EnumStatus::RUNNING, 'foo' => 1], JSON_THROW_ON_ERROR));
+    }
+
+    public function testReadonlyProperty()
+    {
+        $serializer = $this->createSerializer();
+        $data = $serializer->normalize($this->createUser3());
+        // error_log(var_export([$data], true));
+        $this->assertArrayHasKey('id', $data);
+        $obj = $serializer->denormalize($data, User3::class);
+        $this->assertInstanceOf(User3::class, $obj);
+        $this->assertNotNull($obj->birthday);
     }
 }

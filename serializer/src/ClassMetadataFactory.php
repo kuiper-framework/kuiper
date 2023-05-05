@@ -22,6 +22,7 @@ use kuiper\serializer\exception\NotSerializableException;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use ReflectionParameter;
 use ReflectionProperty;
 
 class ClassMetadataFactory
@@ -47,6 +48,7 @@ class ClassMetadataFactory
         }
         $metadata = new ClassMetadata($className);
         $class = new ReflectionClass($className);
+        $this->parseConstructor($class, $metadata);
         $this->parseMethods($class, $metadata);
         $this->parseProperties($class, $metadata);
 
@@ -59,6 +61,30 @@ class ClassMetadataFactory
             unset($this->cache[$className]);
         } else {
             $this->cache = [];
+        }
+    }
+
+    private function parseConstructor(ReflectionClass $class, ClassMetadata $metadata): void
+    {
+        $reflectionMethod = $class->getConstructor();
+        if (null === $reflectionMethod) {
+            return;
+        }
+        $docBlock = $this->reflectionDocBlockFactory->createMethodDocBlock($reflectionMethod);
+        $parameterTypes = $docBlock->getParameterTypes();
+
+        foreach ($reflectionMethod->getParameters() as $parameter) {
+            $name = $parameter->getName();
+            if ($this->isIgnore($parameter)) {
+                continue;
+            }
+            $field = new Field($metadata->getClassName(), $name);
+            $field->setType($parameterTypes[$name] ?? null);
+            $serializeName = $this->getSerializeName($parameter);
+            if (null !== $serializeName) {
+                $field->setSerializeName($serializeName);
+            }
+            $metadata->addConstructorArg($field);
         }
     }
 
@@ -153,18 +179,18 @@ class ClassMetadataFactory
                     $setter->setType($field->getType());
                 }
                 $setter->setSerializeName($field->getSerializeName());
-            } else {
+            } elseif (!$property->isReadOnly()) {
                 $metadata->addSetter($field);
             }
         }
     }
 
-    protected function isIgnore(ReflectionMethod|ReflectionProperty $reflector): bool
+    protected function isIgnore(ReflectionMethod|ReflectionProperty|ReflectionParameter $reflector): bool
     {
         return count($reflector->getAttributes(SerializeIgnore::class)) > 0;
     }
 
-    protected function getSerializeName(ReflectionMethod|ReflectionProperty $reflector): ?string
+    protected function getSerializeName(ReflectionMethod|ReflectionProperty|ReflectionParameter $reflector): ?string
     {
         $attributes = $reflector->getAttributes(SerializeName::class);
         if (count($attributes) > 0) {

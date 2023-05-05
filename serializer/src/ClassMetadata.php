@@ -16,20 +16,33 @@ namespace kuiper\serializer;
 class ClassMetadata
 {
     /**
-     * @var array
+     * @var Field[]
      */
     private array $getters = [];
 
     /**
-     * @var array
+     * @var Field[]
      */
     private array $setters = [];
+
+    /**
+     * @var Field[]
+     */
+    private array $constructorArgs = [];
 
     /**
      * ClassMetadata constructor.
      */
     public function __construct(private readonly string $className)
     {
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasConstructor(): bool
+    {
+        return !empty($this->constructorArgs);
     }
 
     public function getClassName(): string
@@ -45,6 +58,11 @@ class ClassMetadata
     public function addGetter(Field $field): void
     {
         $this->getters[$field->getName()] = $field;
+    }
+
+    public function addConstructorArg(Field $field): void
+    {
+        $this->constructorArgs[$field->getName()] = $field;
     }
 
     public function getSetter(string $name): ?Field
@@ -71,5 +89,13 @@ class ClassMetadata
     public function getSetters(): array
     {
         return array_values($this->setters);
+    }
+
+    /**
+     * @return array
+     */
+    public function getConstructorArgs(): array
+    {
+        return $this->constructorArgs;
     }
 }

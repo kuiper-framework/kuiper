@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace kuiper\serializer;
 
+use InvalidArgumentException;
 use kuiper\reflection\ReflectionTypeInterface;
 use ReflectionException;
 use ReflectionProperty;
@@ -45,8 +46,8 @@ final class Field implements Serializable
      */
     public function __construct(
         private readonly string $className,
-        private readonly string $name)
-    {
+        private readonly string $name
+    ) {
     }
 
     public function getName(): string
@@ -151,6 +152,9 @@ final class Field implements Serializable
                 };
             } else {
                 $property = new ReflectionProperty($this->className, $this->name);
+                if ($property->isReadOnly()) {
+                    throw new InvalidArgumentException("Cannot set read-only property {$this->className}::{$this->name}");
+                }
                 $this->setFunction = static function ($object, $value) use ($property): void {
                     $property->setValue($object, $value);
                 };
