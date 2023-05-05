@@ -198,11 +198,13 @@ class ServerConfiguration implements DefinitionConfiguration
             ServerSetting::OPEN_EOF_CHECK => false,
             ServerSetting::OPEN_EOF_SPLIT => false,
         ];
+        $commonSettings = [
+            ServerSetting::DISPATCH_MODE => 2,
+            ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
+        ];
         $mainSettings = [
             ServerSetting::WORKER_NUM => env('SERVER_WORKER_NUM'),
             ServerSetting::TASK_WORKER_NUM => env('SERVER_TASK_WORKER_NUM'),
-            ServerSetting::DISPATCH_MODE => 2,
-            ServerSetting::PACKAGE_MAX_LENGTH => 10485760,
             ServerSetting::DAEMONIZE => false,
         ];
         $settings = array_merge($mainSettings, $config->get('application.server.settings', $config->get('application.swoole', [])));
@@ -222,6 +224,7 @@ class ServerConfiguration implements DefinitionConfiguration
             if (0 === count($ports)) {
                 $portSettings += $settings;
             }
+            $portSettings += $commonSettings;
             $serverType = isset($portConfig['protocol']) ? ServerType::from($portConfig['protocol']) : ServerType::HTTP;
             if (ServerType::TCP === $serverType) {
                 $portSettings += $tcpSettings;
