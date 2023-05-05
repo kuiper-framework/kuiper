@@ -94,6 +94,10 @@ class ServerConfiguration implements DefinitionConfiguration
                     TaskEventListener::class,
                     ReopenLogFile::class,
                 ],
+            ],
+        ]);
+        $config->mergeIfNotExists([
+            'application' => [
                 'listeners' => [
                     ReceiveEvent::class => RoutedTcpReceiveEventListener::class,
                     RequestEvent::class => RoutedHttpRequestEventListener::class,
