@@ -94,7 +94,7 @@ class RpcResponseNormalizer
      */
     private function getMethodReturnTypes(RpcMethodInterface $method): array
     {
-        $key = (string) $method;
+        $key = $method->getTargetClass().'::'.$method->getMethodName();
         if (isset($this->cachedTypes[$key])) {
             return $this->cachedTypes[$key];
         }

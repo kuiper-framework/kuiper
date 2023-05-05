@@ -31,6 +31,8 @@ final class Field implements Serializable
 
     private ?string $setter = null;
 
+    private mixed $defaultValue = null;
+
     /**
      * @var callable|null
      */
@@ -88,6 +90,22 @@ final class Field implements Serializable
     public function setSerializeName(string $serializeName): void
     {
         $this->serializeName = $serializeName;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDefaultValue(): mixed
+    {
+        return $this->defaultValue;
+    }
+
+    /**
+     * @param mixed $defaultValue
+     */
+    public function setDefaultValue(mixed $defaultValue): void
+    {
+        $this->defaultValue = $defaultValue;
     }
 
     public function setPublic(bool $public): void

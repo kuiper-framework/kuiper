@@ -84,6 +84,9 @@ class ClassMetadataFactory
             if (null !== $serializeName) {
                 $field->setSerializeName($serializeName);
             }
+            if ($parameter->isDefaultValueAvailable()) {
+                $field->setDefaultValue($parameter->getDefaultValue());
+            }
             $metadata->addConstructorArg($field);
         }
     }

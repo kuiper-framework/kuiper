@@ -61,6 +61,7 @@ class ObjectNormalizer implements NormalizerInterface
         if ($metadata->hasConstructor()) {
             $args = [];
             foreach ($metadata->getConstructorArgs() as $field) {
+                $args[$field->getName()] = $field->getDefaultValue();
                 foreach ([$field->getSerializeName(),
                              Text::snakeCase($field->getSerializeName()),
                              Text::snakeCase($field->getSerializeName(), '-'), ] as $key) {
