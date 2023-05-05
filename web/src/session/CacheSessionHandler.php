@@ -34,10 +34,10 @@ class CacheSessionHandler implements SessionHandlerInterface, SessionIdInterface
 
     public function __construct(
         private readonly CacheItemPoolInterface $cache,
-        array $options = [])
-    {
+        array $options = []
+    ) {
         $this->prefix = $options['prefix'] ?? 'session_';
-        $this->lifetime = $options['lifetime'] ?? 3600;
+        $this->lifetime = (int) ($options['lifetime'] ?? 3600);
     }
 
     /**

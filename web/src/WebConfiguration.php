@@ -111,7 +111,7 @@ class WebConfiguration implements DefinitionConfiguration
                         'enabled' => 'true' === env('WEB_SESSION_ENABLED'),
                         'prefix' => env('WEB_SESSION_PREFIX'),
                         'cookie_name' => env('WEB_SESSION_COOKIE_NAME'),
-                        'cookie_lifetime' => env('WEB_SESSION_COOKIE_LIFETIME'),
+                        'cookie_lifetime' => (int) env('WEB_SESSION_COOKIE_LIFETIME', '1800'),
                     ],
                 ],
                 'logging' => [
@@ -133,10 +133,11 @@ class WebConfiguration implements DefinitionConfiguration
     }
 
     #[Bean]
-    public function accessLog(RequestLogFormatterInterface $requestLogFormatter,
-                              LoggerFactoryInterface $loggerFactory,
-                              #[Inject('application.web.log_sample_rate')] float $sampleRate): AccessLog
-    {
+    public function accessLog(
+        RequestLogFormatterInterface $requestLogFormatter,
+        LoggerFactoryInterface $loggerFactory,
+        #[Inject('application.web.log_sample_rate')] float $sampleRate
+    ): AccessLog {
         $log = new AccessLog($requestLogFormatter, null, $sampleRate);
         $log->setLogger($loggerFactory->create(AccessLog::class));
 
@@ -176,8 +177,8 @@ class WebConfiguration implements DefinitionConfiguration
     public function annotationProcessor(
         ContainerInterface $container,
         App $app,
-        #[Inject('application.web')] ?array $options): AttributeProcessorInterface
-    {
+        #[Inject('application.web')] ?array $options
+    ): AttributeProcessorInterface {
         return new AttributeProcessor(
             $container,
             $app,
@@ -192,8 +193,8 @@ class WebConfiguration implements DefinitionConfiguration
         App $app,
         LoggerFactoryInterface $loggerFactory,
         ErrorHandlerInterface $defaultErrorHandler,
-        #[Inject('application.web.error')] ?array $options): ErrorMiddleware
-    {
+        #[Inject('application.web.error')] ?array $options
+    ): ErrorMiddleware {
         $errorMiddleware = new ErrorMiddleware(
             $app->getCallableResolver(),
             $app->getResponseFactory(),
@@ -236,13 +237,17 @@ class WebConfiguration implements DefinitionConfiguration
         LoggerFactoryInterface $loggerFactory,
         ErrorRendererInterface $logErrorRenderer,
         #[Inject('webErrorRenderers')] array $errorRenderers,
-        #[Inject('application.web.error.include_stacktrace')] ?string $includeStacktrace): ErrorHandlerInterface
-    {
+        #[Inject('application.web.error.include_stacktrace')] ?string $includeStacktrace
+    ): ErrorHandlerInterface {
         $logger = $loggerFactory->create(ErrorHandler::class);
 
         return new ErrorHandler(
-            $responseFactory, $errorRenderers, $logErrorRenderer, $logger,
-            includeStacktraceStrategy: $includeStacktrace ?? IncludeStacktrace::NEVER);
+            $responseFactory,
+            $errorRenderers,
+            $logErrorRenderer,
+            $logger,
+            includeStacktraceStrategy: $includeStacktrace ?? IncludeStacktrace::NEVER
+        );
     }
 
     #[Bean]
@@ -287,8 +292,8 @@ class WebConfiguration implements DefinitionConfiguration
     #[Bean]
     public function sessionFactory(
         CacheItemPoolInterface $cache,
-        #[Inject('application.web.session')] ?array $sessionConfig): SessionFactoryInterface
-    {
+        #[Inject('application.web.session')] ?array $sessionConfig
+    ): SessionFactoryInterface {
         $sessionConfig = ($sessionConfig ?? []) + [
                 'auto_start' => true,
             ];
@@ -299,8 +304,8 @@ class WebConfiguration implements DefinitionConfiguration
     #[Bean]
     public function loginUrlBuilder(
         #[Inject('application.web.login.url')] ?string $loginUrl,
-        #[Inject('application.web.login.redirect_param')] ?string $redirectParam): LoginUrlBuilderInterface
-    {
+        #[Inject('application.web.login.redirect_param')] ?string $redirectParam
+    ): LoginUrlBuilderInterface {
         return new DefaultLoginUrlBuilder($loginUrl ?? '/login', $redirectParam ?? 'redirect');
     }
 
