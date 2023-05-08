@@ -17,6 +17,16 @@ use kuiper\reflection\ReflectionType;
 
 class MixedType extends ReflectionType
 {
+    public function allowsNull(): bool
+    {
+        return true;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getName();
+    }
+
     public function getName(): string
     {
         return 'mixed';

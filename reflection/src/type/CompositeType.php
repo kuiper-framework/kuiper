@@ -23,7 +23,14 @@ class CompositeType extends ReflectionType
      */
     public function __construct(private readonly array $types)
     {
-        parent::__construct(false);
+        $allowsNull = false;
+        foreach ($this->types as $type) {
+            if ($type instanceof NullType) {
+                $allowsNull = true;
+                break;
+            }
+        }
+        parent::__construct($allowsNull);
     }
 
     public static function create(array $types): ReflectionTypeInterface

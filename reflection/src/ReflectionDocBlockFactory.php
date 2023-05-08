@@ -184,7 +184,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
                 return new ArrayType($valueType, $type->getDimension(), $type->allowsNull());
             }
             if ($type instanceof MapType) {
-                return new MapType($type->getKeyType(), $valueType);
+                return new MapType($type->getKeyType(), $valueType, $type->allowsNull());
             }
         }
 
@@ -194,7 +194,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
                 $types[] = $this->resolveFqcn($subType, $declaringClass);
             }
 
-            return new CompositeType($types);
+            return CompositeType::create($types);
         }
 
         if ($type->isClass()) {
@@ -204,7 +204,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
                     ->resolve($name, $declaringClass->getNamespaceName());
                 $this->assertClassExists($fqcn);
 
-                return new ClassType($fqcn);
+                return new ClassType($fqcn, $type->allowsNull());
             }
 
             $this->assertClassExists($name);
