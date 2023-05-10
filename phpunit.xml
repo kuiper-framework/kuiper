@@ -11,8 +11,14 @@
            tests/ folder: phpunit -c <filename> ...
            Example: phpunit -c mysqlconf.xml AllTests
 -->
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" backupGlobals="false" colors="true" processIsolation="false" stopOnFailure="false" bootstrap="vendor/autoload.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd" cacheDirectory=".phpunit.cache" backupStaticProperties="false">
-  <coverage>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" backupGlobals="false" colors="true" processIsolation="false" stopOnFailure="false" bootstrap="vendor/autoload.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd" cacheDirectory=".phpunit.cache" backupStaticProperties="false">
+  <coverage/>
+  <testsuites>
+    <testsuite name="default">
+      <directory suffix="Test.php">./*/tests</directory>
+    </testsuite>
+  </testsuites>
+  <source>
     <include>
       <directory suffix=".php">annotations/src/</directory>
       <directory suffix=".php">boot/src/</directory>
@@ -25,10 +31,5 @@
       <directory suffix=".php">serializer/src/</directory>
       <directory suffix=".php">web/src/</directory>
     </include>
-  </coverage>
-  <testsuites>
-    <testsuite name="default">
-      <directory suffix="Test.php">./*/tests</directory>
-    </testsuite>
-  </testsuites>
+  </source>
 </phpunit>

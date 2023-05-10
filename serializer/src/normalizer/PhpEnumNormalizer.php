@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace kuiper\serializer\normalizer;
 
-use BackedEnum;
 use InvalidArgumentException;
 use kuiper\helper\EnumHelper;
 use kuiper\reflection\ReflectionTypeInterface;
@@ -27,9 +26,6 @@ class PhpEnumNormalizer implements NormalizerInterface
      */
     public function normalize(mixed $object): mixed
     {
-        if ($object instanceof BackedEnum) {
-            return $object->value;
-        }
         if ($object instanceof UnitEnum) {
             return $object->name;
         }
@@ -44,14 +40,10 @@ class PhpEnumNormalizer implements NormalizerInterface
     {
         /** @var class-string<UnitEnum> $class */
         $class = (string) $className;
-        if (is_a($class, BackedEnum::class, true)) {
-            if (is_string($data) && EnumHelper::hasName($class, $data)) {
-                return EnumHelper::tryFromName($class, $data);
-            }
-
-            return EnumHelper::tryFrom($class, $data);
+        if (is_string($data)) {
+            return EnumHelper::tryFromName($class, $data) ?? EnumHelper::tryFrom($class, $data);
         }
 
-        return EnumHelper::tryFromName($class, $data);
+        return EnumHelper::tryFrom($class, $data);
     }
 }
