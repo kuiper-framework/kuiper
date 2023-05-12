@@ -56,7 +56,7 @@ interface DriverInterface
      *
      * @return bool
      */
-    public function clear(string $key = null);
+    public function clear(string $key = null): bool;
 
     /**
      * Remove any expired code from the cache. For some drivers this can just return true, as their underlying engines
@@ -67,5 +67,5 @@ interface DriverInterface
      *
      * @return bool
      */
-    public function purge();
+    public function purge(): bool;
 }

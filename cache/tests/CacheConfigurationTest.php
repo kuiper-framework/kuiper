@@ -16,7 +16,6 @@ namespace kuiper\cache;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 use Redis;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 class CacheConfigurationTest extends CacheTestCase
 {
@@ -48,12 +47,6 @@ class CacheConfigurationTest extends CacheTestCase
         $item->set((object) ['a' => 1]);
         $cache->save($item);
         $this->assertTrue((bool) $container->get(Redis::class)->exists('test:foo'));
-    }
-
-    public function testCacheUsingSymfony(): void
-    {
-        $cache = $this->createContainer()->get(CacheItemPoolInterface::class);
-        $this->assertInstanceOf(AdapterInterface::class, $cache);
     }
 
     public function testSimpleCache(): void

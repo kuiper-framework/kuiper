@@ -64,7 +64,7 @@ class RedisDriver extends AbstractDriver
         }
     }
 
-    public function clear(string $key = null)
+    public function clear(string $key = null): bool
     {
         if (is_null($key)) {
             return true;
@@ -82,7 +82,7 @@ class RedisDriver extends AbstractDriver
         return true;
     }
 
-    public function purge()
+    public function purge(): bool
     {
         return true;
     }

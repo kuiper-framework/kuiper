@@ -85,7 +85,7 @@ class Ephemeral extends AbstractDriver
         return true;
     }
 
-    public function clear(string $key = null)
+    public function clear(string $key = null): bool
     {
         if (!isset($key)) {
             $this->store = [];
@@ -96,6 +96,8 @@ class Ephemeral extends AbstractDriver
                 }
             }
         }
+
+        return true;
     }
 
     private function currentTime(): int
@@ -103,7 +105,7 @@ class Ephemeral extends AbstractDriver
         return call_user_func($this->timeFactory);
     }
 
-    public function purge()
+    public function purge(): bool
     {
         $count = count($this->store);
         $now = $this->currentTime();
@@ -117,5 +119,7 @@ class Ephemeral extends AbstractDriver
         if ($count > $this->maxItems) {
             $this->store = array_slice($this->store, -1 * (int) ($this->maxItems * $this->fillRate));
         }
+
+        return true;
     }
 }

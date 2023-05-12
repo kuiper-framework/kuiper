@@ -77,12 +77,12 @@ class Composite extends AbstractDriver
         return $this->actOnAll('storeData', [$key, $data, $expiration]);
     }
 
-    public function clear(string $key = null)
+    public function clear(string $key = null): bool
     {
         return $this->actOnAll('clear', [$key]);
     }
 
-    public function purge()
+    public function purge(): bool
     {
         return $this->actOnAll('purge');
     }

@@ -22,6 +22,7 @@ use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\core\JsonRpcRequestInterface;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\rpc\ErrorHandlerInterface;
+use kuiper\rpc\exception\ServerException;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponse;
 use kuiper\rpc\RpcResponseInterface;
@@ -56,7 +57,7 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
 
     public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface
     {
-        if ($error instanceof InvalidArgumentException) {
+        if ($error instanceof InvalidArgumentException || $error instanceof ServerException) {
             $this->logger->info(sprintf(
                 'process %s#%s failed: %s',
                 $request->getRpcMethod()->getTargetClass(),
@@ -65,7 +66,7 @@ class ErrorHandler implements InvalidRequestHandlerInterface, ErrorHandlerInterf
             ));
         } else {
             $this->logger->error(sprintf(
-                'process %s#%s failed: %s',
+                'process %s#%s failed: Uncaught exception %s',
                 $request->getRpcMethod()->getTargetClass(),
                 $request->getRpcMethod()->getMethodName(),
                 $error

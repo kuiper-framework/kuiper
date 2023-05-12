@@ -18,6 +18,7 @@ use InvalidArgumentException;
 use function kuiper\helper\describe_error;
 
 use kuiper\rpc\ErrorHandlerInterface;
+use kuiper\rpc\exception\ServerException;
 use kuiper\rpc\RpcRequestInterface;
 use kuiper\rpc\RpcResponseInterface;
 use kuiper\tars\client\TarsResponse;
@@ -39,13 +40,20 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
 
     public function handle(RpcRequestInterface $request, Throwable $error): RpcResponseInterface
     {
-        if ($error instanceof InvalidArgumentException) {
-            $this->logger->info(sprintf('process %s#%s failed: %s',
-                $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(),
-                describe_error($error)));
+        if ($error instanceof InvalidArgumentException || $error instanceof ServerException) {
+            $this->logger->info(sprintf(
+                'process %s#%s failed: %s',
+                $request->getRpcMethod()->getTargetClass(),
+                $request->getRpcMethod()->getMethodName(),
+                describe_error($error)
+            ));
         } else {
-            $this->logger->error(sprintf('process %s#%s failed: %s',
-                $request->getRpcMethod()->getTargetClass(), $request->getRpcMethod()->getMethodName(), $error));
+            $this->logger->error(sprintf(
+                'process %s#%s failed:  %s',
+                $request->getRpcMethod()->getTargetClass(),
+                $request->getRpcMethod()->getMethodName(),
+                $error
+            ));
         }
         /** @var TarsRequestInterface|RpcRequestInterface $request */
         $packet = ResponsePacket::createFromRequest($request);
