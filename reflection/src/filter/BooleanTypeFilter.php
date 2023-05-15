@@ -24,6 +24,10 @@ class BooleanTypeFilter implements TypeFilterInterface
 
     public function sanitize(mixed $value): bool
     {
+        if (is_bool($value)) {
+            return $value;
+        }
+
         return filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 }
