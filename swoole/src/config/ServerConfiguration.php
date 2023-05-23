@@ -205,6 +205,7 @@ class ServerConfiguration implements DefinitionConfiguration
         $mainSettings = [
             ServerSetting::WORKER_NUM => env('SERVER_WORKER_NUM'),
             ServerSetting::TASK_WORKER_NUM => env('SERVER_TASK_WORKER_NUM'),
+            ServerSetting::MAX_REQUEST => env('SERVER_MAX_REQUEST'),
             ServerSetting::DAEMONIZE => false,
         ];
         $settings = array_merge($mainSettings, $config->get('application.server.settings', $config->get('application.swoole', [])));

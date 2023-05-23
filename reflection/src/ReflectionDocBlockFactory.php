@@ -64,7 +64,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
                     (string) $property->getDocComment(),
                     $this->getPropertyDeclaringClass($property),
                     'var'
-                );
+                ) ?? $type;
             }
 
             return new ReflectionPropertyDocBlock($property, $type);
@@ -98,7 +98,10 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
                 }
                 if ($parameterTypes[$name]->isUnknown()) {
                     // if type is unknown, parse from doc block param tag
-                    $parameterTypes[$name] = $this->parseType($matches[1][$index], $declaringClass);
+                    $docType = $this->parseType($matches[1][$index], $declaringClass);
+                    if (null !== $docType) {
+                        $parameterTypes[$name] = $docType;
+                    }
                 }
             }
         }
@@ -114,7 +117,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
         }
         [$docBlock, $declaringClass] = $this->getMethodDocComment($method);
         if ('' !== $docBlock && preg_match(self::getDocTagRegexp('return'), $docBlock)) {
-            return $this->parseTypeFromDocBlock($docBlock, $declaringClass, 'return');
+            return $this->parseTypeFromDocBlock($docBlock, $declaringClass, 'return') ?? $type;
         }
 
         return $type;
@@ -131,13 +134,13 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
         return self::$CACHE[$className][$key];
     }
 
-    private function parseTypeFromDocBlock(string $docBlock, ReflectionClass $declaringClass, string $annotationTag): ReflectionTypeInterface
+    private function parseTypeFromDocBlock(string $docBlock, ReflectionClass $declaringClass, string $annotationTag): ?ReflectionTypeInterface
     {
         if ('' !== $docBlock && preg_match(self::getDocTagRegexp($annotationTag), $docBlock, $matches)) {
             return $this->parseType($matches[1], $declaringClass);
         }
 
-        return ReflectionType::parse('mixed');
+        return null;
     }
 
     private static function getDocTagRegexp(string $annotationTag): string
@@ -152,7 +155,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
     /**
      * Parses the type.
      */
-    private function parseType(string $type, ReflectionClass $declaringClass): ReflectionTypeInterface
+    private function parseType(string $type, ReflectionClass $declaringClass): ?ReflectionTypeInterface
     {
         if (empty($type)) {
             throw new InvalidArgumentException('Type cannot be empty');
@@ -166,7 +169,7 @@ class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
         } catch (ReflectionException $e) {
             trigger_error('Parse type error: '.$e->getMessage());
 
-            return ReflectionType::parse('mixed');
+            return null;
         }
     }
 
