@@ -261,6 +261,16 @@ parameters:
 			path: swoole/src/pool/SingleConnectionPool.php
 
 		-
+			message: "#^Parameter \\#1 \\$requestEvent of class kuiper\\\\swoole\\\\event\\\\RequestEndEvent constructor expects kuiper\\\\swoole\\\\event\\\\RequestEventInterface, kuiper\\\\swoole\\\\event\\\\AbstractServerEvent given\\.$#"
+			count: 1
+			path: swoole/src/server/AbstractServer.php
+
+		-
+			message: "#^Parameter \\#1 \\$requestEvent of class kuiper\\\\swoole\\\\event\\\\RequestStartEvent constructor expects kuiper\\\\swoole\\\\event\\\\RequestEventInterface, kuiper\\\\swoole\\\\event\\\\AbstractServerEvent given\\.$#"
+			count: 1
+			path: swoole/src/server/AbstractServer.php
+
+		-
 			message: "#^Negated boolean expression is always true\\.$#"
 			count: 1
 			path: swoole/src/server/workers/ForkedWorkerManager.php

@@ -22,14 +22,15 @@ class EnumHelper
     /**
      * @template T
      *
-     * @param class-string<T> $enumClass
-     * @param string|int      $value
+     * @param class-string $enumClass
+     * @param string|int   $value
+     * @param T|null       $default
      *
-     * @return T
+     * @return T|null
      *
      * @throws ReflectionException
      */
-    public static function tryFrom(string $enumClass, string|int $value): mixed
+    public static function tryFrom(string $enumClass, string|int $value, $default = null)
     {
         $reflectionEnum = new ReflectionEnum($enumClass);
         if (!$reflectionEnum->isBacked()) {
@@ -43,7 +44,7 @@ class EnumHelper
             return $enumClass::tryFrom($value);
         }
 
-        return null;
+        return $default;
     }
 
     /**
@@ -69,21 +70,22 @@ class EnumHelper
     /**
      * @template T
      *
-     * @param class-string<T> $enumClass
-     * @param string          $name
+     * @param class-string $enumClass
+     * @param string       $name
+     * @param T|null       $default
      *
      * @return T|null
      *
      * @throws ReflectionException
      */
-    public static function tryFromName(string $enumClass, string $name)
+    public static function tryFromName(string $enumClass, string $name, $default = null)
     {
         $reflectionEnum = new ReflectionEnum($enumClass);
         if ($reflectionEnum->hasCase($name)) {
             return $reflectionEnum->getCase($name)->getValue();
         }
 
-        return null;
+        return $default;
     }
 
     public static function hasName(string $enumClass, string $name): bool
