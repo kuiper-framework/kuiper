@@ -15,7 +15,7 @@ namespace kuiper\http\client\attribute;
 
 use Attribute;
 
-#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::TARGET_PARAMETER)]
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::TARGET_PARAMETER | Attribute::IS_REPEATABLE)]
 class HttpHeader
 {
     public function __construct(private readonly string $name, private readonly string $value = '')
