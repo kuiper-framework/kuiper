@@ -49,12 +49,15 @@ class LoggerConfiguration implements DefinitionConfiguration
                 $name = $definition->getName().'.logger';
                 $class = $definition->getClassName();
                 $loggerDefinition = new FactoryDefinition(
-                    $name, static function (LoggerFactoryInterface $loggerFactory) use ($class): LoggerInterface {
+                    $name,
+                    static function (LoggerFactoryInterface $loggerFactory) use ($class): LoggerInterface {
                         return $loggerFactory->create($class);
-                    });
+                    }
+                );
 
                 return [$loggerDefinition];
-            }));
+            }
+        ));
 
         return [
             LoggerInterface::class => factory(static function (LoggerFactoryInterface $loggerFactory): LoggerInterface {
@@ -77,6 +80,9 @@ class LoggerConfiguration implements DefinitionConfiguration
                             'level' => env('LOGGING_LEVEL', 'info'),
                             'log_file' => env('LOGGING_LOG_FILE', 'default.log'),
                             'error_log_file' => env('LOGGING_ERROR_LOG_FILE', 'error.log'),
+                            'processors' => [
+                                CoroutineIdProcessor::class,
+                            ],
                         ],
                     ],
                 ],
@@ -138,9 +144,7 @@ class LoggerConfiguration implements DefinitionConfiguration
         return [
             'name' => $name,
             'handlers' => $handlers,
-            'processors' => [
-                CoroutineIdProcessor::class,
-            ],
+            'processors' => $rootLoggerConfig['processors'] ?? [],
         ];
     }
 
