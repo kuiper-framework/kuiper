@@ -47,6 +47,7 @@ class HttpClientConfiguration implements DefinitionConfiguration
                 'application' => [
                     'http_client' => [
                         'default' => [
+                            'timeout' => (float) env('HTTP_CLIENT_TIMEOUT', '60.0'),
                             'logging' => 'true' === env('HTTP_CLIENT_LOGGING'),
                             'log_format' => env('HTTP_CLIENT_LOG_FORMAT'),
                             'retry' => (int) env('HTTP_CLIENT_RETRY', '0'),
