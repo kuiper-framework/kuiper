@@ -296,6 +296,7 @@ class WebConfiguration implements DefinitionConfiguration
     ): SessionFactoryInterface {
         $sessionConfig = ($sessionConfig ?? []) + [
                 'auto_start' => true,
+                'lifetime' => $sessionConfig['cookie_lifetime'] ?? null,
             ];
 
         return new CacheStoreSessionFactory(new CacheSessionHandler($cache, $sessionConfig), $sessionConfig);
