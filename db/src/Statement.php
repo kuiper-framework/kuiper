@@ -59,8 +59,8 @@ class Statement implements StatementInterface
     public function __construct(
         private readonly ConnectionPoolInterface $pool,
         private readonly QueryInterface $query,
-        private readonly EventDispatcherInterface $eventDispatcher)
-    {
+        private readonly EventDispatcherInterface $eventDispatcher
+    ) {
         $this->startTime = microtime(true);
     }
 
@@ -421,7 +421,11 @@ class Statement implements StatementInterface
     {
         $this->checkPdoStatement();
 
-        return $this->pdoStatement->fetch($fetchStyle);
+        if (isset($fetchStyle)) {
+            return $this->pdoStatement->fetch($fetchStyle);
+        }
+
+        return $this->pdoStatement->fetch();
     }
 
     public function fetchColumn(int $columnNumber = 0): mixed
