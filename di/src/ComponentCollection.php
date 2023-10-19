@@ -34,7 +34,7 @@ final class ComponentCollection
      */
     public static function register(Component $annotation): void
     {
-        self::$COMPONENTS[get_class($annotation)][] = $annotation;
+        self::$COMPONENTS[get_class($annotation)][$annotation->getComponentId()] = $annotation;
     }
 
     /**
