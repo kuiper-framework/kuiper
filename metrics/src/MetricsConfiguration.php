@@ -50,9 +50,9 @@ class MetricsConfiguration implements DefinitionConfiguration, Bootstrap
                 'metrics' => [
                     'statsd' => [
                         'enabled' => 'true' === env('METRICS_STATSD_ENABLED'),
-                        'host' => env('METRIC_STATSD_HOST'),
-                        'port' => (int) env('METRIC_STATSD_PORT', '8125'),
-                        'protocol' => env('METRIC_STATSD_PROTOCOL'),
+                        'host' => env('METRICS_STATSD_HOST'),
+                        'port' => (int) env('METRICS_STATSD_PORT', '8125'),
+                        'protocol' => env('METRICS_STATSD_PROTOCOL'),
                     ],
                     'prometheus' => [
                         'enabled' => 'true' === env('METRICS_PROMETHEUS_ENABLED'),
