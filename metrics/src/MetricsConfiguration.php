@@ -86,8 +86,6 @@ class MetricsConfiguration implements DefinitionConfiguration, Bootstrap
     )]
     public function statsdMetricRegistry(#[Inject('statsdMetricFilters')] array $metricFilters): MetricRegistryInterface
     {
-        var_export($metricFilters);
-
         return new MetricRegistry($metricFilters);
     }
 
