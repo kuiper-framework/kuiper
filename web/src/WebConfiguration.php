@@ -93,6 +93,7 @@ class WebConfiguration implements DefinitionConfiguration
                     'namespace' => env('WEB_NAMESPACE'),
                     'context_url' => env('WEB_CONTEXT_URL', ''),
                     'health_check_enabled' => 'true' === env('WEB_HEALTH_CHECK_ENABLED'),
+                    'access_log_enabled' => 'true' === env('WEB_ACCESS_LOG_ENABLED', 'true'),
                     'error' => [
                         'display' => 'true' === env('WEB_ERROR_DISPLAY'),
                         'logging' => 'true' === env('WEB_ERROR_LOGGING', 'true'),
@@ -136,7 +137,8 @@ class WebConfiguration implements DefinitionConfiguration
     public function accessLog(
         RequestLogFormatterInterface $requestLogFormatter,
         LoggerFactoryInterface $loggerFactory,
-        #[Inject('application.web.log_sample_rate')] float $sampleRate
+        #[Inject('application.web.log_sample_rate')]
+        float $sampleRate
     ): AccessLog {
         $log = new AccessLog($requestLogFormatter, null, $sampleRate);
         $log->setLogger($loggerFactory->create(AccessLog::class));
@@ -177,7 +179,8 @@ class WebConfiguration implements DefinitionConfiguration
     public function annotationProcessor(
         ContainerInterface $container,
         App $app,
-        #[Inject('application.web')] ?array $options
+        #[Inject('application.web')]
+        ?array $options
     ): AttributeProcessorInterface {
         return new AttributeProcessor(
             $container,
@@ -193,7 +196,8 @@ class WebConfiguration implements DefinitionConfiguration
         App $app,
         LoggerFactoryInterface $loggerFactory,
         ErrorHandlerInterface $defaultErrorHandler,
-        #[Inject('application.web.error')] ?array $options
+        #[Inject('application.web.error')]
+        ?array $options
     ): ErrorMiddleware {
         $errorMiddleware = new ErrorMiddleware(
             $app->getCallableResolver(),
@@ -236,8 +240,10 @@ class WebConfiguration implements DefinitionConfiguration
         ResponseFactoryInterface $responseFactory,
         LoggerFactoryInterface $loggerFactory,
         ErrorRendererInterface $logErrorRenderer,
-        #[Inject('webErrorRenderers')] array $errorRenderers,
-        #[Inject('application.web.error.include_stacktrace')] ?string $includeStacktrace
+        #[Inject('webErrorRenderers')]
+        array $errorRenderers,
+        #[Inject('application.web.error.include_stacktrace')]
+        ?string $includeStacktrace
     ): ErrorHandlerInterface {
         $logger = $loggerFactory->create(ErrorHandler::class);
 
@@ -292,7 +298,8 @@ class WebConfiguration implements DefinitionConfiguration
     #[Bean]
     public function sessionFactory(
         CacheItemPoolInterface $cache,
-        #[Inject('application.web.session')] ?array $sessionConfig
+        #[Inject('application.web.session')]
+        ?array $sessionConfig
     ): SessionFactoryInterface {
         $sessionConfig = ($sessionConfig ?? []) + [
                 'auto_start' => true,
@@ -304,8 +311,10 @@ class WebConfiguration implements DefinitionConfiguration
 
     #[Bean]
     public function loginUrlBuilder(
-        #[Inject('application.web.login.url')] ?string $loginUrl,
-        #[Inject('application.web.login.redirect_param')] ?string $redirectParam
+        #[Inject('application.web.login.url')]
+        ?string $loginUrl,
+        #[Inject('application.web.login.redirect_param')]
+        ?string $redirectParam
     ): LoginUrlBuilderInterface {
         return new DefaultLoginUrlBuilder($loginUrl ?? '/login', $redirectParam ?? 'redirect');
     }
@@ -323,7 +332,8 @@ class WebConfiguration implements DefinitionConfiguration
         if (!in_array(ErrorMiddleware::class, $middlewares, true)) {
             $middlewares[] = ErrorMiddleware::class;
         }
-        if (!in_array(AccessLog::class, $middlewares, true)) {
+        if (!in_array(AccessLog::class, $middlewares, true)
+            && $config->getBool('application.web.access_log_enabled')) {
             if (in_array(HealthyStatus::class, $middlewares, true)) {
                 $pos = array_search(HealthyStatus::class, $middlewares, true);
                 array_splice($middlewares, $pos + 1, 0, AccessLog::class);
