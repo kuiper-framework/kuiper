@@ -27,7 +27,7 @@ use ReflectionProperty;
 
 class ReflectionDocBlockFactory implements ReflectionDocBlockFactoryInterface
 {
-    private const METHOD_PARAM_REGEX = '/@param\s+(\S+)\s+\$([a-zA-Z_\x7f-\xff][a-zA-Z\d_\x7f-\xff]*)/';
+    private const METHOD_PARAM_REGEX = '/@param\s+(.*?)\s+\$([a-zA-Z_\x7f-\xff][a-zA-Z\d_\x7f-\xff]*)/';
 
     /**
      * @var array
