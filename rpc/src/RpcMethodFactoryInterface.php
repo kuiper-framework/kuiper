@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace kuiper\rpc;
 
 use kuiper\rpc\exception\InvalidMethodException;
+use kuiper\rpc\exception\InvalidParameterException;
 
 interface RpcMethodFactoryInterface
 {
@@ -24,7 +25,8 @@ interface RpcMethodFactoryInterface
      *
      * @return RpcMethodInterface
      *
-     * @throws InvalidMethodException if service or method does not exists or annotation not valid
+     * @throws InvalidMethodException    if service or method does not exists or annotation not valid
+     * @throws InvalidParameterException if method parameter not valid
      */
     public function create(object|string $service, string $method, array $args): RpcMethodInterface;
 }

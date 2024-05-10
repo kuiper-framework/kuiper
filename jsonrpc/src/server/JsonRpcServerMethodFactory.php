@@ -17,6 +17,7 @@ use Exception;
 use kuiper\reflection\exception\ClassNotFoundException;
 use kuiper\reflection\ReflectionDocBlockFactoryInterface;
 use kuiper\rpc\exception\InvalidMethodException;
+use kuiper\rpc\exception\InvalidParameterException;
 use kuiper\rpc\RpcMethod;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
@@ -52,30 +53,34 @@ class JsonRpcServerMethodFactory implements RpcMethodFactoryInterface
             $serviceName = str_replace('\\', '.', $serviceName);
         }
         if (!isset($this->services[$serviceName])) {
-            throw new InvalidMethodException("jsonrpc service $service not found");
+            throw new InvalidMethodException("service $serviceName not found");
         }
         $serviceObject = $this->services[$serviceName];
         if (!$serviceObject->hasMethod($method)) {
-            throw new InvalidMethodException("jsonrpc method $service.$method not found");
+            throw new InvalidMethodException("method $service.$method not found");
         }
-        try {
-            $arguments = $this->resolveParams($serviceObject, $method, $args);
-        } catch (Exception $e) {
-            throw new InvalidMethodException("create method $service.$method parameters fail: ".$e->getMessage());
-        }
+        $arguments = $this->resolveParams($serviceObject, $method, $args);
 
         return new RpcMethod($serviceObject->getService(), $serviceObject->getServiceLocator(), $method, $arguments);
     }
 
     private function resolveParams(Service $service, string $methodName, array $params): array
     {
-        $paramTypes = $this->getParameterTypes($service, $methodName);
+        try {
+            $paramTypes = $this->getParameterTypes($service, $methodName);
+        } catch (Exception $e) {
+            throw new InvalidMethodException("method {$service->getServiceName()}.$methodName resolve fail", 0, $e);
+        }
         $ret = [];
         $i = 0;
         foreach ($paramTypes as $name => $type) {
             $param = $params[$name] ?? $params[$i] ?? null;
             if (isset($param)) {
-                $ret[] = $this->normalizer->denormalize($param, $type);
+                try {
+                    $ret[] = $this->normalizer->denormalize($param, $type);
+                } catch (Exception $e) {
+                    throw new InvalidParameterException("method {$service->getServiceName()}.$methodName parameter $name resolve fail", 0, $e);
+                }
             } else {
                 $ret[] = null;
             }

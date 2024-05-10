@@ -18,6 +18,7 @@ use kuiper\jsonrpc\core\JsonRpcProtocol;
 use kuiper\jsonrpc\exception\ErrorCode;
 use kuiper\jsonrpc\exception\JsonRpcRequestException;
 use kuiper\rpc\exception\InvalidMethodException;
+use kuiper\rpc\exception\InvalidParameterException;
 use kuiper\rpc\RpcMethodFactoryInterface;
 use kuiper\rpc\RpcMethodInterface;
 use kuiper\rpc\RpcServerRequestInterface;
@@ -84,7 +85,9 @@ class JsonRpcServerRequestFactory implements RpcServerRequestFactoryInterface
         try {
             return $this->rpcMethodFactory->create($serviceName, $methodName, $params);
         } catch (InvalidMethodException $e) {
-            throw new JsonRpcRequestException($id, "JsonRPC method '{$method}' not found", ErrorCode::ERROR_INVALID_METHOD);
+            throw new JsonRpcRequestException($id, "JsonRPC method '{$method}' resolve failed: ".$e->getMessage(), ErrorCode::ERROR_INVALID_METHOD);
+        } catch (InvalidParameterException $e) {
+            throw new JsonRpcRequestException($id, "JsonRPC method '{$method}' parameter resolve failed: ".$e->getMessage(), ErrorCode::ERROR_INVALID_METHOD);
         }
     }
 }
