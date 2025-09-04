@@ -128,10 +128,11 @@ class HttpRpcRequestFactory implements RpcRequestFactoryInterface
             }
             $queryParam = $this->getAttribute($parameter['parameter'], QueryParam::class);
             if (null !== $queryParam) {
+                $paramName = $queryParam->getName() ?? $name;
                 if (is_object($value)) {
-                    $query[$queryParam->getName()] = $this->normalizer->normalize($value);
+                    $query[$paramName] = $this->normalizer->normalize($value);
                 } else {
-                    $query[$queryParam->getName()] = $value;
+                    $query[$paramName] = $value;
                 }
                 continue;
             }
