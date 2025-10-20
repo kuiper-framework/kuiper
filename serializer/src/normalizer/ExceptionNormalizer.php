@@ -47,6 +47,9 @@ class ExceptionNormalizer implements NormalizerInterface
      */
     public function denormalize(mixed $data, string|ReflectionTypeInterface $className): mixed
     {
+        if (!is_string($data)) {
+            throw new UnexpectedValueException('Bad exception data: '.json_encode($data));
+        }
         $exception = unserialize(base64_decode($data, true), ['allowed_classes' => true]);
         if (false === $exception) {
             throw new UnexpectedValueException('Bad exception data: '.json_encode($data));
