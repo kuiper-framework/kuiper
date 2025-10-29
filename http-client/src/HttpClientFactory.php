@@ -37,7 +37,7 @@ class HttpClientFactory implements HttpClientFactoryInterface, LoggerAwareInterf
 
     public function create(array $options = []): ClientInterface
     {
-        if (!isset($options['timeout'], $options['connect_timeout'])) {
+        if (!isset($options['timeout'])) {
             // set default timeout
             $options['timeout'] = 60.0;
         }
