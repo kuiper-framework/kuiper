@@ -50,7 +50,11 @@ class ExceptionNormalizer implements NormalizerInterface
         if (!is_string($data)) {
             throw new UnexpectedValueException('Bad exception data: '.json_encode($data));
         }
-        $exception = unserialize(base64_decode($data, true), ['allowed_classes' => true]);
+        $serialized = base64_decode($data, true);
+        if (false === $serialized) {
+            throw new UnexpectedValueException('Bad exception data: '.json_encode($data));
+        }
+        $exception = unserialize($serialized, ['allowed_classes' => true]);
         if (false === $exception) {
             throw new UnexpectedValueException('Bad exception data: '.json_encode($data));
         }
