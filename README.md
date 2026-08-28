@@ -4,4 +4,4 @@ Kuiper 希望能像 Spring Boot 一样简化 PHP 应用开发，通过简单的�
 
 ## 文档
 
-https://kuiper.wiki
+https://kuiper-framework.github.io/
